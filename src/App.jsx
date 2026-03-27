@@ -3,6 +3,7 @@ import { Routes, Route } from 'react-router-dom'
 import Header from './components/Header/Header'
 import SideBar from './components/SideBar/SideBar'
 import Home from './pages/Home/Home'
+import Customers from './pages/Customers/Customers' // <-- import the new page
 
 function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -23,8 +24,8 @@ function App() {
         {/* Page routes */}
         <Routes>
           <Route path="/" element={<Home />} />
-          {/* Add more routes here as you build more pages:
-            <Route path="/customers" element={<Customers />} />
+          <Route path="/customers" element={<Customers />} /> {/* Added Customers route */}
+          {/* Future routes:
             <Route path="/customers/:id" element={<CustomerDetail />} />
             <Route path="/tasks" element={<Tasks />} />
             <Route path="/settings" element={<Settings />} />
