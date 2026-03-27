@@ -1,26 +1,54 @@
-import React, { useState } from "react";
-import styles from "./Customers.module.css";
+import { useState, useRef } from 'react'
+import styles from './Customers.module.css'
 
-const Customers = () => {
-  const [search, setSearch] = useState("");
-  const [customers, setCustomers] = useState([]);
-  const [formOpen, setFormOpen] = useState(false);
+function Customers() {
+  const [customers, setCustomers] = useState([])
+  const [search, setSearch] = useState('')
+  const [formOpen, setFormOpen] = useState(false)
+  const [photo, setPhoto] = useState(null)
+  const [name, setName] = useState('')
+  const [phone, setPhone] = useState('')
+  const photoInputRef = useRef(null)
 
   const filteredCustomers = customers.filter(c =>
-    c.name.toLowerCase().includes(search.toLowerCase())
-  );
+    c.name.toLowerCase().includes(search.toLowerCase()) ||
+    c.phone.includes(search)
+  )
+
+  const openForm = () => setFormOpen(true)
+  const closeForm = () => {
+    setFormOpen(false)
+    setName('')
+    setPhone('')
+    setPhoto(null)
+  }
+
+  const handlePhotoChange = (e) => {
+    const file = e.target.files[0]
+    if (file) setPhoto(URL.createObjectURL(file))
+  }
+
+  const addCustomer = () => {
+    if (!name) return
+    setCustomers(prev => [...prev, { id: Date.now(), name, phone, photo }])
+    closeForm()
+  }
+
+  const deleteCustomer = (id) => {
+    setCustomers(prev => prev.filter(c => c.id !== id))
+  }
 
   return (
-    <div className={styles.customersPage}>
+    <>
       {/* SEARCH */}
       <div className={styles.searchContainer}>
         <div className={styles.searchBox}>
-          <span className={`material-icons ${styles.mi}`}>search</span>
+          <span className="mi" style={{ color: 'var(--text3)', fontSize: '1.1rem' }}>search</span>
           <input
             type="text"
             placeholder="Search clients…"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={e => setSearch(e.target.value)}
           />
         </div>
       </div>
@@ -30,80 +58,87 @@ const Customers = () => {
 
       {/* CUSTOMER LIST */}
       <div className={styles.scrollArea}>
-        {filteredCustomers.length > 0 ? (
-          filteredCustomers.map((cust, idx) => (
-            <div key={idx} className={styles.customerCard}>
-              <div className={styles.custAvatar}>{cust.initials}</div>
-              <div className={styles.custInfo}>
-                <div className={styles.custName}>{cust.name}</div>
-                <div className={styles.custMeta}>{cust.phone}</div>
-              </div>
-              <button className={styles.custDeleteBtn}>🗑️</button>
-            </div>
-          ))
-        ) : (
+        {filteredCustomers.length === 0 && customers.length === 0 && (
           <div className={styles.emptyState}>
-            <div className="material-icons emptyIcon">👤</div>
+            <div className={styles.emptyIcon}>👤</div>
             <p>No clients yet.</p>
             <span>Tap + to add your first client</span>
           </div>
         )}
+        {filteredCustomers.length === 0 && customers.length > 0 && (
+          <div className={styles.emptyState}>
+            <div className={styles.emptyIcon}>🔍</div>
+            <p>No matches found.</p>
+            <span>Try a different name or number</span>
+          </div>
+        )}
+        {filteredCustomers.map(c => (
+          <div key={c.id} className={styles.customerCard}>
+            <div className={styles.custAvatar}>
+              {c.photo ? <img src={c.photo} alt={c.name} /> : c.name[0]}
+            </div>
+            <div className={styles.custInfo}>
+              <div className={styles.custName}>{c.name}</div>
+              <div className={styles.custMeta}>{c.phone}</div>
+            </div>
+            <button
+              className={styles.custDeleteBtn}
+              onClick={() => deleteCustomer(c.id)}
+            >✕</button>
+          </div>
+        ))}
       </div>
 
       {/* FAB */}
-      <button className={styles.fab} onClick={() => setFormOpen(true)}>
-        <span className="material-icons">add</span>
+      <button className={styles.fab} onClick={openForm}>
+        <span className="mi">add</span>
       </button>
 
       {/* ADD CUSTOMER FORM */}
-      {formOpen && (
-        <div className={styles.formOverlay}>
-          <div className={styles.formHeader}>
-            <button
-              className="material-icons"
-              onClick={() => setFormOpen(false)}
-            >
-              arrow_back
-            </button>
-            <div className={styles.formHeaderTitle}>New Client</div>
-            <div style={{ width: 36 }}></div>
+      <div className={`${styles.formOverlay} ${formOpen ? styles.open : ''}`}>
+        <div className={styles.formHeader}>
+          <button
+            className="mi"
+            onClick={closeForm}
+            style={{ background: 'none', border: 'none', color: 'var(--text)', fontSize: '1.8rem', cursor: 'pointer' }}
+          >arrow_back</button>
+          <div className={styles.formHeaderTitle}>New Client</div>
+          <div style={{ width: '36px' }} />
+        </div>
+        <div className={styles.formBody}>
+          <div className={styles.photoPicker} onClick={() => photoInputRef.current.click()}>
+            {!photo && <div className={styles.photoPickerInitials}>+</div>}
+            {photo && <img src={photo} alt="Profile" />}
+            <div className={styles.camBadge}><span className="mi" style={{ fontSize: '0.9rem' }}>photo_camera</span></div>
+            <input type="file" accept="image/*" hidden ref={photoInputRef} onChange={handlePhotoChange} />
           </div>
-
-          <div className={styles.formBody}>
-            <div className={styles.photoPicker} onClick={() => {}}>
-              <div className={styles.photoPickerInitials}>A</div>
-              <div className={styles.camBadge}>📷</div>
-            </div>
-
-            <div className={styles.inputGroup}>
-              <label className={styles.inputLabel}>Name</label>
-              <input className={styles.formInput} type="text" />
-            </div>
-
-            <div className={styles.inputGroup}>
-              <label className={styles.inputLabel}>Phone</label>
-              <input className={styles.formInput} type="text" />
-            </div>
-
-            <div className={styles.inputRow}>
-              <div className={styles.inputGroup}>
-                <label className={styles.inputLabel}>Email</label>
-                <input className={styles.formInput} type="email" />
-              </div>
-              <div className={styles.inputGroup}>
-                <label className={styles.inputLabel}>Address</label>
-                <input className={styles.formInput} type="text" />
-              </div>
-            </div>
+          <div className={styles.inputGroup}>
+            <label className={styles.inputLabel}>Name</label>
+            <input
+              className={styles.formInput}
+              type="text"
+              value={name}
+              onChange={e => setName(e.target.value)}
+              placeholder="John Doe"
+            />
           </div>
-
-          <div className={styles.formSaveBar}>
-            <button className={styles.btnSave}>Save</button>
+          <div className={styles.inputGroup}>
+            <label className={styles.inputLabel}>Phone</label>
+            <input
+              className={styles.formInput}
+              type="text"
+              value={phone}
+              onChange={e => setPhone(e.target.value)}
+              placeholder="+234 801 234 5678"
+            />
           </div>
         </div>
-      )}
-    </div>
-  );
-};
+        <div className={styles.formSaveBar}>
+          <button className={styles.btnSave} onClick={addCustomer}>Add Client</button>
+        </div>
+      </div>
+    </>
+  )
+}
 
-export default Customers;
+export default Customers
