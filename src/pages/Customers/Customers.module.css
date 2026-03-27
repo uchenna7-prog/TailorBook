@@ -8,47 +8,6 @@
   background: var(--bg);
 }
 
-/* ── HEADER ── */
-.header {
-  padding: calc(14px + var(--st)) 20px 14px;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  background: var(--bg);
-  border-bottom: 1px solid var(--border);
-  flex-shrink: 0;
-}
-
-.headerTitle {
-  font-size: 1.2rem;
-  font-weight: 800;
-  letter-spacing: -0.3px;
-  flex: 1;
-}
-
-.headerActions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.iconBtn {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  background: none;
-  border: none;
-  color: var(--text2);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.15s;
-}
-.iconBtn:active {
-  background: var(--surface2);
-}
-
 /* ── SEARCH ── */
 .searchContainer {
   padding: 14px 20px 10px;
