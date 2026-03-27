@@ -343,16 +343,6 @@ export default function Customers() {
   return (
     <div className={styles.page}>
 
-      {/* Header */}
-      <header className={styles.header}>
-        <div className={styles.headerTitle}>Clients</div>
-        <div className={styles.headerActions}>
-          <button className={styles.iconBtn}>
-            <span className="mi" style={{ fontSize: '1.3rem' }}>filter_list</span>
-          </button>
-        </div>
-      </header>
-
       {/* Search */}
       <div className={styles.searchContainer}>
         <div className={styles.searchBox}>
