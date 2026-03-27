@@ -43,8 +43,11 @@ function SideBar({ isOpen, onClose }) {
               className={`${styles.navItem} ${location.pathname === item.path ? styles.active : ''}`}
               onClick={() => handleNav(item.path)}
             >
-              <span className="mi">{item.icon}</span>
+              <span className="mi nav-icon">{item.icon}</span>
               {item.label}
+              {item.path === '/customers' && (
+                <span className={styles.navBadge} id="clientCountBadge">1</span>
+              )}
             </button>
           ))}
         </div>
