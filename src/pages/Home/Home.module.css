@@ -1,133 +1,91 @@
-:root {
-  /* ── COLORS ── */
-  --bg: #F5F5F5;        /* Light neutral background */
-  --surface: #FFFFFF;    /* Card / section background */
-  --surface2: #F0E6DC;   /* Slightly warmer card variant for actions */
-  --border: #DDD6CC;     /* Subtle border */
-  --border2: #CFC2B1;    /* Darker border for interaction */
-  --accent: #D67C4F;     /* Warm terracotta accent */
-  --text: #222222;       /* Primary text */
-  --text2: #555555;      /* Secondary text */
-  --text3: #888888;      /* Labels / less prominent text */
-  --success: #3A9D23;    /* Subtle green */
-  --error: #C0392B;      /* Elegant red */
-  --sb: env(safe-area-inset-bottom, 0px);
-  --st: env(safe-area-inset-top, 0px);
+.main {
+  padding: 20px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
 }
 
-/* ── GLOBAL ── */
-* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-html, body { 
-  height: 100%; 
-  background: var(--bg); 
-  color: var(--text); 
-  font-family: 'DM Sans', sans-serif; 
-  -webkit-font-smoothing: antialiased; 
-  overflow-x: hidden; 
-}
-
-.mi { 
-  font-family: 'Material Icons Round'; 
-  font-style: normal; 
-  font-weight: 400; 
-  display: inline-flex; 
-  align-items: center; 
-  justify-content: center; 
-  text-transform: none;
-}
-
-/* ── PAGE ── */
-.page {
-  padding: 24px 20px calc(40px + var(--sb));
-}
-
-/* ── GREETING ── */
-.greeting {
-  margin-bottom: 32px;
-}
-.greetSub {
-  font-size: 0.8rem;
-  color: var(--text3);
-  font-weight: 600;
-  margin-bottom: 4px;
-}
-.greetTitle {
-  font-size: 1.6rem;
-  font-weight: 800;
-  letter-spacing: -0.5px;
-  line-height: 1.2;
-}
-
-/* ── SECTIONS ── */
+/* Sections */
 .section {
-  margin-bottom: 28px;
-  border-top: 1px solid var(--border);
-  padding-top: 20px;
+  margin-bottom: 24px;
 }
-.sectionLabel {
-  font-size: 0.7rem;
+
+.sectionTitle {
+  font-size: 0.75rem;
   font-weight: 800;
   color: var(--text3);
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 1.2px;
   margin-bottom: 12px;
 }
 
-/* ── QUICK ACTIONS ── */
-.quickGrid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-}
-.quickCard {
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 16px 8px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  transition: 0.2s;
-}
-.quickCard:active {
-  background: var(--surface);
-  border-color: var(--border2);
-}
-.quickLabel {
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--text2);
-  text-align: center;
+.divider {
+  border: 0;
+  height: 1px;
+  background: var(--border);
+  margin: 20px 0;
 }
 
-/* ── STATS ── */
-.statsRow {
+/* Stats Grid */
+.statsGrid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
+  gap: 12px;
 }
+
 .statCard {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 14px;
-  padding: 16px 12px;
+  padding: 18px 10px;
   text-align: center;
 }
+
 .statVal {
-  font-size: 1.3rem;
+  font-size: 1.4rem;
   font-weight: 800;
+  display: block;
   margin-bottom: 2px;
 }
-.statLbl {
-  font-size: 0.65rem;
-  font-weight: 700;
+
+.statLabel {
+  font-size: 0.6rem;
   color: var(--text3);
+  font-weight: 700;
   text-transform: uppercase;
 }
 
-/* ── URGENT TASKS ── */
+/* Quick Actions Grid */
+.actionsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.actionBox {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  padding: 24px 15px;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.actionBox:active {
+  transform: scale(0.95);
+  background: var(--surface);
+}
+
+.icon {
+  font-size: 1.8rem;
+  color: var(--accent);
+}
+
+/* Urgent Tasks */
 .taskCard {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -135,10 +93,31 @@ html, body {
   padding: 16px;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 15px;
   margin-bottom: 10px;
 }
-.taskIcon { color: var(--success); font-size: 1.4rem; }
-.taskInfo { flex: 1; }
-.taskName { font-size: 0.9rem; font-weight: 700; margin-bottom: 2px; }
-.taskDate { font-size: 0.72rem; color: var(--text3); font-weight: 500; }
+
+.taskIcon {
+  color: var(--success);
+  font-size: 1.4rem;
+}
+
+.taskInfo {
+  flex: 1;
+}
+
+.taskName {
+  font-size: 0.9rem;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.taskDate {
+  font-size: 0.72rem;
+  color: var(--text3);
+  font-weight: 500;
+}
+
+.chevron {
+  color: var(--text4);
+}
