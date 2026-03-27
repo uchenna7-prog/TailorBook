@@ -1,109 +1,271 @@
-import React, { useState } from "react";
-import styles from "./Customers.module.css";
+:root {
+  --bg: #000;
+  --surface: #0a0a0a;
+  --surface2: #121212;
+  --border: #1f1f1f;
+  --border2: #2a2a2a;
+  --accent: #fff;
+  --text: #fff;
+  --text2: #a0a0a0;
+  --text3: #555;
+  --danger: #ff4d4d;
+  --success: #22c55e;
+  --sb: env(safe-area-inset-bottom, 0px);
+  --st: env(safe-area-inset-top, 0px);
+}
 
-const Customers = () => {
-  const [search, setSearch] = useState("");
-  const [customers, setCustomers] = useState([]);
-  const [formOpen, setFormOpen] = useState(false);
+.customersPage {
+  height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  overflow: hidden;
+}
 
-  const filteredCustomers = customers.filter(c =>
-    c.name.toLowerCase().includes(search.toLowerCase())
-  );
+.mi {
+  font-family: 'Material Icons' !important;
+  font-weight: normal;
+  font-style: normal;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+}
 
-  return (
-    <div className={styles.customersPage}>
-      {/* SEARCH */}
-      <div className={styles.searchContainer}>
-        <div className={styles.searchBox}>
-          <span className={`material-icons ${styles.mi}`}>search</span>
-          <input
-            type="text"
-            placeholder="Search clients…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-      </div>
+.searchContainer {
+  padding: 14px 20px 10px;
+}
+.searchBox {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 14px;
+}
+.searchBox input {
+  background: transparent;
+  border: none;
+  color: var(--text);
+  font-size: 0.9rem;
+  width: 100%;
+  outline: none;
+}
+.searchBox input::placeholder {
+  color: var(--text3);
+}
 
-      {/* SECTION LABEL */}
-      <div className={styles.sectionLabel}>All Clients</div>
+.sectionLabel {
+  font-size: 0.62rem;
+  font-weight: 800;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 0 20px 10px;
+}
 
-      {/* CUSTOMER LIST */}
-      <div className={styles.scrollArea}>
-        {filteredCustomers.length > 0 ? (
-          filteredCustomers.map((cust, idx) => (
-            <div key={idx} className={styles.customerCard}>
-              <div className={styles.custAvatar}>{cust.initials}</div>
-              <div className={styles.custInfo}>
-                <div className={styles.custName}>{cust.name}</div>
-                <div className={styles.custMeta}>{cust.phone}</div>
-              </div>
-              <button className={styles.custDeleteBtn}>🗑️</button>
-            </div>
-          ))
-        ) : (
-          <div className={styles.emptyState}>
-            <div className="material-icons emptyIcon">👤</div>
-            <p>No clients yet.</p>
-            <span>Tap + to add your first client</span>
-          </div>
-        )}
-      </div>
+.scrollArea {
+  height: calc(100dvh - 160px);
+  overflow-y: auto;
+  padding: 0 20px calc(30px + var(--sb));
+  -webkit-overflow-scrolling: touch;
+}
 
-      {/* FAB */}
-      <button className={styles.fab} onClick={() => setFormOpen(true)}>
-        <span className="material-icons">add</span>
-      </button>
+.customerCard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.custAvatar {
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--text2);
+}
+.custInfo {
+  flex: 1;
+  min-width: 0;
+}
+.custName {
+  font-size: 0.95rem;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.custMeta {
+  font-size: 0.7rem;
+  color: var(--text3);
+  font-weight: 600;
+  margin-top: 2px;
+}
+.custDeleteBtn {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: none;
+  border: 1px solid var(--border2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: background 0.15s, border-color 0.15s;
+}
 
-      {/* ADD CUSTOMER FORM */}
-      {formOpen && (
-        <div className={styles.formOverlay}>
-          <div className={styles.formHeader}>
-            <button
-              className="material-icons"
-              onClick={() => setFormOpen(false)}
-            >
-              arrow_back
-            </button>
-            <div className={styles.formHeaderTitle}>New Client</div>
-            <div style={{ width: 36 }}></div>
-          </div>
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 80px;
+  gap: 10px;
+  text-align: center;
+}
 
-          <div className={styles.formBody}>
-            <div className={styles.photoPicker} onClick={() => {}}>
-              <div className={styles.photoPickerInitials}>A</div>
-              <div className={styles.camBadge}>📷</div>
-            </div>
+.fab {
+  position: fixed;
+  bottom: calc(28px + var(--sb));
+  right: 22px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  box-shadow: 0 8px 24px rgba(255,255,255,0.12);
+  border: none;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
 
-            <div className={styles.inputGroup}>
-              <label className={styles.inputLabel}>Name</label>
-              <input className={styles.formInput} type="text" />
-            </div>
+.formOverlay {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  z-index: 800;
+  transform: translateY(0);
+  display: flex;
+  flex-direction: column;
+}
 
-            <div className={styles.inputGroup}>
-              <label className={styles.inputLabel}>Phone</label>
-              <input className={styles.formInput} type="text" />
-            </div>
+.formHeader {
+  padding: calc(12px + var(--st)) 20px 12px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
 
-            <div className={styles.inputRow}>
-              <div className={styles.inputGroup}>
-                <label className={styles.inputLabel}>Email</label>
-                <input className={styles.formInput} type="email" />
-              </div>
-              <div className={styles.inputGroup}>
-                <label className={styles.inputLabel}>Address</label>
-                <input className={styles.formInput} type="text" />
-              </div>
-            </div>
-          </div>
+.formHeaderTitle {
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--text2);
+}
 
-          <div className={styles.formSaveBar}>
-            <button className={styles.btnSave}>Save</button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
+.formBody {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px 20px calc(100px + var(--sb));
+}
 
-export default Customers;
+.photoPicker {
+  width: 90px;
+  height: 90px;
+  background: var(--surface2);
+  border-radius: 50%;
+  margin: 0 auto 32px;
+  position: relative;
+  border: 1px solid var(--border2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.photoPickerInitials {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--text3);
+}
+
+.camBadge {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 28px;
+  height: 28px;
+  background: var(--accent);
+  color: #000;
+  border-radius: 50%;
+  border: 2.5px solid var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.inputGroup { margin-bottom: 14px; }
+.inputLabel {
+  font-size: 0.6rem;
+  font-weight: 800;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: block;
+  margin-bottom: 6px;
+}
+.formInput {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 12px;
+  padding: 14px 16px;
+  color: var(--text);
+  font-size: 0.9rem;
+  outline: none;
+}
+.formInput:focus { border-color: var(--text2); }
+
+.inputRow { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+.formSaveBar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 16px 20px calc(16px + var(--sb));
+}
+.btnSave {
+  background: var(--accent);
+  color: #000;
+  width: 100%;
+  padding: 17px;
+  border-radius: 14px;
+  font-weight: 800;
+  border: none;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
