@@ -1,1 +1,67 @@
-...
+import { useLocation, useNavigate } from 'react-router-dom'
+import styles from './SideBar.module.css'
+
+const NAV_ITEMS = [
+  { path: '/',          icon: 'home',       label: 'Home' },
+  { path: '/customers', icon: 'group',      label: 'Clients' },
+  { path: '/tasks',     icon: 'assignment', label: 'Tasks' },
+  { path: '/settings',  icon: 'settings',   label: 'Settings' },
+]
+
+function SideBar({ isOpen, onClose }) {
+  const location = useLocation()
+  const navigate = useNavigate()
+
+  const handleNav = (path) => {
+    navigate(path)
+    onClose()
+  }
+
+  return (
+    <>
+      {/* Backdrop overlay — only rendered when open on mobile */}
+      <div
+        className={`${styles.overlay} ${isOpen ? styles.overlayOpen : ''}`}
+        onClick={onClose}
+      />
+
+      {/* Sidebar panel */}
+      <nav className={`${styles.sidebar} ${isOpen ? styles.open : ''}`}>
+        {/* Brand */}
+        <div className={styles.top}>
+          <div className={styles.brand}>
+            Tailor<span>Book</span>
+          </div>
+          <div className={styles.tagline}>Customer management</div>
+        </div>
+
+        {/* Nav items */}
+        <div className={styles.nav}>
+          {NAV_ITEMS.map(item => (
+            <button
+              key={item.path}
+              className={`${styles.navItem} ${location.pathname === item.path ? styles.active : ''}`}
+              onClick={() => handleNav(item.path)}
+            >
+              <span className="mi">{item.icon}</span>
+              {item.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Footer */}
+        <div className={styles.footer}>
+          <div className={styles.user}>
+            <div className={styles.avatar}>TB</div>
+            <div>
+              <div className={styles.userName}>My Tailor Shop</div>
+              <div className={styles.userRole}>Tailor · Owner</div>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </>
+  )
+}
+
+export default SideBar
