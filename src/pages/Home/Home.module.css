@@ -1,5 +1,5 @@
 .main {
-  padding: 20px;
+  padding: 22px;
   background: var(--bg);
   color: var(--text);
   font-family: 'DM Sans', sans-serif;
@@ -7,99 +7,116 @@
 
 /* Sections */
 .section {
-  margin-bottom: 24px;
+  margin-bottom: 28px;
 }
 
 .sectionTitle {
-  font-size: 0.75rem;
+  font-size: 0.76rem;
   font-weight: 800;
   color: var(--text3);
   text-transform: uppercase;
   letter-spacing: 1.2px;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 
 .divider {
   border: 0;
   height: 1px;
   background: var(--border);
-  margin: 20px 0;
+  margin: 22px 0;
 }
 
-/* Stats Grid */
+/* Greeting */
+.greetSub {
+  color: var(--text3);
+  font-size: 0.85rem;
+  margin-bottom: 6px;
+}
+
+.greetTitle {
+  font-size: 2.2rem;
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  margin: 0;
+  letter-spacing: -0.5px;
+}
+
+.greetDesc {
+  margin-top: 8px;
+  color: var(--text3);
+  line-height: 1.5;
+  font-size: 0.9rem;
+}
+
+/* Stats */
 .statsGrid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
+  gap: 14px;
 }
 
 .statCard {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 18px 10px;
+  border-radius: 18px;
+  padding: 20px 12px;
   text-align: center;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03);
 }
 
 .statVal {
-  font-size: 1.4rem;
+  font-size: 1.3rem;
   font-weight: 800;
   display: block;
-  margin-bottom: 2px;
+  margin-bottom: 4px;
 }
 
 .statLabel {
-  font-size: 0.6rem;
+  font-size: 0.62rem;
   color: var(--text3);
   font-weight: 700;
   text-transform: uppercase;
 }
 
-/* Quick Actions Grid */
+/* Quick Actions */
 .actionsGrid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
+  gap: 14px;
 }
 
 .actionBox {
-  background: var(--surface2);
+  background: var(--surface);
   border: 1px solid var(--border);
   padding: 24px 15px;
-  border-radius: 16px;
+  border-radius: 18px;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 12px;
   cursor: pointer;
-  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.2s ease;
 }
 
 .actionBox:active {
-  transform: scale(0.95);
-  background: var(--surface);
+  transform: scale(0.96);
 }
 
 .icon {
-  font-size: 1.8rem;
+  font-size: 1.9rem;
   color: var(--accent);
 }
 
-/* Urgent Tasks */
+/* Recent Orders */
 .taskCard {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 16px;
+  border-radius: 18px;
+  padding: 18px;
   display: flex;
   align-items: center;
-  gap: 15px;
-  margin-bottom: 10px;
-}
-
-.taskIcon {
-  color: var(--success);
-  font-size: 1.4rem;
+  justify-content: space-between;
+  margin-bottom: 12px;
 }
 
 .taskInfo {
@@ -107,17 +124,21 @@
 }
 
 .taskName {
-  font-size: 0.9rem;
+  font-size: 0.92rem;
   font-weight: 700;
-  margin-bottom: 2px;
+  margin-bottom: 4px;
 }
 
 .taskDate {
-  font-size: 0.72rem;
+  font-size: 0.74rem;
   color: var(--text3);
-  font-weight: 500;
 }
 
-.chevron {
-  color: var(--text4);
+.statusChip {
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: var(--surface2);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--accent);
 }
