@@ -26,16 +26,14 @@ function SideBar({ isOpen, onClose }) {
 
   return (
     <>
-      {/* Mobile overlay */}
       <div
         className={`${styles.overlay} ${isOpen ? styles.overlayOpen : ''}`}
         onClick={onClose}
       />
 
-      {/* Sidebar */}
       <nav className={`${styles.sidebar} ${isOpen ? styles.open : ''}`}>
         
-        {/* Top branding + user */}
+        {/* Fixed top */}
         <div className={styles.top}>
           <div className={styles.brand}>
             Tailor<span>Flow</span>
@@ -48,35 +46,34 @@ function SideBar({ isOpen, onClose }) {
           </div>
         </div>
 
-        {/* Nav links */}
-        <div className={styles.nav}>
-          {NAV_ITEMS.map((item) => (
-            <button
-              key={item.path}
-              className={`${styles.navItem} ${
-                location.pathname === item.path ? styles.active : ''
-              }`}
-              onClick={() => handleNav(item.path)}
-            >
-              <span className="mi">{item.icon}</span>
-              {item.label}
+        {/* Scrollable section */}
+        <div className={styles.scrollArea}>
+          <div className={styles.nav}>
+            {NAV_ITEMS.map((item) => (
+              <button
+                key={item.path}
+                className={`${styles.navItem} ${
+                  location.pathname === item.path ? styles.active : ''
+                }`}
+                onClick={() => handleNav(item.path)}
+              >
+                <span className="mi">{item.icon}</span>
+                {item.label}
+              </button>
+            ))}
+          </div>
+
+          <div className={styles.footer}>
+            <button className={styles.footerLink}>
+              Terms & Conditions
             </button>
-          ))}
-        </div>
-
-        {/* Legal links */}
-        <div className={styles.footer}>
-          <button className={styles.footerLink}>
-            Terms & Conditions
-          </button>
-
-          <button className={styles.footerLink}>
-            Refund / Cancellation Policy
-          </button>
-
-          <button className={styles.footerLink}>
-            Privacy Policy
-          </button>
+            <button className={styles.footerLink}>
+              Refund / Cancellation Policy
+            </button>
+            <button className={styles.footerLink}>
+              Privacy Policy
+            </button>
+          </div>
         </div>
       </nav>
     </>
