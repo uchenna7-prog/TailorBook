@@ -6,6 +6,7 @@ const CustomerContext = createContext(null)
 
 export function CustomerProvider({ children }) {
   const [customers, setCustomers] = useState([])
+  const [loaded, setLoaded] = useState(false)
 
   // Load once on mount
   useEffect(() => {
@@ -23,14 +24,17 @@ export function CustomerProvider({ children }) {
       }
     } catch {
       setCustomers([])
+    } finally {
+      setLoaded(true)
     }
   }, [])
 
-  // Persist whenever customers changes
+  // Persist whenever customers changes (but not on initial empty load)
   useEffect(() => {
+    if (!loaded) return
     try { localStorage.setItem(CUST_KEY, JSON.stringify(customers)) }
     catch { /* ignore */ }
-  }, [customers])
+  }, [customers, loaded])
 
   const addCustomer = useCallback((customer) => {
     setCustomers(prev => [customer, ...prev])
@@ -49,7 +53,7 @@ export function CustomerProvider({ children }) {
   }, [customers])
 
   return (
-    <CustomerContext.Provider value={{ customers, addCustomer, updateCustomer, deleteCustomer, getCustomer }}>
+    <CustomerContext.Provider value={{ customers, loaded, addCustomer, updateCustomer, deleteCustomer, getCustomer }}>
       {children}
     </CustomerContext.Provider>
   )
