@@ -142,6 +142,7 @@ export default function InvoiceTab({ invoices, orders, measurements, customer, o
   }, [invoices, orders, measurements, onSave, showToast])
 
   const handleDeleteConfirm = () => {
+    if (!confirmDel) return
     onDelete(confirmDel.id)
     showToast('Invoice deleted')
     setConfirmDel(null)
