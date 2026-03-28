@@ -22,13 +22,13 @@ function Home({ onMenuClick }) {
       <Header onMenuClick={onMenuClick} />
 
       <main className={styles.main}>
-        {/* Signature Greeting */}
+        {/* Greeting */}
         <section className={styles.heroSection}>
           <div className={styles.greetHeader}>
-            <span className={styles.greetSub}>Welcome back</span>
-            <span>✨</span>
+            <span className={styles.greetText}>Welcome back,</span>
+            <span className={styles.signatureName}>Uchenna</span>
+            <span className={styles.sparkle}>✨</span>
           </div>
-          <h1 className={styles.signatureName}>Uchenna</h1>
         </section>
 
         <div className={styles.sectionDivider} />
