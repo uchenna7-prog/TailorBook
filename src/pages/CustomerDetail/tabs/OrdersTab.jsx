@@ -219,6 +219,7 @@ export default function OrdersTab({ orders, measurements, onSave, onDelete, onSt
   }
 
   const handleDeleteConfirm = () => {
+    if (!confirmDel) return
     onDelete(confirmDel.id)
     showToast('Order deleted')
     setConfirmDel(null)
