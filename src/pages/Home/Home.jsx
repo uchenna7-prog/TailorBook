@@ -25,7 +25,7 @@ function Home({ onMenuClick }) {
         {/* Greeting */}
         <section className={styles.section}>
           <p className={styles.greetSub}>Welcome back 👋</p>
-          <h1 className={styles.greetTitle}>My Tailor Shop</h1>
+          <h1 className={styles.greetTitle}>Uchenna</h1>
         </section>
 
         {/* Overview */}
