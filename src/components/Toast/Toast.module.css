@@ -1,0 +1,2 @@
+.toast { position: fixed; bottom: calc(100px + var(--sb)); left: 50%; transform: translateX(-50%) translateY(20px); background: var(--surface); border: 1px solid var(--border2); color: var(--text); padding: 11px 20px; border-radius: 12px; font-size: 0.8rem; font-weight: 700; z-index: 9999; opacity: 0; transition: opacity 0.3s, transform 0.3s; white-space: nowrap; pointer-events: none; }
+.show { opacity: 1; transform: translateX(-50%) translateY(0); }
