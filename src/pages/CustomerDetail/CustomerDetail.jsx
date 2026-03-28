@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useCustomers } from '../../contexts/CustomerContext'
 import { useCustomerData } from '../../hooks/useCustomerData'
 import Header from '../../components/Header/Header'
-import Sidebar from '../../components/SideBar/SideBar'
+import SideBar from '../../components/SideBar/SideBar'
 import ConfirmSheet from '../../components/ConfirmSheet/ConfirmSheet'
 import Toast from '../../components/Toast/Toast'
 import MeasurementsTab from './tabs/MeasurementsTab'
@@ -69,7 +69,7 @@ export default function CustomerDetail() {
   return (
     <div className={styles.pageWrapper}>
       {/* Sidebar */}
-      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <SideBar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       {/* Header */}
       <Header onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
