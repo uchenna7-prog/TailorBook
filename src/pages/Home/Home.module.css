@@ -9,45 +9,46 @@
   margin: 0 auto;
 }
 
-/* Greeting / Hero */
+/* Section Separation */
+.sectionDivider {
+  height: 1px;
+  background: var(--border);
+  margin: 28px 0;
+  opacity: 0.6;
+}
+
+/* Greeting / Signature */
 .heroSection {
-  padding: 10px 0 30px;
+  padding: 10px 0 15px;
 }
 
 .greetHeader {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: -5px;
 }
 
 .greetSub {
   color: var(--text3);
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   text-transform: uppercase;
-  letter-spacing: 1.5px;
-  font-weight: 600;
+  letter-spacing: 2px;
+  font-weight: 700;
 }
 
 .signatureName {
   font-family: 'Playwrite IT Moderna', cursive;
-  font-size: 2.8rem;
-  font-weight: 400;
+  font-size: 3.2rem;
+  font-weight: 300;
   color: var(--text);
-  margin: 10px 0;
-  /* Making it look slightly handwritten/tilted like the picture */
-  transform: rotate(-1deg);
+  margin: 15px 0 5px;
+  /* Aggressive slant for a premium handwriting feel */
+  transform: skewX(-12deg); 
   display: inline-block;
+  letter-spacing: -1px;
 }
 
-.greetDesc {
-  color: var(--text2);
-  font-size: 0.95rem;
-  line-height: 1.6;
-  max-width: 90%;
-}
-
-/* Stats Section */
+/* Stats */
 .statsGrid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -65,27 +66,32 @@
 }
 
 .statRevenue {
-  background: linear-gradient(145deg, var(--surface), var(--bg));
+  background: linear-gradient(160deg, var(--surface), var(--bg));
   border-color: var(--accent);
 }
 
 .statLabel {
-  font-size: 0.65rem;
+  font-size: 0.6rem;
   color: var(--text3);
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.8px;
 }
 
 .statVal {
-  font-size: 1.25rem;
+  font-size: 1.2rem;
   font-weight: 800;
   color: var(--text);
 }
 
-/* Section Styling */
-.section {
-  margin-top: 35px;
+/* Sections */
+.sectionTitle {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  margin-bottom: 16px;
 }
 
 .sectionHeader {
@@ -95,23 +101,16 @@
   margin-bottom: 16px;
 }
 
-.sectionTitle {
-  font-size: 0.75rem;
-  font-weight: 800;
-  color: var(--text3);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
 .seeAll {
   background: none;
   border: none;
   color: var(--accent);
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   font-weight: 700;
+  text-transform: uppercase;
 }
 
-/* Quick Actions */
+/* Studio Tools */
 .actionsGrid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -121,42 +120,40 @@
 .actionBox {
   background: var(--surface);
   border: 1px solid var(--border);
-  padding: 20px;
-  border-radius: 24px;
+  padding: 18px;
+  border-radius: 22px;
   display: flex;
   align-items: center;
-  gap: 15px;
-  transition: all 0.2s ease;
+  gap: 12px;
+  transition: transform 0.2s;
 }
 
 .actionBox:active {
-  transform: scale(0.97);
-  background: var(--surface2);
+  transform: scale(0.96);
 }
 
 .iconCircle {
-  width: 42px;
-  height: 42px;
+  width: 38px;
+  height: 38px;
   background: var(--bg);
-  border-radius: 12px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border2);
 }
 
 .icon {
-  font-size: 1.4rem;
+  font-size: 1.25rem;
   color: var(--accent);
 }
 
 .actionLabel {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 700;
-  color: var(--text);
 }
 
-/* Recent Orders Stack */
+/* Orders Stack */
 .orderStack {
   display: flex;
   flex-direction: column;
@@ -166,16 +163,16 @@
 .orderCard {
   background: var(--surface);
   border: 1px solid var(--border);
-  padding: 16px;
-  border-radius: 20px;
+  padding: 14px;
+  border-radius: 18px;
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
 }
 
 .orderAvatar {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   background: var(--surface2);
   color: var(--accent);
   border-radius: 50%;
@@ -183,33 +180,27 @@
   align-items: center;
   justify-content: center;
   font-weight: 800;
-  font-size: 0.9rem;
-}
-
-.orderInfo {
-  flex: 1;
+  font-size: 0.85rem;
 }
 
 .orderTitle {
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   font-weight: 700;
-  color: var(--text);
   margin-bottom: 2px;
 }
 
 .orderSubtitle {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   color: var(--text3);
 }
 
 .statusBadge {
-  font-size: 0.65rem;
+  font-size: 0.62rem;
   font-weight: 800;
-  padding: 6px 12px;
-  border-radius: 10px;
+  padding: 6px 10px;
+  border-radius: 8px;
   background: var(--surface2);
-  color: var(--text2);
-  text-transform: uppercase;
+  color: var(--text3);
 }
 
 .ready {
