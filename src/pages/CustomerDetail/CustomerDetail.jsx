@@ -35,17 +35,6 @@ export default function CustomerDetail({ onMenuClick }) {
   const { getCustomer, deleteCustomer } = useCustomers()
   const customer    = getCustomer(id)
 
-  // ── EARLY RETURN IF CUSTOMER NOT FOUND ──
-  if (!customer) {
-    return (
-      <div className={styles.notFound}>
-        <p>Customer not found.</p>
-        <button onClick={() => navigate('/customers')}>Back to Clients</button>
-      </div>
-    )
-  }
-
-  // ── SAFE: Only call this hook if customer exists
   const data = useCustomerData(id)
 
   const [activeTab, setActiveTab]           = useState('Measurements')
@@ -60,10 +49,30 @@ export default function CustomerDetail({ onMenuClick }) {
     toastTimer.current = setTimeout(() => setToastMsg(''), 2400)
   }, [])
 
+  // ── CUSTOMER NOT FOUND ──
+  if (!customer) {
+    return (
+      <div className={styles.notFound}>
+        <p>Customer not found.</p>
+        <button onClick={() => navigate('/customers')}>Back to Clients</button>
+      </div>
+    )
+  }
+
+  // ── DATA LOADING CHECK ──
+  if (!data) {
+    return (
+      <div className={styles.notFound}>
+        <p>Loading customer data…</p>
+        <button onClick={() => navigate('/customers')}>Back to Clients</button>
+      </div>
+    )
+  }
+
   const initials   = getInitials(customer.name)
   const bdayBadge  = getBirthdayBadge(customer.birthday)
 
-  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(false) // kept for dropdown state only
 
   const handleDeleteCustomer = () => {
     deleteCustomer(id)
@@ -72,10 +81,12 @@ export default function CustomerDetail({ onMenuClick }) {
 
   return (
     <div className={styles.page}>
+
       <Header onMenuClick={onMenuClick} />
 
       {/* ── FIXED PROFILE AREA ── */}
       <div className={styles.fixedTop} id="topHeader">
+
         <div className={styles.profileArea}>
           <button className={styles.contactBtn} onClick={() => window.location = `mailto:${customer.email}`}>
             <span className="mi">mail_outline</span>
@@ -108,7 +119,6 @@ export default function CustomerDetail({ onMenuClick }) {
           )}
         </div>
 
-        {/* Tabs */}
         <div className={styles.tabs}>
           {TABS.map(tab => (
             <div
