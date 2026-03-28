@@ -49,21 +49,10 @@ export default function CustomerDetail({ onMenuClick }) {
     toastTimer.current = setTimeout(() => setToastMsg(''), 2400)
   }, [])
 
-  // ── CUSTOMER NOT FOUND ──
   if (!customer) {
     return (
       <div className={styles.notFound}>
         <p>Customer not found.</p>
-        <button onClick={() => navigate('/customers')}>Back to Clients</button>
-      </div>
-    )
-  }
-
-  // ── DATA LOADING CHECK ──
-  if (!data) {
-    return (
-      <div className={styles.notFound}>
-        <p>Loading customer data…</p>
         <button onClick={() => navigate('/customers')}>Back to Clients</button>
       </div>
     )
@@ -82,11 +71,13 @@ export default function CustomerDetail({ onMenuClick }) {
   return (
     <div className={styles.page}>
 
+      {/* Shared Header — same as all other pages */}
       <Header onMenuClick={onMenuClick} />
 
       {/* ── FIXED PROFILE AREA ── */}
       <div className={styles.fixedTop} id="topHeader">
 
+        {/* Profile */}
         <div className={styles.profileArea}>
           <button className={styles.contactBtn} onClick={() => window.location = `mailto:${customer.email}`}>
             <span className="mi">mail_outline</span>
@@ -119,6 +110,7 @@ export default function CustomerDetail({ onMenuClick }) {
           )}
         </div>
 
+        {/* Tabs */}
         <div className={styles.tabs}>
           {TABS.map(tab => (
             <div
@@ -167,6 +159,7 @@ export default function CustomerDetail({ onMenuClick }) {
         )}
       </div>
 
+      {/* FAB */}
       {activeTab !== 'Invoice' && (
         <button
           className={styles.fab}
@@ -179,6 +172,7 @@ export default function CustomerDetail({ onMenuClick }) {
         </button>
       )}
 
+      {/* Confirm delete customer */}
       <ConfirmSheet
         open={deleteConfirm}
         title="Delete Customer?"
