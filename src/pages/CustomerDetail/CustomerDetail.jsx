@@ -21,6 +21,7 @@ function getBirthdayBadge(birthday) {
   if (!birthday) return null
   const today = new Date()
   const bday = new Date(birthday + 'T00:00:00')
+
   const isToday =
     today.getMonth() === bday.getMonth() &&
     today.getDate() === bday.getDate()
@@ -31,12 +32,16 @@ function getBirthdayBadge(birthday) {
   })
 
   return {
-    label: isToday ? '🎂 Happy Birthday!' : `Birthday: ${label}`,
+    label: isToday ? 'Happy Birthday!' : `Birthday: ${label}`,
     isToday,
   }
 }
 
-const TABS = ['Measurements', 'Orders', 'Invoice']
+const TABS = [
+  { name: 'Measurements', icon: 'straighten' },
+  { name: 'Orders', icon: 'receipt_long' },
+  { name: 'Invoice', icon: 'request_quote' },
+]
 
 export default function CustomerDetail({ onMenuClick }) {
   const { id } = useParams()
@@ -60,6 +65,7 @@ export default function CustomerDetail({ onMenuClick }) {
   if (!customer) {
     return (
       <div className={styles.notFound}>
+        <span className="mi">person_off</span>
         <p>Customer not found.</p>
         <button onClick={() => navigate('/customers')}>
           Back to Clients
@@ -90,7 +96,7 @@ export default function CustomerDetail({ onMenuClick }) {
                 (window.location = `mailto:${customer.email}`)
               }
             >
-              <span className="mi">mail_outline</span>
+              <span className="mi">mail</span>
             </button>
 
             <div className={styles.centralAvatar}>
@@ -118,7 +124,10 @@ export default function CustomerDetail({ onMenuClick }) {
 
           <div className={styles.heroText}>
             <h2>{customer.name}</h2>
-            <div className={styles.phone}>{customer.phone}</div>
+            <div className={styles.phone}>
+              <span className="mi">phone</span>
+              {customer.phone}
+            </div>
 
             {customer.address && (
               <div className={styles.location}>
@@ -133,7 +142,7 @@ export default function CustomerDetail({ onMenuClick }) {
                   bdayBadge.isToday ? styles.bdayToday : ''
                 }`}
               >
-                <span>🎂</span>
+                <span className="mi">cake</span>
                 <span>{bdayBadge.label}</span>
               </div>
             )}
@@ -142,13 +151,16 @@ export default function CustomerDetail({ onMenuClick }) {
           <div className={styles.tabs}>
             {TABS.map((tab) => (
               <div
-                key={tab}
+                key={tab.name}
                 className={`${styles.tab} ${
-                  activeTab === tab ? styles.tabActive : ''
+                  activeTab === tab.name ? styles.tabActive : ''
                 }`}
-                onClick={() => setActiveTab(tab)}
+                onClick={() => setActiveTab(tab.name)}
               >
-                {tab}
+                <span className={`mi ${styles.tabIcon}`}>
+                  {tab.icon}
+                </span>
+                <span>{tab.name}</span>
               </div>
             ))}
           </div>
