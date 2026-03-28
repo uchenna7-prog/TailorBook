@@ -37,32 +37,36 @@
 }
 
 .signatureName {
-  font-family: 'Playwrite IT Moderna', cursive;
-  font-size: 3.2rem;
-  font-weight: 300;
+  font-family: 'Great Vibes', cursive;
+  font-size: 2.8rem; /* reduced size */
+  font-weight: 400;
   color: var(--text);
-  margin: 15px 0 5px;
-  /* Aggressive slant for a premium handwriting feel */
-  transform: skewX(-12deg); 
+  margin: 10px 0 5px;
+  transform: skewX(-12deg); /* maintain elegant slant */
   display: inline-block;
-  letter-spacing: -1px;
+  letter-spacing: -0.5px;
 }
 
 /* Stats */
 .statsGrid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
+  gap: 14px;
 }
 
 .statCard {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 20px;
+  border-radius: 22px;
   padding: 16px 12px;
   display: flex;
   flex-direction: column;
   gap: 4px;
+  transition: transform 0.2s;
+}
+
+.statCard:hover {
+  transform: translateY(-2px);
 }
 
 .statRevenue {
@@ -71,7 +75,7 @@
 }
 
 .statLabel {
-  font-size: 0.6rem;
+  font-size: 0.65rem;
   color: var(--text3);
   font-weight: 700;
   text-transform: uppercase;
@@ -108,6 +112,7 @@
   font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
+  cursor: pointer;
 }
 
 /* Studio Tools */
@@ -125,11 +130,13 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  transition: transform 0.2s;
+  transition: transform 0.2s, box-shadow 0.2s;
+  cursor: pointer;
 }
 
-.actionBox:active {
-  transform: scale(0.96);
+.actionBox:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.08);
 }
 
 .iconCircle {
@@ -157,17 +164,22 @@
 .orderStack {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 .orderCard {
   background: var(--surface);
   border: 1px solid var(--border);
   padding: 14px;
-  border-radius: 18px;
+  border-radius: 20px;
   display: flex;
   align-items: center;
   gap: 12px;
+  transition: transform 0.2s;
+}
+
+.orderCard:hover {
+  transform: translateY(-2px);
 }
 
 .orderAvatar {
