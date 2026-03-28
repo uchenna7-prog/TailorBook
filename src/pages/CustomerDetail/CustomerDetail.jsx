@@ -31,7 +31,7 @@ const TABS = ['Measurements', 'Orders', 'Invoice']
 export default function CustomerDetail() {
   const { id }      = useParams()
   const navigate    = useNavigate()
-  const { getCustomer, deleteCustomer } = useCustomers()
+  const { getCustomer, deleteCustomer, loaded } = useCustomers()
   const customer    = getCustomer(id)
 
   const data = useCustomerData(id)
@@ -47,6 +47,9 @@ export default function CustomerDetail() {
     clearTimeout(toastTimer.current)
     toastTimer.current = setTimeout(() => setToastMsg(''), 2400)
   }, [])
+
+  // Still loading from localStorage — don't render anything yet
+  if (!loaded) return null
 
   if (!customer) {
     return (
