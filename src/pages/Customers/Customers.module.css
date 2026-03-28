@@ -438,3 +438,69 @@
   opacity: 1;
   transform: translateX(-50%) translateY(0);
 }
+
+.modalTabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+}
+
+.modalTab {
+  flex: 1;
+  padding: 16px;
+  background: none;
+  border: none;
+  color: var(--text3);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.modalTabActive {
+  color: var(--accent);
+  border-bottom: 2px solid var(--accent);
+}
+
+.measureGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.measureCard {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 16px;
+}
+
+.measureIcon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: var(--surface2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.measureContent {
+  flex: 1;
+}
+
+.measureContent label {
+  display: block;
+  font-size: 0.75rem;
+  margin-bottom: 8px;
+  color: var(--text2);
+}
+
+.measureContent input {
+  width: 100%;
+  background: transparent;
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  padding: 12px;
+  color: var(--text);
+}
