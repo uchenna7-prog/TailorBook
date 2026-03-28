@@ -37,10 +37,11 @@ export default function CustomerDetail({ onMenuClick }) {
 
   const data = useCustomerData(id)
 
-  const [activeTab, setActiveTab]           = useState('Measurements')
-  const [dropdownOpen, setDropdownOpen]     = useState(false)
-  const [deleteConfirm, setDeleteConfirm]   = useState(false)
-  const [toastMsg, setToastMsg]             = useState('')
+  // ── ALL hooks must be declared before any early return ──
+  const [activeTab, setActiveTab]       = useState('Measurements')
+  const [dropdownOpen, setDropdownOpen] = useState(false)
+  const [deleteConfirm, setDeleteConfirm] = useState(false)
+  const [toastMsg, setToastMsg]         = useState('')
   const toastTimer = useRef(null)
 
   const showToast = useCallback((msg) => {
@@ -49,6 +50,7 @@ export default function CustomerDetail({ onMenuClick }) {
     toastTimer.current = setTimeout(() => setToastMsg(''), 2400)
   }, [])
 
+  // Early return AFTER all hooks
   if (!customer) {
     return (
       <div className={styles.notFound}>
@@ -58,10 +60,8 @@ export default function CustomerDetail({ onMenuClick }) {
     )
   }
 
-  const initials   = getInitials(customer.name)
-  const bdayBadge  = getBirthdayBadge(customer.birthday)
-
-  const [sidebarOpen, setSidebarOpen] = useState(false) // kept for dropdown state only
+  const initials  = getInitials(customer.name)
+  const bdayBadge = getBirthdayBadge(customer.birthday)
 
   const handleDeleteCustomer = () => {
     deleteCustomer(id)
