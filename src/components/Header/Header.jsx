@@ -2,28 +2,50 @@ import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import styles from './Header.module.css'
 
-// Map of route paths to page titles
-const PAGE_TITLES = {
-  '/': 'Home',
-  '/customers': 'Clients',
-  '/tasks': 'Tasks',
-  '/settings': 'Settings',
-}
-
 function Header({ onMenuClick }) {
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [notifOpen, setNotifOpen] = useState(false)
   const navigate = useNavigate()
   const location = useLocation()
 
+  // Page title map
+  const PAGE_TITLES = {
+    '/': 'Home',
+    '/customers': 'Clients',
+    '/tasks': 'Tasks',
+    '/settings': 'Settings',
+  }
   const pageTitle = PAGE_TITLES[location.pathname] ?? 'TailorBook'
 
-  const toggleDropdown = () => setDropdownOpen(prev => !prev)
-  const closeDropdown  = () => setDropdownOpen(false)
-  const toggleNotif    = () => setNotifOpen(prev => !prev)
-  const closeNotif     = () => setNotifOpen(false)
+  // Page-specific dropdown items
+  const PAGE_DROPDOWN = {
+    '/': [
+      { label: 'Log Out', action: () => navigate('/logout') },
+      { label: 'Settings', action: () => navigate('/settings') },
+    ],
+    '/customers': [
+      { label: 'Log Out', action: () => navigate('/logout') },
+      { label: 'Add Client', action: () => navigate('/customers/add') },
+      { label: 'Export Clients', action: () => console.log('Export clients') },
+    ],
+    '/tasks': [
+      { label: 'Log Out', action: () => navigate('/logout') },
+      { label: 'Add Task', action: () => navigate('/tasks/add') },
+      { label: 'Pending Tasks', action: () => navigate('/tasks/pending') },
+    ],
+    '/settings': [
+      { label: 'Log Out', action: () => navigate('/logout') },
+      { label: 'Profile', action: () => navigate('/settings/profile') },
+      { label: 'Preferences', action: () => navigate('/settings/preferences') },
+    ],
+  }
 
-  // Dummy notifications — replace with real data from context/store later
+  const toggleDropdown = () => setDropdownOpen(prev => !prev)
+  const closeDropdown = () => setDropdownOpen(false)
+  const toggleNotif = () => setNotifOpen(prev => !prev)
+  const closeNotif = () => setNotifOpen(false)
+
+  // Dummy notifications
   const notifications = [
     {
       id: 1,
@@ -53,7 +75,6 @@ function Header({ onMenuClick }) {
       unread: false,
     },
   ]
-
   const hasUnread = notifications.some(n => n.unread)
 
   return (
@@ -65,7 +86,7 @@ function Header({ onMenuClick }) {
           onClick={onMenuClick}
           aria-label="Open menu"
         >
-          <span className={`${styles.hamburgerLines}`}>
+          <span className={styles.hamburgerLines}>
             <span />
             <span />
             <span />
@@ -89,7 +110,7 @@ function Header({ onMenuClick }) {
             {hasUnread && <span className={styles.notifDot} />}
           </button>
 
-          {/* Three-dot dropdown */}
+          {/* Page-specific dropdown */}
           <div className={styles.dropdownWrap}>
             <button
               className={styles.iconBtn}
@@ -103,22 +124,17 @@ function Header({ onMenuClick }) {
 
             {dropdownOpen && (
               <>
-                {/* Backdrop to close on outside tap */}
                 <div className={styles.dropdownBackdrop} onClick={closeDropdown} />
                 <div className={styles.dropdown}>
-                  <button className={styles.dropdownItem} onClick={() => { closeDropdown(); navigate('/') }}>
-                    <span className="mi">home</span> Home
-                  </button>
-                  <button className={styles.dropdownItem} onClick={() => { closeDropdown(); navigate('/customers') }}>
-                    <span className="mi">group</span> Clients
-                  </button>
-                  <button className={styles.dropdownItem} onClick={() => { closeDropdown(); navigate('/tasks') }}>
-                    <span className="mi">assignment</span> Tasks
-                  </button>
-                  <div className={styles.dropdownDivider} />
-                  <button className={styles.dropdownItem} onClick={() => { closeDropdown(); navigate('/settings') }}>
-                    <span className="mi">settings</span> Settings
-                  </button>
+                  {(PAGE_DROPDOWN[location.pathname] ?? []).map((item, i) => (
+                    <button
+                      key={i}
+                      className={styles.dropdownItem}
+                      onClick={() => { closeDropdown(); item.action() }}
+                    >
+                      {item.label}
+                    </button>
+                  ))}
                 </div>
               </>
             )}
