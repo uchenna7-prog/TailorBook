@@ -4,7 +4,7 @@ import SideBar from './components/SideBar/SideBar'
 import Home from './pages/Home/Home'
 import Customers from './pages/Customers/Customers'
 import CustomerDetail from './pages/CustomerDetail/CustomerDetail'
-import ErrorBoundary from './components/ErrorBoundary/ErrorBoundary'
+
 
 function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
