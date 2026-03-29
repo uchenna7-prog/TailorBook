@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import { useCustomers } from '../../contexts/CustomerContext'
 import { useCustomerData } from '../../hooks/useCustomerData'
 import Header from '../../components/Header/Header'
@@ -35,7 +35,6 @@ export default function CustomerDetail({ onMenuClick }) {
   const data = useCustomerData(id)
 
   const [tab, setTab] = useState('dress')
-  const [bodyOpen, setBodyOpen] = useState(false)
   const [toastMsg, setToastMsg] = useState('')
   const toastTimer = useRef(null)
 
@@ -107,7 +106,7 @@ export default function CustomerDetail({ onMenuClick }) {
           Email
         </button>
 
-        <button className={styles.primary} onClick={() => setBodyOpen(true)}>
+        <button className={styles.primary}>
           <span className="material-symbols-outlined">straighten</span>
           Full Body Measurements
         </button>
@@ -139,7 +138,7 @@ export default function CustomerDetail({ onMenuClick }) {
         )}
       </div>
 
-      {/* ✅ FAB BACK */}
+      {/* FAB */}
       {(tab === 'dress' || tab === 'orders') && (
         <button
           className={styles.fab}
