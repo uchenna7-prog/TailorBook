@@ -80,13 +80,16 @@ export default function Orders({ onMenuClick }) {
   }, [])
 
   const handleTabClick = (e, tabId) => {
-    setActiveTab(tabId)
-    // Scroll the clicked tab into view automatically
-    e.currentTarget.scrollIntoView({
-      behavior: 'smooth',
-      block: 'nearest',
-      inline: 'center'
-    })
+    setActiveTab(tabId);
+
+    const container = tabsRef.current;
+    if (!container) return;
+
+    // Scroll a small amount to the right whenever a tab is clicked
+    container.scrollBy({
+      left: 100, // adjust this value to change scroll distance
+      behavior: 'smooth'
+    });
   }
 
   // ── FILTER ──
