@@ -8,7 +8,6 @@ function Header({ onMenuClick, type = 'default', title, customActions = [] }) {
   const navigate = useNavigate()
   const location = useLocation()
 
-  // Default page titles
   const PAGE_TITLES = {
     '/': 'Home',
     '/customers': 'Clients',
@@ -41,40 +40,14 @@ function Header({ onMenuClick, type = 'default', title, customActions = [] }) {
   const closeNotif = () => setNotifOpen(false)
 
   const notifications = [
-    {
-      id: 1,
-      icon: '🎂',
-      type: 'birthday',
-      title: "Upcoming birthday",
-      body: "Uchendu Uchenna's birthday is in 2 days.",
-      time: 'In 2 days',
-      unread: true,
-    },
-    {
-      id: 2,
-      icon: '✂️',
-      type: 'order',
-      title: 'Pending order: Senator Suit',
-      body: 'Due Apr 10 — awaiting completion.',
-      time: 'Apr 10',
-      unread: true,
-    },
-    {
-      id: 3,
-      icon: '🧾',
-      type: 'invoice',
-      title: 'Unpaid: INV-001',
-      body: 'Senator Suit · ₦25,000 — awaiting payment.',
-      time: 'Mar 28',
-      unread: false,
-    },
+    { id: 1, icon: '🎂', type: 'birthday', title: "Upcoming birthday", body: "Uchendu Uchenna's birthday is in 2 days.", time: 'In 2 days', unread: true },
+    { id: 2, icon: '✂️', type: 'order', title: 'Pending order: Senator Suit', body: 'Due Apr 10 — awaiting completion.', time: 'Apr 10', unread: true },
+    { id: 3, icon: '🧾', type: 'invoice', title: 'Unpaid: INV-001', body: 'Senator Suit · ₦25,000 — awaiting payment.', time: 'Mar 28', unread: false },
   ]
   const hasUnread = notifications.some(n => n.unread)
 
-  // Helper to automatically switch to outlined icons
   const getIconName = (icon, action) => {
     if (action.className === 'outlined') {
-      // Only switch 'edit' or 'delete' icons to outlined
       if (icon === 'edit') return 'edit_outlined'
       if (icon === 'delete') return 'delete_outline'
     }
@@ -83,8 +56,8 @@ function Header({ onMenuClick, type = 'default', title, customActions = [] }) {
 
   return (
     <>
-      <header className={styles.header}>
-        {/* Left icon */}
+      <header className={`${styles.header} ${type === 'back' ? styles.backHeader : ''}`}>
+        {/* LEFT: Back button */}
         {type === 'default' && (
           <button className={styles.iconBtn} onClick={onMenuClick} aria-label="Open menu">
             <span className={styles.hamburgerLines}><span /><span /><span /></span>
@@ -96,11 +69,19 @@ function Header({ onMenuClick, type = 'default', title, customActions = [] }) {
           </button>
         )}
 
-        {/* Title */}
+        {/* CENTER: Title */}
         <div className={styles.title}>{pageTitle}</div>
 
-        {/* Right actions */}
-        <div className={styles.actions}>
+        {/* RIGHT: Actions */}
+        <div className={styles.rightActions}>
+          {type === 'back' && customActions.map((action, i) => (
+            <button key={i} className={styles.iconBtn} onClick={action.onClick} aria-label={action.label}>
+              <span className="mi" style={{ fontSize: '1.4rem', color: action.color || 'var(--text2)' }}>
+                {getIconName(action.icon, action)}
+              </span>
+            </button>
+          ))}
+
           {type === 'default' && (
             <>
               <button className={styles.iconBtn} onClick={toggleNotif} aria-label="Notifications">
@@ -135,19 +116,10 @@ function Header({ onMenuClick, type = 'default', title, customActions = [] }) {
               </div>
             </>
           )}
-
-          {/* Custom actions for back pages (edit/delete/etc.) */}
-          {type === 'back' && customActions.map((action, i) => (
-            <button key={i} className={styles.iconBtn} onClick={action.onClick} aria-label={action.label}>
-              <span className="mi" style={{ fontSize: '1.4rem', color: action.color || 'var(--text2)' }}>
-                {getIconName(action.icon, action)}
-              </span>
-            </button>
-          ))}
         </div>
       </header>
 
-      {/* Notification panel (default only) */}
+      {/* Notification panel */}
       {type === 'default' && notifOpen && (
         <div className={styles.notifOverlay}>
           <div className={styles.notifPanel}>
