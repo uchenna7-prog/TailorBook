@@ -60,7 +60,7 @@
 .birthday {
   font-weight: 600;
   font-size: 0.8rem;
-  color: #f4b400; /* yellow-ish */
+  color: #f4b400;
   white-space: nowrap;
 }
 
@@ -81,18 +81,19 @@
 /* Meta (phone, email, address) */
 .meta {
   display: flex;
-  align-items: center; /* centers icon and text vertically */
   gap: 4px;
   color: var(--text2);
   font-size: 0.75rem;
+  align-items: flex-start; /* icon aligns with top of first line of text */
 }
 
 .meta .mi {
   font-size: 0.9rem;
-  line-height: 1; /* prevent extra spacing */
+  line-height: 1;
   display: inline-flex;
-  align-items: center; /* vertical center */
+  align-items: flex-start; /* aligns icon with first line of text */
   justify-content: center;
+  margin-top: 2px; /* optional small offset for visual alignment */
   color: inherit;
 }
 
@@ -119,7 +120,7 @@
 
 /* Call & Email → dark gray/black with white text */
 .btn.light {
-  background: #111; /* dark gray/black */
+  background: #111;
   color: #fff;
 }
 
@@ -171,7 +172,7 @@
   left: 10%;
   right: 10%;
   height: 2px;
-  background: #fff; /* white line for active tab */
+  background: #fff;
   border-radius: 1px;
 }
 
