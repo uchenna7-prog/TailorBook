@@ -13,58 +13,33 @@ import styles from './CustomerDetail.module.css'
 function getInitials(name) {
   if (!name) return ''
   const parts = name.trim().split(/\s+/)
-  if (parts.length === 1) return parts[0][0].toUpperCase()
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
-}
-
-function getBirthdayBadge(birthday) {
-  if (!birthday) return null
-  const today = new Date()
-  const [month, day] = birthday.split('-').map(Number)
-  const isToday = today.getMonth() + 1 === month && today.getDate() === day
-  const d = new Date(2000, month - 1, day)
-  const label = d.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })
-  return { label: isToday ? '🎂 Happy Birthday!' : `Birthday: ${label}`, isToday }
+  return parts.length === 1
+    ? parts[0][0].toUpperCase()
+    : (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
 }
 
 const TABS = [
-  { id: 'dress',   label: ['Dress', 'Measurements'] },
-  { id: 'orders',  label: ['Orders'] },
-  { id: 'invoice', label: ['Invoice'] },
+  { id: 'dress', label: 'Dress' },
+  { id: 'orders', label: 'Orders' },
+  { id: 'invoice', label: 'Invoice' },
 ]
 
-// ── BODY MEASUREMENTS PANEL ──
 function BodyPanel({ customer, onClose }) {
-  const body = customer.bodyMeasurements || {}
-  const entries = Object.entries(body).filter(([, v]) => v !== '' && v !== undefined)
+  const entries = Object.entries(customer.bodyMeasurements || {})
 
   return (
-    <div className={styles.bodyPanelOverlay} onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div className={styles.bodyPanel}>
-        <div className={styles.bodyPanelHandle} />
-        <div className={styles.bodyPanelHeader}>
-          <div className={styles.bodyPanelTitle}>Body Measurements</div>
-          <button className={styles.bodyPanelClose} onClick={onClose}>
-            <span className="mi" style={{ fontSize: '1.4rem' }}>close</span>
-          </button>
-        </div>
-        {customer.sex && (
-          <div className={styles.bodyPanelSex}>
-            {customer.sex === 'Male' ? '♂' : '♀'} {customer.sex}
-          </div>
-        )}
-        <div className={styles.bodyPanelBody}>
+    <div className={styles.sheet} onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div className={styles.sheetContent}>
+        <h3>Full Body Measurements</h3>
+
+        <div className={styles.grid}>
           {entries.length === 0 ? (
-            <div className={styles.bodyPanelEmpty}>
-              <span style={{ fontSize: '2.5rem', opacity: 0.2 }}>📏</span>
-              <p>No body measurements recorded.</p>
-              <span>Add them when editing the client.</span>
-            </div>
+            <p>No measurements yet</p>
           ) : (
-            entries.map(([field, value]) => (
-              <div key={field} className={styles.bodyRow}>
-                <span className={styles.bodyLabel}>{field}</span>
-                <span className={styles.bodyValue}>{value}"</span>
+            entries.map(([k, v]) => (
+              <div key={k} className={styles.card}>
+                <div className={styles.label}>{k}</div>
+                <div className={styles.value}>{v}"</div>
               </div>
             ))
           )}
@@ -75,164 +50,111 @@ function BodyPanel({ customer, onClose }) {
 }
 
 export default function CustomerDetail({ onMenuClick }) {
-  const { id }     = useParams()
-  const navigate   = useNavigate()
+  const { id } = useParams()
+  const navigate = useNavigate()
   const { getCustomer, deleteCustomer } = useCustomers()
-  const data       = useCustomerData(id)
+  const data = useCustomerData(id)
 
-  const [activeTab, setActiveTab]         = useState('dress')
-  const [bodyPanelOpen, setBodyPanelOpen] = useState(false)
-  const [deleteConfirm, setDeleteConfirm] = useState(false)
-  const [toastMsg, setToastMsg]           = useState('')
+  const [tab, setTab] = useState('dress')
+  const [bodyOpen, setBodyOpen] = useState(false)
+  const [toastMsg, setToastMsg] = useState('')
   const toastTimer = useRef(null)
 
   const showToast = useCallback((msg) => {
     setToastMsg(msg)
     clearTimeout(toastTimer.current)
-    toastTimer.current = setTimeout(() => setToastMsg(''), 2400)
+    toastTimer.current = setTimeout(() => setToastMsg(''), 2000)
   }, [])
 
   const customer = getCustomer(id)
 
   if (!customer) {
-    return (
-      <div className={styles.notFound}>
-        <p>Customer not found.</p>
-        <button onClick={() => navigate('/customers')}>Back to Clients</button>
-      </div>
-    )
+    return <div>Not found</div>
   }
 
-  const initials  = getInitials(customer.name)
-  const bdayBadge = getBirthdayBadge(customer.birthday)
-  const hasBody   = customer.bodyMeasurements && Object.keys(customer.bodyMeasurements).length > 0
-
-  const handleDeleteCustomer = () => {
-    deleteCustomer(id)
-    navigate('/customers')
-  }
+  const initials = getInitials(customer.name)
 
   return (
     <div className={styles.page}>
       <Header onMenuClick={onMenuClick} />
 
-      <div className={styles.fixedTop} id="topHeader">
-        {/* Profile row */}
-        <div className={styles.profileArea}>
-          <button className={styles.contactBtn} onClick={() => customer.email && (window.location = `mailto:${customer.email}`)}>
-            <span className="mi">mail_outline</span>
-          </button>
-          <div className={styles.centralAvatar}>
-            {customer.photo
-              ? <img src={customer.photo} alt={customer.name} className={styles.avatarImg} />
-              : initials
-            }
+      {/* PROFILE SECTION */}
+      <div className={styles.profileSection}>
+        <div className={styles.left}>
+          <div className={styles.avatar}>
+            {customer.photo ? <img src={customer.photo} /> : initials}
           </div>
-          <button className={styles.contactBtn} onClick={() => customer.phone && (window.location = `tel:${customer.phone}`)}>
-            <span className="mi">call</span>
-          </button>
         </div>
 
-        {/* Name, phone, location, birthday */}
-        <div className={styles.heroText}>
-          <h2>{customer.name}</h2>
-          <div className={styles.phone}>{customer.phone}</div>
+        <div className={styles.right}>
+          <div className={styles.name}>
+            {customer.name} {customer.sex && `(${customer.sex})`}
+          </div>
+
+          <div className={styles.meta}>
+            <span className="material-symbols-outlined">call</span>
+            {customer.phone}
+          </div>
+
+          {customer.email && (
+            <div className={styles.meta}>
+              <span className="material-symbols-outlined">mail</span>
+              {customer.email}
+            </div>
+          )}
+
           {customer.address && (
-            <div className={styles.location}>
-              <span className="mi">place</span>
+            <div className={styles.meta}>
+              <span className="material-symbols-outlined">place</span>
               {customer.address}
             </div>
           )}
-          {bdayBadge && (
-            <div className={`${styles.bday} ${bdayBadge.isToday ? styles.bdayToday : ''}`}>
-              <span>🎂</span>
-              <span>{bdayBadge.label}</span>
-            </div>
-          )}
-          {/* Body measurements button */}
-          <button className={`${styles.bodyBtn} ${hasBody ? styles.bodyBtnHas : ''}`} onClick={() => setBodyPanelOpen(true)}>
-            <span className="mi" style={{ fontSize: '1rem' }}>straighten</span>
-            Body Measurements
-            {hasBody && <span className={styles.bodyBtnDot} />}
-          </button>
-        </div>
-
-        {/* Tabs — all three on one line, no scroll */}
-        <div className={styles.tabs}>
-          {TABS.map(tab => (
-            <div
-              key={tab.id}
-              className={`${styles.tab} ${activeTab === tab.id ? styles.tabActive : ''}`}
-              onClick={() => setActiveTab(tab.id)}
-            >
-              {tab.label.map((line, i) => (
-                <span key={i} style={{ display: 'block', lineHeight: 1.2 }}>{line}</span>
-              ))}
-            </div>
-          ))}
         </div>
       </div>
 
-      {/* Tab content */}
-      <div className={styles.scrollContent}>
-        {activeTab === 'dress' && (
-          <MeasurementsTab
-            measurements={data.measurements}
-            onSave={data.saveMeasurement}
-            onDelete={data.deleteMeasurement}
-            showToast={showToast}
-          />
-        )}
-        {activeTab === 'orders' && (
-          <OrdersTab
-            orders={data.orders}
-            measurements={data.measurements}
-            onSave={data.saveOrder}
-            onDelete={data.deleteOrder}
-            onStatusChange={data.updateOrderStatus}
-            showToast={showToast}
-          />
-        )}
-        {activeTab === 'invoice' && (
-          <InvoiceTab
-            invoices={data.invoices}
-            orders={data.orders}
-            measurements={data.measurements}
-            customer={customer}
-            onSave={data.saveInvoice}
-            onDelete={data.deleteInvoice}
-            onStatusChange={data.updateInvoiceStatus}
-            onNavigateToInvoice={() => setActiveTab('invoice')}
-            showToast={showToast}
-          />
-        )}
-      </div>
-
-      {/* FAB — only on dress and orders tabs */}
-      {(activeTab === 'dress' || activeTab === 'orders') && (
-        <button
-          className={styles.fab}
-          onClick={() => {
-            if (activeTab === 'dress')  document.dispatchEvent(new CustomEvent('openMeasureModal'))
-            if (activeTab === 'orders') document.dispatchEvent(new CustomEvent('openOrderModal'))
-          }}
-        >
-          <span className="mi">add</span>
+      {/* ACTION BUTTONS */}
+      <div className={styles.actions}>
+        <button onClick={() => window.location = `tel:${customer.phone}`}>
+          <span className="material-symbols-outlined">call</span> Call
         </button>
-      )}
 
-      {/* Body measurements panel */}
-      {bodyPanelOpen && (
-        <BodyPanel customer={customer} onClose={() => setBodyPanelOpen(false)} />
-      )}
+        <button onClick={() => window.location = `mailto:${customer.email}`}>
+          <span className="material-symbols-outlined">mail</span> Email
+        </button>
 
-      <ConfirmSheet
-        open={deleteConfirm}
-        title="Delete Customer?"
-        message={`"${customer.name}" and all their data will be permanently removed.`}
-        onConfirm={handleDeleteCustomer}
-        onCancel={() => setDeleteConfirm(false)}
-      />
+        <button className={styles.primary} onClick={() => setBodyOpen(true)}>
+          <span className="material-symbols-outlined">straighten</span>
+          Body
+        </button>
+      </div>
+
+      {/* TABS */}
+      <div className={styles.tabs}>
+        {TABS.map(t => (
+          <div
+            key={t.id}
+            className={`${styles.tab} ${tab === t.id ? styles.active : ''}`}
+            onClick={() => setTab(t.id)}
+          >
+            {t.label}
+          </div>
+        ))}
+      </div>
+
+      {/* CONTENT */}
+      <div className={styles.content}>
+        {tab === 'dress' && (
+          <MeasurementsTab {...data} showToast={showToast} />
+        )}
+        {tab === 'orders' && (
+          <OrdersTab {...data} showToast={showToast} />
+        )}
+        {tab === 'invoice' && (
+          <InvoiceTab {...data} customer={customer} showToast={showToast} />
+        )}
+      </div>
+
+      {bodyOpen && <BodyPanel customer={customer} onClose={() => setBodyOpen(false)} />}
 
       <Toast message={toastMsg} />
     </div>
