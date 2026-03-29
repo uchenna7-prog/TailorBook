@@ -112,12 +112,12 @@ function AddTaskModal({ isOpen, onClose, onSave, customers }) {
   }
 
   const CATEGORIES = [
-    { id: 'general',     label: 'General',     icon: '📋' },
-    { id: 'sewing',      label: 'Sewing',       icon: '🧵' },
-    { id: 'delivery',    label: 'Delivery',     icon: '📦' },
-    { id: 'payment',     label: 'Payment',      icon: '💰' },
-    { id: 'fitting',     label: 'Fitting',      icon: '👔' },
-    { id: 'shopping',    label: 'Shopping',     icon: '🛒' },
+    { id: 'general',     label: 'General',     icon: 'assignment' },
+    { id: 'sewing',      label: 'Sewing',       icon: 'content_cut' },
+    { id: 'delivery',    label: 'Delivery',     icon: 'local_shipping' },
+    { id: 'payment',     label: 'Payment',      icon: 'payments' },
+    { id: 'fitting',     label: 'Fitting',      icon: 'checkroom' },
+    { id: 'shopping',    label: 'Shopping',     icon: 'shopping_cart' },
   ]
 
   return (
@@ -152,7 +152,7 @@ function AddTaskModal({ isOpen, onClose, onSave, customers }) {
                 className={`${styles.categoryChip} ${category === cat.id ? styles.categoryActive : ''}`}
                 onClick={() => setCategory(cat.id)}
               >
-                <span>{cat.icon}</span>
+                <span className="mi" style={{ fontSize: '1.2rem' }}>{cat.icon}</span>
                 <span>{cat.label}</span>
               </button>
             ))}
@@ -274,7 +274,7 @@ function AddTaskModal({ isOpen, onClose, onSave, customers }) {
             <label className={styles.fieldLabel}>Related Order <span className={styles.optional}>(optional)</span></label>
             {selectedOrder ? (
               <div className={styles.selectedChip}>
-                <span className={styles.chipName}>✂️ {selectedOrder.desc}</span>
+                <span className={styles.chipName}><span className="mi" style={{ fontSize: '1rem', verticalAlign: 'middle', marginRight: '4px' }}>content_cut</span>{selectedOrder.desc}</span>
                 <button className={styles.chipRemove} onClick={() => setSelectedOrder(null)}>
                   <span className="mi" style={{ fontSize: '1rem' }}>close</span>
                 </button>
@@ -292,7 +292,7 @@ function AddTaskModal({ isOpen, onClose, onSave, customers }) {
                       <button key={o.id} className={styles.dropItem} onClick={() => {
                         setSelectedOrder(o); setOrderDropOpen(false)
                       }}>
-                        <span style={{ fontSize: '1.1rem' }}>✂️</span>
+                        <span className="mi" style={{ fontSize: '1.1rem' }}>content_cut</span>
                         <div>
                           <div className={styles.dropName}>{o.desc}</div>
                           <div className={styles.dropMeta}>{o.due ? `Due ${o.due}` : o.status}</div>
@@ -333,8 +333,8 @@ function TaskCard({ task, onToggle, onDelete, onOpen }) {
   const due = daysUntil(task.dueDate)
 
   const CATEGORY_ICONS = {
-    general: '📋', sewing: '🧵', delivery: '📦',
-    payment: '💰', fitting: '👔', shopping: '🛒',
+    general: 'assignment', sewing: 'content_cut', delivery: 'local_shipping',
+    payment: 'payments', fitting: 'checkroom', shopping: 'shopping_cart',
   }
 
   return (
@@ -360,7 +360,7 @@ function TaskCard({ task, onToggle, onDelete, onOpen }) {
         <div className={styles.taskMeta}>
           {task.category && task.category !== 'general' && (
             <span className={styles.metaChip}>
-              {CATEGORY_ICONS[task.category]} {task.category}
+              <span className="mi" style={{ fontSize: '0.85rem' }}>{CATEGORY_ICONS[task.category]}</span> {task.category}
             </span>
           )}
           {task.customerName && (
@@ -461,7 +461,7 @@ function TaskDetail({ task, onClose, onToggle, onDelete }) {
               )}
               {task.orderDesc && (
                 <div className={styles.detailLinkedRow}>
-                  <span>✂️</span>
+                  <span className="mi" style={{ fontSize: '1rem', color: 'var(--text3)' }}>content_cut</span>
                   <span>{task.orderDesc}</span>
                 </div>
               )}
@@ -583,8 +583,8 @@ export default function Tasks({ onMenuClick }) {
       <div className={styles.listArea}>
         {filtered.length === 0 && (
           <div className={styles.emptyState}>
-            <span style={{ fontSize: '2.8rem', opacity: 0.2 }}>
-              {activeTab === 'done' ? '✅' : activeTab === 'overdue' ? '⏰' : '📋'}
+            <span className="mi" style={{ fontSize: '2.8rem', opacity: 0.2 }}>
+              {activeTab === 'done' ? 'check_circle' : activeTab === 'overdue' ? 'alarm_on' : 'assignment'}
             </span>
             <p>
               {activeTab === 'all'     && 'No tasks yet.'}
