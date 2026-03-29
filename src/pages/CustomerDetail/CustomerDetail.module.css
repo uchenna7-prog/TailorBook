@@ -56,11 +56,11 @@
   object-fit: cover;
 }
 
-/* 🎂 Birthday */
-.birthdaySection {
-  font-weight: 600;
+/* 🎂 Birthday - Set to yellow */
+.birthday {
+  font-weight: 700;
   font-size: 0.8rem;
-  color: #f4b400;
+  color: var(--warning);
   white-space: nowrap;
 }
 
@@ -96,43 +96,46 @@
 .actions {
   display: flex;
   justify-content: space-around;
-  gap: 6px;
-  margin: 12px 0;
-  padding: 0 12px;
+  gap: 8px;
+  margin: 16px 0;
+  padding: 0 16px;
 }
 
-.actions button {
+.btn {
   display: flex;
   align-items: center;
-  gap: 4px;
+  justify-content: center;
+  gap: 6px;
   border: none;
-  padding: 6px 10px;
+  padding: 10px 14px;
   font-size: 0.8rem;
+  font-weight: 700;
   cursor: pointer;
-  border-radius: 8px;
+  border-radius: 10px;
   white-space: nowrap;
+  font-family: 'DM Sans', sans-serif;
+  transition: opacity 0.2s;
 }
 
-/* Call & Email → dark */
-.editBtn {
-  background: #111;
-  color: #fff;
+.btn:active {
+  opacity: 0.8;
 }
 
-.editBtn .mi {
-  color: #fff;
-  font-size: 0.9rem;
+/* Call & Email styles */
+.light {
+  background: var(--surface2);
+  color: var(--text);
 }
 
-/* Full Body → white CTA */
-.bodyBtn {
-  background: #fff;
-  color: #000;
+/* Full Body Measurements → Black background, White text */
+.primary {
+  background: var(--accent);
+  color: #ffffff;
 }
 
-.bodyBtn .mi {
-  color: #000;
-  font-size: 0.9rem;
+.primary .mi {
+  color: #ffffff;
+  font-size: 1rem;
 }
 
 /* ── TABS ── */
@@ -144,7 +147,8 @@
 }
 
 .tab {
-  padding: 10px 0;
+  flex: 1;
+  padding: 14px 0;
   font-size: 0.7rem;
   font-weight: 700;
   color: var(--text3);
@@ -152,27 +156,32 @@
   cursor: pointer;
   position: relative;
   text-align: center;
+  letter-spacing: 0.5px;
 }
 
-/* Active tab */
-.tabActive {
+/* Active tab → Black line underneath */
+.active {
   color: var(--accent);
   font-weight: 800;
 }
 
-/* 🔥 Visible active line */
-.tabActive::after {
+.active::after {
   content: '';
   position: absolute;
   bottom: 0;
-  left: 10%;
-  right: 10%;
+  left: 0;
+  right: 0;
   height: 2px;
   background: var(--accent);
-  border-radius: 1px;
 }
 
-/* ── FAB (+ BUTTON) ── */
+/* ── CONTENT AREA ── */
+.content {
+  padding: 16px;
+  flex: 1;
+}
+
+/* ── FAB (+ BUTTON) → Black with White Icon ── */
 .fab {
   position: fixed;
   bottom: calc(30px + var(--sb));
@@ -180,19 +189,19 @@
   width: 58px;
   height: 58px;
   border-radius: 50%;
-  background: #fff;
-  color: #000;
+  background: var(--accent);
+  color: #ffffff;
   border: none;
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 200;
   cursor: pointer;
-  box-shadow: 0 8px 24px rgba(255,255,255,0.12);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
 }
 
 .fab .mi {
-  color: #000;
+  color: #ffffff;
   font-size: 1.6rem;
 }
 
@@ -200,7 +209,7 @@
 .bodyPanelOverlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.7);
+  background: rgba(0, 0, 0, 0.7);
   z-index: 4000;
   display: flex;
   align-items: flex-end;
@@ -208,27 +217,28 @@
 
 .bodyPanel {
   width: 100%;
-  max-height: 70vh;
-  background: var(--surface);
-  border-radius: 20px 20px 0 0;
-  padding: 14px;
+  max-height: 75vh;
+  background: var(--bg);
+  border-radius: 24px 24px 0 0;
+  padding: 24px 20px calc(24px + var(--sb));
   overflow-y: auto;
 }
 
 .bodyRow {
   display: flex;
   justify-content: space-between;
-  padding: 10px 0;
+  padding: 14px 0;
   border-bottom: 1px solid var(--border);
 }
 
 .bodyLabel {
-  font-size: 0.75rem;
-  color: var(--text3);
+  font-size: 0.85rem;
+  color: var(--text2);
 }
 
 .bodyValue {
   font-weight: 700;
+  font-size: 0.9rem;
 }
 
 /* ── EMPTY STATE ── */
@@ -249,7 +259,7 @@
 /* ── TOAST ── */
 .toast {
   position: fixed;
-  bottom: 80px;
+  bottom: calc(100px + var(--sb));
   left: 50%;
   transform: translateX(-50%) translateY(20px);
   background: var(--surface);
@@ -260,6 +270,8 @@
   font-weight: 700;
   opacity: 0;
   transition: 0.3s;
+  z-index: 9999;
+  pointer-events: none;
 }
 
 .toastShow {
