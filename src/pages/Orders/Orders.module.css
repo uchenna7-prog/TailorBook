@@ -32,7 +32,7 @@
 }
 
 .tab {
-  flex: 0 0 auto; /* Prevent tabs from shrinking */
+  flex: 0 0 auto;
   padding: 14px 20px;
   text-align: center;
   font-size: 0.68rem;
