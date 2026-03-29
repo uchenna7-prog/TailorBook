@@ -161,20 +161,29 @@ export default function CustomerDetail({ onMenuClick }) {
 
 
         {activeTab === 'orders' && (
-          <OrdersTab
-            {...data}
-            showToast={showToast}
-          />
-        )}
+  <OrdersTab
+    orders={data.orders}
+    measurements={data.measurements}       // if Orders needs it
+    onSave={data.saveOrder}                // ✅ this is key
+    onDelete={data.deleteOrder}
+    onStatusChange={data.updateOrderStatus}
+    showToast={showToast}
+  />
+)}
 
         {activeTab === 'invoice' && (
-          <InvoiceTab
-            {...data}
-            customer={customer}
-            showToast={showToast}
-          />
-        )}
-      </div>
+  <InvoiceTab
+    invoices={data.invoices}               // the invoice list
+    orders={data.orders}                   // maybe needed inside invoice
+    measurements={data.measurements}      // optional if invoice uses measurements
+    customer={customer}
+    onSave={data.saveInvoice}              // ✅ key
+    onDelete={data.deleteInvoice}          // ✅ key
+    onStatusChange={data.updateInvoiceStatus} // ✅ key
+    onNavigateToInvoice={() => setActiveTab('invoice')} // optional navigation
+    showToast={showToast}
+  />
+)}
 
       {/* ✅ FIXED FAB */}
       {(activeTab === 'dress' || activeTab === 'orders') && (
