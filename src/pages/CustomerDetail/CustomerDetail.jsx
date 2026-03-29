@@ -55,7 +55,15 @@ export default function CustomerDetail({ onMenuClick }) {
 
   return (
     <div className={styles.page}>
-      <Header onMenuClick={onMenuClick} />
+      {/* ✅ Changed header to back + edit/delete */}
+      <Header
+        type="back"
+        title={customer.name}
+        customActions={[
+          { icon: 'edit', label: 'Edit Customer', onClick: () => navigate(`/customers/edit/${id}`) },
+          { icon: 'delete', label: 'Delete Customer', onClick: () => deleteCustomer(id), color: 'var(--danger)' },
+        ]}
+      />
 
       {/* PROFILE */}
       <div className={styles.profileSection}>
