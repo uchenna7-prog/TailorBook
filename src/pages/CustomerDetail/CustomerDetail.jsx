@@ -151,11 +151,13 @@ export default function CustomerDetail({ onMenuClick }) {
       {/* CONTENT */}
       <div className={styles.content}>
         {activeTab === 'dress' && (
-          <MeasurementsTab
-            {...data}
-            showToast={showToast}
-          />
-        )}
+  <MeasurementsTab
+    measurements={data.measurements}
+    onSave={data.addMeasurement}
+    onDelete={data.deleteMeasurement}
+    showToast={showToast}
+  />
+)}
 
         {activeTab === 'orders' && (
           <OrdersTab
