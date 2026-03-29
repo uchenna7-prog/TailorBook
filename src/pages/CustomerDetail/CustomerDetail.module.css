@@ -1,4 +1,4 @@
-l/* ── PAGE ── */
+/* ── PAGE ── */
 .page {
   background: var(--bg);
   min-height: 100dvh;
@@ -81,7 +81,7 @@ l/* ── PAGE ── */
 /* Meta (phone, email, address) */
 .meta {
   display: flex;
-  align-items: center;
+  align-items: center; /* centers icon and text vertically */
   gap: 4px;
   color: var(--text2);
   font-size: 0.75rem;
@@ -89,6 +89,10 @@ l/* ── PAGE ── */
 
 .meta .mi {
   font-size: 0.9rem;
+  line-height: 1; /* prevent extra spacing */
+  display: inline-flex;
+  align-items: center; /* vertical center */
+  justify-content: center;
   color: inherit;
 }
 
