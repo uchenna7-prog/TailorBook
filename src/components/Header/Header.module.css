@@ -106,9 +106,15 @@
   width: 100%;
   text-align: left;
   transition: background 0.12s;
+  cursor: pointer;
 }
 .dropdownItem:active {
   background: var(--surface2);
+}
+
+/* Target both the text and the icon for danger items */
+.dropdownItem.danger {
+  color: var(--danger);
 }
 
 .dropdownSeparator {
