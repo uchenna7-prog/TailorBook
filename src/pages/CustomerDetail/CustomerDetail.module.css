@@ -1,39 +1,139 @@
-/* ACTION BUTTONS */
+/* ── PAGE ── */
+.page {
+  background: var(--bg);
+  min-height: 100dvh;
+}
+
+/* ── FIXED TOP ── */
+.fixedTop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: var(--bg);
+  z-index: 100;
+  border-bottom: 1px solid var(--border);
+}
+
+/* ── SCROLL CONTENT (IMPORTANT FIX) ── */
+.scrollContent {
+  padding: 20px 20px 120px;
+  margin-top: 260px; /* ensures header no longer overlaps content */
+}
+
+/* ── PROFILE SECTION ── */
+.profileSection {
+  display: flex;
+  gap: 12px;
+  padding: 18px;
+  border-bottom: 1px solid var(--border);
+}
+
+.leftColumn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--surface2);
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 28px;
+  border: 2px solid var(--accent);
+  color: var(--accent);
+  overflow: hidden;
+}
+
+.avatarImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.birthdaySection {
+  font-weight: 600;
+  font-size: 0.8rem;
+  color: orange;
+  white-space: nowrap;
+}
+
+/* ── RIGHT COLUMN ── */
+.rightColumn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  justify-content: center;
+}
+
+.name {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.meta {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  color: var(--text2);
+  font-size: 0.75rem;
+}
+
+.meta .mi {
+  font-size: 0.9rem;
+  color: inherit;
+}
+
+/* ── ACTION BUTTONS ── */
 .actions {
   display: flex;
   justify-content: space-around;
-  padding: 10px;
+  gap: 6px;
+  margin: 12px 0;
+  padding: 0 12px;
 }
 
-.btn {
+.actions button {
   display: flex;
   align-items: center;
   gap: 4px;
-  padding: 6px 10px;
-  font-size: 0.75rem;
-  border-radius: 8px;
   border: none;
+  padding: 6px 10px;
+  font-size: 0.8rem;
   cursor: pointer;
+  border-radius: 8px;
+  white-space: nowrap;
 }
 
-/* ✅ FIX: WHITE TEXT + ICON */
-.light {
-  background: var(--accent);
+/* CALL & EMAIL → WHITE TEXT + ICON */
+.editBtn {
+  background: var(--surface2);
   color: #fff;
 }
 
-.light .mi {
+.editBtn .mi {
   color: #fff;
+  font-size: 0.9rem;
 }
 
 /* FULL BODY BUTTON */
-.primary {
+.bodyBtn {
   background: #fff;
   color: #000;
-  border: 1px solid var(--border);
 }
 
-/* TABS */
+.bodyBtn .mi {
+  color: #000;
+  font-size: 0.9rem;
+}
+
+/* ── TABS ── */
 .tabs {
   display: flex;
   justify-content: space-around;
@@ -42,41 +142,123 @@
 }
 
 .tab {
-  padding: 10px;
+  padding: 10px 0;
   font-size: 0.7rem;
-  cursor: pointer;
+  font-weight: 700;
   color: var(--text3);
+  text-transform: uppercase;
+  cursor: pointer;
   position: relative;
 }
 
-/* ✅ FIX: ACTIVE TAB LINE */
-.active {
+/* ACTIVE TAB */
+.tabActive {
   color: var(--accent);
 }
 
-.active::after {
+/* 🔥 WHITE LINE INDICATOR FIX */
+.tabActive::after {
   content: '';
   position: absolute;
   bottom: 0;
   left: 10%;
   right: 10%;
   height: 2px;
-  background: var(--accent);
-  border-radius: 2px;
+  background: #fff;
+  border-radius: 1px;
 }
 
-/* FAB */
+/* ── FAB (+ BUTTON) ── */
 .fab {
   position: fixed;
-  bottom: 30px;
-  right: 20px;
-  width: 56px;
-  height: 56px;
+  bottom: calc(30px + var(--sb));
+  right: 22px;
+  width: 58px;
+  height: 58px;
   border-radius: 50%;
   background: #fff;
   color: #000;
-  border: 1px solid var(--border);
+  border: none;
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 200;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(255,255,255,0.12);
+}
+
+.fab .mi {
+  color: #000;
+  font-size: 1.6rem;
+}
+
+/* ── BODY PANEL ── */
+.bodyPanelOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 4000;
+  display: flex;
+  align-items: flex-end;
+}
+
+.bodyPanel {
+  width: 100%;
+  max-height: 70vh;
+  background: var(--surface);
+  border-radius: 20px 20px 0 0;
+  padding: 14px;
+  overflow-y: auto;
+}
+
+.bodyRow {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.bodyLabel {
+  font-size: 0.75rem;
+  color: var(--text3);
+}
+
+.bodyValue {
+  font-weight: 700;
+}
+
+/* ── EMPTY STATE ── */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 60px;
+  text-align: center;
+  gap: 10px;
+}
+
+.emptyState p {
+  font-size: 0.85rem;
+  color: var(--text3);
+}
+
+/* ── TOAST ── */
+.toast {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  padding: 10px 18px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  opacity: 0;
+  transition: 0.3s;
+}
+
+.toastShow {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
 }
