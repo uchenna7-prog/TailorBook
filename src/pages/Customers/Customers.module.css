@@ -24,9 +24,11 @@
   gap: 10px;
   transition: border-color 0.2s;
 }
+
 .searchBox:focus-within {
   border-color: var(--border2);
 }
+
 .searchBox input {
   background: transparent;
   border: none;
@@ -36,6 +38,7 @@
   width: 100%;
   outline: none;
 }
+
 .searchBox input::placeholder {
   color: var(--text3);
 }
@@ -73,6 +76,7 @@
   transition: background 0.15s, border-color 0.15s;
   animation: fadeUp 0.3s ease both;
 }
+
 .customerCard:active {
   background: var(--surface2);
   border-color: var(--border2);
@@ -80,7 +84,7 @@
 
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(10px); }
-  to   { opacity: 1; transform: translateY(0); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .custAvatar {
@@ -127,7 +131,6 @@
   flex-shrink: 0;
 }
 
-/* DELETE BUTTON ICON RED */
 .custDeleteBtn {
   width: 34px;
   height: 34px;
@@ -138,9 +141,13 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: background 0.15s, border-color 0.15s, color 0.15s;
-  color: var(--danger);
+  transition: background 0.15s, border-color 0.15s;
 }
+
+.custDeleteBtn span {
+  color: var(--danger) !important;
+}
+
 .custDeleteBtn:active {
   background: rgba(255, 77, 77, 0.12);
   border-color: var(--danger);
@@ -181,17 +188,18 @@
   height: 56px;
   border-radius: 50%;
   background: var(--accent);
-  color: #fff; /* plus icon white for light mode */
+  color: #ffffff; /* Explicit white for icon */
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.8rem;
-  box-shadow: 0 8px 24px rgba(255, 255, 255, 0.12);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
   z-index: 200;
   border: none;
   cursor: pointer;
   transition: transform 0.15s, box-shadow 0.15s;
 }
+
 .fab:active {
   transform: scale(0.93);
 }
@@ -207,6 +215,7 @@
   display: flex;
   flex-direction: column;
 }
+
 .formOverlayOpen {
   transform: translateY(0);
 }
@@ -272,7 +281,7 @@
   width: 28px;
   height: 28px;
   background: var(--accent);
-  color: #000;
+  color: #ffffff;
   border-radius: 50%;
   border: 2.5px solid var(--bg);
   display: flex;
@@ -309,9 +318,11 @@
   transition: border-color 0.2s;
   -webkit-appearance: none;
 }
+
 .formInput:focus {
   border-color: var(--text2);
 }
+
 .formInput::placeholder {
   color: var(--text3);
 }
@@ -333,7 +344,7 @@
 
 .btnSave {
   background: var(--accent);
-  color: #000;
+  color: #ffffff; /* Explicit white for text */
   width: 100%;
   padding: 17px;
   border-radius: 14px;
@@ -346,14 +357,9 @@
   cursor: pointer;
   transition: opacity 0.2s;
 }
+
 .btnSave:active {
   opacity: 0.85;
-}
-
-/* Black buttons text/icons white */
-.blackBtn {
-  background: #000;
-  color: #fff;
 }
 
 /* ── CONFIRM DELETE SHEET ── */
@@ -395,7 +401,7 @@
 
 .btnConfirmDel {
   background: var(--danger);
-  color: #fff;
+  color: #ffffff;
   padding: 16px;
   border-radius: 12px;
   font-weight: 800;
@@ -448,6 +454,7 @@
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
 }
+
 .formTab {
   flex: 1;
   padding: 14px 0;
@@ -463,9 +470,11 @@
   position: relative;
   transition: color 0.2s;
 }
+
 .formTabActive {
   color: var(--accent);
 }
+
 .formTabActive::after {
   content: '';
   position: absolute;
@@ -479,6 +488,7 @@
   display: flex;
   gap: 10px;
 }
+
 .sexChip {
   flex: 1;
   padding: 12px;
@@ -492,9 +502,10 @@
   cursor: pointer;
   transition: all 0.2s;
 }
+
 .sexChipActive {
   background: var(--accent);
-  color: #000;
+  color: #ffffff; /* Explicit white for text on active chip */
   border-color: var(--accent);
 }
 
@@ -505,12 +516,14 @@
   gap: 8px;
   margin-bottom: 10px;
 }
+
 .customFieldInputs {
   flex: 1;
   display: grid;
   grid-template-columns: 2fr 1fr;
   gap: 8px;
 }
+
 .removeCustomBtn {
   background: none;
   border: none;
@@ -521,7 +534,9 @@
   padding: 4px;
   flex-shrink: 0;
 }
+
 .removeCustomBtn:active { color: var(--danger); }
+
 .addCustomFieldBtn {
   display: flex;
   align-items: center;
@@ -539,4 +554,5 @@
   margin-top: 8px;
   transition: border-color 0.2s;
 }
+
 .addCustomFieldBtn:active { border-color: var(--accent); }
