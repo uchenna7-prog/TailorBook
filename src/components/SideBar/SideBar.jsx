@@ -2,8 +2,8 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import styles from './SideBar.module.css'
 
 const NAV_ITEMS = [
-  { path: '/', label: 'Home', icon: 'home' },
-  { path: '/customers', label: 'Clients', icon: 'group' },
+  { path: '/', label: 'Dashboard', icon: 'dashboard' },
+  { path: '/customers', label: 'Customers', icon: 'group' },
   { path: '/tasks', label: 'Tasks', icon: 'assignment' },
   { path: '/orders', label: 'Orders', icon: 'shopping_cart' },
   { path: '/gallery', label: 'Gallery', icon: 'photo_library' },
