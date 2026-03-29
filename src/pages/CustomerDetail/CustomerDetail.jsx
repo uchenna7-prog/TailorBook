@@ -65,7 +65,6 @@ export default function CustomerDetail({ onMenuClick }) {
               ? <img src={customer.photo} className={styles.avatarImg} />
               : initials}
           </div>
-
           {birthday && <div className={styles.birthday}>🎈 {birthday}</div>}
         </div>
 
@@ -97,16 +96,28 @@ export default function CustomerDetail({ onMenuClick }) {
 
       {/* ACTIONS */}
       <div className={styles.actions}>
-        <button className={`${styles.btn} ${styles.light}`} onClick={() => window.location = `tel:${customer.phone}`}>
-          <span className="mi">call</span> Call
+        <button
+          className={`${styles.btn} ${styles.light}`}
+          onClick={() => window.location = `tel:${customer.phone}`}
+        >
+          <span className="mi">call</span>
+          Call
         </button>
 
-        <button className={`${styles.btn} ${styles.light}`} onClick={() => window.location = `mailto:${customer.email}`}>
-          <span className="mi">mail_outline</span> Email
+        <button
+          className={`${styles.btn} ${styles.light}`}
+          onClick={() => window.location = `mailto:${customer.email}`}
+        >
+          <span className="mi">mail_outline</span>
+          Email
         </button>
 
-        <button className={`${styles.btn} ${styles.primary}`} onClick={() => setBodyPanelOpen(true)}>
-          <span className="mi">straighten</span> Full Body Measurements
+        <button
+          className={`${styles.btn} ${styles.primary}`}
+          onClick={() => setBodyPanelOpen(true)}
+        >
+          <span className="mi">straighten</span>
+          Full Body Measurements
         </button>
       </div>
 
@@ -125,14 +136,42 @@ export default function CustomerDetail({ onMenuClick }) {
 
       {/* CONTENT */}
       <div className={styles.content}>
-        {activeTab === 'dress' && <MeasurementsTab {...data} showToast={showToast} />}
-        {activeTab === 'orders' && <OrdersTab {...data} showToast={showToast} />}
-        {activeTab === 'invoice' && <InvoiceTab {...data} customer={customer} showToast={showToast} />}
+        {activeTab === 'dress' && (
+          <MeasurementsTab
+            {...data}
+            showToast={showToast}
+          />
+        )}
+
+        {activeTab === 'orders' && (
+          <OrdersTab
+            {...data}
+            showToast={showToast}
+          />
+        )}
+
+        {activeTab === 'invoice' && (
+          <InvoiceTab
+            {...data}
+            customer={customer}
+            showToast={showToast}
+          />
+        )}
       </div>
 
-      {/* FAB */}
+      {/* ✅ FIXED FAB */}
       {(activeTab === 'dress' || activeTab === 'orders') && (
-        <button className={styles.fab}>
+        <button
+          className={styles.fab}
+          onClick={() => {
+            if (activeTab === 'dress') {
+              document.dispatchEvent(new CustomEvent('openMeasureModal'))
+            }
+            if (activeTab === 'orders') {
+              document.dispatchEvent(new CustomEvent('openOrderModal'))
+            }
+          }}
+        >
           <span className="mi">add</span>
         </button>
       )}
