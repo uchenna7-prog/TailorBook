@@ -202,7 +202,7 @@ export default function MeasurementsTab({ measurements, onSave, onDelete, showTo
     <>
       {measurements.length === 0 && (
         <div className={styles.emptyState}>
-          <span style={{ fontSize: '2.8rem', opacity: 0.4 }}>📏</span>
+          <span className="mi" style={{ fontSize: '2.8rem', opacity: 0.4 }}>straighten</span>
           <p>No measurements added yet.</p>
           <span className={styles.hint}>Tap + to add the first one</span>
         </div>
@@ -213,7 +213,7 @@ export default function MeasurementsTab({ measurements, onSave, onDelete, showTo
         return (
           <div key={m.id} className={styles.itemCard} onClick={() => setDetailItem(m)}>
             <div className={styles.designThumb}>
-              {m.imgSrc ? <img src={m.imgSrc} alt={m.name} /> : <span style={{ fontSize: '1.4rem' }}>👗</span>}
+              {m.imgSrc ? <img src={m.imgSrc} alt={m.name} /> : <span className="mi" style={{ fontSize: '1.4rem' }}>straighten</span>}
             </div>
             <div className={styles.cardInfo}>
               <h4>{m.name}</h4>
