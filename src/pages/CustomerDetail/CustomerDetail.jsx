@@ -1,8 +1,9 @@
 import { useState, useRef, useCallback } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { useCustomers } from '../../contexts/CustomerContext'
 import { useCustomerData } from '../../hooks/useCustomerData'
 import Header from '../../components/Header/Header'
+import ConfirmSheet from '../../components/ConfirmSheet/ConfirmSheet'
 import Toast from '../../components/Toast/Toast'
 import MeasurementsTab from './tabs/MeasurementsTab'
 import OrdersTab from './tabs/OrdersTab'
@@ -31,21 +32,23 @@ const TABS = [
 
 export default function CustomerDetail({ onMenuClick }) {
   const { id } = useParams()
-  const { getCustomer } = useCustomers()
+  const navigate = useNavigate()
+  const { getCustomer, deleteCustomer } = useCustomers()
   const data = useCustomerData(id)
 
-  const [tab, setTab] = useState('dress')
+  const [activeTab, setActiveTab] = useState('dress')
+  const [bodyPanelOpen, setBodyPanelOpen] = useState(false)
   const [toastMsg, setToastMsg] = useState('')
   const toastTimer = useRef(null)
 
   const showToast = useCallback((msg) => {
     setToastMsg(msg)
     clearTimeout(toastTimer.current)
-    toastTimer.current = setTimeout(() => setToastMsg(''), 2000)
+    toastTimer.current = setTimeout(() => setToastMsg(''), 2400)
   }, [])
 
   const customer = getCustomer(id)
-  if (!customer) return <div>Not found</div>
+  if (!customer) return null
 
   const initials = getInitials(customer.name)
   const birthday = getBirthday(customer.birthday)
@@ -56,102 +59,81 @@ export default function CustomerDetail({ onMenuClick }) {
 
       {/* PROFILE */}
       <div className={styles.profileSection}>
-        <div className={styles.left}>
+        <div className={styles.leftColumn}>
           <div className={styles.avatar}>
-            {customer.photo ? <img src={customer.photo} /> : initials}
+            {customer.photo
+              ? <img src={customer.photo} className={styles.avatarImg} />
+              : initials}
           </div>
 
-          {birthday && (
-            <div className={styles.birthday}>
-              🎈 {birthday}
-            </div>
-          )}
+          {birthday && <div className={styles.birthday}>🎈 {birthday}</div>}
         </div>
 
-        <div className={styles.right}>
+        <div className={styles.rightColumn}>
           <div className={styles.name}>
             {customer.name} {customer.sex && `(${customer.sex})`}
           </div>
 
           <div className={styles.meta}>
-            <span className="material-symbols-outlined">call</span>
+            <span className="mi">call</span>
             {customer.phone}
           </div>
 
           {customer.email && (
             <div className={styles.meta}>
-              <span className="material-symbols-outlined">mail</span>
+              <span className="mi">mail_outline</span>
               {customer.email}
             </div>
           )}
 
           {customer.address && (
             <div className={styles.meta}>
-              <span className="material-symbols-outlined">place</span>
+              <span className="mi">place</span>
               {customer.address}
             </div>
           )}
         </div>
       </div>
 
-      {/* ACTION BUTTONS */}
+      {/* ACTIONS */}
       <div className={styles.actions}>
-        <button onClick={() => window.location = `tel:${customer.phone}`}>
-          <span className="material-symbols-outlined">call</span>
-          Call
+        <button className={`${styles.btn} ${styles.light}`} onClick={() => window.location = `tel:${customer.phone}`}>
+          <span className="mi">call</span> Call
         </button>
 
-        <button onClick={() => window.location = `mailto:${customer.email}`}>
-          <span className="material-symbols-outlined">mail</span>
-          Email
+        <button className={`${styles.btn} ${styles.light}`} onClick={() => window.location = `mailto:${customer.email}`}>
+          <span className="mi">mail_outline</span> Email
         </button>
 
-        <button className={styles.primary}>
-          <span className="material-symbols-outlined">straighten</span>
-          Full Body Measurements
+        <button className={`${styles.btn} ${styles.primary}`} onClick={() => setBodyPanelOpen(true)}>
+          <span className="mi">straighten</span> Full Body Measurements
         </button>
       </div>
 
       {/* TABS */}
       <div className={styles.tabs}>
-        {TABS.map(t => (
+        {TABS.map(tab => (
           <div
-            key={t.id}
-            className={`${styles.tab} ${tab === t.id ? styles.active : ''}`}
-            onClick={() => setTab(t.id)}
+            key={tab.id}
+            className={`${styles.tab} ${activeTab === tab.id ? styles.active : ''}`}
+            onClick={() => setActiveTab(tab.id)}
           >
-            {t.label}
+            {tab.label}
           </div>
         ))}
       </div>
 
       {/* CONTENT */}
       <div className={styles.content}>
-        {tab === 'dress' && (
-          <MeasurementsTab {...data} showToast={showToast} />
-        )}
-        {tab === 'orders' && (
-          <OrdersTab {...data} showToast={showToast} />
-        )}
-        {tab === 'invoice' && (
-          <InvoiceTab {...data} customer={customer} showToast={showToast} />
-        )}
+        {activeTab === 'dress' && <MeasurementsTab {...data} showToast={showToast} />}
+        {activeTab === 'orders' && <OrdersTab {...data} showToast={showToast} />}
+        {activeTab === 'invoice' && <InvoiceTab {...data} customer={customer} showToast={showToast} />}
       </div>
 
       {/* FAB */}
-      {(tab === 'dress' || tab === 'orders') && (
-        <button
-          className={styles.fab}
-          onClick={() => {
-            if (tab === 'dress') {
-              document.dispatchEvent(new CustomEvent('openMeasureModal'))
-            }
-            if (tab === 'orders') {
-              document.dispatchEvent(new CustomEvent('openOrderModal'))
-            }
-          }}
-        >
-          <span className="material-symbols-outlined">add</span>
+      {(activeTab === 'dress' || activeTab === 'orders') && (
+        <button className={styles.fab}>
+          <span className="mi">add</span>
         </button>
       )}
 
