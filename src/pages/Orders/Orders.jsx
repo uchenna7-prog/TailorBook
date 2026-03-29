@@ -14,7 +14,7 @@ function loadOrders() {
 
 // ── HELPERS ──
 function isOverdue(order) {
-  if (!order.dueDate || order.status === 'completed') return false
+  if (!order.dueDate || order.status === 'completed' || order.status === 'delivered' || order.status === 'cancelled') return false
   return new Date(order.dueDate + 'T23:59:59') < new Date()
 }
 
@@ -36,6 +36,8 @@ const TABS = [
   { id: 'all', label: 'All', icon: 'assignment' },
   { id: 'pending', label: 'Pending', icon: 'schedule' },
   { id: 'completed', label: 'Completed', icon: 'check_circle' },
+  { id: 'delivered', label: 'Delivered', icon: 'local_shipping' },
+  { id: 'cancelled', label: 'Cancelled', icon: 'cancel' },
   { id: 'overdue', label: 'Overdue', icon: 'alarm_on' },
 ]
 
@@ -79,8 +81,10 @@ export default function Orders({ onMenuClick }) {
   // ── FILTER ──
   const filtered = orders.filter(o => {
     if (activeTab === 'all') return true
-    if (activeTab === 'pending') return o.status !== 'completed' && !isOverdue(o)
+    if (activeTab === 'pending') return o.status !== 'completed' && o.status !== 'delivered' && o.status !== 'cancelled' && !isOverdue(o)
     if (activeTab === 'completed') return o.status === 'completed'
+    if (activeTab === 'delivered') return o.status === 'delivered'
+    if (activeTab === 'cancelled') return o.status === 'cancelled'
     if (activeTab === 'overdue') return isOverdue(o)
     return true
   })
@@ -88,34 +92,26 @@ export default function Orders({ onMenuClick }) {
   // ── COUNTS ──
   const counts = {
     all: orders.length,
-    pending: orders.filter(o => o.status !== 'completed' && !isOverdue(o)).length,
+    pending: orders.filter(o => o.status !== 'completed' && o.status !== 'delivered' && o.status !== 'cancelled' && !isOverdue(o)).length,
     completed: orders.filter(o => o.status === 'completed').length,
+    delivered: orders.filter(o => o.status === 'delivered').length,
+    cancelled: orders.filter(o => o.status === 'cancelled').length,
     overdue: orders.filter(o => isOverdue(o)).length,
   }
 
   // ── EMPTY STATE CONFIG ──
   const EMPTY_CONFIG = {
-    all: {
-      icon: 'assignment',
-      text: 'No orders yet.'
-    },
-    pending: {
-      icon: 'schedule',
-      text: 'No pending orders.'
-    },
-    completed: {
-      icon: 'check_circle',
-      text: 'No completed orders yet.'
-    },
-    overdue: {
-      icon: 'alarm_on',
-      text: 'No overdue orders. Good job!'
-    }
+    all: { icon: 'assignment', text: 'No orders yet.' },
+    pending: { icon: 'schedule', text: 'No pending orders.' },
+    completed: { icon: 'check_circle', text: 'No completed orders yet.' },
+    delivered: { icon: 'local_shipping', text: 'No delivered orders yet.' },
+    cancelled: { icon: 'cancel', text: 'No cancelled orders.' },
+    overdue: { icon: 'alarm_on', text: 'No overdue orders. Good job!' }
   }
 
   return (
     <div className={styles.page}>
-      <Header onMenuClick={onMenuClick} />
+      <Header title="Orders" onMenuClick={onMenuClick} />
 
       {/* ── TABS ── */}
       <div className={styles.tabs}>
