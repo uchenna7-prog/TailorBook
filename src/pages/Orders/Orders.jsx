@@ -1,66 +1,157 @@
-import { useState, useEffect } from 'react';
-import styles from './Orders.module.css';
-import { useOrders } from '../../contexts/OrdersContext'; // assuming you have a context
+import { useState, useEffect } from 'react'
+import Header from '../../components/Header/Header'
+import styles from './Orders.module.css'
 
-export default function Orders() {
-  const { orders } = useOrders(); // all orders from context or API
-  const [filter, setFilter] = useState('all'); // all, pending, completed, overdue
+// ── STORAGE ──
+const ORDERS_KEY = 'tailorbook_orders'
 
-  const filteredOrders = orders.filter(order => {
-    if (filter === 'all') return true;
-    if (filter === 'pending') return order.status === 'pending';
-    if (filter === 'completed') return order.status === 'completed';
-    if (filter === 'overdue') return order.status === 'overdue';
-    return true;
-  });
+function loadOrders() {
+  try {
+    const raw = localStorage.getItem(ORDERS_KEY)
+    return raw ? JSON.parse(raw) : []
+  } catch { return [] }
+}
+
+// ── HELPERS ──
+function isOverdue(order) {
+  if (!order.dueDate || order.status === 'completed') return false
+  return new Date(order.dueDate + 'T23:59:59') < new Date()
+}
+
+function daysUntil(dateStr) {
+  if (!dateStr) return ''
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const due = new Date(dateStr + 'T00:00:00')
+  const diff = Math.round((due - today) / (1000 * 60 * 60 * 24))
+
+  if (diff < 0) return `${Math.abs(diff)}d overdue`
+  if (diff === 0) return 'Due today'
+  if (diff === 1) return 'Due tomorrow'
+  return `${diff}d left`
+}
+
+// ── TABS ──
+const TABS = [
+  { id: 'all', label: 'All', icon: 'assignment' },
+  { id: 'pending', label: 'Pending', icon: 'schedule' },
+  { id: 'completed', label: 'Completed', icon: 'check_circle' },
+  { id: 'overdue', label: 'Overdue', icon: 'alarm_on' },
+]
+
+// ── ORDER CARD ──
+function OrderCard({ order }) {
+  const overdue = isOverdue(order)
+  const due = daysUntil(order.dueDate)
+
+  return (
+    <div className={`${styles.card} ${overdue ? styles.overdue : ''}`}>
+      <div className={styles.cardContent}>
+        <div className={styles.cardTitle}>{order.desc}</div>
+
+        <div className={styles.cardMeta}>
+          <span className={styles.metaChip}>
+            <span className="mi">person</span>
+            {order.customerName}
+          </span>
+
+          {order.dueDate && (
+            <span className={`${styles.metaChip} ${overdue ? styles.metaOverdue : ''}`}>
+              <span className="mi">schedule</span>
+              {due}
+            </span>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── MAIN PAGE ──
+export default function Orders({ onMenuClick }) {
+  const [orders, setOrders] = useState([])
+  const [activeTab, setActiveTab] = useState('all')
+
+  useEffect(() => {
+    setOrders(loadOrders())
+  }, [])
+
+  // ── FILTER ──
+  const filtered = orders.filter(o => {
+    if (activeTab === 'all') return true
+    if (activeTab === 'pending') return o.status !== 'completed' && !isOverdue(o)
+    if (activeTab === 'completed') return o.status === 'completed'
+    if (activeTab === 'overdue') return isOverdue(o)
+    return true
+  })
+
+  // ── COUNTS ──
+  const counts = {
+    all: orders.length,
+    pending: orders.filter(o => o.status !== 'completed' && !isOverdue(o)).length,
+    completed: orders.filter(o => o.status === 'completed').length,
+    overdue: orders.filter(o => isOverdue(o)).length,
+  }
+
+  // ── EMPTY STATE CONFIG ──
+  const EMPTY_CONFIG = {
+    all: {
+      icon: 'assignment',
+      text: 'No orders yet.'
+    },
+    pending: {
+      icon: 'schedule',
+      text: 'No pending orders.'
+    },
+    completed: {
+      icon: 'check_circle',
+      text: 'No completed orders yet.'
+    },
+    overdue: {
+      icon: 'alarm_on',
+      text: 'No overdue orders. Good job!'
+    }
+  }
 
   return (
     <div className={styles.page}>
-      {/* Tabs */}
+      <Header onMenuClick={onMenuClick} />
+
+      {/* ── TABS ── */}
       <div className={styles.tabs}>
-        {['all', 'pending', 'completed', 'overdue'].map(tab => (
+        {TABS.map(tab => (
           <div
-            key={tab}
-            className={`${styles.tab} ${filter === tab ? styles.tabActive : ''}`}
-            onClick={() => setFilter(tab)}
+            key={tab.id}
+            className={`${styles.tab} ${activeTab === tab.id ? styles.tabActive : ''}`}
+            onClick={() => setActiveTab(tab.id)}
           >
-            {tab.charAt(0).toUpperCase() + tab.slice(1)}
+            <span className="mi">{tab.icon}</span>
+            {tab.label}
+
+            {counts[tab.id] > 0 && (
+              <span className={`${styles.tabBadge} ${tab.id === 'overdue' ? styles.badgeOverdue : ''}`}>
+                {counts[tab.id]}
+              </span>
+            )}
           </div>
         ))}
       </div>
 
-      {/* List */}
+      {/* ── LIST ── */}
       <div className={styles.listArea}>
-        {filteredOrders.length === 0 ? (
+        {filtered.length === 0 ? (
           <div className={styles.emptyState}>
-            <p>
-              {filter === 'all' && 'No orders yet.'}
-              {filter === 'pending' && 'No pending orders yet.'}
-              {filter === 'completed' && 'No completed orders yet.'}
-              {filter === 'overdue' && 'No overdue orders yet.'}
-            </p>
+            <span className="mi" style={{ fontSize: '2.8rem', opacity: 0.2 }}>
+              {EMPTY_CONFIG[activeTab].icon}
+            </span>
+            <p>{EMPTY_CONFIG[activeTab].text}</p>
           </div>
         ) : (
-          filteredOrders.map(order => (
-            <div
-              key={order.id}
-              className={`${styles.card} ${
-                order.status === 'overdue' ? styles.overdue : ''
-              }`}
-            >
-              <div className={styles.cardContent}>
-                <div className={styles.cardTitle}>
-                  Order #{order.id} - {order.customerName}
-                </div>
-                <div className={styles.cardMeta}>
-                  <div className={styles.metaChip}>{order.status}</div>
-                  <div className={styles.metaChip}>{order.date}</div>
-                </div>
-              </div>
-            </div>
+          filtered.map(order => (
+            <OrderCard key={order.id} order={order} />
           ))
         )}
       </div>
     </div>
-  );
+  )
 }
