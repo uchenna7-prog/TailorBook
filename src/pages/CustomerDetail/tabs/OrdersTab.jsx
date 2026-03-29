@@ -83,7 +83,7 @@ function OrderModal({ isOpen, onClose, measurements, onSave }) {
               return (
                 <div key={m.id} className={`${styles.pickerItem} ${selected ? styles.pickerSelected : ''}`} onClick={() => toggleId(m.id)}>
                   <div className={styles.pickerThumb}>
-                    {m.imgSrc ? <img src={m.imgSrc} alt={m.name} /> : <span style={{ fontSize: '1.1rem' }}>👗</span>}
+                    {m.imgSrc ? <img src={m.imgSrc} alt={m.name} /> : <span className="mi" style={{ fontSize: '1.1rem' }}>checkroom</span>}
                   </div>
                   <div className={styles.pickerInfo}>
                     <h5>{m.name}</h5>
@@ -174,7 +174,7 @@ function OrderDetail({ order, measurements, onClose, onDelete, onStatusChange, o
             <div className={styles.linkLabel}>Linked Measurement{linked.length > 1 ? 's' : ''}</div>
             {linked.map(m => (
               <div key={m.id} className={styles.linkedRow}>
-                <div className={styles.linkedThumb}>{m.imgSrc ? <img src={m.imgSrc} alt={m.name} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 7 }} /> : <span>👗</span>}</div>
+                <div className={styles.linkedThumb}>{m.imgSrc ? <img src={m.imgSrc} alt={m.name} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 7 }} /> : <span className="mi">checkroom</span>}</div>
                 <div>
                   <div style={{ fontSize: '0.9rem', fontWeight: 700 }}>{m.name}</div>
                   <div style={{ fontSize: '0.65rem', color: 'var(--text3)', marginTop: 2 }}>{m.fields.length} field{m.fields.length !== 1 ? 's' : ''}</div>
@@ -194,7 +194,7 @@ function OrderDetail({ order, measurements, onClose, onDelete, onStatusChange, o
         <div className={styles.detailDate}>Placed on {order.date}</div>
 
         <button className={styles.generateInvoiceBtn} onClick={() => onGenerateInvoice(order.id)}>
-          🧾 Generate Invoice
+          <span className="mi" style={{ fontSize: '1.2rem', verticalAlign: 'middle', marginRight: '4px' }}>receipt_long</span> Generate Invoice
         </button>
       </div>
     </div>
@@ -241,7 +241,7 @@ export default function OrdersTab({ orders, measurements, onSave, onDelete, onSt
     <>
       {orders.length === 0 && (
         <div className={styles.emptyState}>
-          <span style={{ fontSize: '2.8rem', opacity: 0.4 }}>🛍️</span>
+          <span className="mi" style={{ fontSize: '2.8rem', opacity: 0.4 }}>shopping_basket</span>
           <p>No active orders yet.</p>
           <span className={styles.hint}>Tap + to place an order</span>
         </div>
@@ -258,7 +258,7 @@ export default function OrdersTab({ orders, measurements, onSave, onDelete, onSt
         return (
           <div key={o.id} className={styles.orderCard} onClick={() => setDetailOrder(o)}>
             <div className={styles.priorityBar} style={{ background: PRIORITY_COLOR[o.priority] ?? PRIORITY_COLOR.normal }} />
-            <div className={styles.orderCardIcon}>✂️</div>
+            <div className={styles.orderCardIcon}><span className="mi">content_cut</span></div>
             <div className={styles.orderCardInfo}>
               <h4>{o.desc}</h4>
               <p>{dueStr}{linkedStr}</p>
