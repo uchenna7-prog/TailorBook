@@ -1,4 +1,4 @@
-/* ── PAGE ── */
+l/* ── PAGE ── */
 .page {
   background: var(--bg);
   min-height: 100dvh;
@@ -57,10 +57,10 @@
 }
 
 /* 🎂 Birthday */
-.birthdaySection {
+.birthday {
   font-weight: 600;
   font-size: 0.8rem;
-  color: #f4b400;
+  color: #f4b400; /* yellow-ish */
   white-space: nowrap;
 }
 
@@ -81,7 +81,7 @@
 /* Meta (phone, email, address) */
 .meta {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 4px;
   color: var(--text2);
   font-size: 0.75rem;
@@ -113,24 +113,24 @@
   white-space: nowrap;
 }
 
-/* Call & Email → dark */
-.editBtn {
-  background: #111;
+/* Call & Email → dark gray/black with white text */
+.btn.light {
+  background: #111; /* dark gray/black */
   color: #fff;
 }
 
-.editBtn .mi {
+.btn.light .mi {
   color: #fff;
   font-size: 0.9rem;
 }
 
 /* Full Body → white CTA */
-.bodyBtn {
+.btn.primary {
   background: #fff;
   color: #000;
 }
 
-.bodyBtn .mi {
+.btn.primary .mi {
   color: #000;
   font-size: 0.9rem;
 }
@@ -145,7 +145,7 @@
 
 .tab {
   padding: 10px 0;
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   font-weight: 700;
   color: var(--text3);
   text-transform: uppercase;
@@ -154,21 +154,20 @@
   text-align: center;
 }
 
-/* Active tab */
-.tabActive {
+/* Active tab text + line */
+.tab.active {
   color: var(--accent);
   font-weight: 800;
 }
 
-/* 🔥 Visible active line */
-.tabActive::after {
+.tab.active::after {
   content: '';
   position: absolute;
   bottom: 0;
   left: 10%;
   right: 10%;
   height: 2px;
-  background: var(--accent);
+  background: #fff; /* white line for active tab */
   border-radius: 1px;
 }
 
