@@ -54,7 +54,7 @@
   flex-shrink: 0;
 }
 
-/* ── SCROLL AREA ── */
+
 .scrollArea {
   flex: 1;
   overflow-y: auto;
