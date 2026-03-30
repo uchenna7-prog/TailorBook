@@ -18,7 +18,7 @@
   --warning: #fb923c;
 
   /* LAYOUT */
-  --sidebar-width: 240px;
+  --sidebar-width: 256px;
 
   /* SAFE AREAS */
   --st: env(safe-area-inset-top, 0px);
