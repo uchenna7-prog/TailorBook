@@ -22,9 +22,7 @@ function InvoiceDetail({ invoice, customer, onClose, onDelete, onStatusChange })
         <div className={styles.invoiceStatusRow}>
           {invoice.status === 'paid'
             ? <>
-                <button className={`${styles.invoiceStatusBtn} ${styles.invoicePaid}`} onClick={() => onStatusChange(invoice.id, 'paid')}>
-                  <span className="mi" style={{ fontSize: '1rem', verticalAlign: 'middle', marginRight: '4px' }}>check_circle</span> Paid
-                </button>
+                <button className={`${styles.invoiceStatusBtn} ${styles.invoicePaid}`} onClick={() => onStatusChange(invoice.id, 'paid')}>✓ Paid</button>
                 <button className={styles.invoiceStatusBtn} onClick={() => onStatusChange(invoice.id, 'unpaid')}>Mark Unpaid</button>
               </>
             : <>
@@ -107,10 +105,11 @@ export default function InvoiceTab({ invoices, orders, measurements, customer, o
   useEffect(() => {
     const handler = (e) => {
       const { orderId } = e.detail
-      const existing = invoices.find(inv => String(inv.orderId) === String(orderId))
+      const existing = invoices.some(inv => String(inv.orderId) === String(orderId))
       if (existing) {
+        const found = invoices.find(inv => String(inv.orderId) === String(orderId))
         showToast('Invoice already exists for this order')
-        setDetailInvoice(existing)
+        setDetailInvoice(found)
         return
       }
       const order = orders.find(o => String(o.id) === String(orderId))
@@ -134,9 +133,10 @@ export default function InvoiceTab({ invoices, orders, measurements, customer, o
         status: 'unpaid',
         date: today,
       }
-      onSave(invoice)
+
+      onSave({ ...invoice }) // 👈 force new object
       showToast(`${invNumber} generated ✓`)
-      setDetailInvoice(invoice)
+      setTimeout(() => setDetailInvoice({ ...invoice }), 0) // 👈 force UI refresh
     }
 
     document.addEventListener('generateInvoice', handler)
