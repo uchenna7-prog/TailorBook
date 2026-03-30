@@ -1,24 +1,8 @@
-
 .page {
   background: var(--bg);
   min-height: 100dvh;
-}
-
-
-.fixedTop {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  background: var(--bg);
-  z-index: 100;
-  border-bottom: 1px solid var(--border);
-}
-
-/* ── SCROLL CONTENT (prevents overlap) ── */
-.scrollContent {
-  padding: 20px 20px 120px;
-  margin-top: 260px;
+  display: flex;
+  flex-direction: column;
 }
 
 /* ── PROFILE SECTION ── */
@@ -27,244 +11,54 @@
   gap: 12px;
   padding: 18px;
   border-bottom: 1px solid var(--border);
+  background: var(--bg);
+  position: sticky; /* 🔑 fixed at top */
+  top: 0;
+  z-index: 50;
 }
 
-.leftColumn {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-}
+/* Left & Right columns remain unchanged */
+.leftColumn { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.avatar { width: 80px; height: 80px; border-radius: 50%; background: var(--surface2); display: grid; place-items: center; font-weight: 700; font-size: 28px; border: 2px solid var(--accent); color: var(--accent); overflow: hidden; }
+.avatarImg { width: 100%; height: 100%; object-fit: cover; }
+.birthday { font-weight: 600; font-size: 0.8rem; color: var(--warning); white-space: nowrap; }
+.rightColumn { flex: 1; display: flex; flex-direction: column; gap: 6px; justify-content: center; }
+.name { font-size: 1.1rem; font-weight: 700; }
+.meta { display: flex; gap: 4px; color: var(--text2); font-size: 0.75rem; align-items: flex-start; }
+.meta .mi { font-size: 0.9rem; line-height: 1; display: inline-flex; align-items: flex-start; justify-content: center; margin-top: 2px; color: inherit; }
 
-.avatar {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  background: var(--surface2);
-  display: grid;
-  place-items: center;
-  font-weight: 700;
-  font-size: 28px;
-  border: 2px solid var(--accent);
-  color: var(--accent);
-  overflow: hidden;
-}
-
-.avatarImg {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-
-.birthday {
-  font-weight: 600;
-  font-size: 0.8rem;
-  color: var(--warning);
-  white-space: nowrap;
-}
-
-/* ── RIGHT COLUMN ── */
-.rightColumn {
+/* ── SCROLLABLE TABS + CONTENT ── */
+.scrollContent {
+  overflow-y: auto; /* enable scroll under profile */
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  justify-content: center;
-}
-
-.name {
-  font-size: 1.1rem;
-  font-weight: 700;
-}
-
-/* Meta (phone, email, address) */
-.meta {
-  display: flex;
-  gap: 4px;
-  color: var(--text2);
-  font-size: 0.75rem;
-  align-items: flex-start;
-}
-
-.meta .mi {
-  font-size: 0.9rem;
-  line-height: 1;
-  display: inline-flex;
-  align-items: flex-start;
-  justify-content: center;
-  margin-top: 2px; /* optional small off */
-  color: inherit;
+  padding: 0 20px 120px;
+  margin-top: 12px;
 }
 
 /* ── ACTION BUTTONS ── */
-.actions {
-  display: flex;
-  justify-content: space-around;
-  gap: 6px;
-  margin: 12px 0;
-  padding: 0 12px;
-}
-
-.actions button {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  border: none;
-  padding: 6px 10px;
-  font-size: 0.8rem;
-  cursor: pointer;
-  border-radius: 8px;
-  white-space: nowrap;
-}
-
-/* Call & Email → gray background with */
-.btn.light {
-  background: var(--surface2);
-  color: var(--text);
-}
-
-.btn.light .mi {
-  color: var(--text);
-}
-
-/* Full Body Measurements → black back */
-.btn.primary {
-  background: var(--text);
-  color: var(--bg);
-}
-
-.btn.primary .mi {
-  color: var(--bg);
-}
+.actions { display: flex; justify-content: space-around; gap: 6px; margin: 12px 0; padding: 0 12px; }
+.actions button { display: flex; align-items: center; gap: 4px; border: none; padding: 6px 10px; font-size: 0.8rem; cursor: pointer; border-radius: 8px; white-space: nowrap; }
+.btn.light { background: var(--surface2); color: var(--text); }
+.btn.light .mi { color: var(--text); }
+.btn.primary { background: var(--text); color: var(--bg); }
+.btn.primary .mi { color: var(--bg); }
 
 /* ── TABS ── */
-.tabs {
-  display: flex;
-  justify-content: space-around;
-  border-top: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
+.tabs { display: flex; justify-content: space-around; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.tab { padding: 10px 0; font-size: 0.75rem; font-weight: 700; color: var(--text3); text-transform: uppercase; cursor: pointer; position: relative; text-align: center; }
+.tab.active { color: var(--accent); font-weight: 800; }
+.tab.active::after { content: ''; position: absolute; bottom: 0; left: 10%; right: 10%; height: 2px; background: var(--accent); border-radius: 1px; }
+
+/* ── CONTENT: add spacing for first child ── */
+.content > *:first-child {
+  margin-top: 12px;
 }
 
-.tab {
-  padding: 10px 0;
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--text3);
-  text-transform: uppercase;
-  cursor: pointer;
-  position: relative;
-  text-align: center;
-}
+/* ── FAB ── */
+.fab { position: fixed; bottom: calc(30px + var(--sb)); right: 22px; width: 58px; height: 58px; border-radius: 50%; background: var(--text); color: var(--bg); border: none; display: flex; align-items: center; justify-content: center; z-index: 200; cursor: pointer; box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
+.fab .mi { color: var(--bg); font-size: 1.6rem; }
 
-/* Active tab text + line */
-.tab.active {
-  color: var(--accent);
-  font-weight: 800;
-}
-
-.tab.active::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 10%;
-  right: 10%;
-  height: 2px;
-  background: var(--accent);
-  border-radius: 1px;
-}
-
-/* ── FAB (+ BUTTON) ── */
-.fab {
-  position: fixed;
-  bottom: calc(30px + var(--sb));
-  right: 22px;
-  width: 58px;
-  height: 58px;
-  border-radius: 50%;
-  background: var(--text); /* black bac */
-  color: var(--bg); /* white icon */
-  border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 200;
-  cursor: pointer;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-}
-
-.fab .mi {
-  color: var(--bg);
-  font-size: 1.6rem;
-}
-
-/* ── BODY PANEL ── */
-.bodyPanelOverlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.7);
-  z-index: 4000;
-  display: flex;
-  align-items: flex-end;
-}
-
-.bodyPanel {
-  width: 100%;
-  max-height: 70vh;
-  background: var(--surface);
-  border-radius: 20px 20px 0 0;
-  padding: 14px;
-  overflow-y: auto;
-}
-
-.bodyRow {
-  display: flex;
-  justify-content: space-between;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--border);
-}
-
-.bodyLabel {
-  font-size: 0.75rem;
-  color: var(--text3);
-}
-
-.bodyValue {
-  font-weight: 700;
-}
-
-/* ── EMPTY STATE ── */
-.emptyState {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding-top: 60px;
-  text-align: center;
-  gap: 10px;
-}
-
-.emptyState p {
-  font-size: 0.85rem;
-  color: var(--text3);
-}
-
-/* ── TOAST ── */
-.toast {
-  position: fixed;
-  bottom: 80px;
-  left: 50%;
-  transform: translateX(-50%) translateY(20px);
-  background: var(--surface);
-  border: 1px solid var(--border2);
-  padding: 10px 18px;
-  border-radius: 12px;
-  font-size: 0.8rem;
-  font-weight: 700;
-  opacity: 0;
-  transition: 0.3s;
-}
-
-.toastShow {
-  opacity: 1;
-  transform: translateX(-50%) translateY(0);
+/* ── BODY PANEL: add margin for first child ── */
+.bodyPanel > div:first-child {
+  margin-top: 12px;
 }
