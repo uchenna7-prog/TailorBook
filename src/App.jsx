@@ -7,6 +7,7 @@ import CustomerDetail from './pages/CustomerDetail/CustomerDetail'
 import Tasks from './pages/Tasks/Tasks'
 import Orders from './pages/Orders/Orders' // ✅ ADD THIS
 import Gallery from './pages/Gallery/Gallery'
+import Settings from './pages/Settings/Settings'
 
 function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -33,6 +34,7 @@ function App() {
         <Route path="/orders" element={
           <Orders onMenuClick={() => setSidebarOpen(true)} />
         } />
+        <Route path="/settings"      element={<Settings     onMenuClick={() => setSidebarOpen(true)} />} />
 
         <Route path="/customers/:id" element={
           <CustomerDetail onMenuClick={() => setSidebarOpen(true)} />
