@@ -18,7 +18,7 @@
   --warning: #fb923c;
 
   /* LAYOUT */
-  --sidebar-width: 256px;
+  --sidebar-width: 280px;
 
   /* SAFE AREAS */
   --st: env(safe-area-inset-top, 0px);
@@ -42,7 +42,7 @@
   --success: #22c55e;
   --warning: #fb923c;
 
-  --sidebar-width: 240px;
+  --sidebar-width: 280px;
 
   --st: env(safe-area-inset-top, 0px);
   --sb: env(safe-area-inset-bottom, 0px);
