@@ -235,10 +235,11 @@ export default function OrdersTab({ orders, measurements, onSave, onDelete, onSt
   }
 
   const handleGenerateInvoice = (orderId) => {
-    document.dispatchEvent(new CustomEvent('generateInvoice', { detail: { orderId } }))
-    setDetailOrder(null)
-    showToast('Generating invoice…')
-  }
+  document.dispatchEvent(new CustomEvent('generateInvoice', { detail: { orderId } }))
+  document.dispatchEvent(new CustomEvent('switchToInvoiceTab')) // 👈 ADDED
+  setDetailOrder(null)
+  showToast('Generating invoice…')
+}
 
   return (
     <>
