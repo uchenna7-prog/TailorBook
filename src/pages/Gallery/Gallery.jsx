@@ -22,18 +22,18 @@ function savePhotos(photos) {
 
 // ── TABS ──
 const TABS = [
-  { id: 'all',        label: 'All',         icon: '🖼️' },
-  { id: 'designs',    label: 'Designs',     icon: '✂️' },
-  { id: 'completed',  label: 'Completed',   icon: '✅' },
-  { id: 'outfits',    label: 'Outfits',     icon: '👔' },
-  { id: 'inspiration',label: 'Inspiration', icon: '💡' },
+  { id: 'all',        label: 'All',         icon: 'collections' },
+  { id: 'designs',    label: 'Designs',     icon: 'content_cut' },
+  { id: 'completed',  label: 'Completed',   icon: 'check_circle' },
+  { id: 'outfits',    label: 'Outfits',     icon: 'checkroom' },
+  { id: 'inspiration',label: 'Inspiration', icon: 'lightbulb' },
 ]
 
 const CATEGORY_MAP = {
-  designs:     { label: 'Design Reference', icon: '✂️' },
-  completed:   { label: 'Completed Work',   icon: '✅' },
-  outfits:     { label: 'Customer Outfit',  icon: '👔' },
-  inspiration: { label: 'Inspiration',      icon: '💡' },
+  designs:     { label: 'Design Reference', icon: 'content_cut' },
+  completed:   { label: 'Completed Work',   icon: 'check_circle' },
+  outfits:     { label: 'Customer Outfit',  icon: 'checkroom' },
+  inspiration: { label: 'Inspiration',      icon: 'lightbulb' },
 }
 
 function formatDate(dateStr) {
@@ -113,7 +113,9 @@ function AddPhotoModal({ isOpen, onClose, onSave, customers }) {
         {/* Photo picker area */}
         {photos.length === 0 ? (
           <div className={styles.uploadArea}>
-            <div className={styles.uploadIcon}>📷</div>
+            <div className={styles.uploadIcon}>
+                <span className="mi" style={{ fontSize: '3rem', opacity: 0.3 }}>add_a_photo</span>
+            </div>
             <p className={styles.uploadText}>Add photos from your camera or files</p>
             <div className={styles.uploadBtns}>
               <button className={styles.uploadBtn} onClick={() => cameraInputRef.current?.click()}>
@@ -187,7 +189,7 @@ function AddPhotoModal({ isOpen, onClose, onSave, customers }) {
                 className={`${styles.categoryChip} ${category === key ? styles.categoryActive : ''}`}
                 onClick={() => setCategory(key)}
               >
-                <span>{val.icon}</span>
+                <span className="mi" style={{ fontSize: '1rem' }}>{val.icon}</span>
                 <span className={styles.categoryLabel}>{val.label}</span>
               </button>
             ))}
@@ -321,7 +323,12 @@ function Lightbox({ photo, photos, onClose, onDelete }) {
         <div className={styles.lightboxInfo}>
           {current.caption && <div className={styles.lightboxCaption}>{current.caption}</div>}
           <div className={styles.lightboxMeta}>
-            {cat && <span className={styles.lightboxChip}>{cat.icon} {cat.label}</span>}
+            {cat && (
+                <span className={styles.lightboxChip}>
+                    <span className="mi" style={{ fontSize: '0.85rem' }}>{cat.icon}</span> 
+                    {cat.label}
+                </span>
+            )}
             {current.customerName && (
               <span className={styles.lightboxChip}>
                 <span className="mi" style={{ fontSize: '0.75rem' }}>person</span>
@@ -386,7 +393,7 @@ export default function Gallery({ onMenuClick }) {
 
   return (
     <div className={styles.page}>
-      <Header onMenuClick={onMenuClick} />
+      <Header title="Gallery" onMenuClick={onMenuClick} />
 
       {/* TABS */}
       <div className={styles.tabs}>
@@ -396,7 +403,6 @@ export default function Gallery({ onMenuClick }) {
             className={`${styles.tab} ${activeTab === tab.id ? styles.tabActive : ''}`}
             onClick={() => setActiveTab(tab.id)}
           >
-            <span className={styles.tabIcon}>{tab.icon}</span>
             <span>{tab.label}</span>
             {counts[tab.id] > 0 && (
               <span className={styles.tabBadge}>{counts[tab.id]}</span>
@@ -409,8 +415,8 @@ export default function Gallery({ onMenuClick }) {
       <div className={styles.gridArea}>
         {filtered.length === 0 ? (
           <div className={styles.emptyState}>
-            <span style={{ fontSize: '3rem', opacity: 0.15 }}>
-              {activeTab === 'all' ? '📷' : CATEGORY_MAP[activeTab]?.icon ?? '🖼️'}
+            <span className="mi" style={{ fontSize: '3rem', opacity: 0.15 }}>
+              {activeTab === 'all' ? 'collections' : CATEGORY_MAP[activeTab]?.icon ?? 'image'}
             </span>
             <p>No photos here yet.</p>
             <span className={styles.emptyHint}>Tap + to add your first photo</span>
@@ -427,7 +433,7 @@ export default function Gallery({ onMenuClick }) {
                 <img src={photo.src} alt={photo.caption || 'photo'} className={styles.thumbImg} />
                 {/* Category badge */}
                 <div className={styles.thumbBadge}>
-                  {CATEGORY_MAP[photo.category]?.icon}
+                  <span className="mi" style={{ fontSize: '0.8rem' }}>{CATEGORY_MAP[photo.category]?.icon}</span>
                 </div>
                 {/* Caption overlay */}
                 {photo.caption && (
