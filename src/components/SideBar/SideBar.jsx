@@ -10,7 +10,6 @@ const NAV_ITEMS = [
   { path: '/settings', label: 'Settings', icon: 'settings' },
   { path: '/account', label: 'My Account', icon: 'person' },
   { path: '/contact', label: 'Contact Us', icon: 'call' },
-  { path: '/share', label: 'Share', icon: 'share' },
   { path: '/faqs', label: 'FAQs', icon: 'help_outline' },
   { path: '/logout', label: 'Log out', icon: 'logout' },
 ]
@@ -32,7 +31,7 @@ function SideBar({ isOpen, onClose }) {
       />
 
       <nav className={`${styles.sidebar} ${isOpen ? styles.open : ''}`}>
-        
+
         {/* Fixed top */}
         <div className={styles.top}>
           <div className={styles.brand}>
@@ -54,7 +53,7 @@ function SideBar({ isOpen, onClose }) {
                 key={item.path}
                 className={`${styles.navItem} ${
                   location.pathname === item.path ? styles.active : ''
-                }`}
+                } ${item.path === '/logout' ? styles.danger : ''}`}
                 onClick={() => handleNav(item.path)}
               >
                 <span className="mi">{item.icon}</span>
