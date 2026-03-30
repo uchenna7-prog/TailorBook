@@ -112,6 +112,7 @@
   letter-weight: 0.02em;
   font-size: 1.1rem;
   color: var(--text);
+  font-style: italic;
 }
 
 /* ── SCROLLABLE CONTENT ── */
