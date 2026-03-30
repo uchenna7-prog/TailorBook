@@ -31,7 +31,6 @@ function InvoiceDetail({ invoice, customer, onClose, onDelete, onStatusChange })
               </>
           }
         </div>
-
         {/* Invoice document */}
         <div className={styles.invoiceDoc}>
           <div className={styles.invoiceDocHeader}>
@@ -101,17 +100,16 @@ export default function InvoiceTab({ invoices, orders, measurements, customer, o
   const [detailInvoice, setDetailInvoice] = useState(null)
   const [confirmDel, setConfirmDel]       = useState(null)
 
-  // Listen for generate invoice event from OrdersTab
   useEffect(() => {
     const handler = (e) => {
       const { orderId } = e.detail
-      const existing = invoices.some(inv => String(inv.orderId) === String(orderId))
+      const existing = invoices.find(inv => String(inv.orderId) === String(orderId))
       if (existing) {
-        const found = invoices.find(inv => String(inv.orderId) === String(orderId))
         showToast('Invoice already exists for this order')
-        setDetailInvoice(found)
+        setDetailInvoice(existing)
         return
       }
+
       const order = orders.find(o => String(o.id) === String(orderId))
       if (!order) return
 
@@ -134,14 +132,14 @@ export default function InvoiceTab({ invoices, orders, measurements, customer, o
         date: today,
       }
 
-      onSave({ ...invoice }) // 👈 force new object
+      onSave(invoice)
+      setDetailInvoice(invoice)
       showToast(`${invNumber} generated ✓`)
-      setTimeout(() => setDetailInvoice({ ...invoice }), 0) // 👈 force UI refresh
     }
 
     document.addEventListener('generateInvoice', handler)
     return () => document.removeEventListener('generateInvoice', handler)
-  }, [invoices, orders, measurements, onSave, showToast])
+  }, [orders, measurements, onSave, showToast]) // removed invoices from deps
 
   const handleDeleteConfirm = () => {
     if (!confirmDel) return
