@@ -5,7 +5,7 @@ import Toast from '../../components/Toast/Toast'
 import ConfirmSheet from '../../components/ConfirmSheet/ConfirmSheet'
 import styles from './Settings.module.css'
 
-// ── 1. EDITABLE TEMPLATE (Full Document) ──
+
 function EditableTemplate() {
   return (
     <div className={styles.pBase}>
