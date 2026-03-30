@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react' // 👈 added useEffect
 import { useParams, useNavigate } from 'react-router-dom'
 import { useCustomers } from '../../contexts/CustomerContext'
 import { useCustomerData } from '../../hooks/useCustomerData'
@@ -41,6 +41,15 @@ export default function CustomerDetail({ onMenuClick }) {
   const [toastMsg, setToastMsg] = useState('')
   const toastTimer = useRef(null)
 
+  const fixedRef = useRef(null) // 👈 added
+
+  useEffect(() => {
+    if (fixedRef.current) {
+      const height = fixedRef.current.offsetHeight
+      document.documentElement.style.setProperty('--fixed-top-height', `${height}px`)
+    }
+  }, [activeTab, data]) // 👈 added
+
   const showToast = useCallback((msg) => {
     setToastMsg(msg)
     clearTimeout(toastTimer.current)
@@ -55,7 +64,6 @@ export default function CustomerDetail({ onMenuClick }) {
 
   return (
     <div className={styles.page}>
-      {/* ✅ Header */}
       <Header
         type="back"
         title="Customer Details"
@@ -71,8 +79,8 @@ export default function CustomerDetail({ onMenuClick }) {
         ]}
       />
 
-      {/* PROFILE + ACTIONS + TABS FIXED */}
-      <div className={styles.fixedTopContainer}>
+      {/* 👇 added ref */}
+      <div className={styles.fixedTopContainer} ref={fixedRef}>
         <div className={styles.profileSection}>
           <div className={styles.leftColumn}>
             <div className={styles.avatar}>
@@ -107,7 +115,6 @@ export default function CustomerDetail({ onMenuClick }) {
           </div>
         </div>
 
-        {/* ACTIONS */}
         <div className={styles.actions}>
           <button
             className={`${styles.btn} ${styles.light}`}
@@ -134,7 +141,6 @@ export default function CustomerDetail({ onMenuClick }) {
           </button>
         </div>
 
-        {/* TABS */}
         <div className={styles.tabs}>
           {TABS.map(tab => (
             <div
@@ -148,7 +154,6 @@ export default function CustomerDetail({ onMenuClick }) {
         </div>
       </div>
 
-      {/* SCROLLABLE CONTENT ONLY */}
       <div className={styles.scrollContent}>
         {activeTab === 'dress' && (
           <MeasurementsTab
@@ -185,7 +190,6 @@ export default function CustomerDetail({ onMenuClick }) {
         )}
       </div>
 
-      {/* ✅ FAB */}
       {(activeTab === 'dress' || activeTab === 'orders') && (
         <button
           className={styles.fab}
