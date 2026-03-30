@@ -67,24 +67,25 @@ export default function CustomerDetail({ onMenuClick }) {
   const initials = getInitials(customer.name)
   const birthday = getBirthday(customer.birthday)
 
-  // --- FIX: local state for invoices to ensure immediate UI update ---
-  const [invoicesState, setInvoicesState] = useState(data.invoices || [])
+  // --- FIX: Sync local state with hook data ---
+  const [invoicesState, setInvoicesState] = useState([])
+
+  useEffect(() => {
+    if (data.invoices) {
+      setInvoicesState(data.invoices)
+    }
+  }, [data.invoices])
 
   const handleSaveInvoice = (invoice) => {
-    data.saveInvoice(invoice) // call hook to persist
-    setInvoicesState(prev => [...prev, invoice]) // update local state
+    data.saveInvoice(invoice)
   }
 
   const handleDeleteInvoice = (id) => {
     data.deleteInvoice(id)
-    setInvoicesState(prev => prev.filter(inv => String(inv.id) !== String(id)))
   }
 
   const handleStatusChangeInvoice = (id, status) => {
     data.updateInvoiceStatus(id, status)
-    setInvoicesState(prev =>
-      prev.map(inv => (String(inv.id) === String(id) ? { ...inv, status } : inv))
-    )
   }
 
   return (
@@ -201,13 +202,13 @@ export default function CustomerDetail({ onMenuClick }) {
 
         {activeTab === 'invoice' && (
           <InvoiceTab
-            invoices={invoicesState} // <-- use local state
+            invoices={invoicesState}
             orders={data.orders}
             measurements={data.measurements}
             customer={customer}
-            onSave={handleSaveInvoice} // <-- updated
-            onDelete={handleDeleteInvoice} // <-- updated
-            onStatusChange={handleStatusChangeInvoice} // <-- updated
+            onSave={handleSaveInvoice}
+            onDelete={handleDeleteInvoice}
+            onStatusChange={handleStatusChangeInvoice}
             showToast={showToast}
           />
         )}
