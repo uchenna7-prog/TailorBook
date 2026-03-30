@@ -47,7 +47,7 @@ font-style: italic; }
 .btn.primary { background: var(--text); color: var(--bg); }
 .btn.primary .mi { color: var(--bg); }
 
-/* ── TABS ── */
+
 .tabs { display: flex; justify-content: space-around; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
 .tab { padding: 10px 0; font-size: 0.75rem; font-weight: 700; color: var(--text3); text-transform: uppercase; cursor: pointer; position: relative; text-align: center; }
 .tab.active { color: var(--accent); font-weight: 800; }
