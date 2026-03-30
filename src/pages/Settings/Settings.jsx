@@ -1,85 +1,256 @@
-import { useRef, useState, useCallback } from 'react'
-import { useSettings, DEFAULTS } from '../contexts/SettingsContext'
-import TopBar from '../components/TopBar'
-import s from './Settings.module.css'
+import { useState, useRef, useCallback } from 'react'
+import { useSettings } from '../../contexts/SettingsContext'
+import Header from '../../components/Header/Header'
+import Toast from '../../components/Toast/Toast'
+import ConfirmSheet from '../../components/ConfirmSheet/ConfirmSheet'
+import styles from './Settings.module.css'
 
-// ─────────────────────────────────────────────
-// Small reusable primitives
-// ─────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+// Invoice template previews (unchanged from original)
+// ─────────────────────────────────────────────────────────────
+
+function EditableTemplate() {
+  return (
+    <div className={styles.pBase}>
+      <div className={styles.pHeader}>
+        <div className={styles.pBrandCenter}>
+          <div className={styles.pBrandName}>Your Company Name</div>
+          <div className={styles.pBrandSub}>123 Street Address, City, State, Zip Code</div>
+        </div>
+        <div className={styles.pLargeTitleCenter}>INVOICE</div>
+      </div>
+      <div className={styles.pBody}>
+        <div className={styles.pMetaRow}>
+          <div><strong>BILL TO:</strong><br />Customer Name<br />Street Address<br />City, State, Zip</div>
+          <div style={{ textAlign: 'right' }}>
+            Invoice #: <strong>0000001</strong><br />
+            Issue Date: <strong>Date Field</strong><br />
+            Due Date: <strong>Date Field</strong>
+          </div>
+        </div>
+        <div className={styles.pTableModern}>
+          <div className={styles.pTHead}><span>Description</span><span>Price</span><span>QTY</span><span>Total</span></div>
+          {[1, 2, 3].map(i => (
+            <div key={i} className={styles.pTRow}><span>Line Item & Description</span><span>$0.00</span><span>1</span><span>$0.00</span></div>
+          ))}
+        </div>
+        <div className={styles.pSummary}>
+          <div className={styles.pSumRow}><span>Subtotal</span><span>$0.00</span></div>
+          <div className={styles.pSumRow}><span>Tax</span><span>$0.00</span></div>
+          <div className={`${styles.pSumRow} ${styles.pBold}`}><span>Total Due</span><span>$0.00</span></div>
+        </div>
+      </div>
+      <div className={styles.pFooter}>
+        <div className={styles.pFootSection}><strong>Payment Terms:</strong><br />Add your payment terms such as bank details.</div>
+        <div className={styles.pFootSection}><strong>Notes:</strong><br />Add any additional notes.</div>
+      </div>
+    </div>
+  )
+}
+
+function PrintableTemplate() {
+  return (
+    <div className={styles.pBase}>
+      <div className={styles.pGoldBarFull} />
+      <div className={styles.pHeaderSplit}>
+        <div className={styles.pLargeTitle}>INVOICE</div>
+        <div className={styles.pMetaRight}>
+          <div>ISSUE DATE: <strong>Date Field</strong></div>
+          <div>DUE DATE: <strong>Date Field</strong></div>
+          <div>INVOICE #: <strong>0000001</strong></div>
+        </div>
+      </div>
+      <div className={styles.pBody}>
+        <div className={styles.pMetaRow} style={{ borderBottom: '1px solid #eee', paddingBottom: '10px' }}>
+          <div><strong>BILL FROM:</strong><br />Your Company Name<br />Street Address<br />Phone Number</div>
+          <div style={{ textAlign: 'right' }}><strong>BILL TO:</strong><br />Customer Name<br />Street Address<br />City, State, Zip</div>
+        </div>
+        <div className={styles.pTableModern} style={{ marginTop: '20px' }}>
+          <div className={styles.pTHead}><span>Description</span><span>Price</span><span>QTY</span><span>Total</span></div>
+          {[1, 2, 3].map(i => (
+            <div key={i} className={styles.pTRow}><span>Line Item & Description</span><span>$0.00</span><span>1</span><span>$0.00</span></div>
+          ))}
+        </div>
+        <div className={styles.pSummarySide}>
+          <div className={styles.pSumRow}><span>Subtotal</span><span>$0.00</span></div>
+          <div className={styles.pSumRow}><span>Tax</span><span>$0.00</span></div>
+          <div className={`${styles.pSumRow} ${styles.pTotalBox}`}><span>Total Due</span><span>$0.00</span></div>
+        </div>
+      </div>
+      <div className={styles.pFooter}>
+        <div className={styles.pFootSection}><strong>Payment Terms:</strong><br />Bank Name, Account #</div>
+      </div>
+    </div>
+  )
+}
+
+function CustomTemplate() {
+  return (
+    <div className={styles.pBase} style={{ padding: 0 }}>
+      <div className={styles.pPurpleBanner}>
+        <div className={styles.pLogoBoxWhite}>Place logo here</div>
+        <div className={styles.pLargeTitleWhite}>INVOICE</div>
+        <div className={styles.pWhiteNo}>0000001</div>
+      </div>
+      <div className={styles.pBody} style={{ padding: '20px' }}>
+        <div className={styles.pMetaRow}>
+          <div><strong>BILL FROM:</strong><br />Your Company Name</div>
+          <div><strong>BILL TO:</strong><br />Customer Name</div>
+          <div style={{ textAlign: 'right' }}><strong>DATE:</strong><br />Date Field</div>
+        </div>
+        <div className={styles.pTableModern} style={{ marginTop: '20px' }}>
+          <div className={styles.pTHead}><span>Description</span><span>Price</span><span>QTY</span><span>Total</span></div>
+          {[1, 2].map(i => (
+            <div key={i} className={styles.pTRow}><span>Line Item & Description</span><span>$0.00</span><span>1</span><span>$0.00</span></div>
+          ))}
+        </div>
+        <div className={styles.pSummary}>
+          <div className={styles.pSumRow}><span>Subtotal</span><span>$0.00</span></div>
+          <div className={`${styles.pSumRow} ${styles.pBold}`}><span>Total Due</span><span>$0.00</span></div>
+        </div>
+      </div>
+      <div className={styles.pPurpleBottom}>
+        <div className={styles.pFootSectionWhite}><strong>Payment Terms:</strong> Add details here</div>
+      </div>
+    </div>
+  )
+}
+
+function FreeTemplate() {
+  return (
+    <div className={styles.pBase}>
+      <div className={styles.pHeaderFree}>
+        <div className={styles.pTitleBlock}>
+          <div className={styles.pLargeTitle}>INVOICE</div>
+          <div className={styles.pSubNo}>0000001</div>
+        </div>
+        <div className={styles.pLogoPlaceholderBig}>ADD YOUR LOGO</div>
+      </div>
+      <div className={styles.pFreeGrid}>
+        <div className={styles.pFreeBox}><strong>BILL FROM:</strong><br />Your Company Name<br />Address<br />Phone</div>
+        <div className={styles.pFreeBox}><strong>BILL TO:</strong><br />Customer Name<br />Address</div>
+        <div className={styles.pFreeBox}><strong>DETAILS:</strong><br />Issue: Date<br />Due: Date</div>
+      </div>
+      <div className={styles.pBody}>
+        <div className={styles.pTableModern}>
+          <div className={styles.pTHead}><span>Description</span><span>Price</span><span>QTY</span><span>Total</span></div>
+          {[1, 2, 3].map(i => (
+            <div key={i} className={styles.pTRow}><span>Line Item & Description</span><span>$0.00</span><span>1</span><span>$0.00</span></div>
+          ))}
+        </div>
+        <div className={styles.pSummary}>
+          <div className={styles.pSumRow}><span>Subtotal</span><span>$0.00</span></div>
+          <div className={`${styles.pSumRow} ${styles.pBold}`}><span>Total Due</span><span>$0.00</span></div>
+        </div>
+      </div>
+      <div className={styles.pFooterGray}>Thank you for your business!</div>
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────
+// Shared primitives
+// ─────────────────────────────────────────────────────────────
 
 function SectionHeader({ icon, label }) {
   return (
-    <div className={s.sectionHeader}>
-      <span className="material-icons" style={{ fontSize: 15, color: 'var(--text3)' }}>{icon}</span>
-      <span className={s.sectionLabel}>{label}</span>
+    <div className={styles.sectionHeader}>
+      <span className="mi" style={{ fontSize: '1rem', color: 'var(--text3)' }}>{icon}</span>
+      <span className={styles.sectionLabel}>{label}</span>
     </div>
   )
 }
 
-function Row({ icon, iconBg, label, sub, value, onClick, children, divider = true }) {
+function SettingRow({ icon, label, sub, value, children, onClick, chevron, divider = true }) {
   return (
     <div
-      className={`${s.row} ${onClick ? s.rowTappable : ''}`}
+      className={`${styles.row} ${onClick ? styles.rowTappable : ''}`}
       onClick={onClick}
-      style={{ borderBottom: divider ? '1px solid var(--border)' : 'none' }}
+      style={!divider ? { borderBottom: 'none' } : {}}
     >
-      {icon && (
-        <div className={s.rowIcon} style={iconBg ? { background: iconBg } : {}}>
-          <span className="material-icons" style={{ fontSize: 18 }}>{icon}</span>
-        </div>
-      )}
-      <div className={s.rowText}>
-        <div className={s.rowLabel}>{label}</div>
-        {sub && <div className={s.rowSub}>{sub}</div>}
+      <div className={styles.rowIcon}>
+        <span className="mi" style={{ fontSize: '1.15rem' }}>{icon}</span>
       </div>
-      {value && <span className={s.rowValue}>{value}</span>}
-      {children}
-      {onClick && <span className="material-icons" style={{ fontSize: 18, color: 'var(--text3)' }}>chevron_right</span>}
+      <div className={styles.rowText}>
+        <div className={styles.rowLabel}>{label}</div>
+        {sub && <div className={styles.rowSub}>{sub}</div>}
+      </div>
+      <div className={styles.rowRight}>
+        {value && <span className={styles.rowValue}>{value}</span>}
+        {children}
+        {chevron && <span className="mi" style={{ fontSize: '1rem', color: 'var(--text3)', marginLeft: 6 }}>chevron_right</span>}
+      </div>
     </div>
   )
 }
 
-function Toggle({ on, onToggle }) {
+function Toggle({ value, onChange }) {
   return (
     <button
-      className={`${s.toggle} ${on ? s.toggleOn : ''}`}
-      onClick={onToggle}
-      aria-checked={on}
+      className={`${styles.toggle} ${value ? styles.toggleOn : ''}`}
+      onClick={() => onChange(!value)}
       role="switch"
+      aria-checked={value}
     >
-      <div className={s.toggleThumb} style={on ? { transform: 'translateX(18px)', background: '#fff' } : { background: 'var(--text3)' }} />
+      <span className={styles.toggleThumb} />
     </button>
   )
 }
 
-// ─────────────────────────────────────────────
-// Full-screen modal shell
-// ─────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+// Segment control
+// ─────────────────────────────────────────────────────────────
 
-function FullModal({ title, onBack, onSave, children }) {
+function SegmentControl({ options, value, onChange }) {
   return (
-    <div className={s.fullOverlay}>
-      <div className={s.fullHeader}>
-        <button className={s.backBtn} onClick={onBack}>
-          <span className="material-icons">arrow_back</span>
+    <div className={styles.segment}>
+      {options.map(opt => (
+        <button
+          key={opt.value}
+          className={`${styles.segBtn} ${value === opt.value ? styles.segActive : ''}`}
+          onClick={() => onChange(opt.value)}
+        >
+          {opt.label}
         </button>
-        <span className={s.fullTitle}>{title}</span>
-        {onSave && <button className={s.fullSave} onClick={onSave}>Save</button>}
-      </div>
-      <div className={s.fullContent}>{children}</div>
+      ))}
     </div>
   )
 }
 
-// ─────────────────────────────────────────────
-// Field components used inside modals
-// ─────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+// Full-screen slide-in modal shell
+// ─────────────────────────────────────────────────────────────
+
+function FullModal({ title, onBack, onSave, children }) {
+  return (
+    <div className={styles.fullOverlay}>
+      <div className={styles.fullHeader}>
+        <button className={styles.backBtn} onClick={onBack}>
+          <span className="mi">arrow_back</span>
+        </button>
+        <span className={styles.fullTitle}>{title}</span>
+        {onSave && (
+          <button className={styles.fullSave} onClick={onSave}>Save</button>
+        )}
+      </div>
+      <div className={styles.fullContent}>{children}</div>
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────
+// Field wrappers used inside modals
+// ─────────────────────────────────────────────────────────────
+
+function FieldGroup({ children }) {
+  return <div className={styles.fieldGroup}>{children}</div>
+}
 
 function Field({ label, hint, children }) {
   return (
-    <div className={s.field}>
-      <label className={s.fieldLabel}>{label}</label>
-      {hint && <p className={s.fieldHint}>{hint}</p>}
+    <div className={styles.field}>
+      <label className={styles.fieldLabel}>{label}</label>
+      {hint && <p className={styles.fieldHint}>{hint}</p>}
       {children}
     </div>
   )
@@ -88,7 +259,7 @@ function Field({ label, hint, children }) {
 function TextInput({ value, onChange, placeholder, type = 'text' }) {
   return (
     <input
-      className={s.textInput}
+      className={styles.textInput}
       type={type}
       value={value}
       onChange={e => onChange(e.target.value)}
@@ -100,7 +271,7 @@ function TextInput({ value, onChange, placeholder, type = 'text' }) {
 function Textarea({ value, onChange, placeholder, rows = 3 }) {
   return (
     <textarea
-      className={s.textarea}
+      className={styles.textarea}
       value={value}
       onChange={e => onChange(e.target.value)}
       placeholder={placeholder}
@@ -109,75 +280,101 @@ function Textarea({ value, onChange, placeholder, rows = 3 }) {
   )
 }
 
-function SegmentControl({ options, value, onChange }) {
+// ─────────────────────────────────────────────────────────────
+// MODAL: Invoice Template Picker
+// ─────────────────────────────────────────────────────────────
+
+function TemplateModal({ isOpen, currentTemplate, onClose, onSelect }) {
+  const [selected, setSelected] = useState(currentTemplate || 'editable')
+
+  const TEMPLATES = [
+    { id: 'editable',   label: 'Editable Clothing Store',   Component: EditableTemplate },
+    { id: 'printable',  label: 'Printable Clothing Store',  Component: PrintableTemplate },
+    { id: 'custom',     label: 'Custom Clothing Store',     Component: CustomTemplate },
+    { id: 'free',       label: 'Free Clothing Store',       Component: FreeTemplate },
+  ]
+
+  if (!isOpen) return null
+
   return (
-    <div className={s.segment}>
-      {options.map(opt => (
-        <button
-          key={opt.value}
-          className={`${s.segBtn} ${value === opt.value ? s.segActive : ''}`}
-          onClick={() => onChange(opt.value)}
-        >
-          {opt.label}
+    <div className={styles.fullOverlay}>
+      <div className={styles.fullHeader}>
+        <button className={styles.backBtn} onClick={onClose}>
+          <span className="mi">arrow_back</span>
         </button>
-      ))}
+        <span className={styles.fullTitle}>Invoice Templates</span>
+        <button className={styles.fullSave} onClick={() => { onSelect(selected); onClose() }}>Select</button>
+      </div>
+      <div className={styles.fullContent}>
+        {TEMPLATES.map(t => (
+          <div key={t.id} className={styles.templateWrapper} onClick={() => setSelected(t.id)}>
+            <div className={`${styles.fullPreviewContainer} ${selected === t.id ? styles.fullPreviewActive : ''}`}>
+              <t.Component />
+            </div>
+            <div className={styles.templateInfo}>
+              <div className={`${styles.radio} ${selected === t.id ? styles.radioActive : ''}`} />
+              <span className={styles.templateLabel}>{t.label}</span>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
 
-// ─────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
 // MODAL: Brand & Business
-// ─────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
 
-function BrandModal({ onBack }) {
+function BrandModal({ onBack, showToast }) {
   const { settings, updateMany } = useSettings()
   const logoInputRef = useRef()
 
   const [local, setLocal] = useState({
-    brandName: settings.brandName,
+    brandName:    settings.brandName,
     brandTagline: settings.brandTagline,
-    brandColour: settings.brandColour,
-    brandLogo: settings.brandLogo,
-    brandPhone: settings.brandPhone,
-    brandEmail: settings.brandEmail,
+    brandColour:  settings.brandColour,
+    brandLogo:    settings.brandLogo,
+    brandPhone:   settings.brandPhone,
+    brandEmail:   settings.brandEmail,
     brandAddress: settings.brandAddress,
     brandWebsite: settings.brandWebsite,
   })
 
-  const set = (key) => (val) => setLocal(p => ({ ...p, [key]: val }))
+  const set = key => val => setLocal(p => ({ ...p, [key]: val }))
 
-  const handleLogoChange = useCallback((e) => {
+  const handleLogoChange = useCallback(e => {
     const file = e.target.files?.[0]
     if (!file) return
     const reader = new FileReader()
-    reader.onload = (ev) => setLocal(p => ({ ...p, brandLogo: ev.target.result }))
+    reader.onload = ev => setLocal(p => ({ ...p, brandLogo: ev.target.result }))
     reader.readAsDataURL(file)
   }, [])
 
-  const removeLogo = () => setLocal(p => ({ ...p, brandLogo: null }))
-
   const save = () => {
     updateMany(local)
+    showToast('Brand info saved')
     onBack()
   }
 
   return (
     <FullModal title="Brand & Business" onBack={onBack} onSave={save}>
 
-      {/* Logo */}
-      <div className={s.fieldGroup}>
-        <Field label="Brand Logo" hint="Used on invoice headers. PNG or JPG, ideally square.">
+      <FieldGroup>
+        <Field label="Brand Logo" hint="PNG or JPG. Appears on invoice headers.">
           {local.brandLogo ? (
-            <div className={s.logoPreviewWrap}>
-              <img src={local.brandLogo} alt="Brand logo" className={s.logoPreview} />
-              <button className={s.logoRemove} onClick={removeLogo}>
-                <span className="material-icons" style={{ fontSize: 16 }}>close</span>
-                Remove
+            <div className={styles.logoPreviewWrap}>
+              <img src={local.brandLogo} alt="Brand logo" className={styles.logoPreview} />
+              <button
+                className={styles.logoRemove}
+                onClick={() => setLocal(p => ({ ...p, brandLogo: null }))}
+              >
+                <span className="mi" style={{ fontSize: 15 }}>close</span> Remove
               </button>
             </div>
           ) : (
-            <button className={s.logoUploadBtn} onClick={() => logoInputRef.current?.click()}>
-              <span className="material-icons">add_photo_alternate</span>
+            <button className={styles.logoUploadBtn} onClick={() => logoInputRef.current?.click()}>
+              <span className="mi">add_photo_alternate</span>
               Upload Logo
             </button>
           )}
@@ -189,31 +386,29 @@ function BrandModal({ onBack }) {
             onChange={handleLogoChange}
           />
         </Field>
-      </div>
+      </FieldGroup>
 
-      {/* Identity */}
-      <div className={s.fieldGroup}>
-        <Field label="Brand / Shop Name">
+      <FieldGroup>
+        <Field label="Shop / Brand Name">
           <TextInput value={local.brandName} onChange={set('brandName')} placeholder="e.g. Stitched by Amara" />
         </Field>
         <Field label="Tagline" hint="Short line shown under your name on some templates.">
           <TextInput value={local.brandTagline} onChange={set('brandTagline')} placeholder="e.g. Crafted with love, fitted for you" />
         </Field>
         <Field label="Brand Colour" hint="Used for headers and accents on coloured invoice templates.">
-          <div className={s.colourRow}>
+          <div className={styles.colourRow}>
             <input
               type="color"
-              className={s.colourPicker}
+              className={styles.colourPicker}
               value={local.brandColour}
               onChange={e => set('brandColour')(e.target.value)}
             />
             <TextInput value={local.brandColour} onChange={set('brandColour')} placeholder="#D4AF37" />
           </div>
         </Field>
-      </div>
+      </FieldGroup>
 
-      {/* Contact */}
-      <div className={s.fieldGroup}>
+      <FieldGroup>
         <Field label="Phone Number">
           <TextInput value={local.brandPhone} onChange={set('brandPhone')} placeholder="+234 800 000 0000" type="tel" />
         </Field>
@@ -226,85 +421,95 @@ function BrandModal({ onBack }) {
         <Field label="Website / Social">
           <TextInput value={local.brandWebsite} onChange={set('brandWebsite')} placeholder="instagram.com/yourbrand" />
         </Field>
-      </div>
+      </FieldGroup>
 
     </FullModal>
   )
 }
 
-// ─────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
 // MODAL: Invoice Settings
-// ─────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
 
-function InvoiceModal({ onBack }) {
+function InvoiceSettingsModal({ onBack, showToast }) {
   const { settings, updateMany } = useSettings()
+
   const [local, setLocal] = useState({
-    invoicePrefix: settings.invoicePrefix,
+    invoicePrefix:   settings.invoicePrefix,
     invoiceCurrency: settings.invoiceCurrency,
-    invoiceDueDays: settings.invoiceDueDays,
-    invoiceShowTax: settings.invoiceShowTax,
-    invoiceTaxRate: settings.invoiceTaxRate,
-    invoiceFooter: settings.invoiceFooter,
+    invoiceDueDays:  settings.invoiceDueDays,
+    invoiceShowTax:  settings.invoiceShowTax,
+    invoiceTaxRate:  settings.invoiceTaxRate,
+    invoiceFooter:   settings.invoiceFooter,
   })
 
-  const set = (key) => (val) => setLocal(p => ({ ...p, [key]: val }))
+  const set = key => val => setLocal(p => ({ ...p, [key]: val }))
 
-  const save = () => { updateMany(local); onBack() }
+  const save = () => {
+    updateMany(local)
+    showToast('Invoice settings saved')
+    onBack()
+  }
 
   return (
     <FullModal title="Invoice Settings" onBack={onBack} onSave={save}>
 
-      <div className={s.fieldGroup}>
-        <Field label="Invoice Number Prefix" hint="Appears before the invoice number, e.g. INV-0042.">
+      <FieldGroup>
+        <Field label="Invoice Number Prefix" hint="Shown before the number, e.g. INV-0042.">
           <TextInput value={local.invoicePrefix} onChange={set('invoicePrefix')} placeholder="INV" />
         </Field>
-        <Field label="Currency Symbol">
+        <Field label="Currency">
           <SegmentControl
             options={[
-              { label: '₦ Naira', value: '₦' },
+              { label: '₦ Naira',  value: '₦' },
               { label: '$ Dollar', value: '$' },
-              { label: '£ Pound', value: '£' },
-              { label: '€ Euro', value: '€' },
+              { label: '£ Pound',  value: '£' },
+              { label: '€ Euro',   value: '€' },
             ]}
             value={local.invoiceCurrency}
             onChange={set('invoiceCurrency')}
           />
         </Field>
-        <Field label="Default Due Period (days)" hint="How many days after issue is the invoice due.">
+        <Field label="Default Due Period" hint="Days after issue date the invoice is due.">
           <SegmentControl
             options={[
-              { label: '3d', value: 3 },
-              { label: '7d', value: 7 },
-              { label: '14d', value: 14 },
-              { label: '30d', value: 30 },
+              { label: '3 days',  value: 3 },
+              { label: '7 days',  value: 7 },
+              { label: '14 days', value: 14 },
+              { label: '30 days', value: 30 },
             ]}
             value={local.invoiceDueDays}
             onChange={set('invoiceDueDays')}
           />
         </Field>
-      </div>
+      </FieldGroup>
 
-      <div className={s.fieldGroup}>
-        <div className={s.row} style={{ borderBottom: '1px solid var(--border)' }}>
-          <div className={s.rowText}>
-            <div className={s.rowLabel}>Show Tax Line</div>
-            <div className={s.rowSub}>Add a VAT / tax row to invoice totals</div>
+      <FieldGroup>
+        <div className={styles.row} style={{ borderBottom: local.invoiceShowTax ? '1px solid var(--border)' : 'none' }}>
+          <div className={styles.rowIcon}>
+            <span className="mi" style={{ fontSize: '1.15rem' }}>percent</span>
           </div>
-          <Toggle on={local.invoiceShowTax} onToggle={() => set('invoiceShowTax')(!local.invoiceShowTax)} />
+          <div className={styles.rowText}>
+            <div className={styles.rowLabel}>Show Tax Line</div>
+            <div className={styles.rowSub}>Add a VAT / tax row to invoice totals</div>
+          </div>
+          <div className={styles.rowRight}>
+            <Toggle value={local.invoiceShowTax} onChange={v => set('invoiceShowTax')(v)} />
+          </div>
         </div>
         {local.invoiceShowTax && (
           <Field label="Tax Rate (%)" hint="e.g. 7.5 for 7.5% VAT">
             <TextInput
               type="number"
-              value={local.invoiceTaxRate}
+              value={String(local.invoiceTaxRate)}
               onChange={v => set('invoiceTaxRate')(parseFloat(v) || 0)}
               placeholder="7.5"
             />
           </Field>
         )}
-      </div>
+      </FieldGroup>
 
-      <div className={s.fieldGroup}>
+      <FieldGroup>
         <Field label="Invoice Footer Text" hint="Printed at the bottom of every invoice.">
           <Textarea
             value={local.invoiceFooter}
@@ -313,28 +518,28 @@ function InvoiceModal({ onBack }) {
             rows={3}
           />
         </Field>
-      </div>
+      </FieldGroup>
 
     </FullModal>
   )
 }
 
-// ─────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
 // MODAL: Measurements
-// ─────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
 
-function MeasureModal({ onBack }) {
+function MeasurementModal({ onBack, showToast }) {
   const { settings, updateMany } = useSettings()
   const [local, setLocal] = useState({
-    measureUnit: settings.measureUnit,
+    measureUnit:   settings.measureUnit,
     measureFormat: settings.measureFormat,
   })
-  const set = (key) => (val) => setLocal(p => ({ ...p, [key]: val }))
-  const save = () => { updateMany(local); onBack() }
+  const set = key => val => setLocal(p => ({ ...p, [key]: val }))
+  const save = () => { updateMany(local); showToast('Saved'); onBack() }
 
   return (
     <FullModal title="Measurements" onBack={onBack} onSave={save}>
-      <div className={s.fieldGroup}>
+      <FieldGroup>
         <Field label="Default Unit">
           <SegmentControl
             options={[
@@ -346,85 +551,90 @@ function MeasureModal({ onBack }) {
             onChange={set('measureUnit')}
           />
         </Field>
-        <Field label="Number Format" hint="How decimal measurements are displayed.">
+        <Field label="Number Format">
           <SegmentControl
             options={[
-              { label: '12.5 (Decimal)', value: 'decimal' },
-              { label: '12½ (Fraction)', value: 'fraction' },
+              { label: '12.5  Decimal',  value: 'decimal' },
+              { label: '12½  Fraction', value: 'fraction' },
             ]}
             value={local.measureFormat}
             onChange={set('measureFormat')}
           />
         </Field>
-      </div>
+      </FieldGroup>
     </FullModal>
   )
 }
 
-// ─────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
 // MODAL: Orders
-// ─────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
 
-function OrdersModal({ onBack }) {
+function OrdersModal({ onBack, showToast }) {
   const { settings, updateMany } = useSettings()
   const [local, setLocal] = useState({
-    defaultDepositPercent: settings.defaultDepositPercent,
-    autoArchiveCompletedOrders: settings.autoArchiveCompletedOrders,
+    defaultDepositPercent:        settings.defaultDepositPercent,
+    autoArchiveCompletedOrders:   settings.autoArchiveCompletedOrders,
   })
-  const set = (key) => (val) => setLocal(p => ({ ...p, [key]: val }))
-  const save = () => { updateMany(local); onBack() }
+  const set = key => val => setLocal(p => ({ ...p, [key]: val }))
+  const save = () => { updateMany(local); showToast('Saved'); onBack() }
 
   return (
     <FullModal title="Orders" onBack={onBack} onSave={save}>
-      <div className={s.fieldGroup}>
-        <Field label="Default Deposit %" hint="Percentage of total collected when order is placed.">
+      <FieldGroup>
+        <Field label="Default Deposit %" hint="Percentage of total collected when an order is placed.">
           <SegmentControl
             options={[
-              { label: '25%', value: 25 },
-              { label: '50%', value: 50 },
-              { label: '75%', value: 75 },
+              { label: '25%',  value: 25 },
+              { label: '50%',  value: 50 },
+              { label: '75%',  value: 75 },
               { label: '100%', value: 100 },
             ]}
             value={local.defaultDepositPercent}
             onChange={set('defaultDepositPercent')}
           />
         </Field>
-        <div className={s.row} style={{ borderBottom: 'none' }}>
-          <div className={s.rowText}>
-            <div className={s.rowLabel}>Auto-archive Completed Orders</div>
-            <div className={s.rowSub}>Move orders to archive once marked Completed</div>
+        <div className={styles.row} style={{ borderBottom: 'none' }}>
+          <div className={styles.rowIcon}>
+            <span className="mi" style={{ fontSize: '1.15rem' }}>archive</span>
           </div>
-          <Toggle
-            on={local.autoArchiveCompletedOrders}
-            onToggle={() => set('autoArchiveCompletedOrders')(!local.autoArchiveCompletedOrders)}
-          />
+          <div className={styles.rowText}>
+            <div className={styles.rowLabel}>Auto-archive Completed Orders</div>
+            <div className={styles.rowSub}>Move to archive once marked Completed</div>
+          </div>
+          <div className={styles.rowRight}>
+            <Toggle
+              value={local.autoArchiveCompletedOrders}
+              onChange={v => set('autoArchiveCompletedOrders')(v)}
+            />
+          </div>
         </div>
-      </div>
+      </FieldGroup>
     </FullModal>
   )
 }
 
-// ─────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
 // MODAL: Display & Date
-// ─────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
 
-function DisplayModal({ onBack }) {
+function DisplayModal({ onBack, showToast }) {
   const { settings, updateMany } = useSettings()
   const [local, setLocal] = useState({
-    theme: settings.theme,
+    theme:      settings.theme,
     dateFormat: settings.dateFormat,
   })
-  const set = (key) => (val) => setLocal(p => ({ ...p, [key]: val }))
-  const save = () => { updateMany(local); onBack() }
+  const set = key => val => setLocal(p => ({ ...p, [key]: val }))
+  const save = () => { updateMany(local); showToast('Display saved'); onBack() }
 
   return (
     <FullModal title="Display & Date" onBack={onBack} onSave={save}>
-      <div className={s.fieldGroup}>
+      <FieldGroup>
         <Field label="Theme">
           <SegmentControl
             options={[
-              { label: '☀️ Light', value: 'light' },
-              { label: '🌙 Dark', value: 'dark' },
+              { label: '☀️ Light',  value: 'light' },
+              { label: '🌙 Dark',   value: 'dark' },
               { label: '⚙️ System', value: 'system' },
             ]}
             value={local.theme}
@@ -434,152 +644,173 @@ function DisplayModal({ onBack }) {
         <Field label="Date Format">
           <SegmentControl
             options={[
-              { label: 'DD/MM/YYYY', value: 'DD/MM/YYYY' },
-              { label: 'MM/DD/YYYY', value: 'MM/DD/YYYY' },
-              { label: 'YYYY-MM-DD', value: 'YYYY-MM-DD' },
+              { label: 'DD/MM/YYYY',  value: 'DD/MM/YYYY' },
+              { label: 'MM/DD/YYYY',  value: 'MM/DD/YYYY' },
+              { label: 'YYYY-MM-DD',  value: 'YYYY-MM-DD' },
             ]}
             value={local.dateFormat}
             onChange={set('dateFormat')}
           />
         </Field>
-      </div>
+      </FieldGroup>
     </FullModal>
   )
 }
 
-// ─────────────────────────────────────────────
-// RESET confirmation sheet
-// ─────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+// Active modal registry
+// ─────────────────────────────────────────────────────────────
 
-function ResetSheet({ onConfirm, onCancel }) {
-  return (
-    <div className={s.sheetOverlay} onClick={onCancel}>
-      <div className={s.sheet} onClick={e => e.stopPropagation()}>
-        <div className={s.sheetHandle} />
-        <p className={s.sheetTitle}>Reset all settings?</p>
-        <p className={s.sheetSub}>This will restore every setting to its default value. Your customers and orders won't be affected.</p>
-        <button className={s.sheetDestructive} onClick={onConfirm}>Reset Settings</button>
-        <button className={s.sheetCancel} onClick={onCancel}>Cancel</button>
-      </div>
-    </div>
-  )
+const MODAL_MAP = {
+  template:    null, // handled separately via templateModal boolean
+  brand:       BrandModal,
+  invoice:     InvoiceSettingsModal,
+  measurement: MeasurementModal,
+  orders:      OrdersModal,
+  display:     DisplayModal,
 }
 
-// ─────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
 // Main Settings page
-// ─────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
 
-const MODALS = {
-  brand: BrandModal,
-  invoice: InvoiceModal,
-  measure: MeasureModal,
-  orders: OrdersModal,
-  display: DisplayModal,
-}
-
-export default function Settings() {
+export default function Settings({ onMenuClick }) {
   const { settings, updateSetting, resetSettings } = useSettings()
-  const [activeModal, setActiveModal] = useState(null) // key in MODALS
-  const [showReset, setShowReset] = useState(false)
 
-  const open = (key) => () => setActiveModal(key)
+  const [toastMsg,       setToastMsg]       = useState('')
+  const [templateModal,  setTemplateModal]  = useState(false)
+  const [activeModal,    setActiveModal]    = useState(null)  // key in MODAL_MAP
+  const [clearConfirm,   setClearConfirm]   = useState(false)
+  const [resetConfirm,   setResetConfirm]   = useState(false)
+  const toastTimer = useRef(null)
+
+  const showToast = useCallback(msg => {
+    setToastMsg(msg)
+    clearTimeout(toastTimer.current)
+    toastTimer.current = setTimeout(() => setToastMsg(''), 2400)
+  }, [])
+
+  const open  = key => () => setActiveModal(key)
   const close = () => setActiveModal(null)
 
-  const handleReset = () => {
-    resetSettings()
-    setShowReset(false)
-  }
+  const ModalComponent = activeModal ? MODAL_MAP[activeModal] : null
 
-  const ModalComponent = activeModal ? MODALS[activeModal] : null
-
-  // Derive display strings
   const themeLabel = { light: '☀️ Light', dark: '🌙 Dark', system: '⚙️ System' }[settings.theme]
-  const unitLabel = { in: 'Inches', cm: 'Centimetres', yd: 'Yards' }[settings.measureUnit]
+  const unitLabel  = { in: 'Inches', cm: 'Centimetres', yd: 'Yards' }[settings.measureUnit]
 
   return (
-    <div className={s.page}>
-      <TopBar title="Settings" />
+    <div className={styles.page}>
+      <Header onMenuClick={onMenuClick} />
 
-      <div className={s.scrollArea}>
+      <div className={styles.scrollArea}>
 
         {/* ── APPEARANCE ── */}
         <SectionHeader icon="palette" label="Appearance" />
-        <div className={s.card}>
-          <Row icon="contrast" iconBg="var(--surface2)" label="Theme" value={themeLabel} onClick={open('display')} />
-          <Row icon="calendar_today" iconBg="var(--surface2)" label="Date Format" value={settings.dateFormat} onClick={open('display')} divider={false} />
+        <div className={styles.card}>
+          <SettingRow
+            icon="contrast"
+            label="Theme & Date"
+            sub={themeLabel}
+            value={settings.dateFormat}
+            onClick={open('display')}
+            chevron
+            divider={false}
+          />
         </div>
 
         {/* ── BRAND & BUSINESS ── */}
         <SectionHeader icon="storefront" label="Brand & Business" />
-        <div className={s.card}>
-          <Row
+        <div className={styles.card}>
+          <SettingRow
             icon="badge"
-            iconBg="#f59e0b22"
             label="Brand Identity"
-            sub={settings.brandName || 'Name, logo, colour, tagline'}
+            sub={settings.brandName || 'Name, logo, colour, tagline, contact'}
             onClick={open('brand')}
+            chevron
           />
-          <Row
+          <SettingRow
             icon="receipt_long"
-            iconBg="#10b98122"
             label="Invoice Settings"
             sub={`${settings.invoiceCurrency} · ${settings.invoicePrefix} · Due ${settings.invoiceDueDays}d`}
             onClick={open('invoice')}
+            chevron
+          />
+          <SettingRow
+            icon="description"
+            label="Invoice Template"
+            sub="Choose your preferred invoice design"
+            value={settings.invoiceTemplate}
+            onClick={() => setTemplateModal(true)}
+            chevron
             divider={false}
           />
         </div>
 
         {/* ── MEASUREMENTS ── */}
         <SectionHeader icon="straighten" label="Measurements" />
-        <div className={s.card}>
-          <Row icon="square_foot" iconBg="#6366f122" label="Default Unit" value={unitLabel} onClick={open('measure')} divider={false} />
+        <div className={styles.card}>
+          <SettingRow
+            icon="square_foot"
+            label="Default Unit & Format"
+            sub={unitLabel}
+            onClick={open('measurement')}
+            chevron
+            divider={false}
+          />
         </div>
 
         {/* ── ORDERS ── */}
         <SectionHeader icon="shopping_bag" label="Orders" />
-        <div className={s.card}>
-          <Row
+        <div className={styles.card}>
+          <SettingRow
             icon="payments"
-            iconBg="#ec489922"
             label="Deposit & Archiving"
             sub={`${settings.defaultDepositPercent}% default deposit`}
             onClick={open('orders')}
+            chevron
             divider={false}
           />
         </div>
 
         {/* ── NOTIFICATIONS ── */}
         <SectionHeader icon="notifications" label="Notifications" />
-        <div className={s.card}>
-          <Row icon="alarm" iconBg="#f97316aa" label="Overdue Tasks" sub="Alert when tasks pass their due date">
+        <div className={styles.card}>
+          <SettingRow icon="alarm" label="Overdue Tasks" sub="Alert when tasks pass their due date">
             <Toggle
-              on={settings.notifyOverdueTasks}
-              onToggle={() => updateSetting('notifyOverdueTasks', !settings.notifyOverdueTasks)}
+              value={settings.notifyOverdueTasks}
+              onChange={v => updateSetting('notifyOverdueTasks', v)}
             />
-          </Row>
-          <Row icon="cake" iconBg="#ec489944" label="Customer Birthdays" sub="Remind you a day before">
+          </SettingRow>
+          <SettingRow icon="cake" label="Customer Birthdays" sub="Remind you a day before">
             <Toggle
-              on={settings.notifyUpcomingBirthdays}
-              onToggle={() => updateSetting('notifyUpcomingBirthdays', !settings.notifyUpcomingBirthdays)}
+              value={settings.notifyUpcomingBirthdays}
+              onChange={v => updateSetting('notifyUpcomingBirthdays', v)}
             />
-          </Row>
-          <Row icon="money_off" iconBg="#ef444444" label="Unpaid Invoices" sub="Alert for invoices past due date" divider={false}>
+          </SettingRow>
+          <SettingRow icon="money_off" label="Unpaid Invoices" sub="Alert for invoices past due date" divider={false}>
             <Toggle
-              on={settings.notifyUnpaidInvoices}
-              onToggle={() => updateSetting('notifyUnpaidInvoices', !settings.notifyUnpaidInvoices)}
+              value={settings.notifyUnpaidInvoices}
+              onChange={v => updateSetting('notifyUnpaidInvoices', v)}
             />
-          </Row>
+          </SettingRow>
         </div>
 
-        {/* ── DANGER ZONE ── */}
-        <SectionHeader icon="warning" label="Data" />
-        <div className={s.card}>
-          <Row
+        {/* ── DATA ── */}
+        <SectionHeader icon="storage" label="Data" />
+        <div className={styles.card}>
+          <SettingRow
             icon="restart_alt"
-            iconBg="#ef444422"
             label="Reset All Settings"
-            sub="Restore defaults. Your data is safe."
-            onClick={() => setShowReset(true)}
+            sub="Restore defaults. Your customers and orders are safe."
+            onClick={() => setResetConfirm(true)}
+            chevron
+          />
+          <SettingRow
+            icon="delete_forever"
+            label="Clear All Data"
+            sub="Permanently delete everything"
+            onClick={() => setClearConfirm(true)}
+            chevron
             divider={false}
           />
         </div>
@@ -587,11 +818,32 @@ export default function Settings() {
         <div style={{ height: 32 }} />
       </div>
 
-      {/* ── Active modal ── */}
-      {ModalComponent && <ModalComponent onBack={close} />}
+      {/* ── Template picker modal ── */}
+      <TemplateModal
+        isOpen={templateModal}
+        currentTemplate={settings.invoiceTemplate}
+        onClose={() => setTemplateModal(false)}
+        onSelect={v => { updateSetting('invoiceTemplate', v); showToast('Template selected') }}
+      />
 
-      {/* ── Reset confirmation ── */}
-      {showReset && <ResetSheet onConfirm={handleReset} onCancel={() => setShowReset(false)} />}
+      {/* ── Sub-page modals ── */}
+      {ModalComponent && <ModalComponent onBack={close} showToast={showToast} />}
+
+      {/* ── Confirmation sheets ── */}
+      <ConfirmSheet
+        open={clearConfirm}
+        title="Delete All Data?"
+        onConfirm={() => { localStorage.clear(); setClearConfirm(false); showToast('Cleared') }}
+        onCancel={() => setClearConfirm(false)}
+      />
+      <ConfirmSheet
+        open={resetConfirm}
+        title="Reset All Settings?"
+        onConfirm={() => { resetSettings(); setResetConfirm(false); showToast('Settings reset') }}
+        onCancel={() => setResetConfirm(false)}
+      />
+
+      <Toast message={toastMsg} />
     </div>
   )
 }
