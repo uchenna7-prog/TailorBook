@@ -6,7 +6,7 @@ import ConfirmSheet from '../../components/ConfirmSheet/ConfirmSheet'
 import styles from './Settings.module.css'
 
 // ─────────────────────────────────────────────────────────────
-// Invoice template previews (unchanged from original)
+// Invoice template previews
 // ─────────────────────────────────────────────────────────────
 
 function EditableTemplate() {
@@ -152,20 +152,26 @@ function FreeTemplate() {
 // Shared primitives
 // ─────────────────────────────────────────────────────────────
 
-function SectionHeader({ icon, label }) {
+function SectionHeader({ icon, label, premium = false }) {
   return (
     <div className={styles.sectionHeader}>
       <span className="mi" style={{ fontSize: '1rem', color: 'var(--text3)' }}>{icon}</span>
       <span className={styles.sectionLabel}>{label}</span>
+      {premium && (
+        <span className={styles.premiumBadge}>
+          <span className="mi" style={{ fontSize: '0.7rem' }}>workspace_premium</span>
+          PRO
+        </span>
+      )}
     </div>
   )
 }
 
-function SettingRow({ icon, label, sub, value, children, onClick, chevron, divider = true }) {
+function SettingRow({ icon, label, sub, value, children, onClick, chevron, divider = true, locked = false }) {
   return (
     <div
-      className={`${styles.row} ${onClick ? styles.rowTappable : ''}`}
-      onClick={onClick}
+      className={`${styles.row} ${onClick && !locked ? styles.rowTappable : ''} ${locked ? styles.rowLocked : ''}`}
+      onClick={locked ? undefined : onClick}
       style={!divider ? { borderBottom: 'none' } : {}}
     >
       <div className={styles.rowIcon}>
@@ -176,9 +182,14 @@ function SettingRow({ icon, label, sub, value, children, onClick, chevron, divid
         {sub && <div className={styles.rowSub}>{sub}</div>}
       </div>
       <div className={styles.rowRight}>
-        {value && <span className={styles.rowValue}>{value}</span>}
-        {children}
-        {chevron && <span className="mi" style={{ fontSize: '1rem', color: 'var(--text3)', marginLeft: 6 }}>chevron_right</span>}
+        {locked
+          ? <span className="mi" style={{ fontSize: '1.1rem', color: 'var(--accent)', opacity: 0.7 }}>lock</span>
+          : <>
+              {value && <span className={styles.rowValue}>{value}</span>}
+              {children}
+              {chevron && <span className="mi" style={{ fontSize: '1rem', color: 'var(--text3)', marginLeft: 6 }}>chevron_right</span>}
+            </>
+        }
       </div>
     </div>
   )
@@ -198,7 +209,7 @@ function Toggle({ value, onChange }) {
 }
 
 // ─────────────────────────────────────────────────────────────
-// Segment control
+// Segment control — used inside InvoiceSettingsModal
 // ─────────────────────────────────────────────────────────────
 
 function SegmentControl({ options, value, onChange }) {
@@ -218,28 +229,7 @@ function SegmentControl({ options, value, onChange }) {
 }
 
 // ─────────────────────────────────────────────────────────────
-// Full-screen slide-in modal shell
-// ─────────────────────────────────────────────────────────────
-
-function FullModal({ title, onBack, onSave, children }) {
-  return (
-    <div className={styles.fullOverlay}>
-      <div className={styles.fullHeader}>
-        <button className={styles.backBtn} onClick={onBack}>
-          <span className="mi">arrow_back</span>
-        </button>
-        <span className={styles.fullTitle}>{title}</span>
-        {onSave && (
-          <button className={styles.fullSave} onClick={onSave}>Save</button>
-        )}
-      </div>
-      <div className={styles.fullContent}>{children}</div>
-    </div>
-  )
-}
-
-// ─────────────────────────────────────────────────────────────
-// Field wrappers used inside modals
+// Field wrappers
 // ─────────────────────────────────────────────────────────────
 
 function FieldGroup({ children }) {
@@ -281,6 +271,47 @@ function Textarea({ value, onChange, placeholder, rows = 3 }) {
 }
 
 // ─────────────────────────────────────────────────────────────
+// Full-screen modal shell
+// ─────────────────────────────────────────────────────────────
+
+function FullModal({ title, onBack, onSave, children }) {
+  return (
+    <div className={styles.fullOverlay}>
+      <div className={styles.fullHeader}>
+        <button className={styles.backBtn} onClick={onBack}>
+          <span className="mi">arrow_back</span>
+        </button>
+        <span className={styles.fullTitle}>{title}</span>
+        {onSave && <button className={styles.fullSave} onClick={onSave}>Save</button>}
+      </div>
+      <div className={styles.fullContent}>{children}</div>
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────
+// Premium upsell banner — shown inside locked modals / sections
+// ─────────────────────────────────────────────────────────────
+
+function PremiumBanner({ onUpgrade }) {
+  return (
+    <div className={styles.premiumBanner}>
+      <div className={styles.premiumBannerGlow} />
+      <span className="mi" style={{ fontSize: '2rem', color: 'var(--accent)' }}>workspace_premium</span>
+      <div className={styles.premiumBannerText}>
+        <div className={styles.premiumBannerTitle}>TailorBook Pro</div>
+        <div className={styles.premiumBannerSub}>
+          Unlock custom invoice templates, branded PDFs, tax lines, and more.
+        </div>
+      </div>
+      <button className={styles.premiumBannerBtn} onClick={onUpgrade}>
+        Upgrade · Pro
+      </button>
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────
 // MODAL: Invoice Template Picker
 // ─────────────────────────────────────────────────────────────
 
@@ -288,10 +319,10 @@ function TemplateModal({ isOpen, currentTemplate, onClose, onSelect }) {
   const [selected, setSelected] = useState(currentTemplate || 'editable')
 
   const TEMPLATES = [
-    { id: 'editable',   label: 'Editable Clothing Store',   Component: EditableTemplate },
-    { id: 'printable',  label: 'Printable Clothing Store',  Component: PrintableTemplate },
-    { id: 'custom',     label: 'Custom Clothing Store',     Component: CustomTemplate },
-    { id: 'free',       label: 'Free Clothing Store',       Component: FreeTemplate },
+    { id: 'editable',  label: 'Editable Clothing Store',  Component: EditableTemplate },
+    { id: 'printable', label: 'Printable Clothing Store', Component: PrintableTemplate },
+    { id: 'custom',    label: 'Custom Clothing Store',    Component: CustomTemplate },
+    { id: 'free',      label: 'Free Clothing Store',      Component: FreeTemplate },
   ]
 
   if (!isOpen) return null
@@ -323,115 +354,10 @@ function TemplateModal({ isOpen, currentTemplate, onClose, onSelect }) {
 }
 
 // ─────────────────────────────────────────────────────────────
-// MODAL: Brand & Business
+// MODAL: Invoice Settings (Premium)
 // ─────────────────────────────────────────────────────────────
 
-function BrandModal({ onBack, showToast }) {
-  const { settings, updateMany } = useSettings()
-  const logoInputRef = useRef()
-
-  const [local, setLocal] = useState({
-    brandName:    settings.brandName,
-    brandTagline: settings.brandTagline,
-    brandColour:  settings.brandColour,
-    brandLogo:    settings.brandLogo,
-    brandPhone:   settings.brandPhone,
-    brandEmail:   settings.brandEmail,
-    brandAddress: settings.brandAddress,
-    brandWebsite: settings.brandWebsite,
-  })
-
-  const set = key => val => setLocal(p => ({ ...p, [key]: val }))
-
-  const handleLogoChange = useCallback(e => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    const reader = new FileReader()
-    reader.onload = ev => setLocal(p => ({ ...p, brandLogo: ev.target.result }))
-    reader.readAsDataURL(file)
-  }, [])
-
-  const save = () => {
-    updateMany(local)
-    showToast('Brand info saved')
-    onBack()
-  }
-
-  return (
-    <FullModal title="Brand & Business" onBack={onBack} onSave={save}>
-
-      <FieldGroup>
-        <Field label="Brand Logo" hint="PNG or JPG. Appears on invoice headers.">
-          {local.brandLogo ? (
-            <div className={styles.logoPreviewWrap}>
-              <img src={local.brandLogo} alt="Brand logo" className={styles.logoPreview} />
-              <button
-                className={styles.logoRemove}
-                onClick={() => setLocal(p => ({ ...p, brandLogo: null }))}
-              >
-                <span className="mi" style={{ fontSize: 15 }}>close</span> Remove
-              </button>
-            </div>
-          ) : (
-            <button className={styles.logoUploadBtn} onClick={() => logoInputRef.current?.click()}>
-              <span className="mi">add_photo_alternate</span>
-              Upload Logo
-            </button>
-          )}
-          <input
-            ref={logoInputRef}
-            type="file"
-            accept="image/*"
-            style={{ display: 'none' }}
-            onChange={handleLogoChange}
-          />
-        </Field>
-      </FieldGroup>
-
-      <FieldGroup>
-        <Field label="Shop / Brand Name">
-          <TextInput value={local.brandName} onChange={set('brandName')} placeholder="e.g. Stitched by Amara" />
-        </Field>
-        <Field label="Tagline" hint="Short line shown under your name on some templates.">
-          <TextInput value={local.brandTagline} onChange={set('brandTagline')} placeholder="e.g. Crafted with love, fitted for you" />
-        </Field>
-        <Field label="Brand Colour" hint="Used for headers and accents on coloured invoice templates.">
-          <div className={styles.colourRow}>
-            <input
-              type="color"
-              className={styles.colourPicker}
-              value={local.brandColour}
-              onChange={e => set('brandColour')(e.target.value)}
-            />
-            <TextInput value={local.brandColour} onChange={set('brandColour')} placeholder="#D4AF37" />
-          </div>
-        </Field>
-      </FieldGroup>
-
-      <FieldGroup>
-        <Field label="Phone Number">
-          <TextInput value={local.brandPhone} onChange={set('brandPhone')} placeholder="+234 800 000 0000" type="tel" />
-        </Field>
-        <Field label="Email Address">
-          <TextInput value={local.brandEmail} onChange={set('brandEmail')} placeholder="shop@email.com" type="email" />
-        </Field>
-        <Field label="Address">
-          <Textarea value={local.brandAddress} onChange={set('brandAddress')} placeholder="12 Tailor Street, Ikeja, Lagos" rows={2} />
-        </Field>
-        <Field label="Website / Social">
-          <TextInput value={local.brandWebsite} onChange={set('brandWebsite')} placeholder="instagram.com/yourbrand" />
-        </Field>
-      </FieldGroup>
-
-    </FullModal>
-  )
-}
-
-// ─────────────────────────────────────────────────────────────
-// MODAL: Invoice Settings
-// ─────────────────────────────────────────────────────────────
-
-function InvoiceSettingsModal({ onBack, showToast }) {
+function InvoiceSettingsModal({ onBack, showToast, isPremium, onUpgrade }) {
   const { settings, updateMany } = useSettings()
 
   const [local, setLocal] = useState({
@@ -452,236 +378,99 @@ function InvoiceSettingsModal({ onBack, showToast }) {
   }
 
   return (
-    <FullModal title="Invoice Settings" onBack={onBack} onSave={save}>
+    <FullModal title="Invoice Settings" onBack={onBack} onSave={isPremium ? save : undefined}>
 
-      <FieldGroup>
-        <Field label="Invoice Number Prefix" hint="Shown before the number, e.g. INV-0042.">
-          <TextInput value={local.invoicePrefix} onChange={set('invoicePrefix')} placeholder="INV" />
-        </Field>
-        <Field label="Currency">
-          <SegmentControl
-            options={[
-              { label: '₦ Naira',  value: '₦' },
-              { label: '$ Dollar', value: '$' },
-              { label: '£ Pound',  value: '£' },
-              { label: '€ Euro',   value: '€' },
-            ]}
-            value={local.invoiceCurrency}
-            onChange={set('invoiceCurrency')}
-          />
-        </Field>
-        <Field label="Default Due Period" hint="Days after issue date the invoice is due.">
-          <SegmentControl
-            options={[
-              { label: '3 days',  value: 3 },
-              { label: '7 days',  value: 7 },
-              { label: '14 days', value: 14 },
-              { label: '30 days', value: 30 },
-            ]}
-            value={local.invoiceDueDays}
-            onChange={set('invoiceDueDays')}
-          />
-        </Field>
-      </FieldGroup>
+      {!isPremium && <PremiumBanner onUpgrade={onUpgrade} />}
 
-      <FieldGroup>
-        <div className={styles.row} style={{ borderBottom: local.invoiceShowTax ? '1px solid var(--border)' : 'none' }}>
-          <div className={styles.rowIcon}>
-            <span className="mi" style={{ fontSize: '1.15rem' }}>percent</span>
-          </div>
-          <div className={styles.rowText}>
-            <div className={styles.rowLabel}>Show Tax Line</div>
-            <div className={styles.rowSub}>Add a VAT / tax row to invoice totals</div>
-          </div>
-          <div className={styles.rowRight}>
-            <Toggle value={local.invoiceShowTax} onChange={v => set('invoiceShowTax')(v)} />
-          </div>
-        </div>
-        {local.invoiceShowTax && (
-          <Field label="Tax Rate (%)" hint="e.g. 7.5 for 7.5% VAT">
-            <TextInput
-              type="number"
-              value={String(local.invoiceTaxRate)}
-              onChange={v => set('invoiceTaxRate')(parseFloat(v) || 0)}
-              placeholder="7.5"
+      <div style={{ opacity: isPremium ? 1 : 0.4, pointerEvents: isPremium ? 'auto' : 'none' }}>
+
+        <FieldGroup>
+          <Field label="Invoice Number Prefix" hint="Shown before the number, e.g. INV-0042.">
+            <TextInput value={local.invoicePrefix} onChange={set('invoicePrefix')} placeholder="INV" />
+          </Field>
+          <Field label="Currency">
+            <SegmentControl
+              options={[
+                { label: '₦ Naira',  value: '₦' },
+                { label: '$ Dollar', value: '$' },
+                { label: '£ Pound',  value: '£' },
+                { label: '€ Euro',   value: '€' },
+              ]}
+              value={local.invoiceCurrency}
+              onChange={set('invoiceCurrency')}
             />
           </Field>
-        )}
-      </FieldGroup>
-
-      <FieldGroup>
-        <Field label="Invoice Footer Text" hint="Printed at the bottom of every invoice.">
-          <Textarea
-            value={local.invoiceFooter}
-            onChange={set('invoiceFooter')}
-            placeholder="Thank you for your patronage 🙏"
-            rows={3}
-          />
-        </Field>
-      </FieldGroup>
-
-    </FullModal>
-  )
-}
-
-// ─────────────────────────────────────────────────────────────
-// MODAL: Measurements
-// ─────────────────────────────────────────────────────────────
-
-function MeasurementModal({ onBack, showToast }) {
-  const { settings, updateMany } = useSettings()
-  const [local, setLocal] = useState({
-    measureUnit:   settings.measureUnit,
-    measureFormat: settings.measureFormat,
-  })
-  const set = key => val => setLocal(p => ({ ...p, [key]: val }))
-  const save = () => { updateMany(local); showToast('Saved'); onBack() }
-
-  return (
-    <FullModal title="Measurements" onBack={onBack} onSave={save}>
-      <FieldGroup>
-        <Field label="Default Unit">
-          <SegmentControl
-            options={[
-              { label: 'Inches (in)', value: 'in' },
-              { label: 'Centimetres (cm)', value: 'cm' },
-              { label: 'Yards (yd)', value: 'yd' },
-            ]}
-            value={local.measureUnit}
-            onChange={set('measureUnit')}
-          />
-        </Field>
-        <Field label="Number Format">
-          <SegmentControl
-            options={[
-              { label: '12.5  Decimal',  value: 'decimal' },
-              { label: '12½  Fraction', value: 'fraction' },
-            ]}
-            value={local.measureFormat}
-            onChange={set('measureFormat')}
-          />
-        </Field>
-      </FieldGroup>
-    </FullModal>
-  )
-}
-
-// ─────────────────────────────────────────────────────────────
-// MODAL: Orders
-// ─────────────────────────────────────────────────────────────
-
-function OrdersModal({ onBack, showToast }) {
-  const { settings, updateMany } = useSettings()
-  const [local, setLocal] = useState({
-    defaultDepositPercent:        settings.defaultDepositPercent,
-    autoArchiveCompletedOrders:   settings.autoArchiveCompletedOrders,
-  })
-  const set = key => val => setLocal(p => ({ ...p, [key]: val }))
-  const save = () => { updateMany(local); showToast('Saved'); onBack() }
-
-  return (
-    <FullModal title="Orders" onBack={onBack} onSave={save}>
-      <FieldGroup>
-        <Field label="Default Deposit %" hint="Percentage of total collected when an order is placed.">
-          <SegmentControl
-            options={[
-              { label: '25%',  value: 25 },
-              { label: '50%',  value: 50 },
-              { label: '75%',  value: 75 },
-              { label: '100%', value: 100 },
-            ]}
-            value={local.defaultDepositPercent}
-            onChange={set('defaultDepositPercent')}
-          />
-        </Field>
-        <div className={styles.row} style={{ borderBottom: 'none' }}>
-          <div className={styles.rowIcon}>
-            <span className="mi" style={{ fontSize: '1.15rem' }}>archive</span>
-          </div>
-          <div className={styles.rowText}>
-            <div className={styles.rowLabel}>Auto-archive Completed Orders</div>
-            <div className={styles.rowSub}>Move to archive once marked Completed</div>
-          </div>
-          <div className={styles.rowRight}>
-            <Toggle
-              value={local.autoArchiveCompletedOrders}
-              onChange={v => set('autoArchiveCompletedOrders')(v)}
+          <Field label="Default Due Period" hint="Days after issue date the invoice is due.">
+            <SegmentControl
+              options={[
+                { label: '3 days',  value: 3 },
+                { label: '7 days',  value: 7 },
+                { label: '14 days', value: 14 },
+                { label: '30 days', value: 30 },
+              ]}
+              value={local.invoiceDueDays}
+              onChange={set('invoiceDueDays')}
             />
+          </Field>
+        </FieldGroup>
+
+        <div style={{ height: 12 }} />
+
+        <FieldGroup>
+          <div className={styles.row} style={{ borderBottom: local.invoiceShowTax ? '1px solid var(--border)' : 'none' }}>
+            <div className={styles.rowIcon}>
+              <span className="mi" style={{ fontSize: '1.15rem' }}>percent</span>
+            </div>
+            <div className={styles.rowText}>
+              <div className={styles.rowLabel}>Show Tax Line</div>
+              <div className={styles.rowSub}>Add a VAT / tax row to invoice totals</div>
+            </div>
+            <div className={styles.rowRight}>
+              <Toggle value={local.invoiceShowTax} onChange={v => set('invoiceShowTax')(v)} />
+            </div>
           </div>
-        </div>
-      </FieldGroup>
+          {local.invoiceShowTax && (
+            <Field label="Tax Rate (%)" hint="e.g. 7.5 for 7.5% VAT">
+              <TextInput
+                type="number"
+                value={String(local.invoiceTaxRate)}
+                onChange={v => set('invoiceTaxRate')(parseFloat(v) || 0)}
+                placeholder="7.5"
+              />
+            </Field>
+          )}
+        </FieldGroup>
+
+        <div style={{ height: 12 }} />
+
+        <FieldGroup>
+          <Field label="Invoice Footer Text" hint="Printed at the bottom of every invoice.">
+            <Textarea
+              value={local.invoiceFooter}
+              onChange={set('invoiceFooter')}
+              placeholder="Thank you for your patronage 🙏"
+              rows={3}
+            />
+          </Field>
+        </FieldGroup>
+
+      </div>
     </FullModal>
   )
-}
-
-// ─────────────────────────────────────────────────────────────
-// MODAL: Display & Date
-// ─────────────────────────────────────────────────────────────
-
-function DisplayModal({ onBack, showToast }) {
-  const { settings, updateMany } = useSettings()
-  const [local, setLocal] = useState({
-    theme:      settings.theme,
-    dateFormat: settings.dateFormat,
-  })
-  const set = key => val => setLocal(p => ({ ...p, [key]: val }))
-  const save = () => { updateMany(local); showToast('Display saved'); onBack() }
-
-  return (
-    <FullModal title="Display & Date" onBack={onBack} onSave={save}>
-      <FieldGroup>
-        <Field label="Theme">
-          <SegmentControl
-            options={[
-              { label: '☀️ Light',  value: 'light' },
-              { label: '🌙 Dark',   value: 'dark' },
-              { label: '⚙️ System', value: 'system' },
-            ]}
-            value={local.theme}
-            onChange={set('theme')}
-          />
-        </Field>
-        <Field label="Date Format">
-          <SegmentControl
-            options={[
-              { label: 'DD/MM/YYYY',  value: 'DD/MM/YYYY' },
-              { label: 'MM/DD/YYYY',  value: 'MM/DD/YYYY' },
-              { label: 'YYYY-MM-DD',  value: 'YYYY-MM-DD' },
-            ]}
-            value={local.dateFormat}
-            onChange={set('dateFormat')}
-          />
-        </Field>
-      </FieldGroup>
-    </FullModal>
-  )
-}
-
-// ─────────────────────────────────────────────────────────────
-// Active modal registry
-// ─────────────────────────────────────────────────────────────
-
-const MODAL_MAP = {
-  template:    null, // handled separately via templateModal boolean
-  brand:       BrandModal,
-  invoice:     InvoiceSettingsModal,
-  measurement: MeasurementModal,
-  orders:      OrdersModal,
-  display:     DisplayModal,
 }
 
 // ─────────────────────────────────────────────────────────────
 // Main Settings page
 // ─────────────────────────────────────────────────────────────
 
-export default function Settings({ onMenuClick }) {
+export default function Settings({ onMenuClick, isPremium = false, onUpgrade = () => {} }) {
   const { settings, updateSetting, resetSettings } = useSettings()
 
-  const [toastMsg,       setToastMsg]       = useState('')
-  const [templateModal,  setTemplateModal]  = useState(false)
-  const [activeModal,    setActiveModal]    = useState(null)  // key in MODAL_MAP
-  const [clearConfirm,   setClearConfirm]   = useState(false)
-  const [resetConfirm,   setResetConfirm]   = useState(false)
+  const [toastMsg,      setToastMsg]      = useState('')
+  const [templateModal, setTemplateModal] = useState(false)
+  const [invoiceModal,  setInvoiceModal]  = useState(false)
+  const [clearConfirm,  setClearConfirm]  = useState(false)
+  const [resetConfirm,  setResetConfirm]  = useState(false)
   const toastTimer = useRef(null)
 
   const showToast = useCallback(msg => {
@@ -690,13 +479,7 @@ export default function Settings({ onMenuClick }) {
     toastTimer.current = setTimeout(() => setToastMsg(''), 2400)
   }, [])
 
-  const open  = key => () => setActiveModal(key)
-  const close = () => setActiveModal(null)
-
-  const ModalComponent = activeModal ? MODAL_MAP[activeModal] : null
-
-  const themeLabel = { light: '☀️ Light', dark: '🌙 Dark', system: '⚙️ System' }[settings.theme]
-  const unitLabel  = { in: 'Inches', cm: 'Centimetres', yd: 'Yards' }[settings.measureUnit]
+  const isDark = settings.theme === 'dark'
 
   return (
     <div className={styles.page}>
@@ -708,69 +491,57 @@ export default function Settings({ onMenuClick }) {
         <SectionHeader icon="palette" label="Appearance" />
         <div className={styles.card}>
           <SettingRow
-            icon="contrast"
-            label="Theme & Date"
-            sub={themeLabel}
-            value={settings.dateFormat}
-            onClick={open('display')}
-            chevron
+            icon="dark_mode"
+            label="Dark Mode"
+            sub={isDark ? 'Dark theme active' : 'Light theme active'}
             divider={false}
-          />
+          >
+            <Toggle
+              value={isDark}
+              onChange={v => updateSetting('theme', v ? 'dark' : 'light')}
+            />
+          </SettingRow>
         </div>
 
-        {/* ── BRAND & BUSINESS ── */}
-        <SectionHeader icon="storefront" label="Brand & Business" />
+        {/* ── INVOICE (PREMIUM) ── */}
+        <SectionHeader icon="receipt_long" label="Invoice" premium />
         <div className={styles.card}>
           <SettingRow
-            icon="badge"
-            label="Brand Identity"
-            sub={settings.brandName || 'Name, logo, colour, tagline, contact'}
-            onClick={open('brand')}
-            chevron
-          />
-          <SettingRow
-            icon="receipt_long"
+            icon="tune"
             label="Invoice Settings"
-            sub={`${settings.invoiceCurrency} · ${settings.invoicePrefix} · Due ${settings.invoiceDueDays}d`}
-            onClick={open('invoice')}
-            chevron
+            sub={isPremium
+              ? `${settings.invoiceCurrency} · ${settings.invoicePrefix} · Due ${settings.invoiceDueDays}d`
+              : 'Currency, prefix, tax, footer & more'}
+            onClick={() => setInvoiceModal(true)}
+            chevron={isPremium}
+            locked={!isPremium}
           />
           <SettingRow
             icon="description"
             label="Invoice Template"
-            sub="Choose your preferred invoice design"
-            value={settings.invoiceTemplate}
-            onClick={() => setTemplateModal(true)}
-            chevron
+            sub={isPremium ? 'Choose your preferred invoice design' : 'Unlock premium templates'}
+            value={isPremium ? settings.invoiceTemplate : undefined}
+            onClick={isPremium ? () => setTemplateModal(true) : undefined}
+            chevron={isPremium}
+            locked={!isPremium}
             divider={false}
           />
         </div>
 
-        {/* ── MEASUREMENTS ── */}
-        <SectionHeader icon="straighten" label="Measurements" />
-        <div className={styles.card}>
-          <SettingRow
-            icon="square_foot"
-            label="Default Unit & Format"
-            sub={unitLabel}
-            onClick={open('measurement')}
-            chevron
-            divider={false}
-          />
-        </div>
-
-        {/* ── ORDERS ── */}
-        <SectionHeader icon="shopping_bag" label="Orders" />
-        <div className={styles.card}>
-          <SettingRow
-            icon="payments"
-            label="Deposit & Archiving"
-            sub={`${settings.defaultDepositPercent}% default deposit`}
-            onClick={open('orders')}
-            chevron
-            divider={false}
-          />
-        </div>
+        {/* ── Premium upsell card (only when not premium) ── */}
+        {!isPremium && (
+          <div className={styles.premiumCard} onClick={onUpgrade}>
+            <div className={styles.premiumCardGlow} />
+            <div className={styles.premiumCardLeft}>
+              <span className="mi" style={{ fontSize: '1.4rem', color: 'var(--accent)' }}>workspace_premium</span>
+              <div>
+                <div className={styles.premiumCardTitle}>Unlock TailorBook Pro</div>
+                <div className={styles.premiumCardSub}>Custom invoices, tax lines, branded PDFs and more</div>
+              </div>
+            </div>
+            <span className="mi" style={{ fontSize: '1rem', color: 'var(--accent)' }}>chevron_right</span>
+          </div>
+        )}
 
         {/* ── NOTIFICATIONS ── */}
         <SectionHeader icon="notifications" label="Notifications" />
@@ -818,7 +589,7 @@ export default function Settings({ onMenuClick }) {
         <div style={{ height: 32 }} />
       </div>
 
-      {/* ── Template picker modal ── */}
+      {/* ── Modals ── */}
       <TemplateModal
         isOpen={templateModal}
         currentTemplate={settings.invoiceTemplate}
@@ -826,8 +597,14 @@ export default function Settings({ onMenuClick }) {
         onSelect={v => { updateSetting('invoiceTemplate', v); showToast('Template selected') }}
       />
 
-      {/* ── Sub-page modals ── */}
-      {ModalComponent && <ModalComponent onBack={close} showToast={showToast} />}
+      {invoiceModal && (
+        <InvoiceSettingsModal
+          onBack={() => setInvoiceModal(false)}
+          showToast={showToast}
+          isPremium={isPremium}
+          onUpgrade={onUpgrade}
+        />
+      )}
 
       {/* ── Confirmation sheets ── */}
       <ConfirmSheet
