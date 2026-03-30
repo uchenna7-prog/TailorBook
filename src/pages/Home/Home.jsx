@@ -3,7 +3,7 @@ import Header from '../../components/Header/Header'
 import styles from './Home.module.css'
 
 const QUICK_ACTIONS = [
-  { icon: 'person_add', label: 'New Client', path: '/customers' },
+  { icon: 'person_add', label: 'New Customer', path: '/customers' },
   { icon: 'shopping_bag', label: 'View Orders', path: '/orders' },
   { icon: 'add_task', label: 'New Task', path: '/tasks' },
   { icon: 'receipt_long', label: 'Invoices', path: '/invoices' },
@@ -40,7 +40,7 @@ function Home({ onMenuClick }) {
           <h2 className={styles.sectionTitle}>Overview</h2>
           <div className={styles.statsGrid}>
             <div className={styles.statCard}>
-              <span className={styles.statLabel}>Clients</span>
+              <span className={styles.statLabel}>Customers</span>
               <span className={styles.statVal}>24</span>
             </div>
             <div className={styles.statCard}>
