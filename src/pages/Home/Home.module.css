@@ -36,7 +36,9 @@
 }
 
 .signatureName {
-  font-family: 'Great Vibes', cursive; /* premium handwriting font */
+    font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  letter-weight: 0.02em;
   font-size: 1.8rem;
   color: var(--text);
   display: inline-block;
