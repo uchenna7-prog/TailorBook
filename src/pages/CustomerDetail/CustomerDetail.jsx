@@ -144,7 +144,7 @@ export default function CustomerDetail({ onMenuClick }) {
         <div className={styles.actions}>
           <button className={`${styles.btn} ${styles.light}`} onClick={() => window.location = `tel:${customer.phone}`}><span className="mi">call</span>Call</button>
           <button className={`${styles.btn} ${styles.light}`} onClick={() => window.location = `mailto:${customer.email}`}><span className="mi">mail_outline</span>Email</button>
-          <button className={`${styles.btn} ${styles.primary}`} onClick={() => document.dispatchEvent(new CustomEvent('openMeasureModal'))}><span className="mi">straighten</span>Measurements</button>
+          <button className={`${styles.btn} ${styles.primary}`} ><span className="mi">straighten</span>Full Body Measurements</button>
         </div>
 
         <div className={styles.tabs}>
