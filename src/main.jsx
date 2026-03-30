@@ -9,11 +9,13 @@ import './index.css';
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
+         <SettingsProvider>
       <CustomerProvider>
-        <OrdersProvider> {/* ✅ wrap with OrdersProvider */}
+        <OrdersProvider> 
           <App />
         </OrdersProvider>
       </CustomerProvider>
+         </SettingsProvider>
     </BrowserRouter>
   </StrictMode>
 );
