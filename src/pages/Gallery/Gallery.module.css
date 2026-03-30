@@ -134,7 +134,7 @@
   text-overflow: ellipsis;
 }
 
-/* ── EMPTY STATE ── */
+
 .emptyState {
   display: flex;
   flex-direction: column;
