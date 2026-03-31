@@ -1,0 +1,73 @@
+/* ── PAGE ── */
+.page { background: var(--bg); min-height: 100dvh; display: flex; flex-direction: column; }
+.scrollArea { flex: 1; overflow-y: auto; padding: 8px 16px 40px; }
+
+/* ── TITLE ── */
+.pageTitle { font-size: 1.6rem; font-weight: 900; color: var(--text); margin: 16px 4px 6px; }
+.pageSub { font-size: 0.82rem; color: var(--text3); margin: 0 4px 20px; line-height: 1.5; }
+
+/* ── SEARCH ── */
+.searchWrap {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 14px; padding: 10px 14px;
+  margin-bottom: 4px;
+}
+.searchIcon { font-size: 1.1rem; color: var(--text3); flex-shrink: 0; }
+.searchInput {
+  flex: 1; background: none; border: none; outline: none;
+  font-size: 0.9rem; color: var(--text); font-family: inherit;
+}
+.searchInput::placeholder { color: var(--text3); }
+.searchClear { background: none; border: none; cursor: pointer; display: flex; align-items: center; color: var(--text3); padding: 0; }
+
+/* ── SECTION HEADER ── */
+.sectionHeader { display: flex; align-items: center; gap: 8px; padding: 20px 4px 8px; }
+.sectionIconWrap {
+  width: 26px; height: 26px; border-radius: 7px;
+  background: var(--surface2);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--accent);
+}
+.sectionLabel { font-size: 0.6rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text3); }
+
+/* ── CARD ── */
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
+
+/* ── ACCORDION ITEM ── */
+.item { border-bottom: 1px solid var(--border); }
+
+.itemHeader {
+  width: 100%; display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; padding: 15px 16px;
+  background: none; border: none; cursor: pointer; text-align: left;
+  font-family: inherit;
+}
+.itemHeader:active { background: var(--surface2); }
+
+.itemQ { font-size: 0.88rem; font-weight: 700; color: var(--text); line-height: 1.4; flex: 1; }
+
+.itemChevron {
+  font-size: 1.2rem; color: var(--text3); flex-shrink: 0;
+  transition: transform 0.22s ease;
+}
+.itemChevronOpen { transform: rotate(180deg); color: var(--accent); }
+
+.itemBody { padding: 0 16px 15px; }
+.itemA { font-size: 0.83rem; color: var(--text2); line-height: 1.65; margin: 0; }
+
+/* ── EMPTY STATE ── */
+.empty { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 48px 20px; }
+.emptyText { font-size: 0.85rem; color: var(--text3); text-align: center; }
+
+/* ── FOOTER CTA ── */
+.footerCta {
+  display: flex; align-items: center; gap: 14px;
+  margin-top: 20px;
+  padding: 16px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 16px;
+}
+.footerCtaText { flex: 1; }
+.footerCtaTitle { font-size: 0.9rem; font-weight: 800; color: var(--text); }
+.footerCtaSub { font-size: 0.73rem; color: var(--text3); margin-top: 3px; line-height: 1.4; }
