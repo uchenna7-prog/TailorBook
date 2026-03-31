@@ -44,7 +44,6 @@ export default function CustomerDetail({ onMenuClick }) {
   const fixedRef = useRef(null)
 
 
-  // --- SYNC LOCAL STATE ---
   const [invoicesState, setInvoicesState] = useState([])
   useEffect(() => {
     if (data.invoices) setInvoicesState(data.invoices)
