@@ -1,105 +1,38 @@
-.list { 
-  display: flex; 
-  flex-direction: column; 
-  gap: 12px; 
-  padding: 10px 0;
-}
+.list { display: flex; flex-direction: column; gap: 12px; }
 
-/* ── CARD (Matched to Orders Tab) ── */
+/* ── CARD ── */
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 24px; /* Matches the rounded look of Orders */
-  padding: 16px 20px;
+  border-radius: 16px;
+  padding: 14px 16px;
   cursor: pointer;
   transition: background 0.15s;
 }
+.card:active { background: var(--surface2); }
 
-.card:active { 
-  background: var(--surface2); 
-}
-
-.cardContent {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.cardLeft {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.cardNum { 
-  font-size: 0.75rem; 
-  font-weight: 800; 
-  color: var(--text3); 
-  text-transform: uppercase;
-}
-
-.cardDesc { 
-  font-size: 1.1rem; 
-  font-weight: 700; 
-  color: var(--text); 
-}
-
-.cardMeta { 
-  display: flex; 
-  align-items: center; 
-  gap: 10px;
-  margin-top: 2px;
-}
-
-.cardDate { 
-  font-size: 0.8rem; 
-  color: var(--text3); 
-}
+.cardTop { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.cardNum { font-size: 0.78rem; font-weight: 800; color: var(--text3); letter-spacing: 0.04em; }
 
 /* ── STATUS BADGE ── */
 .statusBadge {
-  font-size: 0.65rem; 
-  font-weight: 800; 
-  text-transform: uppercase;
-  letter-spacing: 0.05em; 
-  padding: 2px 10px; 
-  border-radius: 12px;
+  font-size: 0.6rem; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.06em; padding: 3px 8px; border-radius: 20px;
 }
-
 .status_unpaid  { background: #fef3c7; color: #92400e; }
 .status_paid    { background: #d1fae5; color: #065f46; }
 .status_overdue { background: #fee2e2; color: #991b1b; }
 
-.cardRight {
-  text-align: right;
-}
+.cardDesc { font-size: 0.92rem; font-weight: 700; color: var(--text); margin-bottom: 8px; }
 
-.cardAmount { 
-  font-size: 1.2rem; 
-  font-weight: 900; 
-  color: var(--text); 
-}
+.cardMeta { display: flex; justify-content: space-between; align-items: center; }
+.cardDate   { font-size: 0.75rem; color: var(--text3); }
+.cardAmount { font-size: 1rem; font-weight: 900; color: var(--accent); }
 
-/* ── EMPTY STATE ── */
+/* ── EMPTY ── */
 .empty {
-  display: flex; 
-  flex-direction: column; 
-  align-items: center;
-  gap: 8px; 
-  padding: 48px 20px; 
-  text-align: center;
+  display: flex; flex-direction: column; align-items: center;
+  gap: 8px; padding: 48px 20px; text-align: center;
 }
-
-.emptyTitle { 
-  font-size: 0.95rem; 
-  font-weight: 800; 
-  color: var(--text); 
-  margin: 0; 
-}
-
-.emptySub { 
-  font-size: 0.8rem; 
-  color: var(--text3); 
-  margin: 0; 
-  line-height: 1.5; 
-}
+.emptyTitle { font-size: 0.95rem; font-weight: 800; color: var(--text); margin: 0; }
+.emptySub { font-size: 0.8rem; color: var(--text3); margin: 0; line-height: 1.5; }
