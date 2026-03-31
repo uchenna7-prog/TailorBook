@@ -5,10 +5,11 @@ import styles from './InvoiceTab.module.css'
 
 function fmt(currency = '₦', amount) {
   const n = parseFloat(amount) || 0
-  return `${currency}${n.toLocaleString('en-NG', { minimumFractionDigits: 0 })}`
+  return `${currency}${n.toLocaleString('en-NG', { minimumFractionDigits: 2 })}`
 }
 
 const STATUS_LABELS = { unpaid: 'Unpaid', paid: 'Paid', overdue: 'Overdue' }
+const STATUS_NEXT   = { unpaid: 'paid', paid: 'unpaid', overdue: 'paid' }
 
 // ─────────────────────────────────────────────────────────────
 // Invoice card
@@ -20,18 +21,24 @@ function InvoiceCard({ invoice, currency, onTap }) {
   return (
     <div className={styles.card} onClick={onTap}>
       <div className={styles.cardLeft}>
-        <div className={styles.cardDesc}>{invoice.orderDesc || 'Order'}</div>
-        <div className={styles.cardMeta}>
-          <span className={styles.cardDate}>Due {invoice.date}</span>
-        </div>
-        <div className={`${styles.statusBadge} ${styles[`status_${invoice.status}`]}`}>
-          {STATUS_LABELS[invoice.status] || invoice.status}
+        <div className={styles.cardIcon}>
+          <span className="mi">receipt_long</span>
         </div>
       </div>
-
+      <div className={styles.cardBody}>
+        <div className={styles.cardDesc}>{invoice.orderDesc || 'Order'}</div>
+        <div className={styles.cardSub}>
+          {invoice.date}
+          <span className={`${styles.statusBadge} ${styles[`status_${invoice.status}`]}`}>
+            {STATUS_LABELS[invoice.status] || invoice.status}
+          </span>
+        </div>
+      </div>
       <div className={styles.cardRight}>
         <div className={styles.cardAmount}>{fmt(currency, total)}</div>
-        {invoice.qty > 1 && <div className={styles.cardQty}>×{invoice.qty}</div>}
+        {invoice.qty > 1 && (
+          <div className={styles.cardQty}>×{invoice.qty}</div>
+        )}
       </div>
     </div>
   )
@@ -68,6 +75,8 @@ export default function InvoiceTab({
   const [viewingInvoice, setViewingInvoice] = useState(null)
   const [deleteTarget,   setDeleteTarget]   = useState(null)
 
+  // Read currency from settings via localStorage directly
+  // (avoids prop drilling — BrandContext handles the full brand for InvoiceView)
   const currency = (() => {
     try {
       const s = JSON.parse(localStorage.getItem('tailorbook_settings') || '{}')
@@ -75,11 +84,21 @@ export default function InvoiceTab({
     } catch { return '₦' }
   })()
 
+  const handleDelete = (id) => setDeleteTarget(id)
+
   const confirmDelete = () => {
     onDelete(deleteTarget)
     showToast('Invoice deleted')
     setDeleteTarget(null)
     if (viewingInvoice?.id === deleteTarget) setViewingInvoice(null)
+  }
+
+  const handleStatusChange = (id, newStatus) => {
+    onStatusChange(id, newStatus)
+    showToast(`Marked as ${newStatus}`)
+    if (viewingInvoice?.id === id) {
+      setViewingInvoice(prev => ({ ...prev, status: newStatus }))
+    }
   }
 
   if (invoices.length === 0) return <EmptyState />
@@ -97,14 +116,18 @@ export default function InvoiceTab({
         ))}
       </div>
 
+      {/* Full-screen invoice renderer */}
       {viewingInvoice && (
         <InvoiceView
           invoice={viewingInvoice}
           customer={customer}
           onClose={() => setViewingInvoice(null)}
+          onStatusChange={handleStatusChange}
+          onDelete={handleDelete}
         />
       )}
 
+      {/* Delete confirmation */}
       <ConfirmSheet
         open={!!deleteTarget}
         title="Delete this invoice?"
