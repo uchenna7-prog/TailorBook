@@ -10,6 +10,7 @@ import Gallery from './pages/Gallery/Gallery'
 import Settings from './pages/Settings/Settings'
 import Profile from './pages/Profile/Profile'
 import Contact from './pages/Contact/Contact'
+import FAQ from './pages/FAQ/FAQ'
 
 function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -22,6 +23,7 @@ function App() {
 
       <Routes>
         <Route path="/"              element={<Home           onMenuClick={menuClick} />} />
+        <Route path="/faq" element={<FAQ onMenuClick={menuClick} />} />
         <Route path="/contact" element={<Contact onMenuClick={menuClick} />} />
         <Route path="/customers"     element={<Customers      onMenuClick={menuClick} />} />
         <Route path="/customers/:id" element={<CustomerDetail onMenuClick={menuClick} />} />
