@@ -123,11 +123,19 @@ function AddTaskModal({ isOpen, onClose, onSave, customers }) {
   return (
     <div className={`${styles.modalOverlay} ${isOpen ? styles.modalOpen : ''}`}>
       <div className={styles.modalHeader}>
-        <button className={styles.modalClose} onClick={handleClose}>
-          <span className="mi" style={{ fontSize: '1.5rem' }}>arrow_back</span>
+        <div className={styles.headerLeft}>
+          <button className={styles.modalClose} onClick={handleClose}>
+            <span className="mi" style={{ fontSize: '1.6rem' }}>arrow_back</span>
+          </button>
+          <span className={styles.modalTitle}>New Task</span>
+        </div>
+        <button 
+          className={styles.headerAddBtn} 
+          onClick={handleSave}
+          disabled={!desc.trim()}
+        >
+          Add
         </button>
-        <span className={styles.modalTitle}>New Task</span>
-        <button className={styles.headerSaveBtn} onClick={handleSave}>Add</button>
       </div>
 
       <div className={styles.modalBody}>
@@ -136,7 +144,7 @@ function AddTaskModal({ isOpen, onClose, onSave, customers }) {
           <label className={styles.fieldLabel}>What needs to be done? *</label>
           <textarea
             className={styles.textarea}
-            placeholder="e.g. Finish sewing the Senator suit..."
+            placeholder="e.g. Finish sewing the Senator suit for Uchendu"
             value={desc}
             onChange={e => setDesc(e.target.value)}
             rows={2}
@@ -238,7 +246,7 @@ function AddTaskModal({ isOpen, onClose, onSave, customers }) {
               <input
                 type="text"
                 className={styles.searchInput}
-                placeholder="Search client name..."
+                placeholder="Search client name or phone…"
                 value={custQuery}
                 onChange={e => { setCustQuery(e.target.value); setCustDropOpen(true) }}
                 onFocus={() => setCustDropOpen(true)}
@@ -370,7 +378,10 @@ function TaskCard({ task, onToggle, onDelete, onOpen }) {
         </div>
       </div>
 
-      <button className={styles.taskDeleteBtn} onClick={e => { e.stopPropagation(); onDelete(task) }}>
+      <button
+        className={styles.taskDeleteBtn}
+        onClick={e => { e.stopPropagation(); onDelete(task) }}
+      >
         <span className="mi" style={{ fontSize: '1.1rem' }}>delete_outline</span>
       </button>
     </div>
@@ -572,6 +583,7 @@ export default function Tasks({ onMenuClick }) {
               {activeTab === 'done'    && 'No completed tasks yet.'}
               {activeTab === 'overdue' && 'No overdue tasks. You\'re on track!'}
             </p>
+            {activeTab === 'all' && <span className={styles.emptyHint}>Tap + to add your first task</span>}
           </div>
         )}
 
@@ -586,7 +598,6 @@ export default function Tasks({ onMenuClick }) {
         ))}
       </div>
 
-      {/* FLOATING ACTION BUTTON */}
       <button className={styles.fab} onClick={() => setModalOpen(true)}>
         <span className="mi">add</span>
       </button>
