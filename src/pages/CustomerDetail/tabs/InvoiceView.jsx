@@ -1,9 +1,7 @@
 import { useBrand } from '../.././contexts/BrandContext'
 import styles from './InvoiceView.module.css'
 
-// ─────────────────────────────────────────────────────────────
-// Helpers
-// ─────────────────────────────────────────────────────────────
+
 
 function fmt(currency, amount) {
   const n = parseFloat(amount) || 0
