@@ -71,7 +71,7 @@
 }
 
 .scrollContent > *:first-child {
-  margin-top: 4px;
+  margin-top: 0;
 }
 
 /* ── FAB ── */
