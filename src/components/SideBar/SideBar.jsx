@@ -10,7 +10,7 @@ const NAV_ITEMS = [
   { path: '/settings', label: 'Settings', icon: 'settings' },
   { path: '/profile', label: 'My Account', icon: 'person' },
   { path: '/contact', label: 'Contact Us', icon: 'call' },
-  { path: '/faqs', label: 'FAQs', icon: 'help_outline' },
+  { path: '/faq', label: 'FAQs', icon: 'help_outline' },
   { path: '/logout', label: 'Log out', icon: 'logout' },
 ]
 
