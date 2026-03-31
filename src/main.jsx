@@ -1,5 +1,4 @@
-// Add BrandProvider INSIDE SettingsProvider (it reads from SettingsContext)
-// Your main.jsx should look like this:
+
 
 import React from 'react'
 import ReactDOM from 'react-dom/client'
