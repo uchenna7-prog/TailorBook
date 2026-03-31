@@ -103,9 +103,18 @@ function AddPhotoModal({ isOpen, onClose, onSave, customers }) {
   return (
     <div className={styles.modalOverlay}>
       <div className={styles.modalHeader}>
-        <span className={styles.modalTitle}>Add Photo</span>
-        <button className={styles.modalClose} onClick={handleClose}>
-          <span className="mi" style={{ fontSize: '1.8rem' }}>close</span>
+        <div className={styles.headerLeft}>
+          <button className={styles.modalBack} onClick={handleClose}>
+            <span className="mi" style={{ fontSize: '1.6rem' }}>arrow_back</span>
+          </button>
+          <span className={styles.modalTitle}>Add Photo</span>
+        </div>
+        <button 
+          className={styles.headerSaveBtn} 
+          onClick={handleSave}
+          disabled={photos.length === 0}
+        >
+          Save
         </button>
       </div>
 
@@ -255,16 +264,6 @@ function AddPhotoModal({ isOpen, onClose, onSave, customers }) {
             </div>
           )}
         </div>
-      </div>
-
-      <div className={styles.modalSaveBar}>
-        <button
-          className={styles.btnSave}
-          onClick={handleSave}
-          style={{ opacity: photos.length === 0 ? 0.4 : 1 }}
-        >
-          Save {photos.length > 1 ? `${photos.length} Photos` : 'Photo'}
-        </button>
       </div>
     </div>
   )
