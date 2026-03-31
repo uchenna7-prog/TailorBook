@@ -1,57 +1,53 @@
-
+/* ── LIST ── */
 .list { display: flex; flex-direction: column; gap: 10px; }
 
-/* ── CARD — compact, matches order card style ── */
+/* ── CARD — padding bumped to match order card in screenshot ── */
 .card {
-  display: flex; align-items: center; gap: 12px;
+  display: flex; align-items: center; gap: 14px;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 12px 14px;
+  border-radius: 16px;
+  padding: 16px 16px;          /* matches order card height */
   cursor: pointer;
   transition: background 0.15s;
 }
 .card:active { background: var(--surface2); }
 
-/* Icon box — mirrors the scissors icon box in the screenshot */
 .cardLeft { flex-shrink: 0; }
 .cardIcon {
-  width: 40px; height: 40px;
+  width: 44px; height: 44px;   /* same as order card icon box */
   border-radius: 10px;
   background: var(--surface2);
   display: flex; align-items: center; justify-content: center;
   color: var(--text2);
-  font-size: 1.1rem;
+  font-size: 1.2rem;
 }
 
-/* Body — description + date + badge */
 .cardBody { flex: 1; min-width: 0; }
 .cardDesc {
-  font-size: 0.92rem; font-weight: 700;
-  color: var(--text); margin-bottom: 4px;
+  font-size: 0.95rem; font-weight: 700;
+  color: var(--text); margin-bottom: 5px;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .cardSub {
   display: flex; align-items: center; gap: 8px;
-  font-size: 0.72rem; color: var(--text3);
+  font-size: 0.75rem; color: var(--text3);
 }
 
-/* Status badge — small, inline */
 .statusBadge {
-  font-size: 0.58rem; font-weight: 800; text-transform: uppercase;
-  letter-spacing: 0.05em; padding: 2px 7px; border-radius: 20px;
+  font-size: 0.6rem; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.05em; padding: 2px 8px; border-radius: 20px;
 }
 .status_unpaid  { background: #fef3c7; color: #92400e; }
 .status_paid    { background: #d1fae5; color: #065f46; }
 .status_overdue { background: #fee2e2; color: #991b1b; }
 
-/* Right — amount + qty */
 .cardRight { flex-shrink: 0; text-align: right; }
 .cardAmount {
-  font-size: 0.95rem; font-weight: 900;
+  font-size: 1rem; font-weight: 900;
   color: var(--text);
 }
-.cardQty { font-size: 0.72rem; color: var(--text3); margin-top: 1px; }
+.cardQty { font-size: 0.72rem; color: var(--text3); margin-top: 2px; }
 
 /* ── EMPTY ── */
 .empty {
