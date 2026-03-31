@@ -68,7 +68,7 @@
 .rowRight { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
 .rowBadge { font-size: 0.72rem; font-weight: 700; color: var(--accent); }
 
-/* ── TAPPABLE ROW (edit / nav rows) ── */
+/* ── TAPPABLE ROW ── */
 .rowTappable {
   display: flex; align-items: center; gap: 12px;
   padding: 13px 16px;
@@ -130,49 +130,51 @@
 .fullHeader { display: flex; align-items: center; padding: 12px 16px; background: var(--surface); border-bottom: 1px solid var(--border); }
 .backBtn { background: none; border: none; color: var(--text); padding: 8px; margin-right: 12px; cursor: pointer; display: flex; align-items: center; }
 .fullTitle { flex: 1; font-weight: 800; font-size: 1rem; color: var(--text); }
-.fullSave { background: var(--accent); border: none; padding: 8px 16px; border-radius: 8px; font-weight: 800; color: #000; cursor: pointer; font-family: inherit; }
-.fullContent { flex: 1; overflow-y: auto; padding: 20px 16px 48px; display: flex; flex-direction: column; gap: 12px; }
+.fullSave { background: var(--accent); border: none; padding: 8px 16px; border-radius: 8px; font-weight: 800; color: var(--bg); cursor: pointer; font-family: inherit; }
+
+.fullContent { flex: 1; overflow-y: auto; padding: 16px 16px 80px; display: flex; flex-direction: column; gap: 16px; }
 
 /* ── FIELD GROUP ── */
-.fieldGroup { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
-.field { padding: 14px 16px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 6px; }
+.fieldGroup { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; }
+.field { padding: 16px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; }
 .field:last-child { border-bottom: none; }
 .fieldLabel { font-size: 0.68rem; font-weight: 800; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; }
-.fieldHint { font-size: 0.72rem; color: var(--text3); margin: 0; line-height: 1.4; }
+.fieldHint { font-size: 0.72rem; color: var(--text3); margin: 0 0 4px 0; line-height: 1.4; }
+.fieldControl { width: 100%; position: relative; }
 
 /* ── TEXT INPUTS ── */
 .textInput {
   width: 100%; background: var(--surface2); border: 1px solid var(--border);
-  border-radius: 10px; padding: 10px 12px; font-size: 0.9rem; color: var(--text);
+  border-radius: 10px; padding: 12px; font-size: 0.92rem; color: var(--text);
   font-family: inherit; box-sizing: border-box; outline: none; transition: border-color 0.15s;
 }
 .textInput:focus { border-color: var(--accent); }
 .textarea {
   width: 100%; background: var(--surface2); border: 1px solid var(--border);
-  border-radius: 10px; padding: 10px 12px; font-size: 0.9rem; color: var(--text);
-  font-family: inherit; box-sizing: border-box; resize: vertical; outline: none;
+  border-radius: 10px; padding: 12px; font-size: 0.92rem; color: var(--text);
+  font-family: inherit; box-sizing: border-box; resize: none; outline: none;
   line-height: 1.5; transition: border-color 0.15s;
 }
 .textarea:focus { border-color: var(--accent); }
 
-/* ── SEGMENT CONTROL ── */
-.segment { display: flex; background: var(--surface2); border-radius: 10px; padding: 3px; gap: 2px; }
-.segBtn { flex: 1; border: none; background: none; border-radius: 8px; padding: 8px 4px; font-size: 0.73rem; font-weight: 700; color: var(--text3); cursor: pointer; transition: all 0.15s; font-family: inherit; white-space: nowrap; }
-.segActive { background: var(--surface); color: var(--text); box-shadow: 0 1px 4px rgba(0,0,0,0.12); }
-
 /* ── COLOUR PICKER ── */
 .colourRow { display: flex; align-items: center; gap: 10px; }
-.colourPicker { width: 44px; height: 44px; border: 1px solid var(--border); border-radius: 10px; padding: 3px; cursor: pointer; background: var(--surface2); flex-shrink: 0; }
+.colourPicker { width: 48px; height: 48px; border: 1px solid var(--border); border-radius: 10px; padding: 4px; cursor: pointer; background: var(--surface2); flex-shrink: 0; box-sizing: border-box; }
 
 /* ── LOGO UPLOAD ── */
 .logoUploadBtn {
-  display: flex; align-items: center; gap: 8px; justify-content: center;
+  display: flex; align-items: center; gap: 10px; justify-content: center;
   background: var(--surface2); border: 1.5px dashed var(--border);
-  border-radius: 12px; padding: 16px; width: 100%; color: var(--text2);
-  font-size: 0.85rem; font-weight: 700; font-family: inherit;
-  cursor: pointer; box-sizing: border-box; transition: border-color 0.15s;
+  border-radius: 12px; padding: 20px; width: 100%; color: var(--text2);
+  font-size: 0.88rem; font-weight: 700; font-family: inherit;
+  cursor: pointer; box-sizing: border-box; transition: all 0.15s;
 }
-.logoUploadBtn:active { border-color: var(--accent); }
-.logoPreviewWrap { display: flex; align-items: center; gap: 12px; }
-.logoPreview { width: 72px; height: 72px; object-fit: contain; border-radius: 10px; border: 1px solid var(--border); background: #fff; }
-.logoRemove { display: flex; align-items: center; gap: 4px; background: none; border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px; color: var(--text3); font-size: 0.78rem; font-weight: 700; cursor: pointer; font-family: inherit; }
+.logoUploadBtn:active { border-color: var(--accent); background: var(--surface); }
+.logoPreviewWrap { display: flex; align-items: center; gap: 16px; padding: 4px 0; }
+.logoPreview { width: 80px; height: 80px; object-fit: contain; border-radius: 12px; border: 1px solid var(--border); background: #fff; flex-shrink: 0; }
+.logoRemove { 
+  display: flex; align-items: center; gap: 6px; 
+  background: var(--surface2); border: 1px solid var(--border); 
+  border-radius: 8px; padding: 8px 12px; color: var(--text); 
+  font-size: 0.8rem; font-weight: 700; cursor: pointer; font-family: inherit; 
+}
