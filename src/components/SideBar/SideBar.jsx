@@ -8,7 +8,7 @@ const NAV_ITEMS = [
   { path: '/orders', label: 'Orders', icon: 'shopping_cart' },
   { path: '/gallery', label: 'Gallery', icon: 'photo_library' },
   { path: '/settings', label: 'Settings', icon: 'settings' },
-  { path: '/account', label: 'My Account', icon: 'person' },
+  { path: '/profile', label: 'My Account', icon: 'person' },
   { path: '/contact', label: 'Contact Us', icon: 'call' },
   { path: '/faqs', label: 'FAQs', icon: 'help_outline' },
   { path: '/logout', label: 'Log out', icon: 'logout' },
