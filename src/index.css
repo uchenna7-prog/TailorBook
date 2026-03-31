@@ -20,6 +20,9 @@
   /* LAYOUT */
   --sidebar-width: 280px;
 
+    font-family: 'Montserrat', sans-serif;
+
+
   /* SAFE AREAS */
   --st: env(safe-area-inset-top, 0px);
   --sb: env(safe-area-inset-bottom, 0px);
@@ -66,7 +69,6 @@ body,
   height: 100%;
   background: var(--bg);
   color: var(--text);
-  font-family: 'DM Sans', sans-serif;
   font-family: 'Montserrat', sans-serif;
 
   -webkit-font-smoothing: antialiased;
