@@ -123,10 +123,11 @@ function AddTaskModal({ isOpen, onClose, onSave, customers }) {
   return (
     <div className={`${styles.modalOverlay} ${isOpen ? styles.modalOpen : ''}`}>
       <div className={styles.modalHeader}>
-        <span className={styles.modalTitle}>New Task</span>
         <button className={styles.modalClose} onClick={handleClose}>
-          <span className="mi" style={{ fontSize: '1.8rem' }}>close</span>
+          <span className="mi" style={{ fontSize: '1.5rem' }}>arrow_back</span>
         </button>
+        <span className={styles.modalTitle}>New Task</span>
+        <button className={styles.headerSaveBtn} onClick={handleSave}>Save</button>
       </div>
 
       <div className={styles.modalBody}>
@@ -317,10 +318,6 @@ function AddTaskModal({ isOpen, onClose, onSave, customers }) {
             rows={2}
           />
         </div>
-      </div>
-
-      <div className={styles.modalSaveBar}>
-        <button className={styles.btnSave} onClick={handleSave}>Add Task</button>
       </div>
     </div>
   )
@@ -559,7 +556,7 @@ export default function Tasks({ onMenuClick }) {
 
   return (
     <div className={styles.page}>
-      <Header onMenuClick={onMenuClick} />
+      <Header onMenuClick={onMenuClick} onAdd={() => setModalOpen(true)} />
 
       {/* TABS */}
       <div className={styles.tabs}>
@@ -592,7 +589,7 @@ export default function Tasks({ onMenuClick }) {
               {activeTab === 'done'    && 'No completed tasks yet.'}
               {activeTab === 'overdue' && 'No overdue tasks. You\'re on track!'}
             </p>
-            {activeTab === 'all' && <span className={styles.emptyHint}>Tap + to add your first task</span>}
+            {activeTab === 'all' && <span className={styles.emptyHint}>Tap Add in the header to start</span>}
           </div>
         )}
 
@@ -606,11 +603,6 @@ export default function Tasks({ onMenuClick }) {
           />
         ))}
       </div>
-
-      {/* FAB */}
-      <button className={styles.fab} onClick={() => setModalOpen(true)}>
-        <span className="mi">add</span>
-      </button>
 
       {/* ADD TASK MODAL */}
       <AddTaskModal
