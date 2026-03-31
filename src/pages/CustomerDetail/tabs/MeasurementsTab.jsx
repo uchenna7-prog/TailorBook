@@ -5,7 +5,6 @@ import styles from './Tabs.module.css'
 const UNIT_LABELS = { in: '"', cm: 'cm', yd: 'yd' }
 const UNIT_FULL   = { in: 'Inches (")', cm: 'Centimetres (cm)', yd: 'Yards (yd)' }
 
-// Defined OUTSIDE components so it's always available
 function freshCard(n) {
   return {
     id: Date.now() + Math.random(),
@@ -71,8 +70,11 @@ function MeasureModal({ isOpen, onClose, onSave }) {
   return (
     <div className={`${styles.modalOverlay} ${isOpen ? styles.modalOpen : ''}`}>
       <div className={styles.modalHeaderClean}>
-        <span className={styles.modalTitle}>New Measurement</span>
-        <button className="mi" onClick={handleClose} style={{ background: 'none', border: 'none', color: 'var(--text)', fontSize: '1.8rem', cursor: 'pointer' }}>close</button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <button className="mi" onClick={handleClose} style={{ background: 'none', border: 'none', color: 'var(--text)', fontSize: '1.6rem', cursor: 'pointer' }}>arrow_back</button>
+          <span className={styles.modalTitle}>New Measurement</span>
+        </div>
+        <button className={styles.headerActionBtn} onClick={handleSave}>Save</button>
       </div>
 
       <div className={styles.unitsSection}>
@@ -137,10 +139,6 @@ function MeasureModal({ isOpen, onClose, onSave }) {
             <span className="mi">add_circle_outline</span> Add Another Cloth Type
           </button>
         </div>
-      </div>
-
-      <div className={styles.saveBar}>
-        <button className={styles.btnSave} onClick={handleSave}>Save Measurements</button>
       </div>
     </div>
   )
