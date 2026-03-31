@@ -1,4 +1,4 @@
-Import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import { useSettings } from '../../contexts/SettingsContext'
 import Header from '../../components/Header/Header'
 import Toast from '../../components/Toast/Toast'
@@ -101,7 +101,7 @@ function Field({ label, hint, children }) {
     <div className={styles.field}>
       <label className={styles.fieldLabel}>{label}</label>
       {hint && <p className={styles.fieldHint}>{hint}</p>}
-      {children}
+      <div className={styles.fieldControl}>{children}</div>
     </div>
   )
 }
@@ -150,7 +150,6 @@ function SegmentControl({ options, value, onChange }) {
 // MODAL: Edit Personal Info
 // ─────────────────────────────────────────────────────────────
 
-// Personal info lives in localStorage separately from SettingsContext
 const PERSONAL_KEY = 'tailorbook_personal'
 
 function loadPersonal() {
@@ -359,7 +358,6 @@ function Avatar({ name, logo, size = 72 }) {
 // Main Profile page
 // ─────────────────────────────────────────────────────────────
 
-// Hardcoded join date — set once on first install, stored in localStorage
 function getOrSetJoinDate() {
   const key = 'tailorbook_joined'
   const existing = localStorage.getItem(key)
@@ -373,7 +371,7 @@ export default function Profile({ onMenuClick, isPremium = false, onUpgrade = ()
   const { settings } = useSettings()
 
   const [personal,       setPersonal]       = useState(loadPersonal)
-  const [activeModal,    setActiveModal]     = useState(null) // 'personal' | 'brand'
+  const [activeModal,    setActiveModal]     = useState(null)
   const [logoutConfirm,  setLogoutConfirm]   = useState(false)
   const [toastMsg,       setToastMsg]        = useState('')
   const toastTimer = useRef(null)
@@ -390,7 +388,7 @@ export default function Profile({ onMenuClick, isPremium = false, onUpgrade = ()
 
   return (
     <div className={styles.page}>
-      <Header onMenuClick={onMenuClick} />
+      <Header title="Account" onMenuClick={onMenuClick} />
 
       <div className={styles.scrollArea}>
 
@@ -450,7 +448,6 @@ export default function Profile({ onMenuClick, isPremium = false, onUpgrade = ()
         <SectionHeader icon="storefront" label="Brand Identity" />
         <div className={styles.card}>
 
-          {/* Brand preview strip */}
           {hasBrand ? (
             <div className={styles.brandPreview}>
               {settings.brandLogo && (
@@ -547,7 +544,6 @@ export default function Profile({ onMenuClick, isPremium = false, onUpgrade = ()
         <div style={{ height: 40 }} />
       </div>
 
-      {/* ── Modals ── */}
       {activeModal === 'personal' && (
         <PersonalModal
           personal={personal}
@@ -562,7 +558,6 @@ export default function Profile({ onMenuClick, isPremium = false, onUpgrade = ()
         />
       )}
 
-      {/* ── Confirm logout ── */}
       <ConfirmSheet
         open={logoutConfirm}
         title="Log Out?"
@@ -574,4 +569,3 @@ export default function Profile({ onMenuClick, isPremium = false, onUpgrade = ()
     </div>
   )
 }
-
