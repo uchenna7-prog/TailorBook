@@ -1,4 +1,4 @@
-/* ── LIST ── */
+
 .list { display: flex; flex-direction: column; gap: 10px; }
 
 /* ── CARD — compact, matches order card style ── */
