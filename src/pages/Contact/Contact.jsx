@@ -2,12 +2,12 @@ import styles from './Contact.module.css'
 import Header from '../../components/Header/Header'
 
 const CONTACT = {
-  whatsapp:     '+234 800 000 0000',
-  phone:        '+234 800 000 0001',
-  email:        'support@tailorbook.app',
-  website:      'www.tailorbook.app',
-  businessName: 'TailorBook',
-  billingName:  'TailorBook Technologies',
+  whatsapp:     '+234 9079116980',
+  phone:        '+234 9079116980',
+  email:        'support@tailorflow.app',
+  website:      'www.tailorflow.app',
+  businessName: 'Tailor Flow',
+  billingName:  'Tailor Flow Technologies',
   address:      '12 Tailor Street, 2nd Floor,\nIkeja, Lagos, Nigeria',
 }
 
@@ -57,9 +57,8 @@ export default function Contact({ onMenuClick }) {
       <div className={styles.scrollArea}>
 
         {/* ── PAGE TITLE ── */}
-        <div className={styles.pageTitle}>Contact Us</div>
         <p className={styles.pageSub}>
-          Reach out for support, feedback, or any questions about TailorBook.
+          Reach out for support, feedback, or any questions about Tailor Flow.
         </p>
 
         {/* ── QUICK CONTACT ── */}
