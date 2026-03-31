@@ -1,7 +1,7 @@
 
 .list { display: flex; flex-direction: column; gap: 10px; }
 
-/* ── CARD — padding bumped to match order card in screenshot ── */
+
 .card {
   display: flex; align-items: center; gap: 14px;
   background: var(--surface);
