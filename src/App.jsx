@@ -1,12 +1,7 @@
-// src/App.jsx
 import { useState } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
-import { AuthProvider }     from './contexts/AuthContext'
-import { SettingsProvider } from './contexts/SettingsContext'
-import { BrandProvider }    from './contexts/BrandContext'
-import { CustomerProvider } from './contexts/CustomerContext'
-import RequireAuth          from './components/RequireAuth/RequireAuth'
-import SideBar              from './components/SideBar/SideBar'
+import RequireAuth from './components/RequireAuth/RequireAuth'
+import SideBar     from './components/SideBar/SideBar'
 
 // Pages
 import Login          from './pages/Login/Login'
@@ -22,7 +17,7 @@ import Profile        from './pages/Profile/Profile'
 import Contact        from './pages/Contact/Contact'
 import FAQ            from './pages/FAQ/FAQ'
 
-// ── Inner app — only mounts when the user is authenticated ────
+// ── All protected pages live here ─────────────────────────────
 function AppShell() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const menuClick = () => setSidebarOpen(true)
@@ -47,36 +42,23 @@ function AppShell() {
   )
 }
 
-// ── Root — providers wrap everything ─────────────────────────
-// Provider order matters:
-//   AuthProvider            → knows the Firebase user
-//   SettingsProvider        → reads/writes localStorage settings
-//   BrandProvider           → reads from SettingsContext
-//   CustomerProvider        → reads user.uid from AuthContext, calls Firestore
+// ── Root — public routes + auth guard ────────────────────────
 export default function App() {
   return (
-    <AuthProvider>
-      <SettingsProvider>
-        <BrandProvider>
-          <CustomerProvider>
-            <Routes>
-              {/* Public — no auth required */}
-              <Route path="/login"  element={<Login />} />
-              <Route path="/signup" element={<Signup />} />
+    <Routes>
+      {/* Public — no auth needed */}
+      <Route path="/login"  element={<Login />} />
+      <Route path="/signup" element={<Signup />} />
 
-              {/* Everything else requires a logged-in user */}
-              <Route
-                path="/*"
-                element={
-                  <RequireAuth>
-                    <AppShell />
-                  </RequireAuth>
-                }
-              />
-            </Routes>
-          </CustomerProvider>
-        </BrandProvider>
-      </SettingsProvider>
-    </AuthProvider>
+      {/* Everything else requires a logged-in user */}
+      <Route
+        path="/*"
+        element={
+          <RequireAuth>
+            <AppShell />
+          </RequireAuth>
+        }
+      />
+    </Routes>
   )
 }
