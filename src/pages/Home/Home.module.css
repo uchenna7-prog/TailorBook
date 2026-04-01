@@ -36,14 +36,12 @@
 }
 
 .signatureName {
-    font-family: 'Italianno', serif;
+   font-family: 'Italianno', serif;
   font-weight: 700;
   letter-weight: 0.02em;
-  font-size: 1.8rem;
+  font-size: 2rem;
   color: var(--text);
   display: inline-block;
-  line-height: 1;
-  font-style: italic;
 }
 
 .greetSubText {
