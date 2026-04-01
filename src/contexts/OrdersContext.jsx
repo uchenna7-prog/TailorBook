@@ -1,5 +1,15 @@
-import { createContext, useContext, useState, useEffect, useCallback } from 'react'
-import { useAuth } from './AuthContext'
+// src/contexts/OrdersContext.jsx
+// ─────────────────────────────────────────────────────────────
+// Provides:
+//   - allOrders: flat list of every order across all customers
+//     (used by Home dashboard and Orders page)
+//   - getOrders(customerId): orders for one customer
+//     (used by CustomerDetail)
+// ─────────────────────────────────────────────────────────────
+
+import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react'
+import { useAuth }      from './AuthContext'
+import { useCustomers } from './CustomerContext'
 import {
   subscribeToOrders,
   addOrder          as fsAdd,
@@ -11,50 +21,85 @@ import {
 const OrdersContext = createContext(null)
 
 export function OrdersProvider({ children }) {
-  const { user } = useAuth()
+  const { user }      = useAuth()
+  const { customers } = useCustomers()
 
-  // orders are keyed by customerId so each CustomerDetail
-  // only loads the orders it needs
-  const [ordersByCustomer, setOrdersByCustomer] = useState({})
-  const [activeUnsubs,     setActiveUnsubs]     = useState({})
+  // orderMap: { [customerId]: Order[] }
+  const [orderMap,  setOrderMap]  = useState({})
+  const unsubsRef = useRef({})
 
-  // ── Subscribe to a specific customer's orders ─────────────
-  // Call this from CustomerDetail when it mounts.
-  // Returns the unsubscribe function so the caller can clean up.
-  const subscribeCustomerOrders = useCallback((customerId) => {
-    if (!user || !customerId) return () => {}
-
-    // Already subscribed — don't create a duplicate listener
-    if (activeUnsubs[customerId]) return activeUnsubs[customerId]
-
-    const unsub = subscribeToOrders(
-      user.uid,
-      customerId,
-      (orders) => {
-        setOrdersByCustomer(prev => ({ ...prev, [customerId]: orders }))
-      },
-      (err) => console.error('[OrdersContext]', err)
-    )
-
-    setActiveUnsubs(prev => ({ ...prev, [customerId]: unsub }))
-    return unsub
-  }, [user, activeUnsubs])
-
-  // Clean up all listeners when user logs out
+  // ── Subscribe to ALL customers' orders ────────────────────
+  // Runs whenever the customers list changes.
+  // Each customer gets its own real-time listener.
   useEffect(() => {
-    if (!user) {
-      Object.values(activeUnsubs).forEach(unsub => unsub())
-      setActiveUnsubs({})
-      setOrdersByCustomer({})
+    if (!user || !customers.length) {
+      // Clean up all listeners and clear state
+      Object.values(unsubsRef.current).forEach(u => u())
+      unsubsRef.current = {}
+      setOrderMap({})
+      return
     }
-  }, [user])
 
-  // ── Get orders for a specific customer ────────────────────
+    const currentIds = new Set(customers.map(c => c.id))
+
+    // Remove listeners for customers no longer in the list
+    Object.keys(unsubsRef.current).forEach(id => {
+      if (!currentIds.has(id)) {
+        unsubsRef.current[id]()
+        delete unsubsRef.current[id]
+        setOrderMap(prev => {
+          const next = { ...prev }
+          delete next[id]
+          return next
+        })
+      }
+    })
+
+    // Add listeners for new customers
+    customers.forEach(customer => {
+      if (unsubsRef.current[customer.id]) return // already subscribed
+
+      const unsub = subscribeToOrders(
+        user.uid,
+        customer.id,
+        (orders) => {
+          setOrderMap(prev => ({
+            ...prev,
+            [customer.id]: orders.map(o => ({
+              ...o,
+              customerName: o.customerName || customer.name,
+              customerId:   customer.id,
+            }))
+          }))
+        },
+        (err) => console.error('[OrdersContext]', customer.id, err)
+      )
+
+      unsubsRef.current[customer.id] = unsub
+    })
+
+    // Cleanup on unmount
+    return () => {
+      Object.values(unsubsRef.current).forEach(u => u())
+      unsubsRef.current = {}
+    }
+  }, [user, customers])
+
+  // ── Derived: flat sorted list of all orders ───────────────
+  const allOrders = Object.values(orderMap)
+    .flat()
+    .sort((a, b) => {
+      const aTime = a.createdAt?.toMillis?.() ?? 0
+      const bTime = b.createdAt?.toMillis?.() ?? 0
+      return bTime - aTime
+    })
+
+  // ── Get orders for a single customer ─────────────────────
   const getOrders = useCallback((customerId) => {
-    return ordersByCustomer[customerId] || []
-  }, [ordersByCustomer])
+    return orderMap[customerId] || []
+  }, [orderMap])
 
-  // ── CRUD — all scoped to customerId ──────────────────────
+  // ── CRUD ─────────────────────────────────────────────────
 
   const addOrder = useCallback(async (customerId, data) => {
     if (!user) return
@@ -99,8 +144,8 @@ export function OrdersProvider({ children }) {
 
   return (
     <OrdersContext.Provider value={{
+      allOrders,
       getOrders,
-      subscribeCustomerOrders,
       addOrder,
       updateOrder,
       updateOrderStatus,
