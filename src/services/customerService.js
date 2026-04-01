@@ -25,24 +25,16 @@ import { db } from '../firebase'
 
 // ── Path helpers ──────────────────────────────────────────────
 
-/** Returns the Firestore collection ref for a user's customers */
 function customersRef(uid) {
   return collection(db, 'users', uid, 'customers')
 }
 
-/** Returns a single customer document ref */
 function customerDoc(uid, customerId) {
   return doc(db, 'users', uid, 'customers', customerId)
 }
 
 // ── CRUD ─────────────────────────────────────────────────────
 
-/**
- * Add a new customer.
- * @param {string} uid  - Firebase Auth user ID
- * @param {object} data - Customer fields (name, phone, email, etc.)
- * @returns {Promise<string>} The new Firestore document ID
- */
 export async function addCustomer(uid, data) {
   const ref = await addDoc(customersRef(uid), {
     ...data,
@@ -52,31 +44,18 @@ export async function addCustomer(uid, data) {
   return ref.id
 }
 
-/**
- * Fetch a single customer by ID.
- * @returns {Promise<object|null>}
- */
 export async function getCustomer(uid, customerId) {
   const snap = await getDoc(customerDoc(uid, customerId))
   if (!snap.exists()) return null
   return { id: snap.id, ...snap.data() }
 }
 
-/**
- * Fetch all customers once (one-time read).
- * Prefer subscribeToCustomers for live UI updates.
- * @returns {Promise<object[]>}
- */
 export async function getAllCustomers(uid) {
   const q    = query(customersRef(uid), orderBy('createdAt', 'desc'))
   const snap = await getDocs(q)
   return snap.docs.map(d => ({ id: d.id, ...d.data() }))
 }
 
-/**
- * Update an existing customer.
- * @param {object} data - Partial fields to update
- */
 export async function updateCustomer(uid, customerId, data) {
   await updateDoc(customerDoc(uid, customerId), {
     ...data,
@@ -84,35 +63,31 @@ export async function updateCustomer(uid, customerId, data) {
   })
 }
 
-/**
- * Delete a customer document.
- */
 export async function deleteCustomer(uid, customerId) {
   await deleteDoc(customerDoc(uid, customerId))
 }
 
 // ── Real-time listener ────────────────────────────────────────
+// NOTE: No orderBy here — orderBy('createdAt') on a snapshot requires
+// a Firestore composite index and silently returns nothing if the index
+// isn't ready or if createdAt hasn't been written yet (server timestamp
+// is null locally for a brief moment after addDoc).
+// We sort client-side instead, which is instant and always correct.
 
-/**
- * Subscribe to live customer updates.
- * Call the returned unsubscribe function in your useEffect cleanup.
- *
- * Usage:
- *   const unsub = subscribeToCustomers(uid, (customers) => setCustomers(customers))
- *   return () => unsub()
- *
- * @param {string}   uid      - Firebase Auth user ID
- * @param {function} callback - Called with the latest customer array on every change
- * @param {function} onError  - Optional error handler
- * @returns {function} Firestore unsubscribe function
- */
 export function subscribeToCustomers(uid, callback, onError) {
-  const q = query(customersRef(uid), orderBy('createdAt', 'desc'))
+  const q = query(customersRef(uid))
 
   return onSnapshot(
     q,
     (snap) => {
-      const customers = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+      const customers = snap.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .sort((a, b) => {
+          // Sort newest first using createdAt if available, else 0
+          const aTime = a.createdAt?.toMillis?.() ?? 0
+          const bTime = b.createdAt?.toMillis?.() ?? 0
+          return bTime - aTime
+        })
       callback(customers)
     },
     (err) => {
