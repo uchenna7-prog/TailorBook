@@ -1,19 +1,22 @@
+// src/pages/Orders/Orders.jsx
+// ─────────────────────────────────────────────────────────────
+// Displays ALL orders across ALL customers.
+// Pulls customers from CustomerContext, then subscribes to
+// each customer's orders subcollection in real-time.
+// ─────────────────────────────────────────────────────────────
+
 import { useState, useEffect, useRef } from 'react'
+import { useAuth }      from '../../contexts/AuthContext'
+import { useCustomers } from '../../contexts/CustomerContext'
+import { subscribeToOrders } from '../../services/orderService'
 import Header from '../../components/Header/Header'
 import styles from './Orders.module.css'
 
-
-const ORDERS_KEY = 'tailorbook_orders'
-
-function loadOrders() {
-  try {
-    const raw = localStorage.getItem(ORDERS_KEY)
-    return raw ? JSON.parse(raw) : []
-  } catch { return [] }
-}
+// ── Helpers ───────────────────────────────────────────────────
 
 function isOverdue(order) {
-  if (!order.dueDate || order.status === 'completed' || order.status === 'delivered' || order.status === 'cancelled') return false
+  if (!order.dueDate) return false
+  if (['completed', 'delivered', 'cancelled'].includes(order.status)) return false
   return new Date(order.dueDate + 'T23:59:59') < new Date()
 }
 
@@ -21,45 +24,59 @@ function daysUntil(dateStr) {
   if (!dateStr) return ''
   const today = new Date()
   today.setHours(0, 0, 0, 0)
-  const due = new Date(dateStr + 'T00:00:00')
-  const diff = Math.round((due - today) / (1000 * 60 * 60 * 24))
-
-  if (diff < 0) return `${Math.abs(diff)}d overdue`
+  const due   = new Date(dateStr + 'T00:00:00')
+  const diff  = Math.round((due - today) / (1000 * 60 * 60 * 24))
+  if (diff < 0)  return `${Math.abs(diff)}d overdue`
   if (diff === 0) return 'Due today'
   if (diff === 1) return 'Due tomorrow'
   return `${diff}d left`
 }
 
-// ── TABS ──
+// ── Tabs ──────────────────────────────────────────────────────
+
 const TABS = [
-  { id: 'all', label: 'All', icon: 'assignment' },
-  { id: 'pending', label: 'Pending', icon: 'schedule' },
-  { id: 'completed', label: 'Completed', icon: 'check_circle' },
-  { id: 'delivered', label: 'Delivered', icon: 'local_shipping' },
-  { id: 'cancelled', label: 'Cancelled', icon: 'cancel' },
-  { id: 'overdue', label: 'Overdue', icon: 'alarm_on' },
+  { id: 'all',       label: 'All',       icon: 'assignment'     },
+  { id: 'pending',   label: 'Pending',   icon: 'schedule'       },
+  { id: 'completed', label: 'Completed', icon: 'check_circle'   },
+  { id: 'delivered', label: 'Delivered', icon: 'local_shipping'  },
+  { id: 'cancelled', label: 'Cancelled', icon: 'cancel'         },
+  { id: 'overdue',   label: 'Overdue',   icon: 'alarm_on'       },
 ]
 
-// ── ORDER CARD ──
+const EMPTY_CONFIG = {
+  all:       { icon: 'assignment',    text: 'No orders yet.' },
+  pending:   { icon: 'schedule',      text: 'No pending orders.' },
+  completed: { icon: 'check_circle',  text: 'No completed orders yet.' },
+  delivered: { icon: 'local_shipping',text: 'No delivered orders yet.' },
+  cancelled: { icon: 'cancel',        text: 'No cancelled orders.' },
+  overdue:   { icon: 'alarm_on',      text: 'No overdue orders. Good job!' },
+}
+
+// ── Order Card ────────────────────────────────────────────────
+
 function OrderCard({ order }) {
   const overdue = isOverdue(order)
-  const due = daysUntil(order.dueDate)
+  const due     = daysUntil(order.dueDate)
 
   return (
     <div className={`${styles.card} ${overdue ? styles.overdue : ''}`}>
       <div className={styles.cardContent}>
-        <div className={styles.cardTitle}>{order.desc}</div>
-
+        <div className={styles.cardTitle}>{order.desc || order.name || 'Order'}</div>
         <div className={styles.cardMeta}>
           <span className={styles.metaChip}>
             <span className="mi">person</span>
-            {order.customerName}
+            {order.customerName || '—'}
           </span>
-
           {order.dueDate && (
             <span className={`${styles.metaChip} ${overdue ? styles.metaOverdue : ''}`}>
               <span className="mi">schedule</span>
               {due}
+            </span>
+          )}
+          {order.status && (
+            <span className={styles.metaChip}>
+              <span className="mi">info</span>
+              {order.status}
             </span>
           )}
         </div>
@@ -68,93 +85,109 @@ function OrderCard({ order }) {
   )
 }
 
-// ── MAIN PAGE ──
+// ── Main Page ─────────────────────────────────────────────────
+
 export default function Orders({ onMenuClick }) {
-  const [orders, setOrders] = useState([])
-  const [activeTab, setActiveTab] = useState('all')
-  const tabsRef = useRef(null)
+  const { user }      = useAuth()
+  const { customers } = useCustomers()
+
+  const [allOrders,  setAllOrders]  = useState([])
+  const [activeTab,  setActiveTab]  = useState('all')
+  const tabsRef      = useRef(null)
   const prevIndexRef = useRef(0)
+  const unsubsRef    = useRef([])
 
+  // ── Subscribe to every customer's orders subcollection ────
   useEffect(() => {
-    setOrders(loadOrders())
-  }, [])
+    // Clean up previous listeners
+    unsubsRef.current.forEach(u => u())
+    unsubsRef.current = []
 
-  const handleTabClick = (e, tabId) => {
-    setActiveTab(tabId);
+    if (!user || !customers.length) {
+      setAllOrders([])
+      return
+    }
 
-    const container = tabsRef.current;
-    if (!container) return;
+    // Map: customerId → orders array
+    const orderMap = {}
 
-    const tab = e.currentTarget;
-
-    const currentIndex = TABS.findIndex(t => t.id === tabId)
-    const prevIndex = prevIndexRef.current
-
-    const direction = currentIndex > prevIndex ? 1 : -1
-
-    // 🔥 Your original scroll
-    container.scrollBy({
-      left: 100 * direction,
-      behavior: 'smooth'
+    customers.forEach(customer => {
+      const unsub = subscribeToOrders(
+        user.uid,
+        customer.id,
+        (orders) => {
+          // Tag each order with customer name for display
+          orderMap[customer.id] = orders.map(o => ({
+            ...o,
+            customerName: o.customerName || customer.name,
+            customerId:   customer.id,
+          }))
+          // Flatten all customers' orders into one sorted array
+          const flat = Object.values(orderMap).flat()
+          flat.sort((a, b) => {
+            // Sort by createdAt descending (Firestore Timestamp or string)
+            const aTime = a.createdAt?.toMillis?.() ?? 0
+            const bTime = b.createdAt?.toMillis?.() ?? 0
+            return bTime - aTime
+          })
+          setAllOrders([...flat])
+        },
+        (err) => console.error('[Orders] subscribeToOrders:', err)
+      )
+      unsubsRef.current.push(unsub)
     })
 
-    // 🔥 NEW: Ensure tab is fully visible
+    return () => {
+      unsubsRef.current.forEach(u => u())
+      unsubsRef.current = []
+    }
+  }, [user, customers])
+
+  // ── Tab scroll helper ────────────────────────────────────
+  const handleTabClick = (e, tabId) => {
+    setActiveTab(tabId)
+    const container = tabsRef.current
+    if (!container) return
+    const currentIndex = TABS.findIndex(t => t.id === tabId)
+    const direction    = currentIndex > prevIndexRef.current ? 1 : -1
+    container.scrollBy({ left: 100 * direction, behavior: 'smooth' })
     setTimeout(() => {
-      const containerRect = container.getBoundingClientRect();
-      const tabRect = tab.getBoundingClientRect();
-
-      if (tabRect.right > containerRect.right) {
-        container.scrollBy({
-          left: tabRect.right - containerRect.right,
-          behavior: 'smooth'
-        });
-      } else if (tabRect.left < containerRect.left) {
-        container.scrollBy({
-          left: tabRect.left - containerRect.left,
-          behavior: 'smooth'
-        });
-      }
-    }, 200) // wait for first scroll to finish
-
+      const cRect = container.getBoundingClientRect()
+      const tRect = e.currentTarget.getBoundingClientRect()
+      if (tRect.right > cRect.right)
+        container.scrollBy({ left: tRect.right - cRect.right, behavior: 'smooth' })
+      else if (tRect.left < cRect.left)
+        container.scrollBy({ left: tRect.left - cRect.left, behavior: 'smooth' })
+    }, 200)
     prevIndexRef.current = currentIndex
   }
 
-  // ── FILTER ──
-  const filtered = orders.filter(o => {
-    if (activeTab === 'all') return true
-    if (activeTab === 'pending') return o.status !== 'completed' && o.status !== 'delivered' && o.status !== 'cancelled' && !isOverdue(o)
+  // ── Filter ───────────────────────────────────────────────
+  const filtered = allOrders.filter(o => {
+    if (activeTab === 'all')       return true
+    if (activeTab === 'pending')   return !['completed','delivered','cancelled'].includes(o.status) && !isOverdue(o)
     if (activeTab === 'completed') return o.status === 'completed'
     if (activeTab === 'delivered') return o.status === 'delivered'
     if (activeTab === 'cancelled') return o.status === 'cancelled'
-    if (activeTab === 'overdue') return isOverdue(o)
+    if (activeTab === 'overdue')   return isOverdue(o)
     return true
   })
 
-  // ── COUNTS ──
+  // ── Counts ───────────────────────────────────────────────
   const counts = {
-    all: orders.length,
-    pending: orders.filter(o => o.status !== 'completed' && o.status !== 'delivered' && o.status !== 'cancelled' && !isOverdue(o)).length,
-    completed: orders.filter(o => o.status === 'completed').length,
-    delivered: orders.filter(o => o.status === 'delivered').length,
-    cancelled: orders.filter(o => o.status === 'cancelled').length,
-    overdue: orders.filter(o => isOverdue(o)).length,
-  }
-
-  // ── EMPTY STATE CONFIG ──
-  const EMPTY_CONFIG = {
-    all: { icon: 'assignment', text: 'No orders yet.' },
-    pending: { icon: 'schedule', text: 'No pending orders.' },
-    completed: { icon: 'check_circle', text: 'No completed orders yet.' },
-    delivered: { icon: 'local_shipping', text: 'No delivered orders yet.' },
-    cancelled: { icon: 'cancel', text: 'No cancelled orders.' },
-    overdue: { icon: 'alarm_on', text: 'No overdue orders. Good job!' }
+    all:       allOrders.length,
+    pending:   allOrders.filter(o => !['completed','delivered','cancelled'].includes(o.status) && !isOverdue(o)).length,
+    completed: allOrders.filter(o => o.status === 'completed').length,
+    delivered: allOrders.filter(o => o.status === 'delivered').length,
+    cancelled: allOrders.filter(o => o.status === 'cancelled').length,
+    overdue:   allOrders.filter(o => isOverdue(o)).length,
   }
 
   return (
     <div className={styles.page}>
       <Header title="Orders" onMenuClick={onMenuClick} />
 
-      {/* ── TABS ── */}
+      {/* Tabs */}
       <div className={styles.tabs} ref={tabsRef}>
         {TABS.map(tab => (
           <div
@@ -163,7 +196,6 @@ export default function Orders({ onMenuClick }) {
             onClick={(e) => handleTabClick(e, tab.id)}
           >
             {tab.label}
-
             {counts[tab.id] > 0 && (
               <span className={`${styles.tabBadge} ${tab.id === 'overdue' ? styles.badgeOverdue : ''}`}>
                 {counts[tab.id]}
@@ -173,7 +205,7 @@ export default function Orders({ onMenuClick }) {
         ))}
       </div>
 
-      {/* ── LIST ── */}
+      {/* List */}
       <div className={styles.listArea}>
         {filtered.length === 0 ? (
           <div className={styles.emptyState}>
@@ -184,7 +216,7 @@ export default function Orders({ onMenuClick }) {
           </div>
         ) : (
           filtered.map(order => (
-            <OrderCard key={order.id} order={order} />
+            <OrderCard key={`${order.customerId}-${order.id}`} order={order} />
           ))
         )}
       </div>
