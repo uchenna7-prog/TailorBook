@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useCustomers } from '../../contexts/CustomerContext'
+import { usePremium }   from '../../contexts/PremiumContext'
 import Header from '../../components/Header/Header'
 import styles from './Customers.module.css'
 
@@ -34,6 +35,34 @@ function ConfirmSheet({ customer, onConfirm, onCancel }) {
         <div className={styles.confirmActions}>
           <button className={styles.btnConfirmDel} onClick={onConfirm}>Delete</button>
           <button className={styles.btnConfirmCancel} onClick={onCancel}>Cancel</button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Premium Gate Bottom Sheet ─────────────────────────────────
+function PremiumSheet({ onClose }) {
+  return (
+    <div className={styles.confirmOverlay} onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div className={styles.confirmSheet}>
+        <div style={{ textAlign: 'center', marginBottom: 16 }}>
+          <span className="mi" style={{ fontSize: '2.5rem', color: 'var(--accent)' }}>workspace_premium</span>
+        </div>
+        <h4 style={{ textAlign: 'center' }}>Premium Feature</h4>
+        <p style={{ textAlign: 'center' }}>
+          Uploading client profile photos is a Premium feature. Upgrade to TailorFlow Pro to unlock photo uploads, branded invoices, and more.
+        </p>
+        <div className={styles.confirmActions}>
+          <button
+            className={styles.btnConfirmDel}
+            style={{ background: 'var(--accent)' }}
+            onClick={onClose}
+          >
+            <span className="mi" style={{ fontSize: '1rem', verticalAlign: 'middle', marginRight: 6 }}>workspace_premium</span>
+            Upgrade to Pro
+          </button>
+          <button className={styles.btnConfirmCancel} onClick={onClose}>Maybe Later</button>
         </div>
       </div>
     </div>
@@ -76,25 +105,35 @@ function BodySVG({ sex }) {
   )
 }
 
-function AddCustomerForm({ isOpen, onClose, onSave }) {
-  const [formTab, setFormTab] = useState('personal')
-  const [name, setName]           = useState('')
-  const [phone, setPhone]         = useState('')
-  const [phoneType, setPhoneType] = useState('Mobile')
-  const [sex, setSex]             = useState('')
-  const [bdayDay, setBdayDay]     = useState('')
-  const [bdayMonth, setBdayMonth] = useState('')
-  const [email, setEmail]         = useState('')
-  const [address, setAddress]     = useState('')
-  const [notes, setNotes]         = useState('')
-  const [photo, setPhoto]         = useState(null)
+function AddCustomerForm({ isOpen, onClose, onSave, isPremium }) {
+  const [formTab, setFormTab]         = useState('personal')
+  const [name, setName]               = useState('')
+  const [phone, setPhone]             = useState('')
+  const [phoneType, setPhoneType]     = useState('Mobile')
+  const [sex, setSex]                 = useState('')
+  const [bdayDay, setBdayDay]         = useState('')
+  const [bdayMonth, setBdayMonth]     = useState('')
+  const [email, setEmail]             = useState('')
+  const [address, setAddress]         = useState('')
+  const [notes, setNotes]             = useState('')
+  const [photo, setPhoto]             = useState(null)
+  const [showPremiumSheet, setShowPremiumSheet] = useState(false)
   const fileInputRef = useRef(null)
 
   const [bodyMeasurements, setBodyMeasurements] = useState({})
   const [customFields, setCustomFields]         = useState([])
 
-  const initials = getInitials(name) || '+'
+  const initials      = getInitials(name) || '+'
   const measureFields = sex === 'Female' ? FEMALE_MEASUREMENTS : MALE_MEASUREMENTS
+
+  // ── Photo tap handler — gate behind premium ───────────────
+  const handlePhotoPicker = () => {
+    if (!isPremium) {
+      setShowPremiumSheet(true)
+      return
+    }
+    fileInputRef.current?.click()
+  }
 
   const handlePhotoChange = (e) => {
     const file = e.target.files[0]
@@ -136,148 +175,148 @@ function AddCustomerForm({ isOpen, onClose, onSave }) {
   }
 
   return (
-    <div className={`${styles.formOverlay} ${isOpen ? styles.formOverlayOpen : ''}`}>
-      <div className={styles.formHeader}>
-        <button className="mi" onClick={handleClose} style={{ background:'none', border:'none', color:'var(--text)', fontSize:'1.8rem', cursor:'pointer' }}>arrow_back</button>
-        <div className={styles.formHeaderTitle}>New Customer</div>
-        <button className={styles.headerSaveBtn} onClick={handleSave}>
-          {formTab === 'personal' ? 'Save' : 'Save'}
-        </button>
-      </div>
+    <>
+      <div className={`${styles.formOverlay} ${isOpen ? styles.formOverlayOpen : ''}`}>
+        <div className={styles.formHeader}>
+          <button className="mi" onClick={handleClose} style={{ background:'none', border:'none', color:'var(--text)', fontSize:'1.8rem', cursor:'pointer' }}>arrow_back</button>
+          <div className={styles.formHeaderTitle}>New Customer</div>
+          <button className={styles.headerSaveBtn} onClick={handleSave}>Save</button>
+        </div>
 
-      <div className={styles.formTabs}>
-        <button className={`${styles.formTab} ${formTab === 'personal' ? styles.formTabActive : ''}`} onClick={() => setFormTab('personal')}>Personal Info</button>
-        <button className={`${styles.formTab} ${formTab === 'body' ? styles.formTabActive : ''}`} onClick={() => setFormTab('body')}>Body Measurements</button>
-      </div>
+        <div className={styles.formTabs}>
+          <button className={`${styles.formTab} ${formTab === 'personal' ? styles.formTabActive : ''}`} onClick={() => setFormTab('personal')}>Personal Info</button>
+          <button className={`${styles.formTab} ${formTab === 'body' ? styles.formTabActive : ''}`} onClick={() => setFormTab('body')}>Body Measurements</button>
+        </div>
 
-      <div className={styles.formBody}>
-        {formTab === 'personal' && (
-          <>
-            <div className={styles.photoPicker} onClick={() => fileInputRef.current?.click()}>
-              {photo ? <img src={photo} alt="Profile" className={styles.photoPreview} /> : <div className={styles.photoInitials}>{initials}</div>}
-              <div className={styles.camBadge}><span className="mi" style={{ fontSize:'0.9rem' }}>photo_camera</span></div>
-              <input ref={fileInputRef} type="file" accept="image/*" hidden onChange={handlePhotoChange} />
-            </div>
-
-            <div className={styles.inputGroup}>
-              <label className={styles.inputLabel}>Full Name *</label>
-              <input type="text" className={styles.formInput} placeholder="e.g. Uchendu Daniel" value={name} onChange={e => setName(e.target.value)} />
-            </div>
-
-            <div className={styles.inputGroup}>
-              <label className={styles.inputLabel}>Sex</label>
-              <div className={styles.sexRow}>
-                {['Male', 'Female'].map(s => (
-                  <button key={s} className={`${styles.sexChip} ${sex === s ? styles.sexChipActive : ''}`} onClick={() => setSex(s)}>{s}</button>
-                ))}
+        <div className={styles.formBody}>
+          {formTab === 'personal' && (
+            <>
+              {/* Photo picker — always visible, locked for free users */}
+              <div className={styles.photoPicker} onClick={handlePhotoPicker} style={{ position: 'relative' }}>
+                {photo
+                  ? <img src={photo} alt="Profile" className={styles.photoPreview} />
+                  : <div className={styles.photoInitials}>{initials}</div>
+                }
+                <div className={styles.camBadge}>
+                  {isPremium
+                    ? <span className="mi" style={{ fontSize:'0.9rem' }}>photo_camera</span>
+                    : <span className="mi" style={{ fontSize:'0.9rem' }}>lock</span>
+                  }
+                </div>
+                {/* Hidden file input — only usable by premium */}
+                {isPremium && (
+                  <input ref={fileInputRef} type="file" accept="image/*" hidden onChange={handlePhotoChange} />
+                )}
               </div>
-            </div>
 
-            <div className={styles.inputGroup}>
-              <label className={styles.inputLabel}>Birthday (Day & Month)</label>
+              <div className={styles.inputGroup}>
+                <label className={styles.inputLabel}>Full Name *</label>
+                <input type="text" className={styles.formInput} placeholder="e.g. Uchendu Daniel" value={name} onChange={e => setName(e.target.value)} />
+              </div>
+
+              <div className={styles.inputGroup}>
+                <label className={styles.inputLabel}>Sex</label>
+                <div className={styles.sexRow}>
+                  {['Male', 'Female'].map(s => (
+                    <button key={s} className={`${styles.sexChip} ${sex === s ? styles.sexChipActive : ''}`} onClick={() => setSex(s)}>{s}</button>
+                  ))}
+                </div>
+              </div>
+
+              <div className={styles.inputGroup}>
+                <label className={styles.inputLabel}>Birthday (Day & Month)</label>
+                <div className={styles.inputRow}>
+                  <select className={styles.formInput} value={bdayDay} onChange={e => setBdayDay(e.target.value)}>
+                    <option value="">Day</option>
+                    {DAYS.map(d => <option key={d} value={d}>{d}</option>)}
+                  </select>
+                  <select className={styles.formInput} value={bdayMonth} onChange={e => setBdayMonth(e.target.value)}>
+                    <option value="">Month</option>
+                    {MONTHS.map((m, i) => <option key={m} value={i + 1}>{m}</option>)}
+                  </select>
+                </div>
+              </div>
+
               <div className={styles.inputRow}>
-                <select className={styles.formInput} value={bdayDay} onChange={e => setBdayDay(e.target.value)}>
-                  <option value="">Day</option>
-                  {DAYS.map(d => <option key={d} value={d}>{d}</option>)}
-                </select>
-                <select className={styles.formInput} value={bdayMonth} onChange={e => setBdayMonth(e.target.value)}>
-                  <option value="">Month</option>
-                  {MONTHS.map((m, i) => <option key={m} value={i + 1}>{m}</option>)}
-                </select>
+                <div className={styles.inputGroup}>
+                  <label className={styles.inputLabel}>Phone Number *</label>
+                  <input type="tel" className={styles.formInput} placeholder="080xxxxxxxx" inputMode="tel" value={phone} onChange={e => setPhone(e.target.value)} />
+                </div>
+                <div className={styles.inputGroup}>
+                  <label className={styles.inputLabel}>Phone Type</label>
+                  <select className={styles.formInput} value={phoneType} onChange={e => setPhoneType(e.target.value)}>
+                    <option>Mobile</option><option>Home</option><option>Work</option>
+                  </select>
+                </div>
               </div>
-            </div>
 
-            <div className={styles.inputRow}>
               <div className={styles.inputGroup}>
-                <label className={styles.inputLabel}>Phone Number *</label>
-                <input type="tel" className={styles.formInput} placeholder="080xxxxxxxx" inputMode="tel" value={phone} onChange={e => setPhone(e.target.value)} />
+                <label className={styles.inputLabel}>Email Address</label>
+                <input type="email" className={styles.formInput} placeholder="Optional" value={email} onChange={e => setEmail(e.target.value)} />
               </div>
+
               <div className={styles.inputGroup}>
-                <label className={styles.inputLabel}>Phone Type</label>
-                <select className={styles.formInput} value={phoneType} onChange={e => setPhoneType(e.target.value)}>
-                  <option>Mobile</option><option>Home</option><option>Work</option>
-                </select>
+                <label className={styles.inputLabel}>Address</label>
+                <input type="text" className={styles.formInput} placeholder="Optional" value={address} onChange={e => setAddress(e.target.value)} />
               </div>
-            </div>
 
-            <div className={styles.inputGroup}>
-              <label className={styles.inputLabel}>Email Address</label>
-              <input type="email" className={styles.formInput} placeholder="Optional" value={email} onChange={e => setEmail(e.target.value)} />
-            </div>
-
-            <div className={styles.inputGroup}>
-              <label className={styles.inputLabel}>Address</label>
-              <input type="text" className={styles.formInput} placeholder="Optional" value={address} onChange={e => setAddress(e.target.value)} />
-            </div>
-
-            <div className={styles.inputGroup}>
-              <label className={styles.inputLabel}>Notes</label>
-              <input type="text" className={styles.formInput} placeholder="e.g. Prefers loose fits" value={notes} onChange={e => setNotes(e.target.value)} />
-            </div>
-          </>
-        )}
-
-        {formTab === 'body' && (
-          <>
-            {!sex && (
-              <div style={{ textAlign:'center', padding:'20px 0', color:'var(--text3)', fontSize:'0.85rem' }}>
-                Please select a sex on the Personal Info tab first.
+              <div className={styles.inputGroup}>
+                <label className={styles.inputLabel}>Notes</label>
+                <input type="text" className={styles.formInput} placeholder="e.g. Prefers loose fits" value={notes} onChange={e => setNotes(e.target.value)} />
               </div>
-            )}
-            {sex && (
-              <>
-                <BodySVG sex={sex} />
-                <p style={{ fontSize:'0.65rem', fontWeight:800, color:'var(--text3)', textTransform:'uppercase', letterSpacing:1, marginBottom:14 }}>
-                  {sex === 'Female' ? 'Female' : 'Male'} body measurements (inches)
-                </p>
-                {measureFields.map(field => (
-                  <div key={field} className={styles.inputGroup}>
-                    <label className={styles.inputLabel}>{field}</label>
-                    <input
-                      type="number"
-                      className={styles.formInput}
-                      placeholder="0"
-                      inputMode="decimal"
-                      value={bodyMeasurements[field] || ''}
-                      onChange={e => updateBodyMeasure(field, e.target.value)}
-                    />
-                  </div>
-                ))}
+            </>
+          )}
 
-                {customFields.map(f => (
-                  <div key={f.id} className={styles.customFieldRow}>
-                    <div className={styles.customFieldInputs}>
-                      <input
-                        type="text"
-                        className={styles.formInput}
-                        placeholder="Field name"
-                        value={f.label}
-                        onChange={e => updateCustomField(f.id, 'label', e.target.value)}
-                      />
+          {formTab === 'body' && (
+            <>
+              {!sex && (
+                <div style={{ textAlign:'center', padding:'20px 0', color:'var(--text3)', fontSize:'0.85rem' }}>
+                  Please select a sex on the Personal Info tab first.
+                </div>
+              )}
+              {sex && (
+                <>
+                  <BodySVG sex={sex} />
+                  <p style={{ fontSize:'0.65rem', fontWeight:800, color:'var(--text3)', textTransform:'uppercase', letterSpacing:1, marginBottom:14 }}>
+                    {sex === 'Female' ? 'Female' : 'Male'} body measurements (inches)
+                  </p>
+                  {measureFields.map(field => (
+                    <div key={field} className={styles.inputGroup}>
+                      <label className={styles.inputLabel}>{field}</label>
                       <input
                         type="number"
                         className={styles.formInput}
                         placeholder="0"
                         inputMode="decimal"
-                        value={f.value}
-                        onChange={e => updateCustomField(f.id, 'value', e.target.value)}
+                        value={bodyMeasurements[field] || ''}
+                        onChange={e => updateBodyMeasure(field, e.target.value)}
                       />
                     </div>
-                    <button className={styles.removeCustomBtn} onClick={() => removeCustomField(f.id)}>
-                      <span className="mi" style={{ fontSize: '1.2rem' }}>remove_circle_outline</span>
-                    </button>
-                  </div>
-                ))}
-
-                <button className={styles.addCustomFieldBtn} onClick={addCustomField}>
-                  <span className="mi" style={{ fontSize: '1rem' }}>add</span> Add Custom Field
-                </button>
-              </>
-            )}
-          </>
-        )}
+                  ))}
+                  {customFields.map(f => (
+                    <div key={f.id} className={styles.customFieldRow}>
+                      <div className={styles.customFieldInputs}>
+                        <input type="text" className={styles.formInput} placeholder="Field name" value={f.label} onChange={e => updateCustomField(f.id, 'label', e.target.value)} />
+                        <input type="number" className={styles.formInput} placeholder="0" inputMode="decimal" value={f.value} onChange={e => updateCustomField(f.id, 'value', e.target.value)} />
+                      </div>
+                      <button className={styles.removeCustomBtn} onClick={() => removeCustomField(f.id)}>
+                        <span className="mi" style={{ fontSize: '1.2rem' }}>remove_circle_outline</span>
+                      </button>
+                    </div>
+                  ))}
+                  <button className={styles.addCustomFieldBtn} onClick={addCustomField}>
+                    <span className="mi" style={{ fontSize: '1rem' }}>add</span> Add Custom Field
+                  </button>
+                </>
+              )}
+            </>
+          )}
+        </div>
       </div>
-    </div>
+
+      {/* Premium gate sheet — rendered outside form overlay so it appears on top */}
+      {showPremiumSheet && <PremiumSheet onClose={() => setShowPremiumSheet(false)} />}
+    </>
   )
 }
 
@@ -309,11 +348,12 @@ function CustomerCard({ customer, onDelete, onOpen, index }) {
 export default function Customers({ onMenuClick }) {
   const navigate = useNavigate()
   const { customers, addCustomer, deleteCustomer } = useCustomers()
+  const { isPremium } = usePremium()
 
-  const [query, setQuery]               = useState('')
-  const [formOpen, setFormOpen]         = useState(false)
+  const [query,        setQuery]        = useState('')
+  const [formOpen,     setFormOpen]     = useState(false)
   const [deleteTarget, setDeleteTarget] = useState(null)
-  const [toastMsg, setToastMsg]         = useState('')
+  const [toastMsg,     setToastMsg]     = useState('')
   const toastTimer = useRef(null)
 
   const showToast = (msg) => {
@@ -325,7 +365,7 @@ export default function Customers({ onMenuClick }) {
   const handleSave = ({ name, phone, phoneType, sex, birthday, email, address, notes, photo, bodyMeasurements }) => {
     if (!name)  { showToast('Name is required'); return }
     if (!phone) { showToast('Phone number is required'); return }
-    const today = new Date().toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' })
+    const today    = new Date().toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' })
     const customer = { id: Date.now(), name, phone, phoneType, sex, birthday, email, address, notes, photo, bodyMeasurements, date: today }
     addCustomer(customer)
     setFormOpen(false)
@@ -343,7 +383,9 @@ export default function Customers({ onMenuClick }) {
     ? customers.filter(c => c.name.toLowerCase().includes(query.toLowerCase()) || (c.phone && c.phone.includes(query)))
     : customers
 
-  const sectionLabel = customers.length === 0 ? '' : filtered.length === customers.length ? 'All Clients' : `${filtered.length} result${filtered.length !== 1 ? 's' : ''}`
+  const sectionLabel = customers.length === 0 ? '' : filtered.length === customers.length
+    ? 'All Clients'
+    : `${filtered.length} result${filtered.length !== 1 ? 's' : ''}`
 
   return (
     <div className={styles.page}>
@@ -372,7 +414,12 @@ export default function Customers({ onMenuClick }) {
 
       <button className={styles.fab} onClick={() => setFormOpen(true)}><span className="mi">add</span></button>
 
-      <AddCustomerForm isOpen={formOpen} onClose={() => setFormOpen(false)} onSave={handleSave} />
+      <AddCustomerForm
+        isOpen={formOpen}
+        onClose={() => setFormOpen(false)}
+        onSave={handleSave}
+        isPremium={isPremium}
+      />
 
       <ConfirmSheet customer={deleteTarget} onConfirm={handleDeleteConfirm} onCancel={() => setDeleteTarget(null)} />
 
