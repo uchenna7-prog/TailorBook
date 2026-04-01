@@ -172,6 +172,7 @@ function AddCustomerForm({ isOpen, onClose, onSave, isPremium }) {
     customFields.forEach(f => { if (f.label.trim()) allBody[f.label.trim()] = f.value })
     const birthday = bdayMonth && bdayDay ? `${bdayMonth}-${bdayDay}` : ''
     onSave({ name, phone, phoneType, sex, birthday, email, address, notes, photo, bodyMeasurements: allBody })
+    handleClose()
   }
 
   return (
@@ -368,7 +369,6 @@ export default function Customers({ onMenuClick }) {
     const today = new Date().toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' })
     try {
       await addCustomer({ name, phone, phoneType, sex, birthday, email, address, notes, photo, bodyMeasurements, date: today })
-      setFormOpen(false)
       showToast(`${name} added ✓`)
     } catch (err) {
       showToast(`ERROR: ${err?.code || err?.message || String(err)}`)
