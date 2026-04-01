@@ -138,7 +138,7 @@ function StepBrand({ data, onChange, errors }) {
         <div className={styles.stepIntroSub}>Used on invoices and your profile. You can update these later.</div>
       </div>
       <Field label="Shop / Brand Name" error={errors.brandName}>
-        <TextInput value={data.brandName} onChange={v => onChange('brandName', v)} placeholder="e.g. Stitched by Amara" icon="store" />
+        <TextInput value={data.brandName} onChange={v => onChange('brandName', v)} placeholder="e.g.Amara Stitches" icon="store" />
       </Field>
       <Field label="Tagline" hint="Optional.">
         <TextInput value={data.brandTagline} onChange={v => onChange('brandTagline', v)} placeholder="e.g. Crafted with love, fitted for you" icon="format_quote" />
@@ -147,7 +147,7 @@ function StepBrand({ data, onChange, errors }) {
         <TextInput type="tel" value={data.brandPhone} onChange={v => onChange('brandPhone', v)} placeholder="+234 800 000 0000" icon="call" />
       </Field>
       <Field label="Business Address" hint="Shown on invoices. Optional.">
-        <TextInput value={data.brandAddress} onChange={v => onChange('brandAddress', v)} placeholder="12 Tailor Street, Ikeja, Lagos" icon="location_on" />
+        <TextInput value={data.brandAddress} onChange={v => onChange('brandAddress', v)} placeholder="12 Chief Amadi Street, Ikeja,Lagos" icon="location_on" />
       </Field>
       <Field label="Preferred Currency">
         <SegmentControl
