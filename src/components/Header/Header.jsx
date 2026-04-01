@@ -109,7 +109,7 @@ function Header({ onMenuClick, type = 'default', title, customActions = [] }) {
           )}
           {type === 'back' && (
             <button className={styles.iconBtn} onClick={() => navigate(-1)} aria-label="Go back">
-              <span className="mi" style={{ fontSize: '1.8rem' }}>arrow_back</span>
+              <span className="mi" style={{ fontSize: '1.5rem' }}>arrow_back</span>
             </button>
           )}
           <div className={styles.title}>{pageTitle}</div>
