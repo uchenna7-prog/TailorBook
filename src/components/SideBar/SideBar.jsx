@@ -23,8 +23,8 @@ function SideBar({ isOpen, onClose }) {
   // Full name from Firebase displayName, falling back to email prefix
   const fullName = user?.displayName || user?.email?.split('@')[0] || 'User'
 
-  // Show all name parts (2-part → 2, 3-part → 3, etc.)
-  const displayName = fullName
+  // Show only the first two parts of the name
+  const displayName = fullName.split(' ').slice(0, 2).join(' ')
 
   // Initials: first letter of each word, max 2
   const initials = fullName
