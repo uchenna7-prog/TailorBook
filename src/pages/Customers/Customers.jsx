@@ -370,8 +370,8 @@ export default function Customers({ onMenuClick }) {
       await addCustomer({ name, phone, phoneType, sex, birthday, email, address, notes, photo, bodyMeasurements, date: today })
       setFormOpen(false)
       showToast(`${name} added ✓`)
-    } catch {
-      showToast('Failed to save. Try again.')
+    } catch (err) {
+      showToast(`ERROR: ${err?.code || err?.message || String(err)}`)
     }
   }
 
