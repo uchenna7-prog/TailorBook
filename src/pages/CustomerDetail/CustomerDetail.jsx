@@ -169,7 +169,7 @@ export default function CustomerDetail({ onMenuClick }) {
             <span className="mi">mail_outline</span>Email
           </button>
           <button className={`${styles.btn} ${styles.primary}`}>
-            <span className="mi">straighten</span>Full Body
+            <span className="mi">straighten</span>Full Body  Measurements
           </button>
         </div>
 
