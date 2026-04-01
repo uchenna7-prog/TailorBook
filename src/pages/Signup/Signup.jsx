@@ -251,11 +251,20 @@ export default function Signup() {
     try {
       const cred = await signup(data.email.trim(), data.password)
 
-      // Save first name as displayName so Home.jsx shows it correctly
-      const firstName = data.fullName.trim().split(' ')[0]
-      await updateProfile(cred.user, { displayName: firstName })
+      // Save the full name as displayName — every page reads from this
+      await updateProfile(cred.user, { displayName: data.fullName.trim() })
 
-      // TODO: save profile/brand data to Firestore here if needed
+      // Persist personal info to localStorage so Profile page can seed from it
+      try {
+        localStorage.setItem('tailorbook_personal', JSON.stringify({
+          fullName: data.fullName.trim(),
+          email:    data.email.trim(),
+          phone:    data.phone.trim(),
+          city:     data.city.trim(),
+          country:  data.country.trim(),
+        }))
+      } catch { /* ignore storage errors */ }
+
       navigate('/', { replace: true })
     } catch (err) {
       setAuthError(friendlyError(err.code))
