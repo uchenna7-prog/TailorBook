@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import Header from '../../components/Header/Header'
 import styles from './Orders.module.css'
 
-// ── STORAGE ──
+
 const ORDERS_KEY = 'tailorbook_orders'
 
 function loadOrders() {
@@ -12,7 +12,6 @@ function loadOrders() {
   } catch { return [] }
 }
 
-// ── HELPERS ──
 function isOverdue(order) {
   if (!order.dueDate || order.status === 'completed' || order.status === 'delivered' || order.status === 'cancelled') return false
   return new Date(order.dueDate + 'T23:59:59') < new Date()
