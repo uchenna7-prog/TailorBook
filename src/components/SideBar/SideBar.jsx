@@ -1,4 +1,5 @@
 import { useLocation, useNavigate } from 'react-router-dom'
+import { useAuth } from '../../contexts/AuthContext'
 import styles from './SideBar.module.css'
 
 const NAV_ITEMS = [
@@ -17,6 +18,22 @@ const NAV_ITEMS = [
 function SideBar({ isOpen, onClose }) {
   const location = useLocation()
   const navigate = useNavigate()
+  const { user } = useAuth()
+
+  // Full name from Firebase displayName, falling back to email prefix
+  const fullName = user?.displayName || user?.email?.split('@')[0] || 'User'
+
+  // Show all name parts (2-part → 2, 3-part → 3, etc.)
+  const displayName = fullName
+
+  // Initials: first letter of each word, max 2
+  const initials = fullName
+    .trim()
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map(w => w[0].toUpperCase())
+    .join('')
 
   const handleNav = (path) => {
     navigate(path)
@@ -40,8 +57,8 @@ function SideBar({ isOpen, onClose }) {
           <div className={styles.tagline}>Smart tailoring workflow</div>
 
           <div className={styles.user}>
-            <div className={styles.avatar}>UU</div>
-            <div className={styles.userName}>Uchendu Uchenna</div>
+            <div className={styles.avatar}>{initials}</div>
+            <div className={styles.userName}>{displayName}</div>
           </div>
         </div>
 
