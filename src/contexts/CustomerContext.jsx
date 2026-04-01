@@ -1,54 +1,98 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
-
-const CUST_KEY = 'tailorbook_customers'
-
-// ── Load synchronously so data is available on first render ──
-function loadInitialCustomers() {
-  try {
-    const raw = localStorage.getItem(CUST_KEY)
-    if (!raw) return []
-    const saved = JSON.parse(raw)
-    // wipe legacy seed
-    if (saved.length === 1 && saved[0].id === 1 && saved[0].name === 'Uchendu Daniel') {
-      localStorage.removeItem(CUST_KEY)
-      return []
-    }
-    return saved
-  } catch {
-    return []
-  }
-}
+import { useAuth } from './AuthContext'
+import {
+  subscribeToCustomers,
+  addCustomer    as fsAdd,
+  updateCustomer as fsUpdate,
+  deleteCustomer as fsDelete,
+} from '../services/customerService'
 
 const CustomerContext = createContext(null)
 
 export function CustomerProvider({ children }) {
-  // Lazy initializer — runs synchronously before first render, no useEffect needed
-  const [customers, setCustomers] = useState(loadInitialCustomers)
+  const { user } = useAuth()
 
-  // Persist on every change
+  const [customers, setCustomers] = useState([])
+  const [loading,   setLoading]   = useState(true)
+  const [error,     setError]     = useState(null)
+
+  // ── Real-time Firestore listener ──────────────────────────
+  // Fires immediately with cached data, stays live for the session.
+  // Clears automatically when the user logs out.
   useEffect(() => {
-    try { localStorage.setItem(CUST_KEY, JSON.stringify(customers)) }
-    catch { /* ignore */ }
-  }, [customers])
+    if (!user) {
+      setCustomers([])
+      setLoading(false)
+      return
+    }
 
-  const addCustomer = useCallback((customer) => {
-    setCustomers(prev => [customer, ...prev])
-  }, [])
+    setLoading(true)
+    setError(null)
 
-  const updateCustomer = useCallback((id, updates) => {
-    setCustomers(prev => prev.map(c => String(c.id) === String(id) ? { ...c, ...updates } : c))
-  }, [])
+    const unsub = subscribeToCustomers(
+      user.uid,
+      (data) => { setCustomers(data); setLoading(false) },
+      (err)  => { setError(err.message); setLoading(false) }
+    )
 
-  const deleteCustomer = useCallback((id) => {
-    setCustomers(prev => prev.filter(c => String(c.id) !== String(id)))
-  }, [])
+    return unsub
+  }, [user])
 
+  // ── addCustomer ───────────────────────────────────────────
+  // Same call signature as before: addCustomer(customerObject)
+  // Strips any local id — Firestore generates its own.
+  // The listener updates the array automatically after the write.
+  const addCustomer = useCallback(async (customer) => {
+    if (!user) return
+    try {
+      const { id: _localId, ...data } = customer
+      return await fsAdd(user.uid, data)
+    } catch (err) {
+      setError(err.message)
+      throw err
+    }
+  }, [user])
+
+  // ── updateCustomer ────────────────────────────────────────
+  // Same call signature: updateCustomer(id, updates)
+  const updateCustomer = useCallback(async (id, updates) => {
+    if (!user) return
+    try {
+      await fsUpdate(user.uid, String(id), updates)
+    } catch (err) {
+      setError(err.message)
+      throw err
+    }
+  }, [user])
+
+  // ── deleteCustomer ────────────────────────────────────────
+  // Same call signature: deleteCustomer(id)
+  const deleteCustomer = useCallback(async (id) => {
+    if (!user) return
+    try {
+      await fsDelete(user.uid, String(id))
+    } catch (err) {
+      setError(err.message)
+      throw err
+    }
+  }, [user])
+
+  // ── getCustomer ───────────────────────────────────────────
+  // Reads from local state — no extra Firestore round-trip.
   const getCustomer = useCallback((id) => {
     return customers.find(c => String(c.id) === String(id)) ?? null
   }, [customers])
 
   return (
-    <CustomerContext.Provider value={{ customers, addCustomer, updateCustomer, deleteCustomer, getCustomer }}>
+    <CustomerContext.Provider value={{
+      customers,
+      loading,
+      error,
+      addCustomer,
+      updateCustomer,
+      deleteCustomer,
+      getCustomer,
+    }}>
       {children}
     </CustomerContext.Provider>
   )
