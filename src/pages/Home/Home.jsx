@@ -7,43 +7,36 @@ import Header from '../../components/Header/Header'
 import styles from './Home.module.css'
 
 const QUICK_ACTIONS = [
-  { icon: 'person_add',    label: 'New Customer', path: '/customers' },
-  { icon: 'shopping_bag',  label: 'View Orders',  path: '/orders' },
-  { icon: 'add_task',      label: 'New Task',     path: '/tasks' },
-  { icon: 'receipt_long',  label: 'Gallery',      path: '/gallery' },
+  { icon: 'person_add',   label: 'New Customer', path: '/customers' },
+  { icon: 'shopping_bag', label: 'View Orders',  path: '/orders'    },
+  { icon: 'add_task',     label: 'New Task',     path: '/tasks'     },
+  { icon: 'photo_library',label: 'Gallery',      path: '/gallery'   },
 ]
 
 function Home({ onMenuClick }) {
   const navigate = useNavigate()
   const { user }      = useAuth()
   const { customers } = useCustomers()
-  const { orders }    = useOrders()
+  const { allOrders } = useOrders()
   const { tasks }     = useTasks()
 
-  // Nigerian naming convention: Surname NativeName EnglishName
-  // We pick the middle name (native name) for the greeting.
-  // If only 1 part → use it. If 2 parts → use first. If 3+ parts → use index [1].
-  const greetName = (() => {
-    const raw = user?.displayName || user?.email?.split('@')[0] || 'there'
-    const parts = raw.trim().split(' ').filter(Boolean)
-    if (parts.length >= 3) return parts[1]   // native name (middle)
-    if (parts.length === 2) return parts[0]  // first of two
-    return parts[0]                          // single name
-  })()
+  const firstName = user?.displayName
+    ? user.displayName.split(' ')[0]
+    : user?.email?.split('@')[0] ?? 'there'
 
-  // Recent orders — last 3
-  const recentOrders = [...(orders ?? [])].slice(0, 3)
+  const recentOrders = allOrders.slice(0, 3)
 
   return (
     <div className={styles.pageWrapper}>
       <Header onMenuClick={onMenuClick} />
 
       <main className={styles.main}>
+
         {/* Greeting */}
         <section className={styles.heroSection}>
           <div className={styles.greetHeader}>
             <span className={styles.greetText}>Welcome back 👋,</span>
-            <span className={styles.signatureName}>{greetName}</span>
+            <span className={styles.signatureName}>{firstName}</span>
           </div>
           <p className={styles.greetSubText}>
             Here's what's happening in your tailoring shop today
@@ -52,7 +45,7 @@ function Home({ onMenuClick }) {
 
         <div className={styles.sectionDivider} />
 
-        {/* Overview — real counts from Firestore */}
+        {/* Overview — live counts */}
         <section className={styles.section}>
           <h2 className={styles.sectionTitle}>Overview</h2>
           <div className={styles.statsGrid}>
@@ -62,7 +55,7 @@ function Home({ onMenuClick }) {
             </div>
             <div className={styles.statCard} onClick={() => navigate('/orders')} style={{ cursor: 'pointer' }}>
               <span className={styles.statLabel}>Orders</span>
-              <span className={styles.statVal}>{orders?.length ?? 0}</span>
+              <span className={styles.statVal}>{allOrders?.length ?? 0}</span>
             </div>
             <div className={styles.statCard} onClick={() => navigate('/tasks')} style={{ cursor: 'pointer' }}>
               <span className={styles.statLabel}>Tasks</span>
@@ -78,11 +71,7 @@ function Home({ onMenuClick }) {
           <h2 className={styles.sectionTitle}>Quick Actions</h2>
           <div className={styles.actionsGrid}>
             {QUICK_ACTIONS.map((action) => (
-              <div
-                key={action.path}
-                className={styles.actionBox}
-                onClick={() => navigate(action.path)}
-              >
+              <div key={action.path} className={styles.actionBox} onClick={() => navigate(action.path)}>
                 <div className={styles.iconCircle}>
                   <span className={`mi ${styles.icon}`}>{action.icon}</span>
                 </div>
@@ -94,13 +83,11 @@ function Home({ onMenuClick }) {
 
         <div className={styles.sectionDivider} />
 
-        {/* Recent Orders — live from Firestore */}
+        {/* Recent Orders — live from Firestore via OrdersContext */}
         <section className={styles.section}>
           <div className={styles.sectionHeader}>
             <h2 className={styles.sectionTitle}>Recent Orders</h2>
-            <button className={styles.seeAll} onClick={() => navigate('/orders')}>
-              View list
-            </button>
+            <button className={styles.seeAll} onClick={() => navigate('/orders')}>View list</button>
           </div>
 
           {recentOrders.length === 0 ? (
@@ -110,14 +97,15 @@ function Home({ onMenuClick }) {
           ) : (
             <div className={styles.orderStack}>
               {recentOrders.map((order) => (
-                <div key={order.id} className={styles.orderCard}>
+                <div key={`${order.customerId}-${order.id}`} className={styles.orderCard}>
                   <div className={styles.orderAvatar}>
-                    {order.clientName?.[0] ?? '?'}
+                    {order.customerName?.[0] ?? '?'}
                   </div>
                   <div className={styles.orderInfo}>
                     <div className={styles.orderTitle}>{order.desc ?? order.name ?? 'Order'}</div>
                     <div className={styles.orderSubtitle}>
-                      {order.clientName ? `For ${order.clientName}` : ''}{order.due ? ` • Due ${order.due}` : ''}
+                      {order.customerName ? `For ${order.customerName}` : ''}
+                      {order.due ? ` • Due ${order.due}` : ''}
                     </div>
                   </div>
                   <div className={`${styles.statusBadge} ${order.status === 'Ready' ? styles.ready : ''}`}>
@@ -128,6 +116,7 @@ function Home({ onMenuClick }) {
             </div>
           )}
         </section>
+
       </main>
     </div>
   )
