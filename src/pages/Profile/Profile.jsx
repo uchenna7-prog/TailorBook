@@ -1,5 +1,8 @@
 import { useState, useRef, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useSettings } from '../../contexts/SettingsContext'
+import { useAuth } from '../../contexts/AuthContext'
+import { updateProfile } from 'firebase/auth'
 import Header from '../../components/Header/Header'
 import Toast from '../../components/Toast/Toast'
 import ConfirmSheet from '../../components/ConfirmSheet/ConfirmSheet'
@@ -152,18 +155,34 @@ function SegmentControl({ options, value, onChange }) {
 
 const PERSONAL_KEY = 'tailorbook_personal'
 
-function loadPersonal() {
+function loadPersonal(authUser) {
+  // Seed from localStorage first, then fill gaps from Firebase Auth
   try {
     const raw = localStorage.getItem(PERSONAL_KEY)
-    return raw ? JSON.parse(raw) : {}
-  } catch { return {} }
+    const stored = raw ? JSON.parse(raw) : {}
+    return {
+      fullName: stored.fullName || authUser?.displayName || '',
+      email:    stored.email    || authUser?.email       || '',
+      phone:    stored.phone    || '',
+      city:     stored.city     || '',
+      country:  stored.country  || '',
+    }
+  } catch {
+    return {
+      fullName: authUser?.displayName || '',
+      email:    authUser?.email       || '',
+      phone:    '',
+      city:     '',
+      country:  '',
+    }
+  }
 }
 
 function savePersonal(data) {
   try { localStorage.setItem(PERSONAL_KEY, JSON.stringify(data)) } catch { /* ignore */ }
 }
 
-function PersonalModal({ personal, onBack, onSave }) {
+function PersonalModal({ personal, onBack, onSave, authUser }) {
   const [local, setLocal] = useState({
     fullName:  personal.fullName  || '',
     email:     personal.email     || '',
@@ -173,9 +192,14 @@ function PersonalModal({ personal, onBack, onSave }) {
   })
   const set = key => val => setLocal(p => ({ ...p, [key]: val }))
 
-  const handleSave = () => {
-    savePersonal({ ...personal, ...local })
-    onSave({ ...personal, ...local })
+  const handleSave = async () => {
+    const updated = { ...personal, ...local }
+    savePersonal(updated)
+    // Keep Firebase displayName in sync with any name edits
+    if (authUser && local.fullName && local.fullName !== authUser.displayName) {
+      try { await updateProfile(authUser, { displayName: local.fullName.trim() }) } catch { /* ignore */ }
+    }
+    onSave(updated)
     onBack()
   }
 
@@ -369,8 +393,10 @@ function getOrSetJoinDate() {
 
 export default function Profile({ onMenuClick, isPremium = false, onUpgrade = () => {} }) {
   const { settings } = useSettings()
+  const { user, logout } = useAuth()
+  const navigate = useNavigate()
 
-  const [personal,       setPersonal]       = useState(loadPersonal)
+  const [personal,       setPersonal]       = useState(() => loadPersonal(user))
   const [activeModal,    setActiveModal]     = useState(null)
   const [logoutConfirm,  setLogoutConfirm]   = useState(false)
   const [toastMsg,       setToastMsg]        = useState('')
@@ -383,6 +409,12 @@ export default function Profile({ onMenuClick, isPremium = false, onUpgrade = ()
     clearTimeout(toastTimer.current)
     toastTimer.current = setTimeout(() => setToastMsg(''), 2400)
   }, [])
+
+  const handleLogout = async () => {
+    setLogoutConfirm(false)
+    await logout()
+    navigate('/login', { replace: true })
+  }
 
   const hasBrand = !!(settings.brandName || settings.brandLogo)
 
@@ -421,10 +453,10 @@ export default function Profile({ onMenuClick, isPremium = false, onUpgrade = ()
               <span className="mi" style={{ fontSize: '0.85rem', color: 'var(--text3)' }}>calendar_today</span>
               <span className={styles.heroMetaLabel}>Joined {joinDate}</span>
             </div>
-            {personal.email && (
+            {(personal.email || user?.email) && (
               <div className={styles.heroMetaItem}>
                 <span className="mi" style={{ fontSize: '0.85rem', color: 'var(--text3)' }}>mail</span>
-                <span className={styles.heroMetaLabel}>{personal.email}</span>
+                <span className={styles.heroMetaLabel}>{personal.email || user?.email}</span>
               </div>
             )}
           </div>
@@ -434,7 +466,7 @@ export default function Profile({ onMenuClick, isPremium = false, onUpgrade = ()
         <SectionHeader icon="person" label="Personal Info" />
         <div className={styles.card}>
           <InfoRow icon="badge"  label="Full Name" value={personal.fullName}  placeholder="Not set" />
-          <InfoRow icon="mail"   label="Email"     value={personal.email}     placeholder="Not set" />
+          <InfoRow icon="mail"   label="Email"     value={personal.email || user?.email} placeholder="Not set" />
           <InfoRow icon="call"   label="Phone"     value={personal.phone}     placeholder="Not set" />
           <InfoRow icon="public" label="Location"  value={[personal.city, personal.country].filter(Boolean).join(', ')} placeholder="Not set" divider={false} />
         </div>
@@ -547,6 +579,7 @@ export default function Profile({ onMenuClick, isPremium = false, onUpgrade = ()
       {activeModal === 'personal' && (
         <PersonalModal
           personal={personal}
+          authUser={user}
           onBack={() => setActiveModal(null)}
           onSave={data => { setPersonal(data); showToast('Personal info saved') }}
         />
@@ -561,7 +594,7 @@ export default function Profile({ onMenuClick, isPremium = false, onUpgrade = ()
       <ConfirmSheet
         open={logoutConfirm}
         title="Log Out?"
-        onConfirm={() => { setLogoutConfirm(false); showToast('Logged out') }}
+        onConfirm={handleLogout}
         onCancel={() => setLogoutConfirm(false)}
       />
 
