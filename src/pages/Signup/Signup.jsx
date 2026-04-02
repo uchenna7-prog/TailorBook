@@ -1,12 +1,13 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { updateProfile } from 'firebase/auth'
+import { DEFAULTS } from '../../contexts/SettingsContext'
 import styles from './Signup.module.css'
 
 const STEPS = [
-  { id: 'account',  label: 'Account',  icon: 'lock' },
-  { id: 'personal', label: 'Personal', icon: 'person' },
+  { id: 'account',  label: 'Account',  icon: 'lock'      },
+  { id: 'personal', label: 'Personal', icon: 'person'     },
   { id: 'brand',    label: 'Brand',    icon: 'storefront' },
 ]
 
@@ -55,8 +56,10 @@ function SegmentControl({ options, value, onChange }) {
   )
 }
 
+// ── Step 1 ────────────────────────────────────────────────────
+
 function StepAccount({ data, onChange, errors }) {
-  const [showPass, setShowPass] = useState(false)
+  const [showPass,    setShowPass]    = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
 
   return (
@@ -65,11 +68,9 @@ function StepAccount({ data, onChange, errors }) {
         <div className={styles.stepIntroTitle}>Create your account</div>
         <div className={styles.stepIntroSub}>Your login details for TailorFlow</div>
       </div>
-
       <Field label="Email Address" error={errors.email}>
         <TextInput type="email" value={data.email} onChange={v => onChange('email', v)} placeholder="you@email.com" icon="mail" />
       </Field>
-
       <Field label="Password" hint="At least 8 characters" error={errors.password}>
         <TextInput
           type={showPass ? 'text' : 'password'}
@@ -86,7 +87,6 @@ function StepAccount({ data, onChange, errors }) {
           }
         />
       </Field>
-
       <Field label="Confirm Password" error={errors.confirmPassword}>
         <TextInput
           type={showConfirm ? 'text' : 'password'}
@@ -106,6 +106,8 @@ function StepAccount({ data, onChange, errors }) {
     </div>
   )
 }
+
+// ── Step 2 ────────────────────────────────────────────────────
 
 function StepPersonal({ data, onChange, errors }) {
   return (
@@ -130,32 +132,87 @@ function StepPersonal({ data, onChange, errors }) {
   )
 }
 
+// ── Step 3 — Full brand (matches Profile BrandModal) ──────────
+
 function StepBrand({ data, onChange, errors }) {
+  const logoInputRef = useRef(null)
+
+  const handleLogoChange = useCallback((e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = ev => onChange('brandLogo', ev.target.result)
+    reader.readAsDataURL(file)
+  }, [onChange])
+
   return (
     <div className={styles.stepContent}>
       <div className={styles.stepIntro}>
         <div className={styles.stepIntroTitle}>Your brand</div>
-        <div className={styles.stepIntroSub}>Used on invoices and your profile. You can update these later.</div>
+        <div className={styles.stepIntroSub}>All fields are optional — update anytime from your Profile.</div>
       </div>
-      <Field label="Shop / Brand Name" error={errors.brandName}>
-        <TextInput value={data.brandName} onChange={v => onChange('brandName', v)} placeholder="e.g.Amara Stitches" icon="store" />
+
+      {/* Logo */}
+      <Field label="Brand Logo" hint="PNG or JPG. Appears on invoice headers.">
+        {data.brandLogo ? (
+          <div className={styles.logoPreviewWrap}>
+            <img src={data.brandLogo} alt="Brand logo" className={styles.logoPreview} />
+            <button type="button" className={styles.logoRemoveBtn} onClick={() => onChange('brandLogo', null)}>
+              <span className="mi" style={{ fontSize: '0.9rem' }}>close</span> Remove
+            </button>
+          </div>
+        ) : (
+          <button type="button" className={styles.logoUploadBtn} onClick={() => logoInputRef.current?.click()}>
+            <span className="mi">add_photo_alternate</span>
+            Upload Logo
+          </button>
+        )}
+        <input ref={logoInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleLogoChange} />
       </Field>
-      <Field label="Tagline" hint="Optional.">
+
+      {/* Identity */}
+      <Field label="Shop / Brand Name" error={errors.brandName}>
+        <TextInput value={data.brandName} onChange={v => onChange('brandName', v)} placeholder="e.g. Amara Stitches" icon="store" />
+      </Field>
+      <Field label="Tagline" hint="Short line shown on invoices. Optional.">
         <TextInput value={data.brandTagline} onChange={v => onChange('brandTagline', v)} placeholder="e.g. Crafted with love, fitted for you" icon="format_quote" />
       </Field>
+
+      {/* Brand colour */}
+      <Field label="Brand Colour" hint="Used for accents on invoice templates. Optional.">
+        <div className={styles.colourRow}>
+          <input
+            type="color"
+            className={styles.colourPicker}
+            value={data.brandColour || '#D4AF37'}
+            onChange={e => onChange('brandColour', e.target.value)}
+          />
+          <TextInput value={data.brandColour || '#D4AF37'} onChange={v => onChange('brandColour', v)} placeholder="#D4AF37" />
+        </div>
+      </Field>
+
+      {/* Contact */}
       <Field label="Business Phone" hint="Optional.">
         <TextInput type="tel" value={data.brandPhone} onChange={v => onChange('brandPhone', v)} placeholder="+234 800 000 0000" icon="call" />
       </Field>
-      <Field label="Business Address" hint="Shown on invoices. Optional.">
-        <TextInput value={data.brandAddress} onChange={v => onChange('brandAddress', v)} placeholder="12 Chief Amadi Street, Ikeja,Lagos" icon="location_on" />
+      <Field label="Business Email" hint="Optional.">
+        <TextInput type="email" value={data.brandEmail} onChange={v => onChange('brandEmail', v)} placeholder="shop@email.com" icon="mail" />
       </Field>
+      <Field label="Business Address" hint="Shown on invoices. Optional.">
+        <TextInput value={data.brandAddress} onChange={v => onChange('brandAddress', v)} placeholder="12 Chief Amadi Street, Ikeja, Lagos" icon="location_on" />
+      </Field>
+      <Field label="Website / Social Handle" hint="Optional.">
+        <TextInput value={data.brandWebsite} onChange={v => onChange('brandWebsite', v)} placeholder="instagram.com/yourbrand" icon="language" />
+      </Field>
+
+      {/* Currency */}
       <Field label="Preferred Currency">
         <SegmentControl
           options={[
             { label: '₦ Naira',  value: '₦' },
-            { label: '$ Dollar', value: '$' },
-            { label: '£ Pound',  value: '£' },
-            { label: '€ Euro',   value: '€' },
+            { label: '$ Dollar', value: '$'  },
+            { label: '£ Pound',  value: '£'  },
+            { label: '€ Euro',   value: '€'  },
           ]}
           value={data.invoiceCurrency}
           onChange={v => onChange('invoiceCurrency', v)}
@@ -164,6 +221,8 @@ function StepBrand({ data, onChange, errors }) {
     </div>
   )
 }
+
+// ── Progress & dots ───────────────────────────────────────────
 
 function ProgressBar({ current, total }) {
   return (
@@ -177,10 +236,7 @@ function StepDots({ steps, current }) {
   return (
     <div className={styles.stepDots}>
       {steps.map((s, i) => (
-        <div
-          key={s.id}
-          className={`${styles.stepDot} ${i === current ? styles.stepDotActive : ''} ${i < current ? styles.stepDotDone : ''}`}
-        >
+        <div key={s.id} className={`${styles.stepDot} ${i === current ? styles.stepDotActive : ''} ${i < current ? styles.stepDotDone : ''}`}>
           {i < current
             ? <span className="mi" style={{ fontSize: '0.75rem', color: '#000' }}>check</span>
             : <span className="mi" style={{ fontSize: '0.75rem' }}>{s.icon}</span>
@@ -190,6 +246,8 @@ function StepDots({ steps, current }) {
     </div>
   )
 }
+
+// ── Validation ────────────────────────────────────────────────
 
 function validateStep(stepId, data) {
   const errors = {}
@@ -205,18 +263,19 @@ function validateStep(stepId, data) {
     if (!data.fullName.trim()) errors.fullName = 'Full name is required'
     if (!data.phone.trim()) errors.phone = 'Phone number is required'
   }
-  if (stepId === 'brand') {
-    if (!data.brandName.trim()) errors.brandName = 'Brand name is required'
-  }
+  // Brand — all optional, no required fields
   return errors
 }
 
 const INITIAL = {
   email: '', password: '', confirmPassword: '',
   fullName: '', phone: '', city: '', country: '',
-  brandName: '', brandTagline: '', brandPhone: '', brandAddress: '',
-  invoiceCurrency: '₦',
+  brandName: '', brandTagline: '', brandColour: '#D4AF37',
+  brandLogo: null, brandPhone: '', brandEmail: '',
+  brandAddress: '', brandWebsite: '', invoiceCurrency: '₦',
 }
+
+// ── Main ──────────────────────────────────────────────────────
 
 export default function Signup() {
   const { signup } = useAuth()
@@ -240,21 +299,15 @@ export default function Signup() {
     if (Object.keys(errs).length > 0) { setErrors(errs); return }
     setErrors({})
 
-    if (step < STEPS.length - 1) {
-      setStep(s => s + 1)
-      return
-    }
+    if (step < STEPS.length - 1) { setStep(s => s + 1); return }
 
-    // ── Final step: create Firebase account ──────────────────
     setLoading(true)
     setAuthError('')
     try {
       const cred = await signup(data.email.trim(), data.password)
-
-      // Save the full name as displayName — every page reads from this
       await updateProfile(cred.user, { displayName: data.fullName.trim() })
 
-      // Persist personal info to localStorage so Profile page can seed from it
+      // Save personal info to localStorage
       try {
         localStorage.setItem('tailorbook_personal', JSON.stringify({
           fullName: data.fullName.trim(),
@@ -263,7 +316,27 @@ export default function Signup() {
           city:     data.city.trim(),
           country:  data.country.trim(),
         }))
-      } catch { /* ignore storage errors */ }
+      } catch { /* ignore */ }
+
+      // Save brand settings to localStorage — SettingsContext reads this on mount
+      try {
+        const existingRaw = localStorage.getItem('tailorbook_settings')
+        const existing    = existingRaw ? JSON.parse(existingRaw) : { ...DEFAULTS }
+        localStorage.setItem('tailorbook_settings', JSON.stringify({
+          ...existing,
+          brandName:       data.brandName.trim(),
+          brandTagline:    data.brandTagline.trim(),
+          brandColour:     data.brandColour || '#D4AF37',
+          brandPhone:      data.brandPhone.trim(),
+          brandEmail:      data.brandEmail.trim(),
+          brandAddress:    data.brandAddress.trim(),
+          brandWebsite:    data.brandWebsite.trim(),
+          invoiceCurrency: data.invoiceCurrency,
+        }))
+        if (data.brandLogo) {
+          localStorage.setItem('tailorbook_brand_logo', data.brandLogo)
+        }
+      } catch { /* ignore quota errors */ }
 
       navigate('/', { replace: true })
     } catch (err) {
@@ -296,7 +369,6 @@ export default function Signup() {
 
       <div className={styles.scrollArea}>
         <StepDots steps={STEPS} current={step} />
-
         <div className={styles.stepMeta}>
           <span className={styles.stepCounter}>Step {step + 1} of {STEPS.length}</span>
         </div>
@@ -328,7 +400,6 @@ export default function Signup() {
             </button>
           </p>
         )}
-
         <div style={{ height: 40 }} />
       </div>
     </div>
@@ -337,10 +408,10 @@ export default function Signup() {
 
 function friendlyError(code) {
   switch (code) {
-    case 'auth/email-already-in-use': return 'This email is already registered. Try logging in.'
-    case 'auth/invalid-email':        return 'Enter a valid email address.'
-    case 'auth/weak-password':        return 'Password must be at least 6 characters.'
+    case 'auth/email-already-in-use':   return 'This email is already registered. Try logging in.'
+    case 'auth/invalid-email':          return 'Enter a valid email address.'
+    case 'auth/weak-password':          return 'Password must be at least 6 characters.'
     case 'auth/network-request-failed': return 'Network error. Check your connection.'
-    default: return 'Something went wrong. Please try again.'
+    default:                            return 'Something went wrong. Please try again.'
   }
 }
