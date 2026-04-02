@@ -40,10 +40,7 @@
   transition: color 0.2s;
 }
 
-.tabActive {
-  color: var(--accent);
-  font-weight: 800;
-}
+.tabActive { color: var(--accent); font-weight: 800; }
 
 .tabActive::after {
   content: '';
@@ -84,103 +81,81 @@
   -webkit-overflow-scrolling: touch;
 }
 
-/* ── CARD ── */
-.card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 14px 16px;
+/* ── INVOICE GROUP (date-grouped, same pattern as orders/customers) ── */
+.invoiceGroup { margin-bottom: 16px; }
+.invoiceGroupDate { font-size: 0.72rem; font-weight: 500; color: var(--text3); padding: 10px 0 8px; }
+.invoiceGroupDivider { height: 1px; background: var(--border); width: calc(100% + 32px); margin-left: -16px; }
+
+/* Each row */
+.invoiceListItem {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 10px;
+  gap: 14px;
+  padding: 14px 0;
   cursor: pointer;
   transition: background 0.15s;
-  animation: fadeUp 0.3s ease both;
+  background: var(--bg);
+  position: relative;
 }
 
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
+.invoiceListItem::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: -16px;
+  height: 1px;
+  background: var(--border);
 }
 
-.card:active { background: var(--surface2); }
+.invoiceListItemLast::after { display: none; }
+.invoiceListItem:active { background: var(--surface); }
 
-.cardOverdue {
-  border-color: rgba(239,68,68,0.3);
-  background: rgba(239,68,68,0.03);
+/* Overdue tint */
+.invoiceListItemOverdue .invoiceListOuter {
+  border-color: rgba(239,68,68,0.35);
+  background: rgba(239,68,68,0.05);
 }
 
-.cardIcon {
-  width: 40px;
-  height: 40px;
+/* Outer grey box */
+.invoiceListOuter {
+  width: 80px;
+  height: 80px;
   border-radius: 12px;
-  background: var(--surface2);
-  border: 1px solid var(--border2);
+  background: var(--surface);
+  border: 1px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  color: var(--accent);
 }
 
-.cardBody {
-  flex: 1;
-  min-width: 0;
-}
-
-.cardTop {
+/* Inner white box */
+.invoiceListInner {
+  width: 58px;
+  height: 58px;
+  border-radius: 10px;
+  background: #fff;
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 3px;
-}
-
-.cardNumber {
-  font-size: 0.75rem;
-  font-weight: 800;
-  color: var(--text2);
-}
-
-.cardDesc {
-  font-size: 0.88rem;
-  font-weight: 600;
-  white-space: nowrap;
+  justify-content: center;
   overflow: hidden;
-  text-overflow: ellipsis;
-  margin-bottom: 5px;
 }
 
-.cardMeta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-}
+/* Text */
+.invoiceListInfo { flex: 1; min-width: 0; }
+.invoiceListDesc { font-size: 0.95rem; font-weight: 600; color: var(--text); margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.invoiceListOrdRow { font-size: 0.78rem; font-weight: 400; color: var(--text2); margin-bottom: 3px; }
+.invoiceListMeta { display: flex; align-items: center; gap: 5px; margin-bottom: 3px; }
+.invoiceListMetaText { font-size: 0.78rem; font-weight: 400; color: var(--text2); }
+.invoiceListAmount { font-size: 0.82rem; font-weight: 600; color: var(--text); margin-top: 2px; }
 
-.metaChip {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 2px 7px;
-  font-size: 0.62rem;
-  color: var(--text3);
-  font-weight: 600;
-}
+/* Inline status text colours */
+.statusText_paid    { color: #16a34a; }
+.statusText_unpaid  { color: #6366f1; }
+.statusText_overdue { color: #ef4444; }
 
-.metaChip .mi { font-size: 0.75rem; }
-
-.cardAmount {
-  font-size: 0.9rem;
-  font-weight: 800;
-  color: var(--text);
-  flex-shrink: 0;
-  white-space: nowrap;
-}
-
-/* ── STATUS BADGES ── */
+/* ── STATUS BADGES (used in full view only) ── */
 .statusBadge {
   display: inline-flex;
   align-items: center;
@@ -193,23 +168,9 @@
   border: 1px solid transparent;
 }
 
-.status_paid {
-  background: rgba(34,197,94,0.12);
-  color: #16a34a;
-  border-color: rgba(34,197,94,0.3);
-}
-
-.status_unpaid {
-  background: rgba(99,102,241,0.12);
-  color: #6366f1;
-  border-color: rgba(99,102,241,0.3);
-}
-
-.status_overdue {
-  background: rgba(239,68,68,0.12);
-  color: #ef4444;
-  border-color: rgba(239,68,68,0.3);
-}
+.status_paid    { background: rgba(34,197,94,0.12);  color: #16a34a; border-color: rgba(34,197,94,0.3);  }
+.status_unpaid  { background: rgba(99,102,241,0.12); color: #6366f1; border-color: rgba(99,102,241,0.3); }
+.status_overdue { background: rgba(239,68,68,0.12);  color: #ef4444; border-color: rgba(239,68,68,0.3);  }
 
 /* ── EMPTY STATE ── */
 .emptyState {
@@ -221,16 +182,8 @@
   text-align: center;
 }
 
-.emptyState p {
-  font-size: 0.85rem;
-  color: var(--text3);
-}
-
-.emptyHint {
-  font-size: 0.75rem;
-  color: var(--text3);
-  opacity: 0.6;
-}
+.emptyState p { font-size: 0.85rem; color: var(--text3); }
+.emptyHint { font-size: 0.75rem; color: var(--text3); opacity: 0.6; }
 
 /* ── FULL INVOICE VIEW ── */
 .viewOverlay {
@@ -276,166 +229,27 @@
   margin: 0 auto;
 }
 
-.docHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 20px;
-}
-
-.docBrand {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.docBrandName {
-  font-size: 1.1rem;
-  font-weight: 800;
-  font-family: 'Libre Baskerville', serif;
-  color: var(--text);
-}
-
-.docRight {
-  text-align: right;
-}
-
-.docInvoiceLabel {
-  font-size: 0.6rem;
-  font-weight: 800;
-  color: var(--text3);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-.docNumber {
-  font-size: 1rem;
-  font-weight: 800;
-  color: var(--accent);
-  margin-top: 2px;
-}
-
-.docDivider {
-  height: 1px;
-  background: var(--border);
-  margin: 16px 0;
-}
-
-.docSection {
-  margin-bottom: 16px;
-}
-
-.docSectionLabel {
-  font-size: 0.58rem;
-  font-weight: 800;
-  color: var(--text3);
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-  margin-bottom: 4px;
-}
-
-.docSectionValue {
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: var(--text);
-}
-
-.docMetaGrid {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
+.docHeader { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
+.docBrand { display: flex; align-items: center; gap: 8px; }
+.docBrandName { font-size: 1.1rem; font-weight: 800; font-family: 'Libre Baskerville', serif; color: var(--text); }
+.docRight { text-align: right; }
+.docInvoiceLabel { font-size: 0.6rem; font-weight: 800; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; }
+.docNumber { font-size: 1rem; font-weight: 800; color: var(--accent); margin-top: 2px; }
+.docDivider { height: 1px; background: var(--border); margin: 16px 0; }
+.docSection { margin-bottom: 16px; }
+.docSectionLabel { font-size: 0.58rem; font-weight: 800; color: var(--text3); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 4px; }
+.docSectionValue { font-size: 0.95rem; font-weight: 700; color: var(--text); }
+.docMetaGrid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 16px; }
 .docMetaCell {}
-
-.docMetaLabel {
-  font-size: 0.58rem;
-  font-weight: 800;
-  color: var(--text3);
-  text-transform: uppercase;
-  letter-spacing: 0.6px;
-  margin-bottom: 4px;
-}
-
-.docMetaValue {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--text);
-}
-
-.docTableHeader {
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr;
-  gap: 8px;
-  font-size: 0.6rem;
-  font-weight: 800;
-  color: var(--text3);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 8px;
-}
-
-.docTableRow {
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr;
-  gap: 8px;
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: var(--text);
-  padding-bottom: 8px;
-}
-
-.docLinked {
-  margin-top: 12px;
-}
-
-.docLinkedNames {
-  font-size: 0.8rem;
-  color: var(--text2);
-  margin-top: 4px;
-}
-
-.docTotalRow {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 0 4px;
-}
-
-.docTotalLabel {
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--text2);
-}
-
-.docTotalAmount {
-  font-size: 1.2rem;
-  font-weight: 800;
-  color: var(--text);
-}
-
-.docNotes {
-  margin-top: 16px;
-  padding: 12px;
-  background: var(--surface2);
-  border-radius: 10px;
-  border: 1px solid var(--border);
-}
-
-.docNotes p {
-  font-size: 0.8rem;
-  color: var(--text2);
-  margin-top: 4px;
-}
-
-.docFooter {
-  text-align: center;
-  font-size: 0.75rem;
-  color: var(--text3);
-  margin-top: 24px;
-  padding-top: 16px;
-  border-top: 1px solid var(--border);
-}
+.docMetaLabel { font-size: 0.58rem; font-weight: 800; color: var(--text3); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 4px; }
+.docMetaValue { font-size: 0.8rem; font-weight: 600; color: var(--text); }
+.docTableHeader { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 8px; font-size: 0.6rem; font-weight: 800; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; padding-bottom: 8px; border-bottom: 1px solid var(--border); margin-bottom: 8px; }
+.docTableRow { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 8px; font-size: 0.82rem; font-weight: 600; color: var(--text); padding-bottom: 8px; }
+.docLinked { margin-top: 12px; }
+.docLinkedNames { font-size: 0.8rem; color: var(--text2); margin-top: 4px; }
+.docTotalRow { display: flex; justify-content: space-between; align-items: center; padding: 12px 0 4px; }
+.docTotalLabel { font-size: 0.8rem; font-weight: 700; color: var(--text2); }
+.docTotalAmount { font-size: 1.2rem; font-weight: 800; color: var(--text); }
+.docNotes { margin-top: 16px; padding: 12px; background: var(--surface2); border-radius: 10px; border: 1px solid var(--border); }
+.docNotes p { font-size: 0.8rem; color: var(--text2); margin-top: 4px; }
+.docFooter { text-align: center; font-size: 0.75rem; color: var(--text3); margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border); }
