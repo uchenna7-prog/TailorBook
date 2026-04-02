@@ -1,4 +1,4 @@
-// src/contexts/PremiumContext.jsx
+
 // ─────────────────────────────────────────────────────────────
 // Reads isPremium from Firestore: users/{uid}/settings/premium
 // Free by default. Set isPremium: true in Firestore to upgrade.
