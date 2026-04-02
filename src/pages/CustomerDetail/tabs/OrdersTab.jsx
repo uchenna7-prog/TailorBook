@@ -1,4 +1,4 @@
-Import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import ConfirmSheet from '../../../components/ConfirmSheet/ConfirmSheet'
 import styles from './Tabs.module.css'
 
