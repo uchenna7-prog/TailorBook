@@ -151,17 +151,30 @@ export default function CustomerDetail({ onMenuClick }) {
           <div className={styles.profileSectionFree}>
             <div className={styles.name}>{customer.name}{customer.sex && ` (${customer.sex})`}</div>
             <div className={styles.metaInline}>
+              {/* Phone first */}
+              <div className={styles.metaItem}>
+                <span className="mi">call</span>{customer.phone}
+              </div>
+
+              {/* Birthday second */}
               {birthday && (
                 <div className={`${styles.metaItem} ${styles.birthday}`}>
                    <span>🎈 {birthday}</span>
                 </div>
               )}
-              <div className={styles.metaItem}><span className="mi">call</span>{customer.phone}</div>
+
+              {/* Email third */}
               {customer.email && (
-                <div className={styles.metaItem}><span className="mi">mail_outline</span>{customer.email}</div>
+                <div className={styles.metaItem}>
+                  <span className="mi">mail_outline</span>{customer.email}
+                </div>
               )}
+
+              {/* Address last */}
               {customer.address && (
-                <div className={styles.metaItem}><span className="mi">place</span>{customer.address}</div>
+                <div className={styles.metaItem}>
+                  <span className="mi">place</span>{customer.address}
+                </div>
               )}
             </div>
           </div>
