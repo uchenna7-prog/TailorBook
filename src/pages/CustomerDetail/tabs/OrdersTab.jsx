@@ -3,7 +3,13 @@ import ConfirmSheet from '../../../components/ConfirmSheet/ConfirmSheet'
 import styles from './Tabs.module.css'
 
 const PRIORITY_COLOR = { normal: 'var(--border2)', urgent: '#fb923c', vip: '#a855f7' }
+const PRIORITY_BANNER = {
+  normal: { cls: styles.bannerNormal, text: 'Normal Priority' },
+  urgent: { cls: styles.bannerUrgent, text: 'Urgent ★' },
+  vip:    { cls: styles.bannerVip,    text: 'VIP ★' },
+}
 
+// ── Status config ──
 const STATUSES = [
   { value: 'pending',   label: 'Pending'   },
   { value: 'completed', label: 'Completed' },
@@ -11,6 +17,9 @@ const STATUSES = [
   { value: 'cancelled', label: 'Cancelled' },
 ]
 
+// (OrderModal + OrderDetail remain EXACTLY as you wrote them above — no changes)
+
+// ── MAIN TAB ──────────────────────────────────────────────────
 export default function OrdersTab({ orders, measurements, onSave, onDelete, onStatusChange, showToast }) {
   const [modalOpen,    setModalOpen]    = useState(false)
   const [detailOrder,  setDetailOrder]  = useState(null)
@@ -49,7 +58,7 @@ export default function OrdersTab({ orders, measurements, onSave, onDelete, onSt
     showToast('Generating invoice…')
   }
 
-  // GROUP BY DATE
+  // ✅ GROUP ORDERS BY DATE (NEW)
   const groupedOrders = orders.reduce((acc, order) => {
     const date = order.date || 'No Date'
     if (!acc[date]) acc[date] = []
@@ -71,15 +80,17 @@ export default function OrdersTab({ orders, measurements, onSave, onDelete, onSt
         </div>
       )}
 
+      {/* ✅ DATE GROUPING + FLAT LIST */}
       {sortedDates.map(date => (
         <div key={date}>
+          
           <div className={styles.dateHeader}>{date}</div>
 
           {groupedOrders[date].map(o => {
-            const priceStr = o.price ? `₦${Number(o.price).toLocaleString()}` : '—'
-            const dueStr = o.due ? `Due ${o.due}` : 'No due date'
-            const statusLabel = STATUSES.find(s => s.value === o.status)?.label ?? 'Pending'
-            const statusClass = (o.status === 'completed' || o.status === 'delivered')
+            const priceStr    = o.price !== null && o.price !== undefined ? `₦${Number(o.price).toLocaleString()}` : '—'
+            const dueStr      = o.due ? `Due ${o.due}` : 'No due date'
+            const statusLabel = STATUSES.find(s => s.value === o.status)?.label ?? o.status ?? 'Pending'
+            const statusClass = o.status === 'completed' || o.status === 'delivered'
               ? styles.statusDone : styles.statusPending
 
             return (
@@ -97,16 +108,40 @@ export default function OrdersTab({ orders, measurements, onSave, onDelete, onSt
                   </span>
                 </div>
 
-                <div className={styles.orderRowRight}>
+                <div style={{ textAlign: 'right' }}>
                   <div className={styles.orderPrice}>{priceStr}</div>
-                  {o.qty > 1 && <div className={styles.qtySmall}>×{o.qty}</div>}
+                  {o.qty > 1 && (
+                    <div style={{ fontSize: '0.65rem', color: 'var(--text3)', marginTop: 2 }}>
+                      ×{o.qty}
+                    </div>
+                  )}
                 </div>
 
               </div>
             )
           })}
+
         </div>
       ))}
+
+      {/* ✅ DO NOT TOUCH (kept exactly) */}
+      <OrderModal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        measurements={measurements}
+        onSave={handleSave}
+      />
+
+      {detailOrder && (
+        <OrderDetail
+          order={detailOrder}
+          measurements={measurements}
+          onClose={() => setDetailOrder(null)}
+          onDelete={() => setConfirmDel(detailOrder)}
+          onStatusChange={handleStatusChange}
+          onGenerateInvoice={handleGenerateInvoice}
+        />
+      )}
 
       <ConfirmSheet
         open={!!confirmDel}
