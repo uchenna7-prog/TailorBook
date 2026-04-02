@@ -128,6 +128,7 @@ export default function CustomerDetail({ onMenuClick }) {
 
       <div className={styles.fixedTopContainer} ref={fixedRef}>
 
+        {/* ── PROFILE SECTION ── */}
         {isPremium ? (
           <div className={styles.profileSection}>
             <div className={styles.leftColumn}>
@@ -149,15 +150,24 @@ export default function CustomerDetail({ onMenuClick }) {
         ) : (
           <div className={styles.profileSectionFree}>
             <div className={styles.name}>{customer.name}{customer.sex && ` (${customer.sex})`}</div>
-            {birthday && <div className={styles.birthday}>🎈 {birthday}</div>}
             <div className={styles.metaInline}>
+              {birthday && (
+                <div className={`${styles.metaItem} ${styles.birthday}`}>
+                   <span>🎈 {birthday}</span>
+                </div>
+              )}
               <div className={styles.metaItem}><span className="mi">call</span>{customer.phone}</div>
-              {customer.email && <div className={styles.metaItem}><span className="mi">mail_outline</span>{customer.email}</div>}
-              {customer.address && <div className={styles.metaItem}><span className="mi">place</span>{customer.address}</div>}
+              {customer.email && (
+                <div className={styles.metaItem}><span className="mi">mail_outline</span>{customer.email}</div>
+              )}
+              {customer.address && (
+                <div className={styles.metaItem}><span className="mi">place</span>{customer.address}</div>
+              )}
             </div>
           </div>
         )}
 
+        {/* ── ACTION BUTTONS ── */}
         <div className={styles.actions}>
           <button className={`${styles.btn} ${styles.light}`} onClick={() => window.location = `tel:${customer.phone}`}>
             <span className="mi">call</span>Call
@@ -166,10 +176,11 @@ export default function CustomerDetail({ onMenuClick }) {
             <span className="mi">mail_outline</span>Email
           </button>
           <button className={`${styles.btn} ${styles.primary}`}>
-            <span className="mi">straighten</span>Full Body  Measurements
+            <span className="mi">straighten</span>Full Body Measurements
           </button>
         </div>
 
+        {/* ── TABS ── */}
         <div className={styles.tabs}>
           {TABS.map(tab => (
             <div
@@ -183,6 +194,7 @@ export default function CustomerDetail({ onMenuClick }) {
         </div>
       </div>
 
+      {/* ── SCROLL CONTENT ── */}
       <div className={styles.scrollContent}>
         {activeTab === 'dress' && (
           <MeasurementsTab
