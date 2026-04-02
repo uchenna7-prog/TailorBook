@@ -103,7 +103,7 @@ export default function CustomerDetail({ onMenuClick }) {
   useEffect(() => {
     if (fixedRef.current) {
       const height = fixedRef.current.offsetHeight
-      document.documentElement.style.setProperty('--fixed-top-height', `${height}px`)
+      document.documentElement.style.setProperty('--total-fixed-height', `${height}px`)
     }
   }, [activeTab, data, isPremium])
 
@@ -116,94 +116,90 @@ export default function CustomerDetail({ onMenuClick }) {
 
   return (
     <div className={styles.page}>
-      <Header
-        type="back"
-        title="Details"
-        customActions={[
-          { icon: 'edit',   label: 'Edit Customer',   onClick: () => navigate(`/customers/edit/${id}`) },
-          { icon: 'delete', label: 'Delete Customer', onClick: () => deleteCustomer(id), outlined: true, color: 'var(--danger)' },
-        ]}
-      />
+      
+      {/* ── CONSOLIDATED FIXED HEADER ── */}
+      <div className={styles.fixedHeaderGroup} ref={fixedRef}>
+        <Header
+          type="back"
+          title="Details"
+          customActions={[
+            { icon: 'edit',   label: 'Edit Customer',   onClick: () => navigate(`/customers/edit/${id}`) },
+            { icon: 'delete', label: 'Delete Customer', onClick: () => deleteCustomer(id), outlined: true, color: 'var(--danger)' },
+          ]}
+        />
 
-      <div className={styles.fixedTopContainer} ref={fixedRef}>
-
-        {isPremium ? (
-          <div className={styles.profileSection}>
-            <div className={styles.leftColumn}>
-              <div className={styles.avatar}>
-                {hasPhoto
-                  ? <img src={customer.photo} className={styles.avatarImg} alt={customer.name} />
-                  : initials
-                }
+        <div className={styles.fixedTopContainer}>
+          {isPremium ? (
+            <div className={styles.profileSection}>
+              <div className={styles.leftColumn}>
+                <div className={styles.avatar}>
+                  {hasPhoto
+                    ? <img src={customer.photo} className={styles.avatarImg} alt={customer.name} />
+                    : initials
+                  }
+                </div>
+                {birthday && <div className={styles.birthday}>🎈 {birthday}</div>}
               </div>
-              {birthday && <div className={styles.birthday}>🎈 {birthday}</div>}
+              <div className={styles.rightColumn}>
+                <div className={styles.name}>{customer.name}{customer.sex && ` (${customer.sex})`}</div>
+                <div className={styles.meta}><span className="mi">call</span>{customer.phone}</div>
+                {customer.email   && <div className={styles.meta}><span className="mi">mail_outline</span>{customer.email}</div>}
+                {customer.address && <div className={styles.meta}><span className="mi">place</span>{customer.address}</div>}
+              </div>
             </div>
-            <div className={styles.rightColumn}>
+          ) : (
+            <div className={styles.profileSectionFree}>
               <div className={styles.name}>{customer.name}{customer.sex && ` (${customer.sex})`}</div>
-              <div className={styles.meta}><span className="mi">call</span>{customer.phone}</div>
-              {customer.email   && <div className={styles.meta}><span className="mi">mail_outline</span>{customer.email}</div>}
-              {customer.address && <div className={styles.meta}><span className="mi">place</span>{customer.address}</div>}
-            </div>
-          </div>
-        ) : (
-          <div className={styles.profileSectionFree}>
-            <div className={styles.name}>{customer.name}{customer.sex && ` (${customer.sex})`}</div>
-            <div className={styles.metaInline}>
-              {/* Phone first */}
-              <div className={styles.metaItem}>
-                <span className="mi">call</span>
-                <span>{customer.phone}</span>
+              <div className={styles.metaInline}>
+                <div className={styles.metaItem}>
+                  <span className="mi">call</span>
+                  <span>{customer.phone}</span>
+                </div>
+                {birthday && (
+                  <div className={`${styles.metaItem} ${styles.birthday}`}>
+                    <span className="mi">cake</span>
+                    <span>{birthday}</span>
+                  </div>
+                )}
+                {customer.email && (
+                  <div className={styles.metaItem}>
+                    <span className="mi">mail_outline</span>
+                    <span>{customer.email}</span>
+                  </div>
+                )}
+                {customer.address && (
+                  <div className={styles.metaItem}>
+                    <span className="mi">place</span>
+                    <span>{customer.address}</span>
+                  </div>
+                )}
               </div>
-
-              {/* Birthday second */}
-              {birthday && (
-                <div className={`${styles.metaItem} ${styles.birthday}`}>
-                   <span className="mi">cake</span>
-                   <span>{birthday}</span>
-                </div>
-              )}
-
-              {/* Email third */}
-              {customer.email && (
-                <div className={styles.metaItem}>
-                  <span className="mi">mail_outline</span>
-                  <span>{customer.email}</span>
-                </div>
-              )}
-
-              {/* Address last */}
-              {customer.address && (
-                <div className={styles.metaItem}>
-                  <span className="mi">place</span>
-                  <span>{customer.address}</span>
-                </div>
-              )}
             </div>
+          )}
+
+          <div className={styles.actions}>
+            <button className={`${styles.btn} ${styles.light}`} onClick={() => window.location = `tel:${customer.phone}`}>
+              <span className="mi">call</span>Call
+            </button>
+            <button className={`${styles.btn} ${styles.light}`} onClick={() => window.location = `mailto:${customer.email}`}>
+              <span className="mi">mail_outline</span>Email
+            </button>
+            <button className={`${styles.btn} ${styles.primary}`}>
+              <span className="mi">straighten</span>Full Body Measurements
+            </button>
           </div>
-        )}
 
-        <div className={styles.actions}>
-          <button className={`${styles.btn} ${styles.light}`} onClick={() => window.location = `tel:${customer.phone}`}>
-            <span className="mi">call</span>Call
-          </button>
-          <button className={`${styles.btn} ${styles.light}`} onClick={() => window.location = `mailto:${customer.email}`}>
-            <span className="mi">mail_outline</span>Email
-          </button>
-          <button className={`${styles.btn} ${styles.primary}`}>
-            <span className="mi">straighten</span>Full Body Measurements
-          </button>
-        </div>
-
-        <div className={styles.tabs}>
-          {TABS.map(tab => (
-            <div
-              key={tab.id}
-              className={`${styles.tab} ${activeTab === tab.id ? styles.active : ''}`}
-              onClick={() => setActiveTab(tab.id)}
-            >
-              {tab.label}
-            </div>
-          ))}
+          <div className={styles.tabs}>
+            {TABS.map(tab => (
+              <div
+                key={tab.id}
+                className={`${styles.tab} ${activeTab === tab.id ? styles.active : ''}`}
+                onClick={() => setActiveTab(tab.id)}
+              >
+                {tab.label}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
