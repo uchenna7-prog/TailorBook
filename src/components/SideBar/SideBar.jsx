@@ -3,16 +3,17 @@ import { useAuth } from '../../contexts/AuthContext'
 import styles from './SideBar.module.css'
 
 const NAV_ITEMS = [
-  { path: '/', label: 'Dashboard', icon: 'dashboard' },
-  { path: '/customers', label: 'Customers', icon: 'group' },
-  { path: '/tasks', label: 'Tasks', icon: 'assignment' },
-  { path: '/orders', label: 'Orders', icon: 'shopping_cart' },
-  { path: '/gallery', label: 'Gallery', icon: 'photo_library' },
-  { path: '/settings', label: 'Settings', icon: 'settings' },
-  { path: '/profile', label: 'My Account', icon: 'person' },
-  { path: '/contact', label: 'Contact Us', icon: 'call' },
-  { path: '/faq', label: 'FAQs', icon: 'help_outline' },
-  { path: '/logout', label: 'Log out', icon: 'logout' },
+  { path: '/',         label: 'Dashboard',  icon: 'dashboard'      },
+  { path: '/customers',label: 'Customers',  icon: 'group'          },
+  { path: '/orders',   label: 'Orders',     icon: 'shopping_cart'  },
+  { path: '/invoices', label: 'Invoices',   icon: 'receipt_long'   },
+  { path: '/tasks',    label: 'Tasks',      icon: 'assignment'     },
+  { path: '/gallery',  label: 'Gallery',    icon: 'photo_library'  },
+  { path: '/settings', label: 'Settings',   icon: 'settings'       },
+  { path: '/profile',  label: 'My Account', icon: 'person'         },
+  { path: '/contact',  label: 'Contact Us', icon: 'call'           },
+  { path: '/faq',      label: 'FAQs',       icon: 'help_outline'   },
+  { path: '/logout',   label: 'Log out',    icon: 'logout'         },
 ]
 
 function SideBar({ isOpen, onClose }) {
@@ -20,20 +21,9 @@ function SideBar({ isOpen, onClose }) {
   const navigate = useNavigate()
   const { user } = useAuth()
 
-  // Full name from Firebase displayName, falling back to email prefix
-  const fullName = user?.displayName || user?.email?.split('@')[0] || 'User'
-
-  // Show only the first two parts of the name
+  const fullName    = user?.displayName || user?.email?.split('@')[0] || 'User'
   const displayName = fullName.split(' ').slice(0, 2).join(' ')
-
-  // Initials: first letter of each word, max 2
-  const initials = fullName
-    .trim()
-    .split(' ')
-    .filter(Boolean)
-    .slice(0, 2)
-    .map(w => w[0].toUpperCase())
-    .join('')
+  const initials    = fullName.trim().split(' ').filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('')
 
   const handleNav = (path) => {
     navigate(path)
@@ -46,31 +36,22 @@ function SideBar({ isOpen, onClose }) {
         className={`${styles.overlay} ${isOpen ? styles.overlayOpen : ''}`}
         onClick={onClose}
       />
-
       <nav className={`${styles.sidebar} ${isOpen ? styles.open : ''}`}>
-
-        {/* Fixed top */}
         <div className={styles.top}>
-          <div className={styles.brand}>
-            Tailor<span>Flow</span>
-          </div>
+          <div className={styles.brand}>Tailor<span>Flow</span></div>
           <div className={styles.tagline}>Smart tailoring workflow</div>
-
           <div className={styles.user}>
             <div className={styles.avatar}>{initials}</div>
             <div className={styles.userName}>{displayName}</div>
           </div>
         </div>
 
-        {/* Scrollable section */}
         <div className={styles.scrollArea}>
           <div className={styles.nav}>
             {NAV_ITEMS.map((item) => (
               <button
                 key={item.path}
-                className={`${styles.navItem} ${
-                  location.pathname === item.path ? styles.active : ''
-                } ${item.path === '/logout' ? styles.danger : ''}`}
+                className={`${styles.navItem} ${location.pathname === item.path ? styles.active : ''} ${item.path === '/logout' ? styles.danger : ''}`}
                 onClick={() => handleNav(item.path)}
               >
                 <span className="mi">{item.icon}</span>
@@ -80,15 +61,9 @@ function SideBar({ isOpen, onClose }) {
           </div>
 
           <div className={styles.footer}>
-            <button className={styles.footerLink}>
-              Terms & Conditions
-            </button>
-            <button className={styles.footerLink}>
-              Refund / Cancellation Policy
-            </button>
-            <button className={styles.footerLink}>
-              Privacy Policy
-            </button>
+            <button className={styles.footerLink}>Terms & Conditions</button>
+            <button className={styles.footerLink}>Refund / Cancellation Policy</button>
+            <button className={styles.footerLink}>Privacy Policy</button>
           </div>
         </div>
       </nav>
