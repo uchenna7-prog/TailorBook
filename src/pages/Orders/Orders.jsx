@@ -6,7 +6,6 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useState, useRef } from 'react'
-import { useOrders } from '../../contexts/OrdersContext'
 import Header from '../../components/Header/Header'
 import styles from './Orders.module.css'
 
@@ -89,26 +88,12 @@ export default function Orders({ onMenuClick }) {
   const { allOrders } = useOrders()
 
   const [activeTab,  setActiveTab]  = useState('all')
-  const tabsRef      = useRef(null)
-  const prevIndexRef = useRef(0)
+  const tabsRef = useRef(null)
 
   // ── Tab scroll helper ────────────────────────────────────
   const handleTabClick = (e, tabId) => {
     setActiveTab(tabId)
-    const container = tabsRef.current
-    if (!container) return
-    const currentIndex = TABS.findIndex(t => t.id === tabId)
-    const direction    = currentIndex > prevIndexRef.current ? 1 : -1
-    container.scrollBy({ left: 100 * direction, behavior: 'smooth' })
-    setTimeout(() => {
-      const cRect = container.getBoundingClientRect()
-      const tRect = e.currentTarget.getBoundingClientRect()
-      if (tRect.right > cRect.right)
-        container.scrollBy({ left: tRect.right - cRect.right, behavior: 'smooth' })
-      else if (tRect.left < cRect.left)
-        container.scrollBy({ left: tRect.left - cRect.left, behavior: 'smooth' })
-    }, 200)
-    prevIndexRef.current = currentIndex
+    e.currentTarget.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' })
   }
 
   // ── Filter ───────────────────────────────────────────────
