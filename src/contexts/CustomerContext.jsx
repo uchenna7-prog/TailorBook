@@ -16,9 +16,6 @@ export function CustomerProvider({ children }) {
   const [loading,   setLoading]   = useState(true)
   const [error,     setError]     = useState(null)
 
-  // ── Real-time Firestore listener ──────────────────────────
-  // Fires immediately with cached data, stays live for the session.
-  // Clears automatically when the user logs out.
   useEffect(() => {
     if (!user) {
       setCustomers([])
@@ -38,23 +35,21 @@ export function CustomerProvider({ children }) {
     return unsub
   }, [user])
 
-  // ── addCustomer ───────────────────────────────────────────
-  // Same call signature as before: addCustomer(customerObject)
-  // Strips any local id — Firestore generates its own.
-  // The listener updates the array automatically after the write.
   const addCustomer = useCallback(async (customer) => {
-    if (!user) return
+    if (!user) { alert('NO USER - not logged in'); return }
     try {
       const { id: _localId, ...data } = customer
-      return await fsAdd(user.uid, data)
+      alert('Saving to Firestore: ' + JSON.stringify(data).slice(0, 100))
+      const result = await fsAdd(user.uid, data)
+      alert('Saved! ID: ' + result)
+      return result
     } catch (err) {
+      alert('ERROR: ' + err.message)
       setError(err.message)
       throw err
     }
   }, [user])
 
-  // ── updateCustomer ────────────────────────────────────────
-  // Same call signature: updateCustomer(id, updates)
   const updateCustomer = useCallback(async (id, updates) => {
     if (!user) return
     try {
@@ -65,8 +60,6 @@ export function CustomerProvider({ children }) {
     }
   }, [user])
 
-  // ── deleteCustomer ────────────────────────────────────────
-  // Same call signature: deleteCustomer(id)
   const deleteCustomer = useCallback(async (id) => {
     if (!user) return
     try {
@@ -77,8 +70,6 @@ export function CustomerProvider({ children }) {
     }
   }, [user])
 
-  // ── getCustomer ───────────────────────────────────────────
-  // Reads from local state — no extra Firestore round-trip.
   const getCustomer = useCallback((id) => {
     return customers.find(c => String(c.id) === String(id)) ?? null
   }, [customers])
@@ -97,6 +88,7 @@ export function CustomerProvider({ children }) {
     </CustomerContext.Provider>
   )
 }
+
 export function useCustomers() {
   const ctx = useContext(CustomerContext)
   if (!ctx) throw new Error('useCustomers must be used inside CustomerProvider')
