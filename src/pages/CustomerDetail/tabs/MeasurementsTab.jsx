@@ -196,6 +196,14 @@ export default function MeasurementsTab({ measurements, onSave, onDelete, showTo
     setDetailItem(null)
   }
 
+  // Group measurements by date
+  const grouped = measurements.reduce((acc, m) => {
+    const key = m.date || 'Unknown Date'
+    if (!acc[key]) acc[key] = []
+    acc[key].push(m)
+    return acc
+  }, {})
+
   return (
     <>
       {measurements.length === 0 && (
@@ -206,27 +214,55 @@ export default function MeasurementsTab({ measurements, onSave, onDelete, showTo
         </div>
       )}
 
-      {measurements.map(m => {
-        const unitLabel = UNIT_LABELS[m.unit] ?? m.unit
-        return (
-          <div key={m.id} className={styles.itemCard} onClick={() => setDetailItem(m)}>
-            <div className={styles.designThumb}>
-              {m.imgSrc ? <img src={m.imgSrc} alt={m.name} /> : <span className="mi" style={{ fontSize: '1.4rem' }}>straighten</span>}
-            </div>
-            <div className={styles.cardInfo}>
-              <h4>{m.name}</h4>
-              <p>{m.date}</p>
-              <span className={styles.unitBadge}>{unitLabel} · {m.fields.length} field{m.fields.length !== 1 ? 's' : ''}</span>
-            </div>
-            <div className={styles.cardActions}>
-              <button className={styles.cardDelete} onClick={e => { e.stopPropagation(); setConfirmDelete(m) }}>
-                <span className="mi" style={{ fontSize: '1.2rem' }}>delete_outline</span>
-              </button>
-              <span className="mi" style={{ color: 'var(--text3)', fontSize: '1.1rem' }}>chevron_right</span>
-            </div>
-          </div>
-        )
-      })}
+      {Object.entries(grouped).map(([date, dateItems]) => (
+        <div key={date} className={styles.orderGroup}>
+          {/* Date label + full-width divider */}
+          <div className={styles.orderGroupDate}>{date}</div>
+          <div className={styles.orderGroupDivider} />
+
+          {dateItems.map((m, idx) => {
+            const unitLabel = UNIT_LABELS[m.unit] ?? m.unit
+            const isLast    = idx === dateItems.length - 1
+            return (
+              <div
+                key={m.id}
+                className={`${styles.orderListItem} ${isLast ? styles.orderListItemLast : ''}`}
+                onClick={() => setDetailItem(m)}
+              >
+                {/* Left: grey outer box with white inner box */}
+                <div className={styles.orderListOuter}>
+                  <div className={styles.orderListInner}>
+                    {m.imgSrc
+                      ? <img src={m.imgSrc} alt={m.name} className={styles.orderListThumbImg} />
+                      : <span className="mi" style={{ fontSize: '1.5rem', color: 'var(--text3)' }}>straighten</span>
+                    }
+                  </div>
+                </div>
+
+                {/* Right: measurement info */}
+                <div className={styles.orderListInfo}>
+                  <div className={styles.orderListDesc}>{m.name}</div>
+                  <div className={styles.orderListOrdRow}>{m.date}</div>
+                  <div className={styles.orderListOrdRow}>
+                    {unitLabel} · {m.fields.length} field{m.fields.length !== 1 ? 's' : ''}
+                  </div>
+                </div>
+
+                {/* Delete + chevron */}
+                <div className={styles.cardActions}>
+                  <button
+                    className={styles.cardDelete}
+                    onClick={e => { e.stopPropagation(); setConfirmDelete(m) }}
+                  >
+                    <span className="mi" style={{ fontSize: '1.2rem' }}>delete_outline</span>
+                  </button>
+                  <span className="mi" style={{ color: 'var(--text3)', fontSize: '1.1rem' }}>chevron_right</span>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      ))}
 
       <MeasureModal isOpen={modalOpen} onClose={() => setModalOpen(false)} onSave={handleSave} />
 
