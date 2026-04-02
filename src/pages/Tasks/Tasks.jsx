@@ -78,7 +78,6 @@ function AddTaskModal({ isOpen, onClose, onSave, customers }) {
   const [category,     setCategory]     = useState('general')
   const [custOrders,   setCustOrders]   = useState([])
 
-  // Load orders for selected customer from Firestore
   useEffect(() => {
     if (!user || !selectedCust) { setCustOrders([]); return }
     const unsub = subscribeToOrders(
@@ -136,7 +135,6 @@ function AddTaskModal({ isOpen, onClose, onSave, customers }) {
       </div>
 
       <div className={styles.modalBody}>
-        {/* Description */}
         <div className={styles.fieldGroup}>
           <label className={styles.fieldLabel}>What needs to be done? *</label>
           <textarea
@@ -148,7 +146,6 @@ function AddTaskModal({ isOpen, onClose, onSave, customers }) {
           />
         </div>
 
-        {/* Category */}
         <div className={styles.fieldGroup}>
           <label className={styles.fieldLabel}>Category</label>
           <div className={styles.categoryGrid}>
@@ -165,7 +162,6 @@ function AddTaskModal({ isOpen, onClose, onSave, customers }) {
           </div>
         </div>
 
-        {/* Priority */}
         <div className={styles.fieldGroup}>
           <label className={styles.fieldLabel}>Priority</label>
           <div className={styles.priorityRow}>
@@ -186,7 +182,6 @@ function AddTaskModal({ isOpen, onClose, onSave, customers }) {
           </div>
         </div>
 
-        {/* Due date & time */}
         <div className={styles.fieldRow}>
           <div className={styles.fieldGroup} style={{ flex: 1 }}>
             <label className={styles.fieldLabel}>Due Date</label>
@@ -198,7 +193,6 @@ function AddTaskModal({ isOpen, onClose, onSave, customers }) {
           </div>
         </div>
 
-        {/* Reminder */}
         <div className={styles.fieldGroup}>
           <div className={styles.toggleRow}>
             <div>
@@ -214,7 +208,6 @@ function AddTaskModal({ isOpen, onClose, onSave, customers }) {
           </div>
         </div>
 
-        {/* Related Customer */}
         <div className={styles.fieldGroup}>
           <label className={styles.fieldLabel}>Related Client <span className={styles.optional}>(optional)</span></label>
           {selectedCust ? (
@@ -263,7 +256,6 @@ function AddTaskModal({ isOpen, onClose, onSave, customers }) {
           )}
         </div>
 
-        {/* Related Order */}
         {selectedCust && (
           <div className={styles.fieldGroup}>
             <label className={styles.fieldLabel}>Related Order <span className={styles.optional}>(optional)</span></label>
@@ -302,7 +294,6 @@ function AddTaskModal({ isOpen, onClose, onSave, customers }) {
           </div>
         )}
 
-        {/* Notes */}
         <div className={styles.fieldGroup}>
           <label className={styles.fieldLabel}>Notes <span className={styles.optional}>(optional)</span></label>
           <textarea
@@ -318,52 +309,68 @@ function AddTaskModal({ isOpen, onClose, onSave, customers }) {
   )
 }
 
-// ── Task Card ─────────────────────────────────────────────────
+// ── Task List Item ────────────────────────────────────────────
 
-function TaskCard({ task, onToggle, onDelete, onOpen }) {
+function TaskCard({ task, onToggle, onDelete, onOpen, isLast }) {
   const overdue = isOverdue(task)
-  const pc  = PRIORITY_COLORS[task.priority] ?? PRIORITY_COLORS.normal
-  const due = daysUntil(task.dueDate)
+  const pc      = PRIORITY_COLORS[task.priority] ?? PRIORITY_COLORS.normal
+  const due     = daysUntil(task.dueDate)
+  const catIcon = CATEGORY_ICONS[task.category] || 'assignment'
 
   return (
     <div
-      className={`${styles.taskCard} ${task.done ? styles.taskDone : ''} ${overdue ? styles.taskOverdue : ''}`}
+      className={`${styles.taskListItem} ${isLast ? styles.taskListItemLast : ''} ${task.done ? styles.taskListItemDone : ''} ${overdue ? styles.taskListItemOverdue : ''}`}
       onClick={onOpen}
     >
-      <div className={styles.priorityBar} style={{ background: pc.text }} />
-      <button
-        className={`${styles.checkbox} ${task.done ? styles.checkboxDone : ''}`}
-        onClick={e => { e.stopPropagation(); onToggle(task.id, task.done) }}
-      >
-        {task.done && <span className="mi" style={{ fontSize: '1rem' }}>check</span>}
-      </button>
-
-      <div className={styles.taskContent}>
-        <div className={styles.taskDesc}>{task.desc}</div>
-        <div className={styles.taskMeta}>
-          {task.category && task.category !== 'general' && (
-            <span className={styles.metaChip}>
-              <span className="mi" style={{ fontSize: '0.85rem' }}>{CATEGORY_ICONS[task.category]}</span> {task.category}
-            </span>
-          )}
-          {task.customerName && (
-            <span className={styles.metaChip}>
-              <span className="mi" style={{ fontSize: '0.75rem' }}>person</span>
-              {task.customerName}
-            </span>
-          )}
-          {task.dueDate && (
-            <span className={`${styles.metaChip} ${overdue ? styles.metaOverdue : ''}`}>
-              <span className="mi" style={{ fontSize: '0.75rem' }}>schedule</span>
-              {due}
-            </span>
-          )}
+      {/* Left: grey outer box with white inner box */}
+      <div className={styles.taskListOuter} style={{ borderColor: overdue ? 'rgba(239,68,68,0.35)' : undefined, background: overdue ? 'rgba(239,68,68,0.05)' : undefined }}>
+        <div className={styles.taskListInner}>
+          <span className="mi" style={{ fontSize: '1.5rem', color: overdue ? '#ef4444' : pc.text }}>
+            {catIcon}
+          </span>
         </div>
       </div>
 
-      <button className={styles.taskDeleteBtn} onClick={e => { e.stopPropagation(); onDelete(task) }}>
-        <span className="mi" style={{ fontSize: '1.1rem' }}>delete_outline</span>
-      </button>
+      {/* Info */}
+      <div className={styles.taskListInfo}>
+        <div className={`${styles.taskListDesc} ${task.done ? styles.taskListDescDone : ''}`}>{task.desc}</div>
+
+        {task.customerName && (
+          <div className={styles.taskListMeta}>
+            <span className="mi" style={{ fontSize: '0.8rem', color: 'var(--text3)', verticalAlign: 'middle' }}>person</span>
+            <span className={styles.taskListMetaText}>{task.customerName}</span>
+          </div>
+        )}
+
+        <div className={styles.taskListMeta}>
+          <span className="mi" style={{ fontSize: '0.8rem', color: 'var(--text3)', verticalAlign: 'middle' }}>autorenew</span>
+          <span className={`${styles.taskListMetaText} ${task.done ? styles.taskListMetaDone : overdue ? styles.taskListMetaOverdue : ''}`}>
+            {task.done ? 'Done' : overdue ? 'Overdue' : PRIORITY_LABELS[task.priority] || 'Normal'}
+          </span>
+        </div>
+
+        {task.dueDate && (
+          <div className={`${styles.taskListDue} ${overdue ? styles.taskListDueOverdue : ''}`}>
+            Due On {formatDate(task.dueDate)}{due ? ` · ${due}` : ''}
+          </div>
+        )}
+      </div>
+
+      {/* Right: checkbox + delete */}
+      <div className={styles.taskListActions}>
+        <button
+          className={`${styles.checkbox} ${task.done ? styles.checkboxDone : ''}`}
+          onClick={e => { e.stopPropagation(); onToggle(task.id, task.done) }}
+        >
+          {task.done && <span className="mi" style={{ fontSize: '1rem' }}>check</span>}
+        </button>
+        <button
+          className={styles.taskDeleteBtn}
+          onClick={e => { e.stopPropagation(); onDelete(task) }}
+        >
+          <span className="mi" style={{ fontSize: '1.1rem' }}>delete_outline</span>
+        </button>
+      </div>
     </div>
   )
 }
@@ -390,13 +397,13 @@ function TaskDetail({ task, onClose, onToggle, onDelete }) {
           <div className={styles.statusRow}>
             <button
               className={`${styles.statusBtn} ${!task.done ? styles.statusPending : ''}`}
-              onClick={() => onToggle(task.id, true)}  // toggle to not-done
+              onClick={() => onToggle(task.id, true)}
             >
               Pending
             </button>
             <button
               className={`${styles.statusBtn} ${task.done ? styles.statusDoneBtn : ''}`}
-              onClick={() => onToggle(task.id, false)} // toggle to done
+              onClick={() => onToggle(task.id, false)}
             >
               ✓ Done
             </button>
@@ -500,7 +507,6 @@ export default function Tasks({ onMenuClick }) {
   const handleToggle = async (id, currentDone) => {
     try {
       await toggleTask(id, currentDone)
-      // Update detail panel if open
       setDetailTask(prev => prev && String(prev.id) === String(id)
         ? { ...prev, done: !currentDone }
         : prev
@@ -536,6 +542,14 @@ export default function Tasks({ onMenuClick }) {
     done:    tasks.filter(t => t.done).length,
     overdue: tasks.filter(t => isOverdue(t)).length,
   }
+
+  // ── Group by due date (fall back to 'No Due Date') ────────
+  const grouped = filtered.reduce((acc, t) => {
+    const key = t.dueDate ? formatDate(t.dueDate) : 'No Due Date'
+    if (!acc[key]) acc[key] = []
+    acc[key].push(t)
+    return acc
+  }, {})
 
   return (
     <div className={styles.page}>
@@ -574,14 +588,21 @@ export default function Tasks({ onMenuClick }) {
           </div>
         )}
 
-        {filtered.map(task => (
-          <TaskCard
-            key={task.id}
-            task={task}
-            onToggle={handleToggle}
-            onDelete={(t) => setConfirmDel(t)}
-            onOpen={() => setDetailTask(task)}
-          />
+        {Object.entries(grouped).map(([groupKey, groupTasks]) => (
+          <div key={groupKey} className={styles.taskGroup}>
+            <div className={styles.taskGroupDate}>{groupKey}</div>
+            <div className={styles.taskGroupDivider} />
+            {groupTasks.map((task, idx) => (
+              <TaskCard
+                key={task.id}
+                task={task}
+                isLast={idx === groupTasks.length - 1}
+                onToggle={handleToggle}
+                onDelete={(t) => setConfirmDel(t)}
+                onOpen={() => setDetailTask(task)}
+              />
+            ))}
+          </div>
         ))}
       </div>
 
