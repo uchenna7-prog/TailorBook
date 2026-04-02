@@ -3,6 +3,7 @@ import { useCustomers } from '../../contexts/CustomerContext'
 import { useOrders }    from '../../contexts/OrdersContext'
 import { useTasks }     from '../../contexts/TaskContext'
 import { useAuth }      from '../../contexts/AuthContext'
+import { useInvoices }  from '../../contexts/InvoiceContext' // ✅ added
 import Header from '../../components/Header/Header'
 import styles from './Home.module.css'
 
@@ -19,12 +20,19 @@ function Home({ onMenuClick }) {
   const { customers } = useCustomers()
   const { allOrders } = useOrders()
   const { tasks }     = useTasks()
+  const { invoices }  = useInvoices() // ✅ added
 
   const firstName = user?.displayName
     ? user.displayName.split(' ')[0]
     : user?.email?.split('@')[0] ?? 'there'
 
-  const recentOrders = allOrders.slice(0, 3)
+  // ✅ FILTERS
+  const pendingOrders = allOrders.filter(o => o.status !== 'Ready')
+  const pendingTasks  = tasks.filter(t => t.status !== 'Done')
+  const unpaidInvoices = invoices?.filter(inv => inv.status !== 'Paid') ?? []
+
+  const recentOrders = pendingOrders.slice(0, 3)
+  const recentTasks  = pendingTasks.slice(0, 3)
 
   return (
     <div className={styles.pageWrapper}>
@@ -53,13 +61,21 @@ function Home({ onMenuClick }) {
               <span className={styles.statLabel}>Customers</span>
               <span className={styles.statVal}>{customers?.length ?? 0}</span>
             </div>
+
             <div className={styles.statCard} onClick={() => navigate('/orders')} style={{ cursor: 'pointer' }}>
-              <span className={styles.statLabel}>Orders</span>
-              <span className={styles.statVal}>{allOrders?.length ?? 0}</span>
+              <span className={styles.statLabel}>Pending Orders</span>
+              <span className={styles.statVal}>{pendingOrders.length}</span>
             </div>
+
             <div className={styles.statCard} onClick={() => navigate('/tasks')} style={{ cursor: 'pointer' }}>
-              <span className={styles.statLabel}>Tasks</span>
-              <span className={styles.statVal}>{tasks?.length ?? 0}</span>
+              <span className={styles.statLabel}>Pending Tasks</span>
+              <span className={styles.statVal}>{pendingTasks.length}</span>
+            </div>
+
+            {/* ✅ NEW */}
+            <div className={styles.statCard} onClick={() => navigate('/invoices')} style={{ cursor: 'pointer' }}>
+              <span className={styles.statLabel}>Unpaid Invoices</span>
+              <span className={styles.statVal}>{unpaidInvoices.length}</span>
             </div>
           </div>
         </section>
@@ -83,7 +99,7 @@ function Home({ onMenuClick }) {
 
         <div className={styles.sectionDivider} />
 
-        {/* Recent Orders — live from Firestore via OrdersContext */}
+        {/* Recent Orders */}
         <section className={styles.section}>
           <div className={styles.sectionHeader}>
             <h2 className={styles.sectionTitle}>Recent Orders</h2>
@@ -91,9 +107,7 @@ function Home({ onMenuClick }) {
           </div>
 
           {recentOrders.length === 0 ? (
-            <p style={{ color: 'var(--text3)', fontSize: '0.85rem', textAlign: 'center', padding: '20px 0' }}>
-              No orders yet. Add customers and create orders to see them here.
-            </p>
+            <p className={styles.emptyText}>No pending orders.</p>
           ) : (
             <div className={styles.orderStack}>
               {recentOrders.map((order) => (
@@ -108,8 +122,41 @@ function Home({ onMenuClick }) {
                       {order.due ? ` • Due ${order.due}` : ''}
                     </div>
                   </div>
-                  <div className={`${styles.statusBadge} ${order.status === 'Ready' ? styles.ready : ''}`}>
+                  <div className={styles.statusBadge}>
                     {order.status ?? 'Pending'}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
+        <div className={styles.sectionDivider} />
+
+        {/* ✅ NEW — Recent Tasks */}
+        <section className={styles.section}>
+          <div className={styles.sectionHeader}>
+            <h2 className={styles.sectionTitle}>Recent Tasks</h2>
+            <button className={styles.seeAll} onClick={() => navigate('/tasks')}>View list</button>
+          </div>
+
+          {recentTasks.length === 0 ? (
+            <p className={styles.emptyText}>No pending tasks.</p>
+          ) : (
+            <div className={styles.orderStack}>
+              {recentTasks.map((task) => (
+                <div key={task.id} className={styles.orderCard}>
+                  <div className={styles.orderAvatar}>
+                    {task.title?.[0] ?? 'T'}
+                  </div>
+                  <div className={styles.orderInfo}>
+                    <div className={styles.orderTitle}>{task.title}</div>
+                    <div className={styles.orderSubtitle}>
+                      {task.due ? `Due ${task.due}` : ''}
+                    </div>
+                  </div>
+                  <div className={styles.statusBadge}>
+                    {task.status ?? 'Pending'}
                   </div>
                 </div>
               ))}
