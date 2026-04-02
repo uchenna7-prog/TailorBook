@@ -9,25 +9,9 @@ on:
       - main
 
 jobs:
-  deploy_firestore:
-    name: 🔒 Deploy Firestore Rules & Indexes
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push'
-
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-
-      - name: Deploy Firestore rules & indexes
-        uses: FirebaseExtended/action-hosting-deploy@v0
-        with:
-          repoToken:        ${{ secrets.GITHUB_TOKEN }}
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-          projectId:        ${{ secrets.FIREBASE_PROJECT_ID }}
-          channelId:        live
-
-  deploy_hosting:
-    name: 🚀 Build & Deploy TailorFlow Hosting
+  # ── Build + Deploy Hosting + Firestore rules on push to main ──
+  deploy:
+    name: 🚀 Build & Deploy TailorFlow
     runs-on: ubuntu-latest
     if: github.event_name == 'push'
 
@@ -47,23 +31,24 @@ jobs:
       - name: Build TailorFlow app
         run: npm run build
         env:
-          VITE_FIREBASE_API_KEY:              ${{ secrets.VITE_FIREBASE_API_KEY }}
-          VITE_FIREBASE_AUTH_DOMAIN:          ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
-          VITE_FIREBASE_PROJECT_ID:           ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
-          VITE_FIREBASE_STORAGE_BUCKET:       ${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}
-          VITE_FIREBASE_MESSAGING_SENDER_ID:  ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
-          VITE_FIREBASE_APP_ID:               ${{ secrets.VITE_FIREBASE_APP_ID }}
+          VITE_FIREBASE_API_KEY:             ${{ secrets.VITE_FIREBASE_API_KEY }}
+          VITE_FIREBASE_AUTH_DOMAIN:         ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
+          VITE_FIREBASE_PROJECT_ID:          ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
+          VITE_FIREBASE_STORAGE_BUCKET:      ${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}
+          VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
+          VITE_FIREBASE_APP_ID:              ${{ secrets.VITE_FIREBASE_APP_ID }}
 
-      - name: Deploy to Firebase Hosting (live)
+      - name: Deploy to Firebase (Hosting + Firestore rules)
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
-          repoToken:        ${{ secrets.GITHUB_TOKEN }}
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-          projectId:        ${{ secrets.FIREBASE_PROJECT_ID }}
-          channelId:        live
+          repoToken:               ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount:  ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          projectId:               ${{ secrets.FIREBASE_PROJECT_ID }}
+          channelId:               live
 
-  preview_hosting:
-    name: 👀 TailorFlow PR Preview
+  # ── PR preview channel ────────────────────────────────────────
+  preview:
+    name: 👀 PR Preview
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
 
@@ -83,16 +68,16 @@ jobs:
       - name: Build TailorFlow app
         run: npm run build
         env:
-          VITE_FIREBASE_API_KEY:              ${{ secrets.VITE_FIREBASE_API_KEY }}
-          VITE_FIREBASE_AUTH_DOMAIN:          ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
-          VITE_FIREBASE_PROJECT_ID:           ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
-          VITE_FIREBASE_STORAGE_BUCKET:       ${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}
-          VITE_FIREBASE_MESSAGING_SENDER_ID:  ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
-          VITE_FIREBASE_APP_ID:               ${{ secrets.VITE_FIREBASE_APP_ID }}
+          VITE_FIREBASE_API_KEY:             ${{ secrets.VITE_FIREBASE_API_KEY }}
+          VITE_FIREBASE_AUTH_DOMAIN:         ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
+          VITE_FIREBASE_PROJECT_ID:          ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
+          VITE_FIREBASE_STORAGE_BUCKET:      ${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}
+          VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
+          VITE_FIREBASE_APP_ID:              ${{ secrets.VITE_FIREBASE_APP_ID }}
 
       - name: Deploy preview channel
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
-          repoToken:        ${{ secrets.GITHUB_TOKEN }}
+          repoToken:              ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-          projectId:        ${{ secrets.FIREBASE_PROJECT_ID }}
+          projectId:              ${{ secrets.FIREBASE_PROJECT_ID }}
