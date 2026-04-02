@@ -368,6 +368,8 @@ export default function Customers({ onMenuClick }) {
   const [formOpen,     setFormOpen]     = useState(false)
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [toastMsg,     setToastMsg]     = useState('')
+  const [sortMode,     setSortMode]     = useState('date')   // 'date' | 'alpha'
+  const [filterOpen,   setFilterOpen]   = useState(false)
   const toastTimer = useRef(null)
 
   const showToast = (msg) => {
@@ -403,28 +405,84 @@ export default function Customers({ onMenuClick }) {
     ? 'All Clients'
     : `${filtered.length} result${filtered.length !== 1 ? 's' : ''}`
 
-  // Group filtered customers by date
-  const grouped = filtered.reduce((acc, c) => {
-    const key = c.date || 'Unknown Date'
-    if (!acc[key]) acc[key] = []
-    acc[key].push(c)
-    return acc
-  }, {})
+  // ── Build grouped list based on sort mode ──────────────────
+  const grouped = (() => {
+    if (sortMode === 'alpha') {
+      // Sort A-Z, group by first letter
+      const sorted = [...filtered].sort((a, b) => a.name.localeCompare(b.name))
+      return sorted.reduce((acc, c) => {
+        const key = c.name.trim()[0]?.toUpperCase() || '#'
+        if (!acc[key]) acc[key] = []
+        acc[key].push(c)
+        return acc
+      }, {})
+    } else {
+      // Sort newest first, group by date added
+      const sorted = [...filtered].sort((a, b) => {
+        const da = a.date ? new Date(a.date) : new Date(0)
+        const db = b.date ? new Date(b.date) : new Date(0)
+        return db - da
+      })
+      return sorted.reduce((acc, c) => {
+        const key = c.date || 'Unknown Date'
+        if (!acc[key]) acc[key] = []
+        acc[key].push(c)
+        return acc
+      }, {})
+    }
+  })()
+
+  const selectSort = (mode) => {
+    setSortMode(mode)
+    setFilterOpen(false)
+  }
 
   return (
     <div className={styles.page}>
       <Header onMenuClick={onMenuClick} />
 
+      {/* Search bar + filter button */}
       <div className={styles.searchContainer}>
-        <div className={styles.searchBox}>
-          <span className="mi" style={{ color:'var(--text3)', fontSize:'1.1rem' }}>search</span>
-          <input type="text" placeholder="Search clients…" value={query} onChange={e => setQuery(e.target.value)} />
+        <div className={styles.searchRow}>
+          <div className={styles.searchBox}>
+            <span className="mi" style={{ color:'var(--text3)', fontSize:'1.1rem' }}>search</span>
+            <input type="text" placeholder="Search clients…" value={query} onChange={e => setQuery(e.target.value)} />
+          </div>
+          <button
+            className={`${styles.filterBtn} ${sortMode !== 'date' ? styles.filterBtnActive : ''}`}
+            onClick={() => setFilterOpen(v => !v)}
+          >
+            <span className="mi" style={{ fontSize: '1.3rem' }}>tune</span>
+          </button>
         </div>
+
+        {/* Filter dropdown */}
+        {filterOpen && (
+          <div className={styles.filterDropdown}>
+            <div className={styles.filterDropdownTitle}>Sort by</div>
+            <button
+              className={`${styles.filterOption} ${sortMode === 'date' ? styles.filterOptionActive : ''}`}
+              onClick={() => selectSort('date')}
+            >
+              <span className="mi" style={{ fontSize: '1.1rem' }}>calendar_today</span>
+              <span>Date Added</span>
+              {sortMode === 'date' && <span className="mi" style={{ fontSize: '1rem', marginLeft: 'auto', color: 'var(--accent)' }}>check</span>}
+            </button>
+            <button
+              className={`${styles.filterOption} ${sortMode === 'alpha' ? styles.filterOptionActive : ''}`}
+              onClick={() => selectSort('alpha')}
+            >
+              <span className="mi" style={{ fontSize: '1.1rem' }}>sort_by_alpha</span>
+              <span>Alphabetically (A–Z)</span>
+              {sortMode === 'alpha' && <span className="mi" style={{ fontSize: '1rem', marginLeft: 'auto', color: 'var(--accent)' }}>check</span>}
+            </button>
+          </div>
+        )}
       </div>
 
       {sectionLabel && <div className={styles.sectionLabel}>{sectionLabel}</div>}
 
-      <div className={styles.scrollArea}>
+      <div className={styles.scrollArea} onClick={() => filterOpen && setFilterOpen(false)}>
         {customers.length === 0 && (
           <div className={styles.emptyState}>
             <div className={styles.emptyIcon}>👤</div>
@@ -440,16 +498,16 @@ export default function Customers({ onMenuClick }) {
           </div>
         )}
 
-        {Object.entries(grouped).map(([date, dateCustomers]) => (
-          <div key={date} className={styles.custGroup}>
-            <div className={styles.custGroupDate}>{date}</div>
+        {Object.entries(grouped).map(([groupKey, groupCustomers]) => (
+          <div key={groupKey} className={styles.custGroup}>
+            <div className={styles.custGroupDate}>{groupKey}</div>
             <div className={styles.custGroupDivider} />
 
-            {dateCustomers.map((c, idx) => (
+            {groupCustomers.map((c, idx) => (
               <CustomerCard
                 key={c.id}
                 customer={c}
-                isLast={idx === dateCustomers.length - 1}
+                isLast={idx === groupCustomers.length - 1}
                 onOpen={() => navigate(`/customers/${c.id}`)}
                 onDelete={(cust) => setDeleteTarget(cust)}
               />
