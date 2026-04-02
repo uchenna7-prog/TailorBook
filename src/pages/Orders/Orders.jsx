@@ -30,54 +30,75 @@ function daysUntil(dateStr) {
   return `${diff}d left`
 }
 
+function formatDate(dateStr) {
+  if (!dateStr) return 'Unknown Date'
+  const d = new Date(dateStr)
+  if (isNaN(d)) return dateStr
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+}
+
 // ── Tabs ──────────────────────────────────────────────────────
 
 const TABS = [
-  { id: 'all',       label: 'All',       icon: 'assignment'     },
-  { id: 'pending',   label: 'Pending',   icon: 'schedule'       },
-  { id: 'completed', label: 'Completed', icon: 'check_circle'   },
+  { id: 'all',       label: 'All',       icon: 'assignment'      },
+  { id: 'pending',   label: 'Pending',   icon: 'schedule'        },
+  { id: 'completed', label: 'Completed', icon: 'check_circle'    },
   { id: 'delivered', label: 'Delivered', icon: 'local_shipping'  },
-  { id: 'cancelled', label: 'Cancelled', icon: 'cancel'         },
-  { id: 'overdue',   label: 'Overdue',   icon: 'alarm_on'       },
+  { id: 'cancelled', label: 'Cancelled', icon: 'cancel'          },
+  { id: 'overdue',   label: 'Overdue',   icon: 'alarm_on'        },
 ]
 
 const EMPTY_CONFIG = {
-  all:       { icon: 'assignment',    text: 'No orders yet.' },
-  pending:   { icon: 'schedule',      text: 'No pending orders.' },
-  completed: { icon: 'check_circle',  text: 'No completed orders yet.' },
-  delivered: { icon: 'local_shipping',text: 'No delivered orders yet.' },
-  cancelled: { icon: 'cancel',        text: 'No cancelled orders.' },
-  overdue:   { icon: 'alarm_on',      text: 'No overdue orders. Good job!' },
+  all:       { icon: 'assignment',     text: 'No orders yet.' },
+  pending:   { icon: 'schedule',       text: 'No pending orders.' },
+  completed: { icon: 'check_circle',   text: 'No completed orders yet.' },
+  delivered: { icon: 'local_shipping', text: 'No delivered orders yet.' },
+  cancelled: { icon: 'cancel',         text: 'No cancelled orders.' },
+  overdue:   { icon: 'alarm_on',       text: 'No overdue orders. Good job!' },
 }
 
-// ── Order Card ────────────────────────────────────────────────
+const STATUS_ICON = {
+  pending:   'schedule',
+  completed: 'check_circle',
+  delivered: 'local_shipping',
+  cancelled: 'cancel',
+}
 
-function OrderCard({ order }) {
+// ── Order List Item ───────────────────────────────────────────
+
+function OrderCard({ order, isLast }) {
   const overdue = isOverdue(order)
   const due     = daysUntil(order.dueDate)
 
   return (
-    <div className={`${styles.card} ${overdue ? styles.overdue : ''}`}>
-      <div className={styles.cardContent}>
-        <div className={styles.cardTitle}>{order.desc || order.name || 'Order'}</div>
-        <div className={styles.cardMeta}>
-          <span className={styles.metaChip}>
-            <span className="mi">person</span>
-            {order.customerName || '—'}
+    <div className={`${styles.orderListItem} ${isLast ? styles.orderListItemLast : ''} ${overdue ? styles.orderListItemOverdue : ''}`}>
+      {/* Left: grey outer box with white inner box */}
+      <div className={styles.orderListOuter}>
+        <div className={styles.orderListInner}>
+          <span className="mi" style={{ fontSize: '1.5rem', color: overdue ? '#ef4444' : 'var(--text3)' }}>
+            {overdue ? 'alarm_on' : (STATUS_ICON[order.status] || 'assignment')}
           </span>
-          {order.dueDate && (
-            <span className={`${styles.metaChip} ${overdue ? styles.metaOverdue : ''}`}>
-              <span className="mi">schedule</span>
-              {due}
-            </span>
-          )}
-          {order.status && (
-            <span className={styles.metaChip}>
-              <span className="mi">info</span>
-              {order.status}
-            </span>
-          )}
         </div>
+      </div>
+
+      {/* Info */}
+      <div className={styles.orderListInfo}>
+        <div className={styles.orderListDesc}>{order.desc || order.name || 'Order'}</div>
+        <div className={styles.orderListMeta}>
+          <span className="mi" style={{ fontSize: '0.8rem', color: 'var(--text3)', verticalAlign: 'middle' }}>person</span>
+          <span className={styles.orderListMetaText}>{order.customerName || '—'}</span>
+        </div>
+        {order.status && (
+          <div className={styles.orderListMeta}>
+            <span className="mi" style={{ fontSize: '0.8rem', color: 'var(--text3)', verticalAlign: 'middle' }}>autorenew</span>
+            <span className={styles.orderListMetaText}>{order.status}</span>
+          </div>
+        )}
+        {order.dueDate && (
+          <div className={`${styles.orderListDue} ${overdue ? styles.orderListDueOverdue : ''}`}>
+            Due On {formatDate(order.dueDate)}{due ? ` · ${due}` : ''}
+          </div>
+        )}
       </div>
     </div>
   )
@@ -88,7 +109,7 @@ function OrderCard({ order }) {
 export default function Orders({ onMenuClick }) {
   const { allOrders } = useOrders()
 
-  const [activeTab,  setActiveTab]  = useState('all')
+  const [activeTab, setActiveTab] = useState('all')
   const tabsRef = useRef(null)
 
   // ── Tab scroll helper ────────────────────────────────────
@@ -117,6 +138,21 @@ export default function Orders({ onMenuClick }) {
     cancelled: allOrders.filter(o => o.status === 'cancelled').length,
     overdue:   allOrders.filter(o => isOverdue(o)).length,
   }
+
+  // ── Group by date ─────────────────────────────────────────
+  const grouped = [...filtered]
+    .sort((a, b) => {
+      const da = a.dueDate || a.date || ''
+      const db = b.dueDate || b.date || ''
+      return db.localeCompare(da)
+    })
+    .reduce((acc, o) => {
+      const raw = o.date || o.dueDate || ''
+      const key = raw ? formatDate(raw) : 'Unknown Date'
+      if (!acc[key]) acc[key] = []
+      acc[key].push(o)
+      return acc
+    }, {})
 
   return (
     <div className={styles.page}>
@@ -150,8 +186,18 @@ export default function Orders({ onMenuClick }) {
             <p>{EMPTY_CONFIG[activeTab].text}</p>
           </div>
         ) : (
-          filtered.map(order => (
-            <OrderCard key={`${order.customerId}-${order.id}`} order={order} />
+          Object.entries(grouped).map(([date, dateOrders]) => (
+            <div key={date} className={styles.orderGroup}>
+              <div className={styles.orderGroupDate}>{date}</div>
+              <div className={styles.orderGroupDivider} />
+              {dateOrders.map((order, idx) => (
+                <OrderCard
+                  key={`${order.customerId}-${order.id}`}
+                  order={order}
+                  isLast={idx === dateOrders.length - 1}
+                />
+              ))}
+            </div>
           ))
         )}
       </div>
