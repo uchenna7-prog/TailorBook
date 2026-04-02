@@ -9,16 +9,25 @@ const PRIORITY_BANNER = {
   vip:    { cls: styles.bannerVip,    text: 'VIP ★' },
 }
 
-// ── ORDER FORM MODAL ──
+// ── Status config — single source of truth ────────────────────
+// These values must match the filter in Orders.jsx exactly
+const STATUSES = [
+  { value: 'pending',   label: 'Pending'   },
+  { value: 'completed', label: 'Completed' },
+  { value: 'delivered', label: 'Delivered' },
+  { value: 'cancelled', label: 'Cancelled' },
+]
+
+// ── ORDER FORM MODAL ──────────────────────────────────────────
 function OrderModal({ isOpen, onClose, measurements, onSave }) {
-  const [selectedIds, setSelectedIds] = useState([])
-  const [pickerQuery, setPickerQuery] = useState('')
-  const [desc, setDesc]       = useState('')
-  const [price, setPrice]     = useState('')
-  const [qty, setQty]         = useState('')
-  const [due, setDue]         = useState('')
-  const [priority, setPriority] = useState('normal')
-  const [notes, setNotes]     = useState('')
+  const [selectedIds,  setSelectedIds]  = useState([])
+  const [pickerQuery,  setPickerQuery]  = useState('')
+  const [desc,         setDesc]         = useState('')
+  const [price,        setPrice]        = useState('')
+  const [qty,          setQty]          = useState('')
+  const [due,          setDue]          = useState('')
+  const [priority,     setPriority]     = useState('normal')
+  const [notes,        setNotes]        = useState('')
 
   const reset = () => {
     setSelectedIds([]); setPickerQuery(''); setDesc(''); setPrice('')
@@ -26,7 +35,9 @@ function OrderModal({ isOpen, onClose, measurements, onSave }) {
   }
 
   const toggleId = (id) =>
-    setSelectedIds(prev => prev.includes(String(id)) ? prev.filter(x => x !== String(id)) : [...prev, String(id)])
+    setSelectedIds(prev =>
+      prev.includes(String(id)) ? prev.filter(x => x !== String(id)) : [...prev, String(id)]
+    )
 
   const filteredMeasurements = pickerQuery.trim()
     ? measurements.filter(m => m.name.toLowerCase().includes(pickerQuery.toLowerCase()))
@@ -41,17 +52,18 @@ function OrderModal({ isOpen, onClose, measurements, onSave }) {
       dueDisplay = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
     }
     onSave({
-      id: Date.now() + Math.random(),
-      desc: desc.trim(),
-      price: price ? parseFloat(price) : null,
-      qty: parseInt(qty) || 1,
-      due: dueDisplay, dueRaw: due,
-      notes: notes.trim(),
+      id:             Date.now() + Math.random(),
+      desc:           desc.trim(),
+      price:          price ? parseFloat(price) : null,
+      qty:            parseInt(qty) || 1,
+      due:            dueDisplay,
+      dueRaw:         due,
+      notes:          notes.trim(),
       priority,
       measurementIds: [...selectedIds],
-      measurementId: selectedIds[0] ?? null,
-      status: 'pending',
-      date: today,
+      measurementId:  selectedIds[0] ?? null,
+      status:         'pending',   // ← always starts as pending
+      date:           today,
     })
     reset()
     onClose()
@@ -68,6 +80,7 @@ function OrderModal({ isOpen, onClose, measurements, onSave }) {
         </div>
         <button className={styles.headerActionBtn} onClick={handleSave}>Place Order</button>
       </div>
+
       <div className={styles.modalBody}>
         <div style={{ padding: '20px' }}>
           <p className={styles.sectionHeading}>Cloth Types</p>
@@ -136,12 +149,13 @@ function OrderModal({ isOpen, onClose, measurements, onSave }) {
   )
 }
 
-// ── ORDER DETAIL ──
+// ── ORDER DETAIL ──────────────────────────────────────────────
 function OrderDetail({ order, measurements, onClose, onDelete, onStatusChange, onGenerateInvoice }) {
   if (!order) return null
-  const banner = PRIORITY_BANNER[order.priority] ?? PRIORITY_BANNER.normal
-  const priceStr = order.price !== null && order.price !== undefined ? `₦${Number(order.price).toLocaleString()}` : '—'
-  const ids = order.measurementIds?.length ? order.measurementIds : (order.measurementId ? [order.measurementId] : [])
+  const banner   = PRIORITY_BANNER[order.priority] ?? PRIORITY_BANNER.normal
+  const priceStr = order.price !== null && order.price !== undefined
+    ? `₦${Number(order.price).toLocaleString()}` : '—'
+  const ids    = order.measurementIds?.length ? order.measurementIds : (order.measurementId ? [order.measurementId] : [])
   const linked = ids.map(id => measurements.find(m => String(m.id) === String(id))).filter(Boolean)
 
   return (
@@ -151,18 +165,37 @@ function OrderDetail({ order, measurements, onClose, onDelete, onStatusChange, o
         <h3 style={{ flex: 1 }}>{order.desc}</h3>
         <button className="mi" onClick={onDelete} style={{ background: 'none', border: 'none', color: 'var(--danger)', fontSize: '1.3rem', cursor: 'pointer' }}>delete_outline</button>
       </div>
+
       <div className={styles.detailBody}>
         <span className={`${styles.priorityBanner} ${banner.cls}`}>{banner.text}</span>
 
         <div className={styles.orderMetaGrid}>
-          <div className={styles.orderMetaCell}><div className={styles.cellLabel}>Price</div><div className={styles.cellValue}>{priceStr}</div></div>
-          <div className={styles.orderMetaCell}><div className={styles.cellLabel}>Qty</div><div className={styles.cellValue}>{order.qty}</div></div>
-          <div className={styles.orderMetaCell}><div className={styles.cellLabel}>Due Date</div><div className={styles.cellValue} style={{ fontSize: '0.85rem' }}>{order.due || '—'}</div></div>
           <div className={styles.orderMetaCell}>
+            <div className={styles.cellLabel}>Price</div>
+            <div className={styles.cellValue}>{priceStr}</div>
+          </div>
+          <div className={styles.orderMetaCell}>
+            <div className={styles.cellLabel}>Qty</div>
+            <div className={styles.cellValue}>{order.qty}</div>
+          </div>
+          <div className={styles.orderMetaCell}>
+            <div className={styles.cellLabel}>Due Date</div>
+            <div className={styles.cellValue} style={{ fontSize: '0.85rem' }}>{order.due || '—'}</div>
+          </div>
+
+          {/* ── STATUS SELECTOR — values match Orders.jsx filters ── */}
+          <div className={styles.orderMetaCell} style={{ gridColumn: '1 / -1' }}>
             <div className={styles.cellLabel}>Status</div>
-            <div style={{ display: 'flex', gap: 6, marginTop: 4 }}>
-              <button className={`${styles.statusToggleBtn} ${order.status !== 'done' ? styles.statusActive : ''}`} onClick={() => onStatusChange(order.id, 'pending')}>Pending</button>
-              <button className={`${styles.statusToggleBtn} ${order.status === 'done' ? styles.statusActive : ''}`} onClick={() => onStatusChange(order.id, 'done')}>Done</button>
+            <div style={{ display: 'flex', gap: 6, marginTop: 6, flexWrap: 'wrap' }}>
+              {STATUSES.map(s => (
+                <button
+                  key={s.value}
+                  className={`${styles.statusToggleBtn} ${order.status === s.value ? styles.statusActive : ''}`}
+                  onClick={() => onStatusChange(order.id, s.value)}
+                >
+                  {s.label}
+                </button>
+              ))}
             </div>
           </div>
         </div>
@@ -172,7 +205,12 @@ function OrderDetail({ order, measurements, onClose, onDelete, onStatusChange, o
             <div className={styles.linkLabel}>Linked Measurement{linked.length > 1 ? 's' : ''}</div>
             {linked.map(m => (
               <div key={m.id} className={styles.linkedRow}>
-                <div className={styles.linkedThumb}>{m.imgSrc ? <img src={m.imgSrc} alt={m.name} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 7 }} /> : <span className="mi">checkroom</span>}</div>
+                <div className={styles.linkedThumb}>
+                  {m.imgSrc
+                    ? <img src={m.imgSrc} alt={m.name} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 7 }} />
+                    : <span className="mi">checkroom</span>
+                  }
+                </div>
                 <div>
                   <div style={{ fontSize: '0.9rem', fontWeight: 700 }}>{m.name}</div>
                   <div style={{ fontSize: '0.65rem', color: 'var(--text3)', marginTop: 2 }}>{m.fields.length} field{m.fields.length !== 1 ? 's' : ''}</div>
@@ -200,11 +238,11 @@ function OrderDetail({ order, measurements, onClose, onDelete, onStatusChange, o
   )
 }
 
-// ── MAIN TAB ──
+// ── MAIN TAB ──────────────────────────────────────────────────
 export default function OrdersTab({ orders, measurements, onSave, onDelete, onStatusChange, showToast }) {
-  const [modalOpen, setModalOpen]     = useState(false)
-  const [detailOrder, setDetailOrder] = useState(null)
-  const [confirmDel, setConfirmDel]   = useState(null)
+  const [modalOpen,    setModalOpen]    = useState(false)
+  const [detailOrder,  setDetailOrder]  = useState(null)
+  const [confirmDel,   setConfirmDel]   = useState(null)
 
   useEffect(() => {
     const handler = () => setModalOpen(true)
@@ -227,7 +265,9 @@ export default function OrdersTab({ orders, measurements, onSave, onDelete, onSt
 
   const handleStatusChange = (id, status) => {
     onStatusChange(id, status)
-    setDetailOrder(prev => prev && String(prev.id) === String(id) ? { ...prev, status } : prev)
+    setDetailOrder(prev =>
+      prev && String(prev.id) === String(id) ? { ...prev, status } : prev
+    )
   }
 
   const handleGenerateInvoice = (orderId) => {
@@ -248,12 +288,14 @@ export default function OrdersTab({ orders, measurements, onSave, onDelete, onSt
       )}
 
       {orders.map(o => {
-        const priceStr = o.price !== null && o.price !== undefined ? `₦${Number(o.price).toLocaleString()}` : '—'
-        const ids = o.measurementIds?.length ? o.measurementIds : (o.measurementId ? [o.measurementId] : [])
+        const priceStr    = o.price !== null && o.price !== undefined ? `₦${Number(o.price).toLocaleString()}` : '—'
+        const ids         = o.measurementIds?.length ? o.measurementIds : (o.measurementId ? [o.measurementId] : [])
         const linkedCount = ids.filter(id => measurements.find(m => String(m.id) === String(id))).length
-        const linkedStr = linkedCount > 0 ? ` · ${linkedCount} cloth${linkedCount > 1 ? 'es' : ''}` : ''
-        const dueStr = o.due ? `Due ${o.due}` : 'No due date'
-        const statusClass = o.status === 'done' ? styles.statusDone : styles.statusPending
+        const linkedStr   = linkedCount > 0 ? ` · ${linkedCount} cloth${linkedCount > 1 ? 'es' : ''}` : ''
+        const dueStr      = o.due ? `Due ${o.due}` : 'No due date'
+        const statusLabel = STATUSES.find(s => s.value === o.status)?.label ?? o.status ?? 'Pending'
+        const statusClass = o.status === 'completed' || o.status === 'delivered'
+          ? styles.statusDone : styles.statusPending
 
         return (
           <div key={o.id} className={styles.orderCard} onClick={() => setDetailOrder(o)}>
@@ -262,7 +304,7 @@ export default function OrdersTab({ orders, measurements, onSave, onDelete, onSt
             <div className={styles.orderCardInfo}>
               <h4>{o.desc}</h4>
               <p>{dueStr}{linkedStr}</p>
-              <span className={`${styles.statusBadge} ${statusClass}`}>{o.status === 'done' ? 'Done' : 'Pending'}</span>
+              <span className={`${styles.statusBadge} ${statusClass}`}>{statusLabel}</span>
             </div>
             <div style={{ textAlign: 'right' }}>
               <div className={styles.orderPrice}>{priceStr}</div>
@@ -272,7 +314,12 @@ export default function OrdersTab({ orders, measurements, onSave, onDelete, onSt
         )
       })}
 
-      <OrderModal isOpen={modalOpen} onClose={() => setModalOpen(false)} measurements={measurements} onSave={handleSave} />
+      <OrderModal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        measurements={measurements}
+        onSave={handleSave}
+      />
 
       {detailOrder && (
         <OrderDetail
