@@ -112,7 +112,6 @@ export default function CustomerDetail({ onMenuClick }) {
 
   const initials = getInitials(customer.name)
   const birthday = getBirthday(customer.birthday)
-
   const hasPhoto = isPremium && customer.photo
 
   return (
@@ -130,6 +129,7 @@ export default function CustomerDetail({ onMenuClick }) {
 
         {/* ── PROFILE SECTION ── */}
         {isPremium ? (
+          /* PREMIUM MODE: Left Avatar, Vertical Info (UNTOUCHED) */
           <div className={styles.profileSection}>
             <div className={styles.leftColumn}>
               <div className={styles.avatar}>
@@ -148,6 +148,7 @@ export default function CustomerDetail({ onMenuClick }) {
             </div>
           </div>
         ) : (
+          /* FREE MODE: Inline / Wrapping Layout (UPDATED) */
           <div className={styles.profileSectionFree}>
             <div className={styles.name}>{customer.name}{customer.sex && ` (${customer.sex})`}</div>
             <div className={styles.metaInline}>
