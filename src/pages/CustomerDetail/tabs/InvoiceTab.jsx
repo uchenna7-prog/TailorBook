@@ -14,29 +14,31 @@ const STATUS_LABELS = { unpaid: 'Unpaid', paid: 'Paid', overdue: 'Overdue' }
 // Invoice card
 // ─────────────────────────────────────────────────────────────
 
-function InvoiceCard({ invoice, currency, onTap }) {
+function InvoiceCard({ invoice, currency, onTap, isLast }) {
   const total = (parseFloat(invoice.price) || 0) * (parseFloat(invoice.qty) || 1)
+  const statusLabel = STATUS_LABELS[invoice.status] || invoice.status
 
   return (
-    <div className={styles.card} onClick={onTap}>
-      <div className={styles.cardLeft}>
-        <div className={styles.cardIcon}>
-          <span className="mi">receipt_long</span>
+    <div
+      className={`${styles.invoiceListItem} ${isLast ? styles.invoiceListItemLast : ''}`}
+      onClick={onTap}
+    >
+      {/* Left: grey outer box with white inner box */}
+      <div className={styles.invoiceListOuter}>
+        <div className={styles.invoiceListInner}>
+          <span className="mi" style={{ fontSize: '1.5rem', color: 'var(--text3)' }}>receipt_long</span>
         </div>
       </div>
-      <div className={styles.cardBody}>
-        <h4 className={styles.cardDesc}>{invoice.orderDesc || 'Order'}</h4>
-        <p className={styles.cardSub}>
-          Generated on {invoice.date}
-        </p>
-        <div className={styles.statusWrapper}>
-          <span className={`${styles.statusBadge} ${styles[`status_${invoice.status}`]}`}>
-            {STATUS_LABELS[invoice.status] || invoice.status}
-          </span>
+
+      {/* Info */}
+      <div className={styles.invoiceListInfo}>
+        <div className={styles.invoiceListDesc}>{invoice.orderDesc || 'Order'}</div>
+        <div className={styles.invoiceListSub}>Generated on {invoice.date}</div>
+        <div className={styles.invoiceListStatusRow}>
+          <span className="mi" style={{ fontSize: '0.85rem', color: 'var(--text3)', verticalAlign: 'middle' }}>autorenew</span>
+          <span className={styles.invoiceListStatusText}>{statusLabel}</span>
         </div>
-      </div>
-      <div className={styles.cardRight}>
-        <div className={styles.cardAmount}>{fmt(currency, total)}</div>
+        <div className={styles.invoiceListAmount}>{fmt(currency, total)}</div>
       </div>
     </div>
   )
@@ -95,20 +97,34 @@ export default function InvoiceTab({
     }
   }
 
+  // Group invoices by date
+  const grouped = invoices.reduce((acc, inv) => {
+    const key = inv.date || 'Unknown Date'
+    if (!acc[key]) acc[key] = []
+    acc[key].push(inv)
+    return acc
+  }, {})
+
   if (invoices.length === 0) return <EmptyState />
 
   return (
     <>
-      <div className={styles.list}>
-        {invoices.map(inv => (
-          <InvoiceCard
-            key={inv.id}
-            invoice={inv}
-            currency={currency}
-            onTap={() => setViewingInvoice(inv)}
-          />
-        ))}
-      </div>
+      {Object.entries(grouped).map(([date, dateInvoices]) => (
+        <div key={date} className={styles.invoiceGroup}>
+          <div className={styles.invoiceGroupDate}>{date}</div>
+          <div className={styles.invoiceGroupDivider} />
+
+          {dateInvoices.map((inv, idx) => (
+            <InvoiceCard
+              key={inv.id}
+              invoice={inv}
+              currency={currency}
+              isLast={idx === dateInvoices.length - 1}
+              onTap={() => setViewingInvoice(inv)}
+            />
+          ))}
+        </div>
+      ))}
 
       {viewingInvoice && (
         <InvoiceView
