@@ -297,16 +297,14 @@ export default function OrdersTab({ orders, measurements, onSave, onDelete, onSt
 
       {Object.entries(grouped).map(([date, dateOrders]) => (
         <div key={date} className={styles.orderGroup}>
-          {/* Date header with full-width separator line */}
+          {/* Date label + full-width divider line */}
           <div className={styles.orderGroupDate}>{date}</div>
           <div className={styles.orderGroupDivider} />
 
           {dateOrders.map((o, idx) => {
             const priceStr    = o.price !== null && o.price !== undefined ? `₦${Number(o.price).toLocaleString()}` : '—'
             const statusLabel = STATUSES.find(s => s.value === o.status)?.label ?? o.status ?? 'Pending'
-            const statusClass = o.status === 'completed' || o.status === 'delivered'
-              ? styles.statusDone : styles.statusPending
-            // Find linked measurement for thumbnail
+            const isLast      = idx === dateOrders.length - 1
             const ids    = o.measurementIds?.length ? o.measurementIds : (o.measurementId ? [o.measurementId] : [])
             const linked = ids.map(id => measurements.find(m => String(m.id) === String(id))).filter(Boolean)
             const thumb  = linked[0]
@@ -314,26 +312,31 @@ export default function OrdersTab({ orders, measurements, onSave, onDelete, onSt
             return (
               <div
                 key={o.id}
-                className={styles.orderListItem}
+                className={`${styles.orderListItem} ${isLast ? styles.orderListItemLast : ''}`}
                 onClick={() => setDetailOrder(o)}
               >
-                {/* Left: thumbnail image box */}
-                <div className={styles.orderListThumb} style={{ borderColor: PRIORITY_COLOR[o.priority] ?? PRIORITY_COLOR.normal }}>
-                  {thumb?.imgSrc
-                    ? <img src={thumb.imgSrc} alt={thumb.name} className={styles.orderListThumbImg} />
-                    : <span className="mi" style={{ fontSize: '1.4rem', color: 'var(--text3)' }}>content_cut</span>
-                  }
+                {/* Left: grey outer box with white inner box holding icon/image */}
+                <div className={styles.orderListOuter}>
+                  <div className={styles.orderListInner}>
+                    {thumb?.imgSrc
+                      ? <img src={thumb.imgSrc} alt={thumb.name} className={styles.orderListThumbImg} />
+                      : <span className="mi" style={{ fontSize: '1.5rem', color: 'var(--text3)' }}>content_cut</span>
+                    }
+                  </div>
                 </div>
 
-                {/* Center: order info */}
+                {/* Right: order info — small, not bold */}
                 <div className={styles.orderListInfo}>
                   <div className={styles.orderListDesc}>{o.desc}</div>
-                  <div className={styles.orderListMeta}>
-                    <span className={styles.orderListOrdNum}>Ord# {o.id?.toString().slice(-5).toUpperCase() ?? '—'}</span>
-                    <span className={`${styles.statusBadge} ${statusClass}`}>{statusLabel}</span>
+                  <div className={styles.orderListOrdRow}>
+                    Ord#&nbsp;&nbsp;{o.id?.toString().slice(-5).toUpperCase() ?? '—'}
+                  </div>
+                  <div className={styles.orderListStatusRow}>
+                    <span className="mi" style={{ fontSize: '0.85rem', color: 'var(--text3)', verticalAlign: 'middle' }}>autorenew</span>
+                    <span className={styles.orderListStatusText}>{statusLabel}</span>
                   </div>
                   <div className={styles.orderListPriceLine}>
-                    <span className={styles.orderListPrice}>{priceStr}</span>
+                    {priceStr}
                     <span className={styles.orderListQty}> ({o.qty} item{o.qty !== 1 ? 's' : ''})</span>
                   </div>
                   {o.due && (
