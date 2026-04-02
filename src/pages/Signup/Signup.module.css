@@ -124,3 +124,74 @@
   font-weight: 800; color: var(--accent); cursor: pointer;
   font-family: inherit; text-decoration: underline; text-underline-offset: 2px;
 }
+/* ── Add these to the BOTTOM of Signup.module.css ── */
+
+/* Brand colour picker row */
+.colourRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.colourPicker {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  border: 1px solid var(--border2);
+  padding: 2px;
+  background: var(--surface);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+/* Logo upload button */
+.logoUploadBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface2);
+  border: 1px dashed var(--border2);
+  color: var(--text2);
+  padding: 12px 18px;
+  border-radius: 12px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  width: 100%;
+  transition: border-color 0.2s;
+}
+
+.logoUploadBtn:active { border-color: var(--accent); }
+
+/* Logo preview */
+.logoPreviewWrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logoPreview {
+  width: 64px;
+  height: 64px;
+  border-radius: 12px;
+  object-fit: cover;
+  border: 1px solid var(--border2);
+}
+
+.logoRemoveBtn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: 1px solid var(--border2);
+  color: var(--text3);
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.logoRemoveBtn:active { color: var(--danger); border-color: var(--danger); }
