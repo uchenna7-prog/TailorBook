@@ -36,15 +36,11 @@ export function CustomerProvider({ children }) {
   }, [user])
 
   const addCustomer = useCallback(async (customer) => {
-    if (!user) { alert('NO USER - not logged in'); return }
+    if (!user) return
     try {
       const { id: _localId, ...data } = customer
-      alert('Saving to Firestore: ' + JSON.stringify(data).slice(0, 100))
-      const result = await fsAdd(user.uid, data)
-      alert('Saved! ID: ' + result)
-      return result
+      return await fsAdd(user.uid, data)
     } catch (err) {
-      alert('ERROR: ' + err.message)
       setError(err.message)
       throw err
     }
