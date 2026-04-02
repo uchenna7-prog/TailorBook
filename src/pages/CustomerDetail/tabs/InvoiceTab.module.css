@@ -1,36 +1,61 @@
-.list { display: flex; flex-direction: column; gap: 10px; }
+.list { 
+  display: flex; 
+  flex-direction: column; 
+  gap: 10px; 
+}
 
 .card {
-  display: flex; align-items: center; gap: 14px;
+  display: flex; 
+  align-items: center; 
+  gap: 12px;
   background: var(--white, #ffffff);
   border: 1px solid var(--border, #e5e7eb);
-  border-radius: 20px;
-  padding: 20px;
+  border-radius: 24px; /* Increased for that pill-like container look */
+  padding: 16px;
   cursor: pointer;
   transition: background 0.15s;
 }
-.card:active { background: var(--surface2, #f9fafb); }
 
-.cardLeft { flex-shrink: 0; }
+.card:active { 
+  background: var(--surface2, #f9fafb); 
+}
+
+.cardLeft { 
+  flex-shrink: 0; 
+}
+
 .cardIcon {
-  width: 48px; height: 48px;
-  border-radius: 12px;
+  width: 44px; 
+  height: 44px;
+  border-radius: 10px;
   background: var(--surface2, #f3f4f6);
-  display: flex; align-items: center; justify-content: center;
-  color: var(--text2, #4b5563);
+  display: flex; 
+  align-items: center; 
+  justify-content: center;
+  color: var(--text2, #6b7280);
   font-size: 1.2rem;
 }
 
-.cardBody { flex: 1; min-width: 0; }
-.cardDesc {
-  font-size: 1.1rem; font-weight: 700;
-  color: #111827; margin-bottom: 2px;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+.cardBody { 
+  flex: 1; 
+  min-width: 0; 
 }
+
+.cardDesc {
+  font-size: 0.95rem; 
+  font-weight: 800; /* Bold title like 'Complete suit' */
+  color: #000000; 
+  margin-bottom: 2px;
+  white-space: nowrap; 
+  overflow: hidden; 
+  text-overflow: ellipsis;
+}
+
 .cardSub {
-  display: flex; align-items: center; gap: 8px;
-  font-size: 0.85rem; color: #6b7280;
-  margin-bottom: 6px;
+  font-size: 0.72rem; /* Matches the small 'Due Apr...' text */
+  color: #6b7280;
+  margin-bottom: 4px;
+  display: block;
 }
 
 .statusWrapper {
@@ -38,37 +63,66 @@
 }
 
 .statusBadge {
-  font-size: 0.65rem; font-weight: 800; text-transform: uppercase;
-  letter-spacing: 0.05em; padding: 3px 10px; border-radius: 6px;
+  font-size: 0.6rem; 
+  font-weight: 700; 
+  text-transform: uppercase;
+  letter-spacing: 0.05em; 
+  padding: 2px 8px; 
+  border-radius: 6px; /* Matches the slightly rounded status box */
   border: 1px solid transparent;
 }
 
-/* Matching the orange pending style from your image */
-.status_unpaid  { 
-  background: #fff7ed; 
-  color: #c2410c; 
+/* Pending/Unpaid - Matching the light orange in the image */
+.status_unpaid { 
+  background: #fff4ed; 
+  color: #fb923c; 
   border-color: #ffedd5;
 }
-.status_paid    { 
+
+/* Paid - Matching typical success green */
+.status_paid { 
   background: #f0fdf4; 
-  color: #15803d; 
+  color: #22c55e; 
   border-color: #dcfce7;
 }
+
+/* Overdue - Matching typical error red */
 .status_overdue { 
   background: #fef2f2; 
-  color: #b91c1c; 
+  color: #ef4444; 
   border-color: #fee2e2;
 }
 
-.cardRight { flex-shrink: 0; text-align: right; }
+.cardRight { 
+  flex-shrink: 0; 
+  text-align: right; 
+}
+
 .cardAmount {
-  font-size: 1.1rem; font-weight: 800;
-  color: #111827;
+  font-size: 1rem; 
+  font-weight: 800;
+  color: #000000;
 }
 
 .empty {
-  display: flex; flex-direction: column; align-items: center;
-  gap: 8px; padding: 48px 20px; text-align: center;
+  display: flex; 
+  flex-direction: column; 
+  align-items: center;
+  gap: 8px; 
+  padding: 48px 20px; 
+  text-align: center;
 }
-.emptyTitle { font-size: 0.95rem; font-weight: 800; color: var(--text); margin: 0; }
-.emptySub { font-size: 0.8rem; color: var(--text3); margin: 0; line-height: 1.5; }
+
+.emptyTitle { 
+  font-size: 0.95rem; 
+  font-weight: 800; 
+  color: var(--text); 
+  margin: 0; 
+}
+
+.emptySub { 
+  font-size: 0.8rem; 
+  color: var(--text3); 
+  margin: 0; 
+  line-height: 1.5; 
+}
