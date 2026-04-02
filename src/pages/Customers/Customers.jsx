@@ -126,12 +126,8 @@ function AddCustomerForm({ isOpen, onClose, onSave, isPremium }) {
   const initials      = getInitials(name) || '+'
   const measureFields = sex === 'Female' ? FEMALE_MEASUREMENTS : MALE_MEASUREMENTS
 
-  // ── Photo tap handler — gate behind premium ───────────────
   const handlePhotoPicker = () => {
-    if (!isPremium) {
-      setShowPremiumSheet(true)
-      return
-    }
+    if (!isPremium) { setShowPremiumSheet(true); return }
     fileInputRef.current?.click()
   }
 
@@ -192,7 +188,6 @@ function AddCustomerForm({ isOpen, onClose, onSave, isPremium }) {
         <div className={styles.formBody}>
           {formTab === 'personal' && (
             <>
-              {/* Photo picker — always visible, locked for free users */}
               <div className={styles.photoPicker} onClick={handlePhotoPicker} style={{ position: 'relative' }}>
                 {photo
                   ? <img src={photo} alt="Profile" className={styles.photoPreview} />
@@ -204,7 +199,6 @@ function AddCustomerForm({ isOpen, onClose, onSave, isPremium }) {
                     : <span className="mi" style={{ fontSize:'0.9rem' }}>lock</span>
                   }
                 </div>
-                {/* Hidden file input — only usable by premium */}
                 {isPremium && (
                   <input ref={fileInputRef} type="file" accept="image/*" hidden onChange={handlePhotoChange} />
                 )}
@@ -315,32 +309,51 @@ function AddCustomerForm({ isOpen, onClose, onSave, isPremium }) {
         </div>
       </div>
 
-      {/* Premium gate sheet — rendered outside form overlay so it appears on top */}
       {showPremiumSheet && <PremiumSheet onClose={() => setShowPremiumSheet(false)} />}
     </>
   )
 }
 
-function CustomerCard({ customer, onDelete, onOpen, index }) {
+// ── Customer list item (list-style, same pattern as orders) ──
+function CustomerCard({ customer, onDelete, onOpen, isLast }) {
   const initials = getInitials(customer.name)
   const bdayStr  = getBirthdayStr(customer.birthday)
+
   return (
-    <div className={styles.customerCard} style={{ animationDelay:`${index * 0.05}s` }}>
-      <div className={styles.custAvatar} onClick={onOpen}>
-        {customer.photo
-          ? <img src={customer.photo} alt={customer.name} style={{ width:'100%', height:'100%', objectFit:'cover', borderRadius:11 }} />
-          : initials
-        }
+    <div
+      className={`${styles.custListItem} ${isLast ? styles.custListItemLast : ''}`}
+      onClick={onOpen}
+    >
+      {/* Left: grey outer box with white inner box / avatar */}
+      <div className={styles.custListOuter}>
+        <div className={styles.custListInner}>
+          {customer.photo
+            ? <img src={customer.photo} alt={customer.name} className={styles.custListPhoto} />
+            : <span className={styles.custListInitials}>{initials}</span>
+          }
+        </div>
       </div>
-      <div className={styles.custInfo} onClick={onOpen}>
-        <div className={styles.custName}>{customer.name}</div>
-        <div className={styles.custMeta}>{customer.phone}{bdayStr ? ` · ${bdayStr}` : ''}</div>
+
+      {/* Info */}
+      <div className={styles.custListInfo}>
+        <div className={styles.custListName}>{customer.name}</div>
+        {customer.phone && (
+          <div className={styles.custListMeta}>{customer.phone}{bdayStr ? ` · ${bdayStr}` : ''}</div>
+        )}
+        {customer.email && (
+          <div className={styles.custListMeta}>{customer.email}</div>
+        )}
       </div>
-      <div className={styles.custRight}>
-        <button className={styles.custDeleteBtn} onClick={(e) => { e.stopPropagation(); onDelete(customer) }} title="Delete">
-          <span className="mi" style={{ fontSize:'1.1rem', color:'var(--text3)' }}>delete_outline</span>
+
+      {/* Right: delete + chevron */}
+      <div className={styles.custListActions}>
+        <button
+          className={styles.custDeleteBtn}
+          onClick={e => { e.stopPropagation(); onDelete(customer) }}
+        >
+          <span className="mi" style={{ fontSize: '1.1rem', color: 'var(--text3)' }}>delete_outline</span>
         </button>
-        <span className="mi" style={{ color:'var(--text3)', fontSize:'1.1rem', cursor:'pointer' }} onClick={onOpen}>chevron_right</span>
+        <span className="mi" style={{ color: 'var(--text3)', fontSize: '1.1rem' }}>chevron_right</span>
       </div>
     </div>
   )
@@ -390,6 +403,14 @@ export default function Customers({ onMenuClick }) {
     ? 'All Clients'
     : `${filtered.length} result${filtered.length !== 1 ? 's' : ''}`
 
+  // Group filtered customers by date
+  const grouped = filtered.reduce((acc, c) => {
+    const key = c.date || 'Unknown Date'
+    if (!acc[key]) acc[key] = []
+    acc[key].push(c)
+    return acc
+  }, {})
+
   return (
     <div className={styles.page}>
       <Header onMenuClick={onMenuClick} />
@@ -405,17 +426,41 @@ export default function Customers({ onMenuClick }) {
 
       <div className={styles.scrollArea}>
         {customers.length === 0 && (
-          <div className={styles.emptyState}><div className={styles.emptyIcon}>👤</div><p>No customer yet.</p><span>Tap + to add your first customer</span></div>
+          <div className={styles.emptyState}>
+            <div className={styles.emptyIcon}>👤</div>
+            <p>No customer yet.</p>
+            <span>Tap + to add your first customer</span>
+          </div>
         )}
         {customers.length > 0 && filtered.length === 0 && (
-          <div className={styles.emptyState}><div className={styles.emptyIcon}>🔍</div><p>No matches found.</p><span>Try a different name or number</span></div>
+          <div className={styles.emptyState}>
+            <div className={styles.emptyIcon}>🔍</div>
+            <p>No matches found.</p>
+            <span>Try a different name or number</span>
+          </div>
         )}
-        {filtered.map((c, i) => (
-          <CustomerCard key={c.id} customer={c} index={i} onOpen={() => navigate(`/customers/${c.id}`)} onDelete={(cust) => setDeleteTarget(cust)} />
+
+        {Object.entries(grouped).map(([date, dateCustomers]) => (
+          <div key={date} className={styles.custGroup}>
+            <div className={styles.custGroupDate}>{date}</div>
+            <div className={styles.custGroupDivider} />
+
+            {dateCustomers.map((c, idx) => (
+              <CustomerCard
+                key={c.id}
+                customer={c}
+                isLast={idx === dateCustomers.length - 1}
+                onOpen={() => navigate(`/customers/${c.id}`)}
+                onDelete={(cust) => setDeleteTarget(cust)}
+              />
+            ))}
+          </div>
         ))}
       </div>
 
-      <button className={styles.fab} onClick={() => setFormOpen(true)}><span className="mi">add</span></button>
+      <button className={styles.fab} onClick={() => setFormOpen(true)}>
+        <span className="mi">add</span>
+      </button>
 
       <AddCustomerForm
         isOpen={formOpen}
