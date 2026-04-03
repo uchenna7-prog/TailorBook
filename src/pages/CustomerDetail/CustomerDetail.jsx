@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useCustomers } from '../../contexts/CustomerContext'
 import { usePremium }   from '../../contexts/PremiumContext'
 import { useCustomerData } from '../../hooks/useCustomerData'
+import { useOrders }    from '../../contexts/OrdersContext'
 import Header from '../../components/Header/Header'
 import Toast  from '../../components/Toast/Toast'
 import MeasurementsTab from './tabs/MeasurementsTab'
@@ -38,6 +39,7 @@ export default function CustomerDetail({ onMenuClick }) {
   const { getCustomer, deleteCustomer } = useCustomers()
   const { isPremium } = usePremium()
   const data         = useCustomerData(id)
+  const { getOrders } = useOrders()
 
   const [activeTab,     setActiveTab]     = useState('dress')
   const [toastMsg,      setToastMsg]      = useState('')
@@ -45,6 +47,9 @@ export default function CustomerDetail({ onMenuClick }) {
   const toastTimer = useRef(null)
   const fixedRef   = useRef(null)
   const tabsRef    = useRef(null)
+
+  // Orders now come from OrdersContext (real-time Firestore)
+  const orders = getOrders(id)
 
   useEffect(() => {
     if (data.invoices) setInvoicesState(data.invoices)
@@ -61,7 +66,7 @@ export default function CustomerDetail({ onMenuClick }) {
     const existing = data.invoices.find(inv => String(inv.orderId) === String(orderId))
     if (existing) { showToast('Invoice already exists'); setActiveTab('invoice'); return }
 
-    const order = data.orders.find(o => String(o.id) === String(orderId))
+    const order = orders.find(o => String(o.id) === String(orderId))
     if (!order) return
 
     const invNumber   = `INV-${String(data.invoices.length + 1).padStart(3, '0')}`
@@ -90,9 +95,9 @@ export default function CustomerDetail({ onMenuClick }) {
     } catch {
       showToast('Failed to save invoice. Try again.')
     }
-  }, [data, showToast])
+  }, [data, orders, showToast])
 
-  // ── Global event listeners (legacy OrdersTab generate invoice) ──
+  // ── Global event listeners (OrdersTab generate invoice) ───
   useEffect(() => {
     const handleSwitch   = () => setActiveTab('invoice')
     const handleGenerate = (e) => handleGenerateInvoice(e.detail.orderId)
@@ -237,18 +242,16 @@ export default function CustomerDetail({ onMenuClick }) {
         )}
         {activeTab === 'orders' && (
           <OrdersTab
-            orders={data.orders}
+            customerId={id}
+            orders={orders}
             measurements={data.measurements}
-            onSave={data.saveOrder}
-            onDelete={data.deleteOrder}
-            onStatusChange={data.updateOrderStatus}
             showToast={showToast}
           />
         )}
         {activeTab === 'payments' && (
           <PaymentsTab
             customerId={id}
-            orders={data.orders}
+            orders={orders}
             showToast={showToast}
             onGenerateInvoice={handleGenerateInvoice}
           />
@@ -256,7 +259,7 @@ export default function CustomerDetail({ onMenuClick }) {
         {activeTab === 'invoice' && (
           <InvoiceTab
             invoices={invoicesState}
-            orders={data.orders}
+            orders={orders}
             measurements={data.measurements}
             customer={customer}
             onSave={data.saveInvoice}
