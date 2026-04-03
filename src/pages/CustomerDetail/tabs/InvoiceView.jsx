@@ -1,3 +1,5 @@
+// src/pages/CustomerDetail/tabs/InvoiceView.jsx
+
 import { useRef, useState } from 'react'
 import html2canvas from 'html2canvas'
 import { jsPDF } from 'jspdf'
@@ -178,7 +180,6 @@ function PrintableTemplate({ invoice, customer, brand }) {
 }
 
 function CustomTemplate({ invoice, customer, brand }) {
-  const dueDate = getDueDate(invoice, brand.dueDays)
   const bannerBg = brand.colour || '#7c3aed'
   return (
     <div className={styles.tplBase} style={{ padding: 0 }}>
@@ -256,12 +257,25 @@ async function generatePDF(paperEl, filename) {
 
 export default function InvoiceView({ invoice: initialInvoice, customer, onClose, onStatusChange, onDelete, showToast }) {
   const { brand } = useBrand()
-  const paperRef = useRef(null)
-  const [invoice, setInvoice] = useState(initialInvoice)
+  const paperRef  = useRef(null)
+  const [invoice,    setInvoice]    = useState(initialInvoice)
   const [pdfLoading, setPdfLoading] = useState(false)
 
-  const templateKey = brand.template || 'editable'
-  const Template = TEMPLATE_MAP[templateKey] || EditableTemplate
+  // ── KEY FIX: use the template that was active when this invoice
+  //    was generated (stored as invoice.template), falling back to
+  //    the current brand setting only for old invoices that predate
+  //    this field being saved.
+  const templateKey = invoice.template || brand.template || 'editable'
+  const Template    = TEMPLATE_MAP[templateKey] || EditableTemplate
+
+  // Build the effective brand object — merge current brand with any
+  // brand snapshot saved on the invoice (for currency, colours etc.)
+  const effectiveBrand = {
+    ...brand,
+    // If the invoice has a snapshot of the brand settings at creation
+    // time, those fields take priority so the PDF looks the same.
+    ...(invoice.brandSnapshot || {}),
+  }
 
   const handleToggleStatus = () => {
     const newStatus = STATUS_NEXT[invoice.status] || 'paid'
@@ -278,7 +292,7 @@ export default function InvoiceView({ invoice: initialInvoice, customer, onClose
       const filename = `${invoice.number}-${customer.name.replace(/\s+/g, '_')}.pdf`
       await generatePDF(paperRef.current, filename)
       showToast?.('PDF downloaded ✓')
-    } catch (err) {
+    } catch {
       showToast?.('PDF failed.')
     } finally {
       setPdfLoading(false)
@@ -292,10 +306,10 @@ export default function InvoiceView({ invoice: initialInvoice, customer, onClose
         title={invoice.number}
         onBackClick={onClose}
         customActions={[
-          { 
-            icon: pdfLoading ? 'hourglass_top' : 'download',  
-            onClick: handleShare, 
-            disabled: pdfLoading 
+          {
+            icon: pdfLoading ? 'hourglass_top' : 'download',
+            onClick: handleShare,
+            disabled: pdfLoading,
           }
         ]}
       />
@@ -308,8 +322,9 @@ export default function InvoiceView({ invoice: initialInvoice, customer, onClose
         </div>
 
         <div className={styles.paperWrap} ref={paperRef}>
-          <Template invoice={invoice} customer={customer} brand={brand} />
+          <Template invoice={invoice} customer={customer} brand={effectiveBrand} />
         </div>
+
         {invoice.notes && (
           <div className={styles.notesBox}>
             <div className={styles.notesLabel}>Notes</div>
@@ -320,11 +335,18 @@ export default function InvoiceView({ invoice: initialInvoice, customer, onClose
       </div>
 
       <div className={styles.bottomBar}>
-        <button className={`${styles.statusBtn} ${invoice.status === 'paid' ? styles.statusBtnUnpaid : styles.statusBtnPaid}`} onClick={handleToggleStatus}>
-          <span className="mi" style={{ fontSize: '1rem' }}>{invoice.status === 'paid' ? 'undo' : 'check_circle'}</span>
+        <button
+          className={`${styles.statusBtn} ${invoice.status === 'paid' ? styles.statusBtnUnpaid : styles.statusBtnPaid}`}
+          onClick={handleToggleStatus}
+        >
+          <span className="mi" style={{ fontSize: '1rem' }}>
+            {invoice.status === 'paid' ? 'undo' : 'check_circle'}
+          </span>
           {invoice.status === 'paid' ? 'Mark as Unpaid' : 'Mark as Paid'}
         </button>
-        <button className={styles.deleteBtn} onClick={() => onDelete(invoice.id)}><span className="mi">delete</span></button>
+        <button className={styles.deleteBtn} onClick={() => onDelete(invoice.id)}>
+          <span className="mi">delete</span>
+        </button>
       </div>
     </div>
   )
