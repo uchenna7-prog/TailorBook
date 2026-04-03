@@ -4,7 +4,7 @@ import styles from './SideBar.module.css'
 
 const NAV_ITEMS = [
   { path: '/',         label: 'Dashboard',  icon: 'dashboard'      },
-  { path: '/customers',label: 'Customers',  icon: 'group'          },
+  { path: '/customers',label: 'Customers',  icon: 'groups'          },
   { path: '/orders',   label: 'Orders',     icon: 'shopping_cart'  },
   { path: '/invoices', label: 'Invoices',   icon: 'receipt_long'   },
   { path: '/tasks',    label: 'Tasks',      icon: 'assignment'     },
