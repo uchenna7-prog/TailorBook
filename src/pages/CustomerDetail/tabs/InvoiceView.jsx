@@ -290,7 +290,7 @@ export default function InvoiceView({ invoice: initialInvoice, customer, onClose
       <Header
         type="back"
         title={invoice.number}
-        onBack={onClose}
+        onBackClick={onClose}
         customActions={[
           { 
             icon: pdfLoading ? 'hourglass_top' : 'download', 
@@ -330,3 +330,4 @@ export default function InvoiceView({ invoice: initialInvoice, customer, onClose
     </div>
   )
 }
+
