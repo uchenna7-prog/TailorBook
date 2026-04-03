@@ -603,13 +603,13 @@ export default function PaymentsTab({ customerId, orders, showToast, onGenerateI
 
       {/* FAB trigger — parent CustomerDetail passes openPaymentModal event */}
       <div style={{ display: 'none' }} id="__payment_modal_trigger__"
-        ref={el => {
-          if (!el) return
-          const handler = () => setModalOpen(true)
-          el.addEventListener('open', handler)
-          return () => el.removeEventListener('open', handler)
-        }}
-      />
+  ref={() => {
+    const handler = () => setModalOpen(true)
+    document.addEventListener('openPaymentModal', handler)
+    return () => document.removeEventListener('openPaymentModal', handler)
+  }}
+/>
+
     </>
   )
 }
