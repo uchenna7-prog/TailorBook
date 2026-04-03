@@ -139,7 +139,7 @@ function Home({ onMenuClick }) {
           <p className={styles.subtitle}>Here's what's happening in your shop today.</p>
         </section>
 
-        {/* STATS — 2-column grid */}
+        {/* STATS */}
         <section className={styles.statsGrid}>
           <div className={styles.statCard} onClick={() => navigate('/customers')}>
             <div className={styles.statIconWrap}>
@@ -317,46 +317,46 @@ function Home({ onMenuClick }) {
           </section>
         )}
 
-        {/* QUICK ACTIONS — Re-styled to match Stats Grid */}
+        {/* QUICK ACTIONS — Column Layout */}
         <section className={styles.section}>
           <h3 className={styles.sectionTitle}>Quick Actions</h3>
           <div className={styles.statsGrid}>
-            <div className={styles.statCard} onClick={() => navigate('/customers')}>
+            <div className={styles.actionCard} onClick={() => navigate('/customers')}>
               <div className={styles.statIconWrap}>
                 <span className="mi" style={{ fontSize: '1.3rem', color: 'var(--accent)' }}>person_add</span>
               </div>
-              <div>
-                <div className={styles.statValue} style={{ fontSize: '0.88rem' }}>Add</div>
-                <div className={styles.statLabel}>New Customer</div>
+              <div className={styles.actionCardText}>
+                <div className={styles.statValue} style={{ fontSize: '0.82rem' }}>Add</div>
+                <div className={styles.statLabel}>Customer</div>
               </div>
             </div>
 
-            <div className={styles.statCard} onClick={() => navigate('/appointments')}>
+            <div className={styles.actionCard} onClick={() => navigate('/appointments')}>
               <div className={styles.statIconWrap}>
                 <span className="mi" style={{ fontSize: '1.3rem', color: 'var(--accent)' }}>event</span>
               </div>
-              <div>
-                <div className={styles.statValue} style={{ fontSize: '0.88rem' }}>Book</div>
-                <div className={styles.statLabel}>Appointment</div>
+              <div className={styles.actionCardText}>
+                <div className={styles.statValue} style={{ fontSize: '0.82rem' }}>Book</div>
+                <div className={styles.statLabel}>Appt</div>
               </div>
             </div>
 
-            <div className={styles.statCard} onClick={() => navigate('/tasks')}>
+            <div className={styles.actionCard} onClick={() => navigate('/tasks')}>
               <div className={styles.statIconWrap}>
                 <span className="mi" style={{ fontSize: '1.3rem', color: 'var(--accent)' }}>add_task</span>
               </div>
-              <div>
-                <div className={styles.statValue} style={{ fontSize: '0.88rem' }}>Create</div>
-                <div className={styles.statLabel}>New Task</div>
+              <div className={styles.actionCardText}>
+                <div className={styles.statValue} style={{ fontSize: '0.82rem' }}>New</div>
+                <div className={styles.statLabel}>Task</div>
               </div>
             </div>
 
-            <div className={styles.statCard} onClick={() => navigate('/customers')}>
+            <div className={styles.actionCard} onClick={() => navigate('/customers')}>
               <div className={styles.statIconWrap}>
                 <span className="mi" style={{ fontSize: '1.3rem', color: 'var(--accent)' }}>arrow_forward</span>
               </div>
-              <div>
-                <div className={styles.statValue} style={{ fontSize: '0.88rem' }}>View All</div>
+              <div className={styles.actionCardText}>
+                <div className={styles.statValue} style={{ fontSize: '0.82rem' }}>View All</div>
                 <div className={styles.statLabel}>Customers</div>
               </div>
             </div>
