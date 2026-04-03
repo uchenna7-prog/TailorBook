@@ -141,8 +141,6 @@ function Home({ onMenuClick }) {
 
         {/* STATS — 2-column grid */}
         <section className={styles.statsGrid}>
-
-          {/* Customers */}
           <div className={styles.statCard} onClick={() => navigate('/customers')}>
             <div className={styles.statIconWrap}>
               <span className="mi" style={{ fontSize: '1.3rem', color: '#818cf8' }}>groups</span>
@@ -154,7 +152,6 @@ function Home({ onMenuClick }) {
             </div>
           </div>
 
-          {/* Pending Orders */}
           <div className={styles.statCard} onClick={() => navigate('/orders')}>
             <div className={styles.statIconWrap}>
               <span className="mi" style={{ fontSize: '1.3rem', color: '#fb923c' }}>content_cut</span>
@@ -168,7 +165,6 @@ function Home({ onMenuClick }) {
             </div>
           </div>
 
-          {/* Unpaid Invoices */}
           <div className={styles.statCard} onClick={() => navigate('/invoices')}>
             <div className={styles.statIconWrap}>
               <span className="mi" style={{ fontSize: '1.3rem', color: '#ef4444' }}>receipt_long</span>
@@ -182,7 +178,6 @@ function Home({ onMenuClick }) {
             </div>
           </div>
 
-          {/* Pending Tasks */}
           <div className={styles.statCard} onClick={() => navigate('/tasks')}>
             <div className={styles.statIconWrap}>
               <span className="mi" style={{ fontSize: '1.3rem', color: '#22c55e' }}>task_alt</span>
@@ -196,7 +191,6 @@ function Home({ onMenuClick }) {
             </div>
           </div>
 
-          {/* Today's Appointments */}
           <div className={styles.statCard} onClick={() => navigate('/appointments')}>
             <div className={styles.statIconWrap}>
               <span className="mi" style={{ fontSize: '1.3rem', color: '#06b6d4' }}>event</span>
@@ -210,7 +204,6 @@ function Home({ onMenuClick }) {
             </div>
           </div>
 
-          {/* Upcoming this week */}
           <div className={styles.statCard} onClick={() => navigate('/appointments')}>
             <div className={styles.statIconWrap}>
               <span className="mi" style={{ fontSize: '1.3rem', color: '#a855f7' }}>calendar_month</span>
@@ -223,10 +216,9 @@ function Home({ onMenuClick }) {
               </div>
             </div>
           </div>
-
         </section>
 
-        {/* UPCOMING APPOINTMENTS — MOVED UP */}
+        {/* UPCOMING APPOINTMENTS */}
         {recentAppointments.length > 0 && (
           <section className={styles.section}>
             <div className={styles.sectionHeader}>
@@ -262,9 +254,7 @@ function Home({ onMenuClick }) {
                         <span className="mi" style={{ fontSize: '0.78rem', color: 'var(--text3)', verticalAlign: 'middle' }}>schedule</span>
                         <span className={styles.listMetaText}>{formatApptDate(appt.date, appt.time)}</span>
                       </div>
-                      {isToday && (
-                        <div className={styles.listApptToday}>Today</div>
-                      )}
+                      {isToday && <div className={styles.listApptToday}>Today</div>}
                     </div>
                   </div>
                 )
@@ -273,7 +263,7 @@ function Home({ onMenuClick }) {
           </section>
         )}
 
-        {/* RECENT APPOINTMENTS — MOVED UP */}
+        {/* RECENT APPOINTMENTS */}
         {pastAppointments.length > 0 && (
           <section className={styles.section}>
             <div className={styles.sectionHeader}>
@@ -317,9 +307,7 @@ function Home({ onMenuClick }) {
                         <span className={styles.listMetaText}>{formatApptDate(appt.date, appt.time)}</span>
                       </div>
                       <div className={styles.listApptStatus} style={{ color: iconColor, borderColor: `${iconColor}40`, background: `${iconColor}12` }}>
-                        {appt.status === 'completed' ? 'Completed'
-                          : appt.status === 'cancelled' ? 'Cancelled'
-                          : 'Missed'}
+                        {appt.status === 'completed' ? 'Completed' : appt.status === 'cancelled' ? 'Cancelled' : 'Missed'}
                       </div>
                     </div>
                   </div>
@@ -329,22 +317,49 @@ function Home({ onMenuClick }) {
           </section>
         )}
 
-        {/* QUICK ACTIONS */}
+        {/* QUICK ACTIONS — Re-styled to match Stats Grid */}
         <section className={styles.section}>
           <h3 className={styles.sectionTitle}>Quick Actions</h3>
-          <div className={styles.actionList}>
-            <button onClick={() => navigate('/customers')}>
-              <span className="mi">person_add</span> Add Customer
-            </button>
-            <button onClick={() => navigate('/appointments')}>
-              <span className="mi">event</span> Book Appointment
-            </button>
-            <button onClick={() => navigate('/tasks')}>
-              <span className="mi">add_task</span> Manage Tasks
-            </button>
-            <button onClick={() => navigate('/customers')}>
-              <span className="mi">arrow_forward</span> View All Customers
-            </button>
+          <div className={styles.statsGrid}>
+            <div className={styles.statCard} onClick={() => navigate('/customers')}>
+              <div className={styles.statIconWrap}>
+                <span className="mi" style={{ fontSize: '1.3rem', color: 'var(--accent)' }}>person_add</span>
+              </div>
+              <div>
+                <div className={styles.statValue} style={{ fontSize: '0.88rem' }}>Add</div>
+                <div className={styles.statLabel}>New Customer</div>
+              </div>
+            </div>
+
+            <div className={styles.statCard} onClick={() => navigate('/appointments')}>
+              <div className={styles.statIconWrap}>
+                <span className="mi" style={{ fontSize: '1.3rem', color: 'var(--accent)' }}>event</span>
+              </div>
+              <div>
+                <div className={styles.statValue} style={{ fontSize: '0.88rem' }}>Book</div>
+                <div className={styles.statLabel}>Appointment</div>
+              </div>
+            </div>
+
+            <div className={styles.statCard} onClick={() => navigate('/tasks')}>
+              <div className={styles.statIconWrap}>
+                <span className="mi" style={{ fontSize: '1.3rem', color: 'var(--accent)' }}>add_task</span>
+              </div>
+              <div>
+                <div className={styles.statValue} style={{ fontSize: '0.88rem' }}>Create</div>
+                <div className={styles.statLabel}>New Task</div>
+              </div>
+            </div>
+
+            <div className={styles.statCard} onClick={() => navigate('/customers')}>
+              <div className={styles.statIconWrap}>
+                <span className="mi" style={{ fontSize: '1.3rem', color: 'var(--accent)' }}>arrow_forward</span>
+              </div>
+              <div>
+                <div className={styles.statValue} style={{ fontSize: '0.88rem' }}>View All</div>
+                <div className={styles.statLabel}>Customers</div>
+              </div>
+            </div>
           </div>
         </section>
 
