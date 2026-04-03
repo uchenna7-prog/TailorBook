@@ -102,21 +102,16 @@ function AddPhotoModal({ isOpen, onClose, onSave, customers }) {
 
   return (
     <div className={styles.modalOverlay}>
-      <div className={styles.modalHeader}>
-        <div className={styles.headerLeft}>
-          <button className={styles.modalBack} onClick={handleClose}>
-            <span className="mi" style={{ fontSize: '1.6rem' }}>arrow_back</span>
-          </button>
-          <span className={styles.modalTitle}>Add Photo</span>
-        </div>
-        <button 
-          className={styles.headerSaveBtn} 
-          onClick={handleSave}
-          disabled={photos.length === 0}
-        >
-          Save
-        </button>
-      </div>
+      <Header 
+        type="back" 
+        title="Add Photo" 
+        onBackClick={handleClose}
+        customActions={[{ 
+          label: 'Save', 
+          onClick: handleSave, 
+          disabled: photos.length === 0 
+        }]}
+      />
 
       <div className={styles.modalBody}>
         {/* Photo picker area */}
