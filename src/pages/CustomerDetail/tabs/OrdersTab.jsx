@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useOrders } from '../../../contexts/OrdersContext'
 import ConfirmSheet from '../../../components/ConfirmSheet/ConfirmSheet'
+import Header from '../../../components/Header/Header'
 import styles from './Tabs.module.css'
 
 const PRIORITY_COLOR = { normal: 'var(--border2)', urgent: '#fb923c', vip: '#a855f7' }
@@ -67,7 +68,7 @@ function OrderModal({ isOpen, onClose, measurements, onSave }) {
 
   const handleSave = () => {
     if (selectedItems.length === 0 && !desc.trim()) return
-    
+
     let dueDisplay = ''
     if (due) {
       const d = new Date(due + 'T00:00:00')
@@ -94,13 +95,14 @@ function OrderModal({ isOpen, onClose, measurements, onSave }) {
 
   return (
     <div className={`${styles.modalOverlay} ${isOpen ? styles.modalOpen : ''}`}>
-      <div className={styles.modalHeaderClean}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <button className="mi" onClick={handleClose} style={{ background: 'none', border: 'none', color: 'var(--text)', fontSize: '1.6rem' }}>arrow_back</button>
-          <span className={styles.modalTitle}>New Order</span>
-        </div>
-        <button className={styles.headerActionBtn} onClick={handleSave}>Place Order</button>
-      </div>
+      <Header 
+        type="back"
+        title="New Order"
+        onBackClick={handleClose}
+        customActions={[
+          { label: 'Place Order', onClick: handleSave }
+        ]}
+      />
 
       <div className={styles.modalBody}>
         <div style={{ padding: '20px' }}>
@@ -111,7 +113,7 @@ function OrderModal({ isOpen, onClose, measurements, onSave }) {
               <input type="text" placeholder="Search cloth type…" value={pickerQuery} onChange={e => setPickerQuery(e.target.value)} className={styles.pickerSearchInput} />
             </div>
           )}
-          
+
           <div className={styles.pickerList}>
             {filteredMeasurements.map(m => {
               const selected = selectedItems.find(i => i.id === String(m.id))
@@ -165,7 +167,7 @@ function OrderModal({ isOpen, onClose, measurements, onSave }) {
           <div className={styles.orderFormCard}>
             <label className={styles.labelTiny}>Order Description</label>
             <input type="text" className={styles.clothInput} placeholder="e.g. Full Native Set" value={desc} onChange={e => setDesc(e.target.value)} />
-            
+
             <div style={{ display: 'flex', gap: 14, marginBottom: 20 }}>
               <div style={{ flex: 1 }}>
                 <label className={styles.labelTiny}>Due Date</label>
@@ -203,15 +205,18 @@ function OrderDetail({ order, measurements, onClose, onDelete, onStatusChange })
 
   return (
     <div className={`${styles.detailModal} ${styles.detailOpen}`}>
-      <div className={styles.detailHeader}>
-        <button className="mi" onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text)', fontSize: '1.6rem' }}>arrow_back</button>
-        <h3 style={{ flex: 1 }}>{order.desc}</h3>
-        <button className="mi" onClick={onDelete} style={{ background: 'none', border: 'none', color: 'var(--danger)', fontSize: '1.3rem' }}>delete_outline</button>
-      </div>
+      <Header 
+        type="back"
+        title={order.desc}
+        onBackClick={onClose}
+        customActions={[
+          { icon: 'delete_outline', label: 'Delete', onClick: onDelete, color: 'var(--danger)' }
+        ]}
+      />
 
       <div className={styles.detailBody}>
         <span className={`${styles.priorityBanner} ${banner.cls}`}>{banner.text}</span>
-        
+
         <div className={styles.orderMetaGrid}>
           <div className={styles.orderMetaCell}>
             <div className={styles.cellLabel}>Total Order Price</div>
@@ -362,3 +367,4 @@ export default function OrdersTab({ customerId, orders, measurements, showToast 
     </>
   )
 }
+
