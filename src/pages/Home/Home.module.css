@@ -186,7 +186,7 @@
 .listItemLast::after { display: none; }
 .listItem:active { background: var(--surface); }
 
-/* Outer grey box */
+/* Outer box */
 .listOuter {
   width: 68px;
   height: 68px;
@@ -199,7 +199,7 @@
   flex-shrink: 0;
 }
 
-/* Inner white box */
+/* Inner box */
 .listInner {
   width: 50px;
   height: 50px;
@@ -218,7 +218,7 @@
 .listMetaText { font-size: 0.75rem; font-weight: 400; color: var(--text2); }
 .listDue { font-size: 0.75rem; font-weight: 500; color: #ef4444; margin-top: 1px; }
 
-/* "Today" badge on appointment rows */
+/* Today badge */
 .listApptToday {
   display: inline-block;
   font-size: 0.58rem;
@@ -233,7 +233,7 @@
   margin-top: 3px;
 }
 
-/* Status pill on recent appointment rows */
+/* Status pill */
 .listApptStatus {
   display: inline-block;
   font-size: 0.58rem;
@@ -246,7 +246,7 @@
   margin-top: 3px;
 }
 
-/* Right price (orders) */
+/* Price */
 .listRight { text-align: right; flex-shrink: 0; }
 .listPrice { font-size: 0.88rem; font-weight: 700; color: var(--text); white-space: nowrap; }
 .listQty { font-size: 0.65rem; color: var(--text3); margin-top: 2px; }
