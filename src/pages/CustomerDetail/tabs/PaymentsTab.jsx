@@ -414,7 +414,7 @@ function PaymentDetail({ payment, onClose, onDelete, onStatusChange, onAddInstal
 
         {/* Generate Invoice */}
         <button className={styles.generateInvoiceBtn} onClick={() => onGenerateInvoice(payment)}>
-          <span className="mi" style={{ fontSize: '1.2rem', verticalAlign: 'middle', marginRight: 4 }}>receipt_long</span>
+          <span className="material-icons" style={{ fontSize: '1.2rem', verticalAlign: 'middle', marginRight: 4 }}>receipt_long</span>
           Generate Invoice
         </button>
 
@@ -623,13 +623,13 @@ export default function PaymentsTab({ customerId, orders, showToast, onGenerateI
 
       {/* FAB trigger — parent CustomerDetail passes openPaymentModal event */}
       <div style={{ display: 'none' }} id="__payment_modal_trigger__"
-        ref={el => {
-          if (!el) return
-          const handler = () => setModalOpen(true)
-          el.addEventListener('open', handler)
-          return () => el.removeEventListener('open', handler)
-        }}
-      />
+  ref={() => {
+    const handler = () => setModalOpen(true)
+    document.addEventListener('openPaymentModal', handler)
+    return () => document.removeEventListener('openPaymentModal', handler)
+  }}
+/>
+
     </>
   )
 }
