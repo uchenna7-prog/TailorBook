@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import { useCustomers } from '../../contexts/CustomerContext'
 import { useOrders }    from '../../contexts/OrdersContext'
 import { useTasks }     from '../../contexts/TaskContext'
+import { useInvoices }  from '../../contexts/InvoiceContext'
 import { useAuth }      from '../../contexts/AuthContext'
 import Header from '../../components/Header/Header'
 import styles from './Home.module.css'
@@ -13,9 +14,23 @@ function isTaskOverdue(task) {
   return new Date(task.dueDate + 'T23:59:59') < new Date()
 }
 
+function isInvoiceOverdue(inv) {
+  if (inv.status === 'paid') return false
+  if (!inv.due) return false
+  return new Date(inv.due + 'T23:59:59') < new Date()
+}
+
 function formatDate(dateStr) {
   if (!dateStr) return ''
   return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+}
+
+function dueThisWeek(dateStr) {
+  if (!dateStr) return false
+  const today = new Date(); today.setHours(0, 0, 0, 0)
+  const end   = new Date(today); end.setDate(today.getDate() + 7)
+  const due   = new Date(dateStr + 'T00:00:00')
+  return due >= today && due <= end
 }
 
 const PRIORITY_COLORS = {
@@ -30,17 +45,17 @@ const CATEGORY_ICONS = {
   payment: 'payments',   fitting: 'checkroom',  shopping: 'shopping_cart',
 }
 
+// ─────────────────────────────────────────────────────────────
+
 function Home({ onMenuClick }) {
   const navigate = useNavigate()
-  const { user }      = useAuth()
-  const { customers } = useCustomers()
-  const { allOrders } = useOrders()
-  const { tasks }     = useTasks()
+  const { user }        = useAuth()
+  const { customers }   = useCustomers()
+  const { allOrders }   = useOrders()
+  const { tasks }       = useTasks()
+  const { allInvoices } = useInvoices()
 
   // ── Second name logic ─────────────────────────────────────
-  // "Uchendu Uchenna Daniel" → "Uchenna"
-  // "Uchendu Daniel"         → "Daniel"
-  // single name / email      → that name
   const displayName = (() => {
     const full = user?.displayName?.trim()
     if (full) {
@@ -51,20 +66,27 @@ function Home({ onMenuClick }) {
   })()
 
   // ── Stats ─────────────────────────────────────────────────
-  const thisMonth = new Date()
+  const now = new Date()
+
   const newCustomersThisMonth = customers.filter(c => {
     if (!c.date) return false
     const d = new Date(c.date)
-    return d.getMonth() === thisMonth.getMonth() && d.getFullYear() === thisMonth.getFullYear()
+    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
   }).length
 
-  const pendingOrders  = allOrders.filter(o => !['completed', 'delivered', 'cancelled'].includes(o.status))
-  const unpaidInvoices = allOrders.filter(o => o.paymentStatus !== 'Paid' && o.invoiceGenerated)
-  const pendingTasks   = tasks.filter(t => !t.done && !isTaskOverdue(t))
+  const pendingOrders     = allOrders.filter(o => !['completed', 'delivered', 'cancelled'].includes(o.status))
+  const ordersDueThisWeek = pendingOrders.filter(o => dueThisWeek(o.dueDate || o.dueRaw)).length
 
-  // ── Recent lists ──────────────────────────────────────────
+  const unpaidInvoices      = allInvoices.filter(i => i.status !== 'paid' && !isInvoiceOverdue(i))
+  const overdueInvoices     = allInvoices.filter(i => isInvoiceOverdue(i))
+  const totalUnpaid         = unpaidInvoices.length
+  const totalOverdueInvoice = overdueInvoices.length
+
+  const pendingTasks     = tasks.filter(t => !t.done && !isTaskOverdue(t))
+  const tasksDueThisWeek = pendingTasks.filter(t => dueThisWeek(t.dueDate)).length
+
   const recentOrders = [...pendingOrders].slice(0, 4)
-  const recentTasks  = [...tasks].filter(t => !t.done).slice(0, 4)
+  const recentTasks  = tasks.filter(t => !t.done).slice(0, 4)
 
   return (
     <div className={styles.pageWrapper}>
@@ -74,62 +96,66 @@ function Home({ onMenuClick }) {
 
         {/* HERO */}
         <section className={styles.hero}>
-          <h1 className={styles.title}>
-            Hey, <span>{displayName} 👋</span>
-          </h1>
-          <p className={styles.subtitle}>
-            Here's what's happening in your shop today.
-          </p>
+          <p className={styles.welcomeLabel}>Welcome 👋</p>
+          <h1 className={styles.title}>{displayName}</h1>
+          <p className={styles.subtitle}>Here's what's happening in your shop today.</p>
         </section>
 
         {/* STATS */}
         <section className={styles.statsGrid}>
-          {/* Customers */}
+
           <div className={styles.statCard} onClick={() => navigate('/customers')}>
             <div className={styles.statIconWrap}>
-              <span className="mi" style={{ fontSize: '1.4rem', color: '#818cf8' }}>groups</span>
+              <span className="mi" style={{ fontSize: '1.3rem', color: '#818cf8' }}>groups</span>
             </div>
             <div>
               <div className={styles.statValue}>{customers.length}</div>
               <div className={styles.statLabel}>Total Clients</div>
-              {newCustomersThisMonth > 0 && (
-                <div className={styles.statSub}>+{newCustomersThisMonth} this month</div>
-              )}
+              <div className={styles.statSub}>
+                {newCustomersThisMonth > 0 ? `+${newCustomersThisMonth} this month` : 'No new this month'}
+              </div>
             </div>
           </div>
 
-          {/* Pending Orders */}
           <div className={styles.statCard} onClick={() => navigate('/orders')}>
             <div className={styles.statIconWrap}>
-              <span className="mi" style={{ fontSize: '1.4rem', color: '#fb923c' }}>content_cut</span>
+              <span className="mi" style={{ fontSize: '1.3rem', color: '#fb923c' }}>content_cut</span>
             </div>
             <div>
               <div className={styles.statValue}>{pendingOrders.length}</div>
               <div className={styles.statLabel}>Pending Orders</div>
+              <div className={styles.statSub} style={{ color: ordersDueThisWeek > 0 ? '#fb923c' : undefined }}>
+                {ordersDueThisWeek > 0 ? `${ordersDueThisWeek} due this week` : 'None due this week'}
+              </div>
             </div>
           </div>
 
-          {/* Unpaid Invoices */}
           <div className={styles.statCard} onClick={() => navigate('/invoices')}>
             <div className={styles.statIconWrap}>
-              <span className="mi" style={{ fontSize: '1.4rem', color: '#ef4444' }}>receipt_long</span>
+              <span className="mi" style={{ fontSize: '1.3rem', color: '#ef4444' }}>receipt_long</span>
             </div>
             <div>
-              <div className={styles.statValue}>{unpaidInvoices.length}</div>
+              <div className={styles.statValue}>{totalUnpaid}</div>
               <div className={styles.statLabel}>Unpaid Invoices</div>
+              <div className={styles.statSub} style={{ color: totalOverdueInvoice > 0 ? '#ef4444' : undefined }}>
+                {totalOverdueInvoice > 0 ? `${totalOverdueInvoice} overdue` : 'None overdue'}
+              </div>
             </div>
           </div>
 
-          {/* Pending Tasks */}
           <div className={styles.statCard} onClick={() => navigate('/tasks')}>
             <div className={styles.statIconWrap}>
-              <span className="mi" style={{ fontSize: '1.4rem', color: '#22c55e' }}>task_alt</span>
+              <span className="mi" style={{ fontSize: '1.3rem', color: '#22c55e' }}>task_alt</span>
             </div>
             <div>
               <div className={styles.statValue}>{pendingTasks.length}</div>
               <div className={styles.statLabel}>Pending Tasks</div>
+              <div className={styles.statSub} style={{ color: tasksDueThisWeek > 0 ? '#fb923c' : undefined }}>
+                {tasksDueThisWeek > 0 ? `${tasksDueThisWeek} due this week` : 'None due this week'}
+              </div>
             </div>
           </div>
+
         </section>
 
         {/* QUICK ACTIONS */}
@@ -155,11 +181,10 @@ function Home({ onMenuClick }) {
               <h3 className={styles.sectionTitle}>Recent Orders</h3>
               <button className={styles.seeAllBtn} onClick={() => navigate('/orders')}>See all</button>
             </div>
-
             <div className={styles.listSection}>
               <div className={styles.listDivider} />
               {recentOrders.map((order, idx) => {
-                const isLast = idx === recentOrders.length - 1
+                const isLast   = idx === recentOrders.length - 1
                 const priceStr = order.price !== null && order.price !== undefined
                   ? `₦${Number(order.price).toLocaleString()}` : '—'
                 return (
@@ -179,8 +204,8 @@ function Home({ onMenuClick }) {
                         <span className="mi" style={{ fontSize: '0.78rem', color: 'var(--text3)', verticalAlign: 'middle' }}>autorenew</span>
                         <span className={styles.listMetaText}>{order.status || 'Pending'}</span>
                       </div>
-                      {order.due && (
-                        <div className={styles.listDue}>Due On {order.due}</div>
+                      {(order.due || order.dueRaw) && (
+                        <div className={styles.listDue}>Due On {order.due || formatDate(order.dueRaw)}</div>
                       )}
                     </div>
                     <div className={styles.listRight}>
@@ -201,7 +226,6 @@ function Home({ onMenuClick }) {
               <h3 className={styles.sectionTitle}>Recent Tasks</h3>
               <button className={styles.seeAllBtn} onClick={() => navigate('/tasks')}>See all</button>
             </div>
-
             <div className={styles.listSection}>
               <div className={styles.listDivider} />
               {recentTasks.map((task, idx) => {
@@ -211,7 +235,10 @@ function Home({ onMenuClick }) {
                 const catIcon   = CATEGORY_ICONS[task.category] || 'assignment'
                 return (
                   <div key={task.id} className={`${styles.listItem} ${isLast ? styles.listItemLast : ''}`}>
-                    <div className={styles.listOuter} style={overdue ? { borderColor: 'rgba(239,68,68,0.35)', background: 'rgba(239,68,68,0.05)' } : {}}>
+                    <div
+                      className={styles.listOuter}
+                      style={overdue ? { borderColor: 'rgba(239,68,68,0.35)', background: 'rgba(239,68,68,0.05)' } : {}}
+                    >
                       <div className={styles.listInner}>
                         <span className="mi" style={{ fontSize: '1.3rem', color: iconColor }}>{catIcon}</span>
                       </div>
@@ -231,7 +258,7 @@ function Home({ onMenuClick }) {
                         </span>
                       </div>
                       {task.dueDate && (
-                        <div className={styles.listDue} style={{ color: overdue ? '#ef4444' : undefined }}>
+                        <div className={styles.listDue} style={{ color: overdue ? '#ef4444' : 'var(--text2)' }}>
                           Due On {formatDate(task.dueDate)}
                         </div>
                       )}
