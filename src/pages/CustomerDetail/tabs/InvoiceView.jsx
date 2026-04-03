@@ -13,10 +13,6 @@ function fmt(currency, amount) {
   return `${currency}${n.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
 
-function calcSubtotal(price, qty) {
-  return (parseFloat(price) || 0) * (parseFloat(qty) || 1)
-}
-
 function calcTax(subtotal, taxRate, showTax) {
   if (!showTax || !taxRate) return 0
   return subtotal * (taxRate / 100)
@@ -46,8 +42,14 @@ function LogoOrName({ brand, darkBg = false }) {
   )
 }
 
-function ItemsTable({ invoice, brand, subtotal }) {
+function ItemsTable({ invoice, brand }) {
   const { currency, showTax, taxRate } = brand
+  
+  // Calculate subtotal from itemized prices if they exist, otherwise fallback to main price
+  const subtotal = invoice.items?.length > 0 
+    ? invoice.items.reduce((sum, item) => sum + (parseFloat(item.price) || 0), 0)
+    : (parseFloat(invoice.price) || 0) * (parseFloat(invoice.qty) || 1)
+
   const tax   = calcTax(subtotal, taxRate, showTax)
   const total = subtotal + tax
 
@@ -56,15 +58,27 @@ function ItemsTable({ invoice, brand, subtotal }) {
       <div className={styles.tHead}>
         <span className={styles.tColDesc}>Description</span>
         <span className={styles.tColNum}>Price</span>
-        <span className={styles.tColNum}>Qty</span>
-        <span className={styles.tColNum}>Total</span>
       </div>
-      <div className={styles.tRow}>
-        <span className={styles.tColDesc}>{invoice.orderDesc || 'Garment order'}</span>
-        <span className={styles.tColNum}>{fmt(currency, invoice.price)}</span>
-        <span className={styles.tColNum}>{invoice.qty || 1}</span>
+
+      {/* Main Category Header */}
+      <div className={styles.tRowMain}>
+        <span className={styles.tColDesc}>{invoice.orderDesc || 'Garment Order'}</span>
         <span className={styles.tColNum}>{fmt(currency, subtotal)}</span>
       </div>
+
+      {/* Itemized breakdown (The "Cloths Involved") */}
+      {invoice.items?.length > 0 && (
+        <div className={styles.itemizedSection}>
+          <div className={styles.itemizedLabel}>Garments Included:</div>
+          {invoice.items.map((item, idx) => (
+            <div key={idx} className={styles.tRowSub}>
+              <span className={styles.tColDesc}>• {item.name}</span>
+              <span className={styles.tColNum}>{fmt(currency, item.price)}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
       <div className={styles.summary}>
         <div className={styles.sumRow}>
           <span>Subtotal</span>
@@ -86,11 +100,10 @@ function ItemsTable({ invoice, brand, subtotal }) {
 }
 
 // ─────────────────────────────────────────────────────────────
-// TEMPLATE 1 — Editable
+// TEMPLATES
 // ─────────────────────────────────────────────────────────────
 
 function EditableTemplate({ invoice, customer, brand }) {
-  const subtotal = calcSubtotal(invoice.price, invoice.qty)
   const dueDate  = getDueDate(invoice, brand.dueDays)
   return (
     <div className={styles.tplBase}>
@@ -114,7 +127,7 @@ function EditableTemplate({ invoice, customer, brand }) {
           <div className={styles.metaSub}>Due: {dueDate}</div>
         </div>
       </div>
-      <ItemsTable invoice={invoice} brand={brand} subtotal={subtotal} />
+      <ItemsTable invoice={invoice} brand={brand} />
       {(brand.phone || brand.email || brand.footer) && (
         <div className={styles.editFooter}>
           {(brand.phone || brand.email || brand.website) && (
@@ -132,12 +145,7 @@ function EditableTemplate({ invoice, customer, brand }) {
   )
 }
 
-// ─────────────────────────────────────────────────────────────
-// TEMPLATE 2 — Printable
-// ─────────────────────────────────────────────────────────────
-
 function PrintableTemplate({ invoice, customer, brand }) {
-  const subtotal = calcSubtotal(invoice.price, invoice.qty)
   const dueDate  = getDueDate(invoice, brand.dueDays)
   const barColor = brand.colour || '#eab308'
   return (
@@ -166,7 +174,7 @@ function PrintableTemplate({ invoice, customer, brand }) {
           {customer.address && <div className={styles.metaSub}>{customer.address}</div>}
         </div>
       </div>
-      <ItemsTable invoice={invoice} brand={brand} subtotal={subtotal} />
+      <ItemsTable invoice={invoice} brand={brand} />
       <div className={styles.printFooter}>
         {brand.footer && <div className={styles.footSection}>{brand.footer}</div>}
       </div>
@@ -174,19 +182,11 @@ function PrintableTemplate({ invoice, customer, brand }) {
   )
 }
 
-// ─────────────────────────────────────────────────────────────
-// TEMPLATE 3 — Custom
-// ─────────────────────────────────────────────────────────────
-
 function CustomTemplate({ invoice, customer, brand }) {
-  const subtotal = calcSubtotal(invoice.price, invoice.qty)
   const dueDate  = getDueDate(invoice, brand.dueDays)
   const bannerBg = brand.colour || '#7c3aed'
   return (
-    // padding:0 on tplBase so the coloured banner and footer bleed full-width
     <div className={styles.tplBase} style={{ padding: 0 }}>
-
-      {/* ── Coloured top banner ── */}
       <div className={styles.customBanner} style={{ background: bannerBg }}>
         <div className={styles.customBannerLogo}>
           {brand.logo
@@ -199,8 +199,6 @@ function CustomTemplate({ invoice, customer, brand }) {
           <div className={styles.customBannerNum}>{invoice.number}</div>
         </div>
       </div>
-
-      {/* ── Body (white section) ── */}
       <div className={styles.customBody}>
         <div className={styles.metaRow} style={{ marginBottom: 16 }}>
           <div>
@@ -222,10 +220,8 @@ function CustomTemplate({ invoice, customer, brand }) {
             <div className={styles.metaSub}>{dueDate}</div>
           </div>
         </div>
-        <ItemsTable invoice={invoice} brand={brand} subtotal={subtotal} />
+        <ItemsTable invoice={invoice} brand={brand} />
       </div>
-
-      {/* ── Coloured bottom footer ── */}
       <div className={styles.customFooter} style={{ background: bannerBg }}>
         <div className={styles.customFooterText}>{brand.footer || 'Thank you for your patronage'}</div>
         {brand.email && <div className={styles.customFooterSub}>{brand.email}</div>}
@@ -234,12 +230,7 @@ function CustomTemplate({ invoice, customer, brand }) {
   )
 }
 
-// ─────────────────────────────────────────────────────────────
-// TEMPLATE 4 — Free
-// ─────────────────────────────────────────────────────────────
-
 function FreeTemplate({ invoice, customer, brand }) {
-  const subtotal = calcSubtotal(invoice.price, invoice.qty)
   const dueDate  = getDueDate(invoice, brand.dueDays)
   return (
     <div className={styles.tplBase}>
@@ -274,15 +265,11 @@ function FreeTemplate({ invoice, customer, brand }) {
           Due: {dueDate}
         </div>
       </div>
-      <ItemsTable invoice={invoice} brand={brand} subtotal={subtotal} />
+      <ItemsTable invoice={invoice} brand={brand} />
       <div className={styles.freeFooter}>{brand.footer || 'Thank you for your business!'}</div>
     </div>
   )
 }
-
-// ─────────────────────────────────────────────────────────────
-// Template map
-// ─────────────────────────────────────────────────────────────
 
 const TEMPLATE_MAP = {
   editable:  EditableTemplate,
@@ -294,30 +281,20 @@ const TEMPLATE_MAP = {
 const STATUS_LABELS = { unpaid: 'Unpaid', paid: 'Paid', overdue: 'Overdue' }
 const STATUS_NEXT   = { unpaid: 'paid', paid: 'unpaid', overdue: 'paid' }
 
-// ─────────────────────────────────────────────────────────────
-// PDF generator — html2canvas screenshots the invoice div, jsPDF wraps it
-// ─────────────────────────────────────────────────────────────
-
 async function generatePDF(paperEl, filename) {
   const canvas = await html2canvas(paperEl, {
-    scale: 2,            // retina quality
-    useCORS: true,       // allow logo images from other origins
+    scale: 2,
+    useCORS: true,
     backgroundColor: '#ffffff',
     logging: false,
   })
-
   const imgData = canvas.toDataURL('image/png')
   const pdf     = new jsPDF({ orientation: 'portrait', unit: 'px', format: 'a4' })
   const pdfW    = pdf.internal.pageSize.getWidth()
   const pdfH    = (canvas.height * pdfW) / canvas.width
-
   pdf.addImage(imgData, 'PNG', 0, 0, pdfW, pdfH)
   pdf.save(filename)
 }
-
-// ─────────────────────────────────────────────────────────────
-// InvoiceView — full-screen overlay
-// ─────────────────────────────────────────────────────────────
 
 export default function InvoiceView({
   invoice: initialInvoice,
@@ -335,7 +312,6 @@ export default function InvoiceView({
   const templateKey = brand.template || 'editable'
   const Template    = TEMPLATE_MAP[templateKey] || EditableTemplate
 
-  // ── Mark paid / unpaid ─────────────────────────────────────
   const handleToggleStatus = () => {
     const newStatus = STATUS_NEXT[invoice.status] || 'paid'
     onStatusChange(invoice.id, newStatus)
@@ -343,7 +319,6 @@ export default function InvoiceView({
     showToast?.(`Marked as ${newStatus}`)
   }
 
-  // ── Download PDF then share ────────────────────────────────
   const handleShare = async () => {
     if (!paperRef.current) return
     setPdfLoading(true)
@@ -364,63 +339,38 @@ export default function InvoiceView({
 
   return (
     <div className={styles.overlay}>
-
-      {/* ── Top bar ── */}
       <div className={styles.topBar}>
-        <button className={styles.topBtn} onClick={onClose}>
-          <span className="mi">arrow_back</span>
-        </button>
+        <button className={styles.topBtn} onClick={onClose}><span className="mi">arrow_back</span></button>
         <div className={styles.topCenter}>
           <div className={styles.topInvNum}>{invoice.number}</div>
           <div className={`${styles.statusBadge} ${styles[`status_${invoice.status}`]}`}>
             {STATUS_LABELS[invoice.status] || invoice.status}
           </div>
         </div>
-        {/* PDF download — filled accent button as the primary action */}
         <button className={styles.topBtnPrimary} onClick={handleShare} disabled={pdfLoading}>
           <span className="mi">{pdfLoading ? 'hourglass_top' : 'download'}</span>
         </button>
       </div>
 
-      {/* ── Template area ── */}
       <div className={styles.scrollArea}>
         <div className={styles.paperWrap} ref={paperRef}>
           <Template invoice={invoice} customer={customer} brand={brand} />
         </div>
 
-        {/* Linked measurements */}
-        {invoice.linkedNames?.length > 0 && (
-          <div className={styles.linkedNote}>
-            <span className="mi" style={{ fontSize: '0.9rem', color: 'var(--text3)' }}>straighten</span>
-            <span className={styles.linkedNoteText}>
-              Measurements: {invoice.linkedNames.join(', ')}
-            </span>
-          </div>
-        )}
-
-        {/* Notes */}
         {invoice.notes && (
           <div className={styles.notesBox}>
             <div className={styles.notesLabel}>Notes</div>
             <div className={styles.notesText}>{invoice.notes}</div>
           </div>
         )}
-
         <div style={{ height: 100 }} />
       </div>
 
-      {/* ── Bottom action bar ── */}
       <div className={styles.bottomBar}>
-        <button
-          className={`${styles.statusBtn} ${isPaid ? styles.statusBtnUnpaid : styles.statusBtnPaid}`}
-          onClick={handleToggleStatus}
-        >
-          <span className="mi" style={{ fontSize: '1rem' }}>
-            {isPaid ? 'undo' : 'check_circle'}
-          </span>
+        <button className={`${styles.statusBtn} ${isPaid ? styles.statusBtnUnpaid : styles.statusBtnPaid}`} onClick={handleToggleStatus}>
+          <span className="mi" style={{ fontSize: '1rem' }}>{isPaid ? 'undo' : 'check_circle'}</span>
           {isPaid ? 'Mark as Unpaid' : 'Mark as Paid'}
         </button>
-
         <button className={styles.deleteBtn} onClick={() => onDelete(invoice.id)}>
           <span className="mi" style={{ fontSize: '1rem' }}>delete</span>
         </button>
