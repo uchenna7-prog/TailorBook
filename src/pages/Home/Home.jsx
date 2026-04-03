@@ -82,6 +82,7 @@ function Home({ onMenuClick }) {
   const {
     upcoming,
     todayAppointments,
+    recent:       recentAppts,
     missedCount,
     upcomingThisWeek,
   } = useAppointments()
@@ -123,7 +124,8 @@ function Home({ onMenuClick }) {
   // ── Recent lists ──────────────────────────────────────────
   const recentOrders       = [...pendingOrders].slice(0, 4)
   const recentTasks        = tasks.filter(t => !t.done).slice(0, 4)
-  const recentAppointments = upcoming.slice(0, 4)   // next 4 upcoming, soonest first
+  const recentAppointments = upcoming.slice(0, 4)
+  const pastAppointments   = recentAppts.slice(0, 4)
 
   return (
     <div className={styles.pageWrapper}>
@@ -283,6 +285,63 @@ function Home({ onMenuClick }) {
                       {isToday && (
                         <div className={styles.listApptToday}>Today</div>
                       )}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </section>
+        )}
+
+        {/* RECENT APPOINTMENTS */}
+        {pastAppointments.length > 0 && (
+          <section className={styles.section}>
+            <div className={styles.sectionHeader}>
+              <h3 className={styles.sectionTitle}>Recent Appointments</h3>
+              <button className={styles.seeAllBtn} onClick={() => navigate('/appointments')}>See all</button>
+            </div>
+            <div className={styles.listSection}>
+              <div className={styles.listDivider} />
+              {pastAppointments.map((appt, idx) => {
+                const isLast    = idx === pastAppointments.length - 1
+                const icon      = APPT_TYPE_ICONS[appt.type] || 'event'
+                const isMissedAppt = appt.status === 'missed' || (!appt.status || appt.status === 'scheduled' || appt.status === 'confirmed')
+                const iconColor = appt.status === 'completed' ? '#22c55e'
+                  : appt.status === 'cancelled' ? '#94a3b8'
+                  : '#ef4444'
+                return (
+                  <div key={appt.id} className={`${styles.listItem} ${isLast ? styles.listItemLast : ''}`}>
+                    <div
+                      className={styles.listOuter}
+                      style={
+                        appt.status === 'completed'
+                          ? { borderColor: 'rgba(34,197,94,0.3)', background: 'rgba(34,197,94,0.04)' }
+                          : appt.status === 'cancelled'
+                          ? { borderColor: 'rgba(148,163,184,0.3)' }
+                          : { borderColor: 'rgba(239,68,68,0.3)', background: 'rgba(239,68,68,0.04)' }
+                      }
+                    >
+                      <div className={styles.listInner}>
+                        <span className="mi" style={{ fontSize: '1.3rem', color: iconColor }}>{icon}</span>
+                      </div>
+                    </div>
+                    <div className={styles.listInfo}>
+                      <div className={styles.listDesc}>{appt.title || appt.type || 'Appointment'}</div>
+                      {appt.customerName && (
+                        <div className={styles.listMeta}>
+                          <span className="mi" style={{ fontSize: '0.78rem', color: 'var(--text3)', verticalAlign: 'middle' }}>person</span>
+                          <span className={styles.listMetaText}>{appt.customerName}</span>
+                        </div>
+                      )}
+                      <div className={styles.listMeta}>
+                        <span className="mi" style={{ fontSize: '0.78rem', color: 'var(--text3)', verticalAlign: 'middle' }}>schedule</span>
+                        <span className={styles.listMetaText}>{formatApptDate(appt.date, appt.time)}</span>
+                      </div>
+                      <div className={styles.listApptStatus} style={{ color: iconColor, borderColor: `${iconColor}40`, background: `${iconColor}12` }}>
+                        {appt.status === 'completed' ? 'Completed'
+                          : appt.status === 'cancelled' ? 'Cancelled'
+                          : 'Missed'}
+                      </div>
                     </div>
                   </div>
                 )
