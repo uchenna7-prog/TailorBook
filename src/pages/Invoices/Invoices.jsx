@@ -1,18 +1,23 @@
+// src/pages/Invoices/Invoices.jsx
+
 import { useState, useEffect, useRef } from 'react'
 import { useAuth }      from '../../contexts/AuthContext'
 import { useCustomers } from '../../contexts/CustomerContext'
 import { useSettings }  from '../../contexts/SettingsContext'
-import { subscribeToInvoices } from '../../services/invoiceService'
-import Header from '../../components/Header/Header'
+import { subscribeToInvoices, updateInvoiceStatus, deleteInvoice } from '../../services/invoiceService'
+import Header      from '../../components/Header/Header'
+import InvoiceView from '../CustomerDetail/tabs/InvoiceView'
+import ConfirmSheet from '../../components/ConfirmSheet/ConfirmSheet'
+import Toast        from '../../components/Toast/Toast'
 import styles from './Invoices.module.css'
 
 // ── Helpers ───────────────────────────────────────────────────
 
 function calculateInvoiceTotal(invoice) {
   if (invoice.items && invoice.items.length > 0) {
-    return invoice.items.reduce((sum, item) => sum + (parseFloat(item.price) || 0), 0);
+    return invoice.items.reduce((sum, item) => sum + (parseFloat(item.price) || 0), 0)
   }
-  return (parseFloat(invoice.price) || 0) * (parseFloat(invoice.qty) || 1);
+  return parseFloat(invoice.price) || 0
 }
 
 function fmt(currency = '₦', amount) {
@@ -35,14 +40,11 @@ const TABS = [
   { id: 'overdue', label: 'Overdue' },
 ]
 
-const STATUS_LABELS = { unpaid: 'Unpaid', paid: 'Paid', overdue: 'Overdue' }
-
 // ── Invoice List Item ─────────────────────────────────────────
 
 function InvoiceCard({ invoice, currency, onTap, isLast }) {
   const total   = calculateInvoiceTotal(invoice)
   const overdue = isOverdue(invoice)
-  const status  = overdue && invoice.status !== 'paid' ? 'overdue' : invoice.status
 
   return (
     <div
@@ -64,102 +66,7 @@ function InvoiceCard({ invoice, currency, onTap, isLast }) {
           <span className="mi" style={{ fontSize: '0.8rem', color: 'var(--text3)', verticalAlign: 'middle' }}>person</span>
           <span className={styles.invoiceListMetaText}>{invoice.customerName || '—'}</span>
         </div>
-        <div className={`${styles.invoiceListAmount}`}>{fmt(currency, total)}</div>
-      </div>
-    </div>
-  )
-}
-
-// ── Full Invoice View ─────────────────────────────────────────
-
-function InvoiceFullView({ invoice, currency, onClose }) {
-  if (!invoice) return null
-  const total    = calculateInvoiceTotal(invoice)
-  const overdue  = isOverdue(invoice)
-  const status   = overdue && invoice.status !== 'paid' ? 'overdue' : invoice.status
-
-  return (
-    <div className={styles.viewOverlay}>
-      <div className={styles.viewHeader}>
-        <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex' }}>
-          <span className="mi" style={{ fontSize: '1.6rem', color: 'var(--text)' }}>arrow_back</span>
-        </button>
-        <span className={styles.viewTitle}>Invoice Details</span>
-        <div style={{ width: 32 }} />
-      </div>
-
-      <div className={styles.viewBody}>
-        <div className={styles.invoiceDoc}>
-          <div className={styles.docHeader}>
-            <div className={styles.docBrand}>
-              <span className="mi" style={{ fontSize: '1.5rem', color: 'var(--accent)' }}>content_cut</span>
-              <span className={styles.docBrandName}>TailorFlow</span>
-            </div>
-            <div className={styles.docRight}>
-              <div className={styles.docInvoiceLabel}>INVOICE</div>
-              <div className={styles.docNumber}>{invoice.number}</div>
-            </div>
-          </div>
-
-          <div className={styles.docDivider} />
-
-          <div className={styles.docSection}>
-            <div className={styles.docSectionLabel}>BILL TO</div>
-            <div className={styles.docSectionValue}>{invoice.customerName || '—'}</div>
-          </div>
-
-          <div className={styles.docMetaGrid}>
-            <div className={styles.docMetaCell}>
-              <div className={styles.docMetaLabel}>Date Issued</div>
-              <div className={styles.docMetaValue}>{invoice.date}</div>
-            </div>
-            <div className={styles.docMetaCell}>
-              <div className={styles.docMetaLabel}>Status</div>
-              <span className={`${styles.statusBadge} ${styles[`status_${status}`]}`}>
-                {STATUS_LABELS[status] ?? status}
-              </span>
-            </div>
-          </div>
-
-          <div className={styles.docDivider} />
-
-          <div className={styles.docTableHeader}>
-            <span>Description</span>
-            <span>Price</span>
-          </div>
-
-          <div className={styles.docTableRowMain}>
-            <span>{invoice.orderDesc || 'Order'}</span>
-            <span>{fmt(currency, total)}</span>
-          </div>
-
-          {invoice.items && invoice.items.length > 0 && (
-            <div className={styles.docItemsBreakdown}>
-              {invoice.items.map((item, idx) => (
-                <div key={idx} className={styles.docSubRow}>
-                  <span>• {item.name}</span>
-                  <span>{fmt(currency, item.price)}</span>
-                </div>
-              ))}
-            </div>
-          )}
-
-          <div className={styles.docDivider} />
-
-          <div className={styles.docTotalRow}>
-            <span className={styles.docTotalLabel}>Total Due</span>
-            <span className={styles.docTotalAmount}>{fmt(currency, total)}</span>
-          </div>
-
-          {invoice.notes && (
-            <div className={styles.docNotes}>
-              <div className={styles.docMetaLabel}>Notes</div>
-              <p>{invoice.notes}</p>
-            </div>
-          )}
-
-          <div className={styles.docFooter}>Thank you for your patronage 🙏</div>
-        </div>
+        <div className={styles.invoiceListAmount}>{fmt(currency, total)}</div>
       </div>
     </div>
   )
@@ -168,16 +75,20 @@ function InvoiceFullView({ invoice, currency, onClose }) {
 // ── Main Page ─────────────────────────────────────────────────
 
 export default function Invoices({ onMenuClick }) {
-  const { user }      = useAuth()
-  const { customers } = useCustomers()
-  const { settings }  = useSettings()
-  const currency      = settings.invoiceCurrency || '₦'
+  const { user }       = useAuth()
+  const { customers }  = useCustomers()
+  const { settings }   = useSettings()
+  const currency       = settings.invoiceCurrency || '₦'
 
-  const [allInvoices, setAllInvoices] = useState([])
-  const [activeTab,   setActiveTab]   = useState('all')
-  const [viewing,     setViewing]     = useState(null)
-  const unsubsRef = useRef({})
+  const [allInvoices,  setAllInvoices]  = useState([])
+  const [activeTab,    setActiveTab]    = useState('all')
+  const [viewing,      setViewing]      = useState(null)
+  const [confirmDel,   setConfirmDel]   = useState(null)
+  const [toastMsg,     setToastMsg]     = useState('')
+  const unsubsRef  = useRef({})
+  const toastTimer = useRef(null)
 
+  // ── Subscribe to all customers' invoices ─────────────────
   useEffect(() => {
     Object.values(unsubsRef.current).forEach(u => u())
     unsubsRef.current = {}
@@ -195,8 +106,9 @@ export default function Invoices({ onMenuClick }) {
         (invoices) => {
           invoiceMap[customer.id] = invoices.map(inv => ({
             ...inv,
-            customerName: inv.customerName || customer.name,
-            customerId:   customer.id,
+            customerName:  inv.customerName  || customer.name,
+            customerPhone: inv.customerPhone || customer.phone || '',
+            customerId:    customer.id,
           }))
           const flat = Object.values(invoiceMap)
             .flat()
@@ -218,6 +130,39 @@ export default function Invoices({ onMenuClick }) {
     }
   }, [user, customers])
 
+  const showToast = (msg) => {
+    setToastMsg(msg)
+    clearTimeout(toastTimer.current)
+    toastTimer.current = setTimeout(() => setToastMsg(''), 2400)
+  }
+
+  // ── Status change ─────────────────────────────────────────
+  const handleStatusChange = async (invoiceId, newStatus) => {
+    if (!user || !viewing) return
+    try {
+      await updateInvoiceStatus(user.uid, viewing.customerId, invoiceId, newStatus)
+      // Keep viewing invoice in sync
+      setViewing(prev => prev && prev.id === invoiceId ? { ...prev, status: newStatus } : prev)
+      showToast(`Marked as ${newStatus}`)
+    } catch {
+      showToast('Failed to update status.')
+    }
+  }
+
+  // ── Delete ────────────────────────────────────────────────
+  const handleDeleteConfirm = async () => {
+    if (!confirmDel || !user) return
+    try {
+      await deleteInvoice(user.uid, confirmDel.customerId, confirmDel.id)
+      showToast('Invoice deleted')
+      setViewing(null)
+    } catch {
+      showToast('Failed to delete invoice.')
+    }
+    setConfirmDel(null)
+  }
+
+  // ── Filter & group ────────────────────────────────────────
   const filtered = allInvoices.filter(inv => {
     if (activeTab === 'all')     return true
     if (activeTab === 'paid')    return inv.status === 'paid'
@@ -239,6 +184,16 @@ export default function Invoices({ onMenuClick }) {
     acc[key].push(inv)
     return acc
   }, {})
+
+  // ── Build the customer object InvoiceView expects ─────────
+  // InvoiceView's templates need { name, phone, address }
+  const viewingCustomer = viewing
+    ? {
+        name:    viewing.customerName  || '',
+        phone:   viewing.customerPhone || '',
+        address: viewing.customerAddress || '',
+      }
+    : null
 
   return (
     <div className={styles.page}>
@@ -289,13 +244,27 @@ export default function Invoices({ onMenuClick }) {
         )}
       </div>
 
-      {viewing && (
-        <InvoiceFullView
+      {/* ── Real InvoiceView with proper template rendering ── */}
+      {viewing && viewingCustomer && (
+        <InvoiceView
           invoice={viewing}
-          currency={currency}
+          customer={viewingCustomer}
           onClose={() => setViewing(null)}
+          onStatusChange={handleStatusChange}
+          onDelete={(id) => setConfirmDel(viewing)}
+          showToast={showToast}
         />
       )}
+
+      <ConfirmSheet
+        open={!!confirmDel}
+        title="Delete this invoice?"
+        message="This can't be undone."
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => setConfirmDel(null)}
+      />
+
+      <Toast message={toastMsg} />
     </div>
   )
 }
