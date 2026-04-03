@@ -17,7 +17,7 @@
 .orderGroupDivider { height: 1px; background: var(--border); width: calc(100% + 32px); margin-left: -16px; }
 
 /* Each row: no border on last item, 97% width divider line otherwise */
-.orderListItem { display: flex; align-items: center; gap: 14px; padding: 14px 16px; cursor: pointer; transition: background 0.15s; background: var(--bg); position: relative; }
+.orderListItem { display: flex; align-items: center; gap: 14px; padding: 14px 0; cursor: pointer; transition: background 0.15s; background: var(--bg); position: relative; }
 .orderListItem::after { content: ''; position: absolute; bottom: 0; left: 3.5%; right: 0; height: 1px; background: var(--border); }
 .orderListItemLast::after { display: none; }
 .orderListItem:active { background: var(--surface); }
@@ -43,7 +43,7 @@
 .statusDone { color: var(--success); border-color: rgba(34,197,94,0.4); background: rgba(34,197,94,0.08); }
 
 /* ── INVOICE CARD ── */
-.invoiceCard { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 14px 16px; display: flex; align-items: center; gap: 14px; margin-bottom: 12px; animation: fadeIn 0.35s ease; cursor: pointer; transition: border-color 0.2s; }
+.invoiceCard { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 14px 0; display: flex; align-items: center; gap: 14px; margin-bottom: 12px; animation: fadeIn 0.35s ease; cursor: pointer; transition: border-color 0.2s; }
 .invoiceCard:active { background: var(--surface2); }
 .invoiceCardIcon { width: 44px; height: 44px; border-radius: 12px; background: var(--surface2); border: 1px solid var(--border2); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; color: var(--text2); }
 .invoiceCardInfo { flex: 1; min-width: 0; }
