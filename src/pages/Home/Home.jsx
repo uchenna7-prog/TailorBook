@@ -110,7 +110,7 @@ function Home({ onMenuClick }) {
             </div>
             <div>
               <div className={styles.statValue}>{customers.length}</div>
-              <div className={styles.statLabel}>Total Clients</div>
+              <div className={styles.statLabel}>Total Customers</div>
               <div className={styles.statSub}>
                 {`+${newCustomersThisMonth} this month`}
               </div>
