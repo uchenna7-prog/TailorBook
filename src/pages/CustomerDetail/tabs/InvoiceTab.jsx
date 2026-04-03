@@ -15,7 +15,12 @@ const STATUS_LABELS = { unpaid: 'Unpaid', paid: 'Paid', overdue: 'Overdue' }
 // ─────────────────────────────────────────────────────────────
 
 function InvoiceCard({ invoice, currency, onTap, isLast }) {
-  const total = (parseFloat(invoice.price) || 0) * (parseFloat(invoice.qty) || 1)
+  // ── FIX: derive total from itemised prices when available,
+  //    otherwise fall back to the stored price field (never × qty).
+  const total = invoice.items?.length > 0
+    ? invoice.items.reduce((sum, item) => sum + (parseFloat(item.price) || 0), 0)
+    : (parseFloat(invoice.price) || 0)
+
   const statusLabel = STATUS_LABELS[invoice.status] || invoice.status
 
   return (
