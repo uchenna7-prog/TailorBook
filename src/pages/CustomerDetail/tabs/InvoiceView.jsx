@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import html2canvas from 'html2canvas'
 import { jsPDF } from 'jspdf'
 import { useBrand } from '../../../contexts/BrandContext'
+import Header from '../../Header/Header'
 import styles from './InvoiceView.module.css'
 
 // ─────────────────────────────────────────────────────────────
@@ -286,20 +287,27 @@ export default function InvoiceView({ invoice: initialInvoice, customer, onClose
 
   return (
     <div className={styles.overlay}>
-      <div className={styles.topBar}>
-        <button className={styles.topBtn} onClick={onClose}><span className="mi">arrow_back</span></button>
-        <div className={styles.topCenter}>
-          <div className={styles.topInvNum}>{invoice.number}</div>
+      <Header
+        type="back"
+        title={invoice.number}
+        onBack={onClose}
+        customActions={[
+          { 
+            icon: pdfLoading ? 'hourglass_top' : 'download', 
+            label: 'Download PDF', 
+            onClick: handleShare, 
+            disabled: pdfLoading 
+          }
+        ]}
+      />
+
+      <div className={styles.scrollArea}>
+        <div className={styles.statusRow}>
           <div className={`${styles.statusBadge} ${styles[`status_${invoice.status}`]}`}>
             {STATUS_LABELS[invoice.status] || invoice.status}
           </div>
         </div>
-        <button className={styles.topBtnPrimary} onClick={handleShare} disabled={pdfLoading}>
-          <span className="mi">{pdfLoading ? 'hourglass_top' : 'download'}</span>
-        </button>
-      </div>
 
-      <div className={styles.scrollArea}>
         <div className={styles.paperWrap} ref={paperRef}>
           <Template invoice={invoice} customer={customer} brand={brand} />
         </div>
