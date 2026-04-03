@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import ConfirmSheet from '../../../components/ConfirmSheet/ConfirmSheet'
+import Header from '../../Header/Header'
 import styles from './Tabs.module.css'
 
 const UNIT_LABELS = { in: '"', cm: 'cm', yd: 'yd' }
@@ -69,13 +70,14 @@ function MeasureModal({ isOpen, onClose, onSave }) {
 
   return (
     <div className={`${styles.modalOverlay} ${isOpen ? styles.modalOpen : ''}`}>
-      <div className={styles.modalHeaderClean}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <button className="mi" onClick={handleClose} style={{ background: 'none', border: 'none', color: 'var(--text)', fontSize: '1.6rem', cursor: 'pointer' }}>arrow_back</button>
-          <span className={styles.modalTitle}>New Measurement</span>
-        </div>
-        <button className={styles.headerActionBtn} onClick={handleSave}>Save</button>
-      </div>
+      <Header 
+        type="back"
+        title="New Measurement"
+        onBackClick={handleClose}
+        customActions={[
+          { label: 'Save', onClick: handleSave }
+        ]}
+      />
 
       <div className={styles.unitsSection}>
         {['in', 'cm', 'yd'].map(u => (
@@ -149,11 +151,14 @@ function MeasureDetail({ measurement, onClose, onDelete }) {
   const unitFull = UNIT_FULL[measurement.unit] ?? measurement.unit
   return (
     <div className={`${styles.detailModal} ${styles.detailOpen}`}>
-      <div className={styles.detailHeader}>
-        <button className="mi" onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text)', fontSize: '1.6rem', cursor: 'pointer' }}>arrow_back</button>
-        <h3 style={{ flex: 1 }}>{measurement.name}</h3>
-        <button className="mi" onClick={onDelete} style={{ background: 'none', border: 'none', color: 'var(--danger)', fontSize: '1.3rem', cursor: 'pointer' }}>delete_outline</button>
-      </div>
+      <Header 
+        type="back"
+        title={measurement.name}
+        onBackClick={onClose}
+        customActions={[
+          { icon: 'delete_outline', label: 'Delete', onClick: onDelete, color: 'var(--danger)' }
+        ]}
+      />
       <div className={styles.detailBody}>
         {measurement.imgSrc && <img src={measurement.imgSrc} alt="Design" className={styles.detailDesign} />}
         <div className={styles.detailUnit}>{unitFull}</div>
