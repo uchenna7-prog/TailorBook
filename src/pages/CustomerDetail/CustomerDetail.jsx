@@ -74,13 +74,21 @@ export default function CustomerDetail({ onMenuClick }) {
     const ids         = order.measurementIds?.length ? order.measurementIds : (order.measurementId ? [order.measurementId] : [])
     const linkedNames = ids.map(mid => data.measurements.find(m => String(m.id) === String(mid))?.name).filter(Boolean)
 
+    // ── FIX: carry the itemised breakdown from the order ──────
+    // order.items is an array of { id, name, price, imgSrc }
+    // order.price is already the sum of all item prices
+    const items = Array.isArray(order.items) ? order.items : []
+
     const newInvoice = {
       id:        Date.now() + Math.random(),
       orderId,
       number:    invNumber,
       orderDesc: order.desc,
+      // price is the grand total — kept for legacy display fallback
       price:     order.price,
       qty:       order.qty,
+      // ── NEW: itemised rows so InvoiceView can render them ──
+      items,
       linkedNames,
       due:       order.due,
       notes:     order.notes,
