@@ -6,6 +6,8 @@ const NAV_ITEMS = [
   { path: '/',              label: 'Dashboard',    icon: 'dashboard'      },
   { path: '/customers',     label: 'Customers',    icon: 'groups'         },
   { path: '/orders',        label: 'Orders',       icon: 'shopping_cart'  },
+  { path: '/payments',      label: 'Payments',     icon: 'payments'       },   // ✅ ADDED
+  { path: '/inventory',     label: 'Inventory',    icon: 'inventory_2'    },   // ✅ ADDED
   { path: '/appointments',  label: 'Appointments', icon: 'event'          },
   { path: '/tasks',         label: 'Tasks',        icon: 'assignment'     },
   { path: '/invoices',      label: 'Invoices',     icon: 'receipt_long'   },
