@@ -161,21 +161,16 @@ function AddAppointmentModal({ isOpen, onClose, onSave, customers }) {
 
   return (
     <div className={styles.modalOverlay}>
-      <div className={styles.modalHeader}>
-        <div className={styles.headerLeft}>
-          <button className={styles.modalClose} onClick={handleClose}>
-            <span className="mi" style={{ fontSize: '1.6rem' }}>arrow_back</span>
-          </button>
-          <span className={styles.modalTitle}>New Appointment</span>
-        </div>
-        <button
-          className={styles.headerAddBtn}
-          onClick={handleSave}
-          disabled={!title.trim() || !date}
-        >
-          Save
-        </button>
-      </div>
+      <Header 
+        type="back" 
+        title="New Appointment" 
+        onBackClick={handleClose}
+        customActions={[{
+          label: 'Save',
+          onClick: handleSave,
+          disabled: !title.trim() || !date
+        }]}
+      />
 
       <div className={styles.modalBody}>
 
@@ -660,7 +655,7 @@ export default function Appointments({ onMenuClick }) {
 
   return (
     <div className={styles.page}>
-      <Header onMenuClick={onMenuClick} />
+      <Header title="Appointments" onMenuClick={onMenuClick} />
 
       {/* ── TABS ── */}
       <div className={styles.tabs}>
