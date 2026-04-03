@@ -79,7 +79,7 @@
   bottom: -1px; 
   left: 10%; 
   right: 10%; 
-  height: 2px; 
+  height: 4px; 
   background: var(--accent); 
   border-radius: 1px; 
 }
