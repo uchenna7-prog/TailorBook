@@ -57,6 +57,33 @@
   background: var(--surface2);
 }
 
+/* ── TEXT BUTTON (For Save/Add Actions) ── */
+.textBtn {
+  background: none;
+  border: none;
+  font-size: 0.95rem;
+  font-weight: 700;
+  padding: 8px 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 10px;
+  transition: opacity 0.15s, background 0.15s;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+}
+
+.textBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.textBtn:active {
+  background: var(--surface2);
+  opacity: 0.8;
+}
+
 /* ── HAMBURGER LINES ── */
 .hamburgerLines {
   display: flex;
@@ -250,3 +277,4 @@
 }
 .notifEmpty span { font-size: 2.5rem; opacity: 0.2; }
 .notifEmpty p    { font-size: 0.85rem; color: var(--text3); }
+
