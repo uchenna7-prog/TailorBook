@@ -48,7 +48,6 @@ export default function CustomerDetail({ onMenuClick }) {
   const fixedRef   = useRef(null)
   const tabsRef    = useRef(null)
 
-  // Orders now come from OrdersContext (real-time Firestore)
   const orders = getOrders(id)
 
   useEffect(() => {
@@ -61,11 +60,7 @@ export default function CustomerDetail({ onMenuClick }) {
     toastTimer.current = setTimeout(() => setToastMsg(''), 2400)
   }, [])
 
-  // ── Generate invoice (called from PaymentsTab) ────────────
-  // Paste this function inside CustomerDetail, replacing the existing handleGenerateInvoice.
-  // It now snapshots the active template + brand settings so InvoiceView always
-  // renders the invoice exactly as it looked when it was created.
-
+  // ── UPDATED FUNCTION ───────────────────────────────────────
   const handleGenerateInvoice = useCallback(async (orderId) => {
     const existing = data.invoices.find(inv => String(inv.orderId) === String(orderId))
     if (existing) { showToast('Invoice already exists'); setActiveTab('invoice'); return }
@@ -73,11 +68,10 @@ export default function CustomerDetail({ onMenuClick }) {
     const order = orders.find(o => String(o.id) === String(orderId))
     if (!order) return
 
-    // ── Read current brand settings for the snapshot ──────
     let settingsSnap = {}
     try {
       settingsSnap = JSON.parse(localStorage.getItem('tailorbook_settings') || '{}')
-    } catch { /* ignore */ }
+    } catch {}
 
     const invNumber   = `INV-${String(data.invoices.length + 1).padStart(3, '0')}`
     const today       = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
@@ -99,12 +93,8 @@ export default function CustomerDetail({ onMenuClick }) {
       status:    'unpaid',
       date:      today,
 
-      // ── Snapshot the template key at creation time ────────
-      // InvoiceView reads this first so the format is locked
-      // to what was chosen in Settings when this was generated.
       template: settingsSnap.invoiceTemplate || 'editable',
 
-      // ── Snapshot brand fields that affect visual rendering ─
       brandSnapshot: {
         name:     settingsSnap.brandName     || '',
         tagline:  settingsSnap.brandTagline  || '',
@@ -117,8 +107,6 @@ export default function CustomerDetail({ onMenuClick }) {
         showTax:  settingsSnap.invoiceShowTax  || false,
         taxRate:  settingsSnap.invoiceTaxRate  || 0,
         dueDays:  settingsSnap.invoiceDueDays  || 7,
-        // Note: logo is stored separately in localStorage under tailorbook_brand_logo
-        // and is read via useBrand(), so it's available at view time already.
       },
     }
 
@@ -131,7 +119,7 @@ export default function CustomerDetail({ onMenuClick }) {
     }
   }, [data, orders, showToast])
 
-  // ── Global event listeners (OrdersTab generate invoice) ───
+  // ── Event listeners ───────────────────────────────────────
   useEffect(() => {
     const handleSwitch   = () => setActiveTab('invoice')
     const handleGenerate = (e) => handleGenerateInvoice(e.detail.orderId)
@@ -144,7 +132,7 @@ export default function CustomerDetail({ onMenuClick }) {
     }
   }, [handleGenerateInvoice])
 
-  // ── Measure fixed header height ───────────────────────────
+  // ── Header height calc ────────────────────────────────────
   useEffect(() => {
     if (fixedRef.current) {
       const height = fixedRef.current.offsetHeight
@@ -152,32 +140,29 @@ export default function CustomerDetail({ onMenuClick }) {
     }
   }, [activeTab, data, isPremium])
 
+  // ── UI ────────────────────────────────────────────────────
+  if (!data.customer) return null
+
   return (
-    <div className={styles.container}>
-      <div ref={fixedRef} className={styles.fixedHeader}>
-        <Header 
-          title="Customer Details" 
-          onMenuClick={onMenuClick}
-          showBack
-          onBack={() => navigate(-1)}
-        />
-        
-        <div className={styles.profileSection}>
+    <div className={styles.page}>
+      <Header onMenuClick={onMenuClick} />
+
+      <div ref={fixedRef} className={styles.fixedTop}>
+        <div className={styles.profile}>
           <div className={styles.avatar}>
-            {getInitials(data.customer?.name)}
+            {getInitials(data.customer.name)}
           </div>
-          <div className={styles.info}>
-            <h1 className={styles.name}>{data.customer?.name || 'Loading...'}</h1>
-            <p className={styles.phone}>{data.customer?.phone}</p>
-            {data.customer?.birthday && (
-              <span className={styles.birthdayBadge}>
-                🎂 {getBirthday(data.customer.birthday)}
-              </span>
+
+          <div>
+            <h2>{data.customer.name}</h2>
+            {data.customer.phone && <p>{data.customer.phone}</p>}
+            {getBirthday(data.customer.birthday) && (
+              <p>🎂 {getBirthday(data.customer.birthday)}</p>
             )}
           </div>
         </div>
 
-        <div className={styles.tabsWrapper} ref={tabsRef}>
+        <div ref={tabsRef} className={styles.tabs}>
           {TABS.map(tab => (
             <button
               key={tab.id}
@@ -190,33 +175,32 @@ export default function CustomerDetail({ onMenuClick }) {
         </div>
       </div>
 
-      <div className={styles.tabContent}>
+      <div className={styles.content}>
         {activeTab === 'dress' && (
-          <MeasurementsTab 
-            customer={data.customer} 
-            measurements={data.measurements}
-            onUpdate={data.updateMeasurements}
-          />
+          <MeasurementsTab data={data} showToast={showToast} />
         )}
+
         {activeTab === 'orders' && (
-          <OrdersTab 
-            customerId={id}
-            orders={orders}
-            measurements={data.measurements}
+          <OrdersTab
+            data={data}
+            showToast={showToast}
           />
         )}
+
         {activeTab === 'payments' && (
-          <PaymentsTab 
+          <PaymentsTab
+            data={data}
             orders={orders}
-            invoices={data.invoices}
+            showToast={showToast}
             onGenerateInvoice={handleGenerateInvoice}
           />
         )}
+
         {activeTab === 'invoice' && (
-          <InvoiceTab 
-            customer={data.customer}
-            invoices={data.invoices}
-            onDelete={data.deleteInvoice}
+          <InvoiceTab
+            data={data}
+            invoices={invoicesState}
+            showToast={showToast}
           />
         )}
       </div>
