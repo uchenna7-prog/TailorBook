@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import InvoiceView from './InvoiceView'
 import ConfirmSheet from '../../../components/ConfirmSheet/ConfirmSheet'
+import Header from '../../../components/Header/Header'
 import styles from './InvoiceTab.module.css'
 
 function fmt(currency = '₦', amount) {
@@ -132,14 +133,24 @@ export default function InvoiceTab({
       ))}
 
       {viewingInvoice && (
-        <InvoiceView
-          invoice={viewingInvoice}
-          customer={customer}
-          onClose={() => setViewingInvoice(null)}
-          onStatusChange={handleStatusChange}
-          onDelete={(id) => setDeleteTarget(id)}
-          showToast={showToast}
-        />
+        <div className={styles.modalOverlay}>
+          <Header 
+            type="back"
+            title="Invoice Details"
+            onBackClick={() => setViewingInvoice(null)}
+            customActions={[
+              { icon: 'delete_outline', label: 'Delete', onClick: () => setDeleteTarget(viewingInvoice.id), color: 'var(--danger)' }
+            ]}
+          />
+          <InvoiceView
+            invoice={viewingInvoice}
+            customer={customer}
+            onClose={() => setViewingInvoice(null)}
+            onStatusChange={handleStatusChange}
+            onDelete={(id) => setDeleteTarget(id)}
+            showToast={showToast}
+          />
+        </div>
       )}
 
       <ConfirmSheet
