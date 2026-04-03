@@ -16,8 +16,8 @@ import Settings       from './pages/Settings/Settings'
 import Profile        from './pages/Profile/Profile'
 import Contact        from './pages/Contact/Contact'
 import FAQ            from './pages/FAQ/FAQ'
-
-import Appointments  from './pages/Appointments/Appointments'
+import Appointments   from './pages/Appointments/Appointments'
+import AllPayments    from './pages/AllPayments/AllPayments'
 
 function AppShell() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -28,12 +28,13 @@ function AppShell() {
       <SideBar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <Routes>
         <Route path="/"              element={<Home           onMenuClick={menuClick} />} />
-        <Route path="/appointments"              element={<Appointments          onMenuClick={menuClick} />} />
+        <Route path="/appointments"  element={<Appointments   onMenuClick={menuClick} />} />
         <Route path="/customers"     element={<Customers      onMenuClick={menuClick} />} />
         <Route path="/customers/:id" element={<CustomerDetail onMenuClick={menuClick} />} />
         <Route path="/tasks"         element={<Tasks          onMenuClick={menuClick} />} />
         <Route path="/orders"        element={<Orders         onMenuClick={menuClick} />} />
         <Route path="/invoices"      element={<Invoices       onMenuClick={menuClick} />} />
+        <Route path="/payments"      element={<AllPayments    onMenuClick={menuClick} />} />
         <Route path="/gallery"       element={<Gallery        onMenuClick={menuClick} />} />
         <Route path="/settings"      element={<Settings       onMenuClick={menuClick} />} />
         <Route path="/profile"       element={<Profile        onMenuClick={menuClick} />} />
