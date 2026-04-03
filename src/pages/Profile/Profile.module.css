@@ -1,4 +1,4 @@
-.page { background: var(--bg); min-height: 100dvh; display: flex; flex-direction: column; }
+.page { background: var(--bg); min-height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
 .scrollArea { flex: 1; overflow-y: auto; padding: 8px 0 40px; }
 
 /* ── SECTION HEADER ── */
@@ -34,17 +34,15 @@
   font-weight: 900; color: var(--accent); flex-shrink: 0;
 }
 
-/* ── ROW (INTEGRATED) ── */
+/* ── INTEGRATED ROWS ── */
 .row { 
   display: flex; align-items: center; gap: 16px; 
   padding: 16px; border-bottom: 1px solid var(--border); 
   background: var(--bg); 
 }
 .noDivider { border-bottom: none; }
-
 .rowTappable { cursor: pointer; }
 .rowTappable:active { background: var(--surface); }
-
 .rowIcon { 
   width: 36px; height: 36px; border-radius: 10px; 
   background: var(--surface); display: flex; 
@@ -60,11 +58,10 @@
 .rowBadge { font-size: 0.72rem; font-weight: 700; color: var(--accent); }
 .rowLabelDanger { color: #ef4444 !important; }
 
-/* ── PLAN STYLES ── */
+/* ── PLAN ── */
 .planLeft { flex: 1; }
 .planName { font-size: 0.95rem; font-weight: 800; color: var(--text); }
 .planSub { font-size: 0.75rem; color: var(--text3); margin-top: 4px; line-height: 1.4; }
-
 .upgradeStrip { cursor: pointer; position: relative; overflow: hidden; }
 .upgradeStripGlow {
   position: absolute; inset: 0;
@@ -78,7 +75,7 @@
 /* ── BADGES ── */
 .badgePro {
   background: linear-gradient(135deg, var(--accent), #b8942a);
-  color: var(--bg); font-size: 0.6rem; font-weight: 900;
+  color: #000; font-size: 0.6rem; font-weight: 900;
   padding: 3px 8px; border-radius: 20px;
 }
 .badgeFree {
@@ -95,28 +92,35 @@
 .brandColourDot { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--border); }
 .brandEmpty { color: var(--text3); font-style: italic; gap: 12px; }
 
-/* ── MODALS & FORMS (Kept for Edit Screens) ── */
-.fullOverlay { position: fixed; inset: 0; background: var(--bg); z-index: 5000; display: flex; flex-direction: column; animation: slideIn 0.25s ease; }
+/* ── FULL SCREEN MODAL ── */
+.fullOverlay { position: fixed; inset: 0; background: var(--bg); z-index: 5000; display: flex; flex-direction: column; animation: slideIn 0.25s ease-out; }
 @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
-.fullContent { flex: 1; overflow-y: auto; padding: 20px 16px 48px; display: flex; flex-direction: column; gap: 12px; }
+.fullContent { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.fullContentInner { padding: 20px 16px 120px; display: flex; flex-direction: column; gap: 16px; }
 
-.fieldGroup { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; margin-bottom: 12px; }
-.field { padding: 14px 16px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 6px; }
+/* ── FIELD FORM ── */
+.fieldGroup { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
+.field { padding: 16px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; }
 .field:last-child { border-bottom: none; }
-.fieldLabel { font-size: 0.68rem; font-weight: 800; color: var(--text3); text-transform: uppercase; }
-.fieldHint { font-size: 0.72rem; color: var(--text3); margin-bottom: 4px; }
+.fieldLabel { font-size: 0.7rem; font-weight: 800; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; }
+.fieldHint { font-size: 0.72rem; color: var(--text3); line-height: 1.4; margin-bottom: 4px; }
+.fieldControl { width: 100%; min-height: 44px; position: relative; }
+
 .textInput, .textarea {
   width: 100%; background: var(--surface2); border: 1px solid var(--border);
   border-radius: 10px; padding: 12px; font-size: 0.95rem; color: var(--text);
-  font-family: inherit; box-sizing: border-box; outline: none;
+  font-family: inherit; box-sizing: border-box; outline: none; transition: border-color 0.15s;
+  display: block;
 }
-.textInput:focus, .textarea:focus { border-color: var(--accent); }
+.textInput:focus, .textarea:focus { border-color: var(--accent); background: var(--bg); }
 
-.colourPicker { width: 44px; height: 44px; border-radius: 10px; border: 1px solid var(--border); cursor: pointer; }
+/* ── BRAND EXTRAS ── */
+.colourRow { display: flex; align-items: center; gap: 10px; }
+.colourPicker { width: 44px; height: 44px; border-radius: 10px; border: 1px solid var(--border); cursor: pointer; background: var(--surface2); padding: 4px; }
 .logoUploadBtn {
   width: 100%; padding: 24px; background: var(--surface2); border: 1.5px dashed var(--border);
-  border-radius: 12px; color: var(--text2); font-weight: 700; cursor: pointer;
+  border-radius: 12px; color: var(--text2); font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;
 }
 .logoPreviewWrap { display: flex; align-items: center; gap: 16px; }
 .logoPreview { width: 80px; height: 80px; object-fit: contain; border-radius: 12px; border: 1px solid var(--border); background: #fff; }
-.logoRemove { padding: 8px 12px; border-radius: 8px; background: var(--surface2); border: 1px solid var(--border); cursor: pointer; color: var(--text); font-weight: 700; }
+.logoRemove { padding: 8px 12px; border-radius: 8px; background: var(--surface2); border: 1px solid var(--border); cursor: pointer; color: var(--text); font-weight: 700; display: flex; align-items: center; gap: 6px; }
