@@ -36,7 +36,7 @@
   font-weight: 400;
 }
 
-/* ── STATS & ACTIONS GRID ── */
+/* ── STATS GRID ── */
 .statsGrid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -51,12 +51,36 @@
   padding: 11px 10px;
   display: flex;
   gap: 8px;
-  align-items: center; /* Centered for Actions */
+  align-items: flex-start;
   cursor: pointer;
   transition: background 0.15s;
 }
 
 .statCard:active { background: var(--surface2); }
+
+/* ── ACTION CARD (Vertical Variant) ── */
+.actionCard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.actionCard:active { background: var(--surface2); }
+
+.actionCardText {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
 
 .statIconWrap {
   width: 34px;
@@ -141,7 +165,6 @@
   background: var(--bg);
   position: relative;
   cursor: pointer;
-  transition: background 0.15s;
 }
 
 .listItem::after {
