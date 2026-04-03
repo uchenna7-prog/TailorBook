@@ -17,6 +17,8 @@ import Profile        from './pages/Profile/Profile'
 import Contact        from './pages/Contact/Contact'
 import FAQ            from './pages/FAQ/FAQ'
 
+import Appointments  from './pages/Appointments/Appointments'
+
 function AppShell() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const menuClick = () => setSidebarOpen(true)
@@ -26,6 +28,7 @@ function AppShell() {
       <SideBar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <Routes>
         <Route path="/"              element={<Home           onMenuClick={menuClick} />} />
+        <Route path="/appointments"              element={<Appointments          onMenuClick={menuClick} />} />
         <Route path="/customers"     element={<Customers      onMenuClick={menuClick} />} />
         <Route path="/customers/:id" element={<CustomerDetail onMenuClick={menuClick} />} />
         <Route path="/tasks"         element={<Tasks          onMenuClick={menuClick} />} />
