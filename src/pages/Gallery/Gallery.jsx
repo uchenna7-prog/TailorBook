@@ -356,6 +356,7 @@ export default function Gallery({ onMenuClick }) {
   const [confirmDel, setConfirmDel] = useState(null)
   const [toastMsg, setToastMsg]     = useState('')
   const toastTimer = useRef(null)
+  const tabsRef    = useRef(null)
 
   const showToast = useCallback((msg) => {
     setToastMsg(msg)
@@ -395,12 +396,15 @@ export default function Gallery({ onMenuClick }) {
       <Header title="Gallery" onMenuClick={onMenuClick} />
 
       {/* TABS */}
-      <div className={styles.tabs}>
+      <div className={styles.tabs} ref={tabsRef}>
         {TABS.map(tab => (
           <div
             key={tab.id}
             className={`${styles.tab} ${activeTab === tab.id ? styles.tabActive : ''}`}
-            onClick={() => setActiveTab(tab.id)}
+            onClick={(e) => {
+              setActiveTab(tab.id)
+              e.currentTarget.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' })
+            }}
           >
             <span>{tab.label}</span>
             {counts[tab.id] > 0 && (
