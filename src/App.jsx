@@ -18,6 +18,7 @@ import Contact        from './pages/Contact/Contact'
 import FAQ            from './pages/FAQ/FAQ'
 import Appointments   from './pages/Appointments/Appointments'
 import AllPayments    from './pages/AllPayments/AllPayments'
+import Inventory      from './pages/Inventory/Inventory'
 
 function AppShell() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -35,6 +36,7 @@ function AppShell() {
         <Route path="/orders"        element={<Orders         onMenuClick={menuClick} />} />
         <Route path="/invoices"      element={<Invoices       onMenuClick={menuClick} />} />
         <Route path="/payments"      element={<AllPayments    onMenuClick={menuClick} />} />
+        <Route path="/inventory"     element={<Inventory      onMenuClick={menuClick} />} />
         <Route path="/gallery"       element={<Gallery        onMenuClick={menuClick} />} />
         <Route path="/settings"      element={<Settings       onMenuClick={menuClick} />} />
         <Route path="/profile"       element={<Profile        onMenuClick={menuClick} />} />
