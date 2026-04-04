@@ -1,16 +1,9 @@
-// src/pages/CustomerDetail/tabs/ReceiptView.jsx
-// Reuses the same 4 templates as InvoiceView but:
-//  - "INVOICE" -> "RECEIPT"
-//  - "BILL TO" -> "RECEIVED FROM"
-//  - Shows payment breakdown (installments) instead of "Total Due"
-//  - Shows balance if part-payment, "PAID IN FULL" if complete
-
 import { useRef, useState } from 'react'
 import html2canvas from 'html2canvas'
 import { jsPDF } from 'jspdf'
 import { useBrand } from '../../../contexts/BrandContext'
 import Header from '../../../components/Header/Header'
-import styles from './InvoiceView.module.css'   // reuse the same CSS — all classes apply
+import styles from './InvoiceView.module.css'
 
 // ── Helpers ───────────────────────────────────────────────────
 
@@ -25,7 +18,6 @@ function calcTax(subtotal, taxRate, showTax) {
 }
 
 // ── Receipt-specific items table ──────────────────────────────
-// Shows the order garments AND the payment history.
 
 function ReceiptItemsTable({ receipt, brand }) {
   const { currency, showTax, taxRate } = brand
@@ -41,7 +33,6 @@ function ReceiptItemsTable({ receipt, brand }) {
 
   return (
     <div className={styles.tableWrapper}>
-      {/* Order breakdown section */}
       <div className={styles.tHead}>
         <span className={styles.tColDesc}>Description</span>
         <span className={styles.tColNum}>Amount</span>
@@ -64,7 +55,6 @@ function ReceiptItemsTable({ receipt, brand }) {
         </div>
       )}
 
-      {/* Payment history section */}
       <div className={styles.itemizedSection} style={{ marginTop: 8 }}>
         <div className={styles.itemizedLabel}>Payments Received:</div>
         {(receipt.payments || []).map((p, idx) => (
@@ -81,7 +71,6 @@ function ReceiptItemsTable({ receipt, brand }) {
         ))}
       </div>
 
-      {/* Summary */}
       <div className={styles.summary}>
         <div className={styles.sumRow}>
           <span>Order Value</span>
@@ -114,8 +103,6 @@ function ReceiptItemsTable({ receipt, brand }) {
   )
 }
 
-// ── Shared logo/name component ────────────────────────────────
-
 function LogoOrName({ brand, darkBg = false }) {
   if (brand.logo) return <img src={brand.logo} alt={brand.name} className={styles.logoImg} />
   return (
@@ -125,7 +112,7 @@ function LogoOrName({ brand, darkBg = false }) {
   )
 }
 
-// ── TEMPLATES (same 4 layouts, receipt-flavoured) ─────────────
+// ── TEMPLATES ────────────────────────────────────────────────
 
 function EditableTemplate({ receipt, customer, brand }) {
   return (
@@ -265,17 +252,30 @@ const TEMPLATE_MAP = {
   free:      FreeTemplate,
 }
 
+// Fixed generatePDF function
 async function generatePDF(paperEl, filename) {
-  const canvas = await html2canvas(paperEl, { scale: 2, useCORS: true, backgroundColor: '#ffffff', logging: false })
+  const canvas = await html2canvas(paperEl, { 
+    scale: 2, 
+    useCORS: true, 
+    backgroundColor: '#ffffff', 
+    logging: false,
+    height: paperEl.scrollHeight, 
+    windowHeight: paperEl.scrollHeight
+  })
+  
   const imgData = canvas.toDataURL('image/png')
-  const pdf = new jsPDF({ orientation: 'portrait', unit: 'px', format: 'a4' })
-  const pdfW = pdf.internal.pageSize.getWidth()
+  const pdfW = 450; // Use a fixed base width for calculation
   const pdfH = (canvas.height * pdfW) / canvas.width
+  
+  const pdf = new jsPDF({ 
+    orientation: 'portrait', 
+    unit: 'px', 
+    format: [pdfW, pdfH] 
+  })
+  
   pdf.addImage(imgData, 'PNG', 0, 0, pdfW, pdfH)
   pdf.save(filename)
 }
-
-// ── Main export ───────────────────────────────────────────────
 
 export default function ReceiptView({ receipt: initialReceipt, customer, onClose, onDelete, showToast }) {
   const { brand } = useBrand()
@@ -283,7 +283,6 @@ export default function ReceiptView({ receipt: initialReceipt, customer, onClose
   const [receipt,    setReceipt]    = useState(initialReceipt)
   const [pdfLoading, setPdfLoading] = useState(false)
 
-  // Honour the template that was active at generation time
   const templateKey  = receipt.template || brand.template || 'editable'
   const Template     = TEMPLATE_MAP[templateKey] || EditableTemplate
   const effectiveBrand = { ...brand, ...(receipt.brandSnapshot || {}) }
@@ -296,7 +295,8 @@ export default function ReceiptView({ receipt: initialReceipt, customer, onClose
       const filename = `${receipt.number}-${customer.name.replace(/\s+/g, '_')}.pdf`
       await generatePDF(paperRef.current, filename)
       showToast?.('PDF downloaded ✓')
-    } catch {
+    } catch (err) {
+      console.error(err)
       showToast?.('PDF failed.')
     } finally {
       setPdfLoading(false)
