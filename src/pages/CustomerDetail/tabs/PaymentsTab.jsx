@@ -34,39 +34,45 @@ function statusMeta(value) {
 }
 
 // ── ADD PAYMENT MODAL ─────────────────────────────────────────
+// Shows "Payment Type" (Full / Part) — NOT the status chips.
+// Status chips (Not Paid / Part / Paid) belong in PaymentDetail only.
 
 function AddPaymentModal({ isOpen, onClose, orders, onSave }) {
   const [selectedOrder, setSelectedOrder] = useState(null)
   const [orderDropOpen, setOrderDropOpen] = useState(false)
-  const [status,        setStatus]        = useState('not_paid')
-  const [amountPaid,    setAmountPaid]    = useState('')
+  // paymentType: 'full' | 'part'
+  const [paymentType,   setPaymentType]   = useState('full')
+  const [amount,        setAmount]        = useState('')
   const [method,        setMethod]        = useState('cash')
   const [notes,         setNotes]         = useState('')
 
   const reset = () => {
     setSelectedOrder(null); setOrderDropOpen(false)
-    setStatus('not_paid'); setAmountPaid(''); setMethod('cash'); setNotes('')
+    setPaymentType('full'); setAmount(''); setMethod('cash'); setNotes('')
   }
 
   const handleClose = () => { reset(); onClose() }
 
   const handleSave = () => {
-    if (!selectedOrder) return
-    const initialInstallments = []
-    if ((status === 'part' || status === 'paid') && amountPaid) {
-      initialInstallments.push({
-        amount: parseFloat(amountPaid),
-        method,
-        date:   today(),
-        id:     Date.now(),
-      })
-    }
+    if (!selectedOrder || !amount) return
 
-    let finalStatus = status
-    const total = initialInstallments.reduce((s, i) => s + i.amount, 0)
-    const fullPrice = parseFloat(selectedOrder.price) || 0
-    if (fullPrice > 0 && total >= fullPrice) finalStatus = 'paid'
-    if (status === 'paid') finalStatus = 'paid'
+    const installment = [{
+      amount: parseFloat(amount),
+      method,
+      date:   today(),
+      id:     Date.now(),
+    }]
+
+    // full → always 'paid'
+    // part → upgrade to 'paid' automatically if amount covers full price
+    let finalStatus
+    if (paymentType === 'full') {
+      finalStatus = 'paid'
+    } else {
+      const total     = parseFloat(amount) || 0
+      const fullPrice = parseFloat(selectedOrder.price) || 0
+      finalStatus = fullPrice > 0 && total >= fullPrice ? 'paid' : 'part'
+    }
 
     onSave({
       orderId:      selectedOrder.id,
@@ -75,7 +81,7 @@ function AddPaymentModal({ isOpen, onClose, orders, onSave }) {
       orderItems:   selectedOrder.items  ?? [],
       status:       finalStatus,
       notes:        notes.trim(),
-      installments: initialInstallments,
+      installments: installment,
       date:         today(),
     })
     reset()
@@ -86,16 +92,18 @@ function AddPaymentModal({ isOpen, onClose, orders, onSave }) {
 
   return (
     <div className={styles.overlay}>
-      <Header 
+      <Header
         type="back"
         title="New Payment"
         onBackClick={handleClose}
         customActions={[
-          { label: 'Save', onClick: handleSave, disabled: !selectedOrder }
+          { label: 'Save', onClick: handleSave, disabled: !selectedOrder || !amount }
         ]}
       />
 
       <div className={styles.modalBody}>
+
+        {/* Related Order */}
         <div className={styles.fieldGroup}>
           <label className={styles.fieldLabel}>Related Order *</label>
           {selectedOrder ? (
@@ -133,55 +141,63 @@ function AddPaymentModal({ isOpen, onClose, orders, onSave }) {
           )}
         </div>
 
+        {/* Payment Type — 2 chips: Full Payment | Part Payment */}
         <div className={styles.fieldGroup}>
-          <label className={styles.fieldLabel}>Payment Status</label>
+          <label className={styles.fieldLabel}>Payment Type</label>
           <div className={styles.statusRow}>
-            {PAY_STATUS.map(s => (
+            <button
+              className={`${styles.statusChip} ${paymentType === 'full' ? styles.statusChipActive : ''}`}
+              style={paymentType === 'full'
+                ? { borderColor: '#22c55e', color: '#22c55e', background: 'rgba(34,197,94,0.12)' }
+                : {}}
+              onClick={() => setPaymentType('full')}
+            >
+              Full Payment
+            </button>
+            <button
+              className={`${styles.statusChip} ${paymentType === 'part' ? styles.statusChipActive : ''}`}
+              style={paymentType === 'part'
+                ? { borderColor: '#fb923c', color: '#fb923c', background: 'rgba(251,146,60,0.12)' }
+                : {}}
+              onClick={() => setPaymentType('part')}
+            >
+              Part Payment
+            </button>
+          </div>
+        </div>
+
+        {/* Amount — label adapts to payment type */}
+        <div className={styles.fieldGroup}>
+          <label className={styles.fieldLabel}>
+            {paymentType === 'part' ? 'Initial Amount Paid (₦)' : 'Amount (₦)'}
+          </label>
+          <input
+            type="number"
+            className={styles.input}
+            placeholder={selectedOrder ? `of ${fmt(selectedOrder.price)}` : '0.00'}
+            inputMode="decimal"
+            value={amount}
+            onChange={e => setAmount(e.target.value)}
+          />
+        </div>
+
+        {/* Payment Method — always shown */}
+        <div className={styles.fieldGroup}>
+          <label className={styles.fieldLabel}>Payment Method</label>
+          <div className={styles.methodRow}>
+            {['cash', 'transfer', 'card', 'other'].map(m => (
               <button
-                key={s.value}
-                className={`${styles.statusChip} ${status === s.value ? styles.statusChipActive : ''}`}
-                style={status === s.value ? { borderColor: s.color, color: s.color, background: `${s.color}18` } : {}}
-                onClick={() => setStatus(s.value)}
+                key={m}
+                className={`${styles.methodChip} ${method === m ? styles.methodActive : ''}`}
+                onClick={() => setMethod(m)}
               >
-                {s.label}
+                {m.charAt(0).toUpperCase() + m.slice(1)}
               </button>
             ))}
           </div>
         </div>
 
-        {(status === 'part' || status === 'paid') && (
-          <div className={styles.fieldGroup}>
-            <label className={styles.fieldLabel}>
-              {status === 'paid' ? 'Amount Paid (₦)' : 'Initial Amount Paid (₦)'}
-            </label>
-            <input
-              type="number"
-              className={styles.input}
-              placeholder={selectedOrder ? `of ${fmt(selectedOrder.price)}` : '0.00'}
-              inputMode="decimal"
-              value={amountPaid}
-              onChange={e => setAmountPaid(e.target.value)}
-            />
-          </div>
-        )}
-
-        {(status === 'part' || status === 'paid') && (
-          <div className={styles.fieldGroup}>
-            <label className={styles.fieldLabel}>Payment Method</label>
-            <div className={styles.methodRow}>
-              {['cash', 'transfer', 'card', 'other'].map(m => (
-                <button
-                  key={m}
-                  className={`${styles.methodChip} ${method === m ? styles.methodActive : ''}`}
-                  onClick={() => setMethod(m)}
-                >
-                  {m.charAt(0).toUpperCase() + m.slice(1)}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
+        {/* Notes */}
         <div className={styles.fieldGroup}>
           <label className={styles.fieldLabel}>Notes <span className={styles.optional}>(optional)</span></label>
           <textarea
@@ -192,6 +208,7 @@ function AddPaymentModal({ isOpen, onClose, orders, onSave }) {
             onChange={e => setNotes(e.target.value)}
           />
         </div>
+
       </div>
     </div>
   )
@@ -264,19 +281,19 @@ function AddInstallmentModal({ payment, onClose, onSave }) {
 }
 
 // ── PAYMENT DETAIL MODAL ──────────────────────────────────────
+// Payment Status chips (Not Paid / Part Payment / Paid) live here.
 
 function PaymentDetail({ payment, onClose, onDelete, onStatusChange, onAddInstallment, onGenerateReceipt }) {
   const [showInstallmentModal, setShowInstallmentModal] = useState(false)
-  const sm = statusMeta(payment.status)
-
-  const totalPaid  = (payment.installments || []).reduce((s, i) => s + i.amount, 0)
-  const fullPrice  = parseFloat(payment.orderPrice) || 0
-  const remaining  = fullPrice > 0 ? fullPrice - totalPaid : null
-  const isPaid     = payment.status === 'paid'
+  const sm     = statusMeta(payment.status)
+  const totalPaid = (payment.installments || []).reduce((s, i) => s + i.amount, 0)
+  const fullPrice = parseFloat(payment.orderPrice) || 0
+  const remaining = fullPrice > 0 ? fullPrice - totalPaid : null
+  const isPaid    = payment.status === 'paid'
 
   return (
     <div className={styles.overlay}>
-      <Header 
+      <Header
         type="back"
         title="Payment Details"
         onBackClick={onClose}
@@ -308,6 +325,7 @@ function PaymentDetail({ payment, onClose, onDelete, onStatusChange, onAddInstal
           )}
         </div>
 
+        {/* Payment Status — 3 chips live here on the detail modal */}
         <div className={styles.fieldGroup} style={{ marginTop: 18 }}>
           <label className={styles.fieldLabel}>Payment Status</label>
           <div className={styles.statusRow}>
@@ -315,7 +333,9 @@ function PaymentDetail({ payment, onClose, onDelete, onStatusChange, onAddInstal
               <button
                 key={s.value}
                 className={`${styles.statusChip} ${payment.status === s.value ? styles.statusChipActive : ''}`}
-                style={payment.status === s.value ? { borderColor: s.color, color: s.color, background: `${s.color}18` } : {}}
+                style={payment.status === s.value
+                  ? { borderColor: s.color, color: s.color, background: `${s.color}18` }
+                  : {}}
                 onClick={() => onStatusChange(payment.id, s.value)}
               >
                 {s.label}
@@ -340,14 +360,12 @@ function PaymentDetail({ payment, onClose, onDelete, onStatusChange, onAddInstal
                 <span style={{ color: '#ef4444', fontWeight: 700 }}>{fmt(remaining)}</span>
               </div>
             )}
-            {fullPrice > 0 && (
-              <div className={styles.progressWrap}>
-                <div
-                  className={styles.progressBar}
-                  style={{ width: `${Math.min(100, (totalPaid / fullPrice) * 100).toFixed(1)}%` }}
-                />
-              </div>
-            )}
+            <div className={styles.progressWrap}>
+              <div
+                className={styles.progressBar}
+                style={{ width: `${Math.min(100, (totalPaid / fullPrice) * 100).toFixed(1)}%` }}
+              />
+            </div>
           </div>
         )}
 
@@ -387,9 +405,8 @@ function PaymentDetail({ payment, onClose, onDelete, onStatusChange, onAddInstal
           </button>
         )}
 
-        {/* ── Generate Receipt (replaces Generate Invoice) ── */}
         <button className={styles.generateInvoiceBtn} onClick={() => onGenerateReceipt(payment)}>
-          <span className="material-icons" style={{ fontSize: '1.2rem', verticalAlign: 'middle', marginRight: 4 }}>receipt</span>
+          <span className="mi" style={{ fontSize: '1.2rem', verticalAlign: 'middle', marginRight: 4 }}>receipt</span>
           Generate Receipt
         </button>
 
@@ -456,11 +473,11 @@ export default function PaymentsTab({ customerId, orders, showToast, onGenerateR
     const payment = payments.find(p => p.id === paymentId)
     if (!payment) return
 
-    const newInstallment = { amount, method, date: today(), id: Date.now() }
+    const newInstallment      = { amount, method, date: today(), id: Date.now() }
     const updatedInstallments = [...(payment.installments || []), newInstallment]
-    const totalPaid  = updatedInstallments.reduce((s, i) => s + i.amount, 0)
-    const fullPrice  = parseFloat(payment.orderPrice) || 0
-    const newStatus  = fullPrice > 0 && totalPaid >= fullPrice ? 'paid' : payment.status
+    const totalPaid           = updatedInstallments.reduce((s, i) => s + i.amount, 0)
+    const fullPrice           = parseFloat(payment.orderPrice) || 0
+    const newStatus           = fullPrice > 0 && totalPaid >= fullPrice ? 'paid' : payment.status
 
     try {
       await updatePayment(user.uid, customerId, paymentId, {
@@ -507,7 +524,6 @@ export default function PaymentsTab({ customerId, orders, showToast, onGenerateR
         <div key={date} className={styles.payGroup}>
           <div className={styles.payGroupDate}>{date}</div>
           <div className={styles.payGroupDivider} />
-
           {datePayments.map((p, idx) => {
             const sm        = statusMeta(p.status)
             const isLast    = idx === datePayments.length - 1
