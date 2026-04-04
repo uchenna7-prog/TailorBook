@@ -14,7 +14,7 @@ const PRIORITY_BANNER = {
 }
 
 const STATUSES = [
-  { value: 'pending', label: 'Pending' },
+  { value: 'pending',   label: 'Pending'   },
   { value: 'completed', label: 'Completed' },
   { value: 'delivered', label: 'Delivered' },
   { value: 'cancelled', label: 'Cancelled' },
@@ -59,7 +59,6 @@ function OrderModal({ isOpen, onClose, measurements, onSave }) {
   }
 
   const totalPrice = selectedItems.reduce((sum, item) => sum + (parseFloat(item.price) || 0), 0)
-  // Dynamic Qty based on selection length
   const dynamicQty = selectedItems.length || 1
 
   const filteredMeasurements = pickerQuery.trim()
@@ -198,9 +197,9 @@ function OrderModal({ isOpen, onClose, measurements, onSave }) {
 }
 
 // ── ORDER DETAIL ──────────────────────────────────────────────
-function OrderDetail({ order, measurements, onClose, onDelete, onStatusChange }) {
+function OrderDetail({ order, measurements, onClose, onDelete, onStatusChange, onGenerateInvoice }) {
   if (!order) return null
-  const banner = PRIORITY_BANNER[order.priority] ?? PRIORITY_BANNER.normal
+  const banner  = PRIORITY_BANNER[order.priority] ?? PRIORITY_BANNER.normal
   const placedOn = order.date || formatDate(order.createdAt)
 
   return (
@@ -266,17 +265,27 @@ function OrderDetail({ order, measurements, onClose, onDelete, onStatusChange })
         )}
 
         <div className={styles.detailDate}>Order Placed: {placedOn} • Qty: {order.qty}</div>
+
+        {/* ── Generate Invoice button ── */}
+        <button
+          className={styles.generateInvoiceBtn}
+          onClick={() => onGenerateInvoice(order.id)}
+          style={{ marginTop: 16 }}
+        >
+          <span className="material-icons" style={{ fontSize: '1.2rem', verticalAlign: 'middle', marginRight: 6 }}>receipt_long</span>
+          Generate Invoice
+        </button>
       </div>
     </div>
   )
 }
 
 // ── MAIN TAB ──────────────────────────────────────────────────
-export default function OrdersTab({ customerId, orders, measurements, showToast }) {
+export default function OrdersTab({ customerId, orders, measurements, showToast, onGenerateInvoice }) {
   const { addOrder, deleteOrder, updateOrderStatus } = useOrders()
-  const [modalOpen, setModalOpen] = useState(false)
+  const [modalOpen,   setModalOpen]   = useState(false)
   const [detailOrder, setDetailOrder] = useState(null)
-  const [confirmDel, setConfirmDel] = useState(null)
+  const [confirmDel,  setConfirmDel]  = useState(null)
 
   useEffect(() => {
     const handler = () => setModalOpen(true)
@@ -334,10 +343,10 @@ export default function OrdersTab({ customerId, orders, measurements, showToast 
           <div className={styles.orderGroupDate}>{date}</div>
           <div className={styles.orderGroupDivider} />
           {dateOrders.map((o, idx) => {
-            const priceStr = o.price ? `₦${Number(o.price).toLocaleString()}` : '₦0'
+            const priceStr   = o.price ? `₦${Number(o.price).toLocaleString()}` : '₦0'
             const statusLabel = STATUSES.find(s => s.value === o.status)?.label ?? 'Pending'
-            const itemsList = o.items || []
-            const thumb = itemsList[0]?.imgSrc
+            const itemsList  = o.items || []
+            const thumb      = itemsList[0]?.imgSrc
 
             return (
               <div key={o.id} className={`${styles.orderListItem} ${idx === dateOrders.length - 1 ? styles.orderListItemLast : ''}`} onClick={() => setDetailOrder(o)}>
@@ -362,9 +371,22 @@ export default function OrdersTab({ customerId, orders, measurements, showToast 
       ))}
 
       <OrderModal isOpen={modalOpen} onClose={() => setModalOpen(false)} measurements={measurements} onSave={handleSave} />
-      {detailOrder && <OrderDetail order={detailOrder} measurements={measurements} onClose={() => setDetailOrder(null)} onDelete={() => setConfirmDel(detailOrder)} onStatusChange={handleStatusChange} />}
+
+      {detailOrder && (
+        <OrderDetail
+          order={detailOrder}
+          measurements={measurements}
+          onClose={() => setDetailOrder(null)}
+          onDelete={() => setConfirmDel(detailOrder)}
+          onStatusChange={handleStatusChange}
+          onGenerateInvoice={(orderId) => {
+            setDetailOrder(null)
+            onGenerateInvoice(orderId)
+          }}
+        />
+      )}
+
       <ConfirmSheet open={!!confirmDel} title="Delete Order?" message="This can't be undone." onConfirm={handleDeleteConfirm} onCancel={() => setConfirmDel(null)} />
     </>
   )
 }
-
