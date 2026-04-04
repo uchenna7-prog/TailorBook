@@ -74,7 +74,8 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1)
 
 const MALE_MEASUREMENTS = [
   'Neck', 'Shoulder Width', 'Half Shoulder', 'Chest', 'Cross Back',
-  'Waist', 'Hip', 'Shirt Length', 'Sleeve Length', 'Thigh', 'Knee',
+  'Waist', 'Hip', 'Shirt Length', 'Sleeve Length', 'Arm Length',
+  'Arm Hole', 'Biceps', 'Wrist', 'Thigh', 'Knee',
   'Trouser Length', 'Trouser Waist', 'Inseam', 'Jacket Length',
   'Coat Sleeve', 'Coat Waist'
 ]
@@ -83,8 +84,19 @@ const MALE_MEASUREMENT_IMAGES = {
   'Neck':           '/neckMale.jpg',
   'Shoulder Width': '/shoulderWidthMale.jpg',
   'Half Shoulder':  '/halfShoulderMale.jpg',
+  'Chest':          '/chestMale.jpg',
   'Cross Back':     '/crossBackMale.jpg',
-  'Chest':'/chestMale.jpg'
+  'Waist':          '/waistMale.jpg',
+  'Hip':            '/hipMale.jpg',
+  'Shirt Length':   '/shirtLengthMale.jpg',
+  'Sleeve Length':  '/sleeveLengthMale.jpg',
+  'Arm Length':     '/armLengthMale.jpg',
+  'Arm Hole':       '/armHoleMale.jpg',
+  'Biceps':         '/bicepsMale.jpg',
+  'Wrist':          '/wristMale.jpg',
+  'Jacket Length':  '/jacketLengthMale.jpg',
+  'Coat Sleeve':    '/sleeveLengthForSuitMale.jpg',
+  'Coat Waist':     '/coatWaistMale.jpg',
 }
 
 const FEMALE_MEASUREMENTS = [
