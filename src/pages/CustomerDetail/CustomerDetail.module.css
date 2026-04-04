@@ -1,31 +1,26 @@
+/* src/pages/CustomerDetail/CustomerDetail.module.css */
+
 .page {
   background: var(--bg);
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
+  position: relative;
 }
 
-/* The top-most back button and actions stay fixed at the very top */
+/* ── STICKY NAVIGATION ── */
 .navHeader {
   position: sticky;
   top: 0;
-  z-index: 102;
+  z-index: 110;
   background: var(--bg);
+  min-height: 56px;
 }
 
-/* This container scrolls normally */
+/* ── PROFILE SECTION (SCROLLS AWAY) ── */
 .profileContainer {
   background: var(--bg);
-}
-
-/* This is the magic part: the tabs wrapper sticks under the navHeader */
-.stickyTabsWrapper {
-  position: sticky;
-  top: 56px; /* Adjust this to match the exact height of your Header component */
-  z-index: 101;
-  background: var(--bg);
-  border-top: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
+  width: 100%;
 }
 
 .profileSection {
@@ -35,39 +30,162 @@
   border-bottom: 1px solid var(--border);
 }
 
-.leftColumn { display: flex; flex-direction: column; align-items: center; gap: 6px; }
-.avatar { width: 80px; height: 80px; border-radius: 50%; background: var(--surface2); display: grid; place-items: center; font-weight: 700; font-size: 28px; border: 2px solid var(--accent); color: var(--accent); overflow: hidden; }
-.avatarImg { width: 100%; height: 100%; object-fit: cover; }
-.birthday { font-weight: 600; font-size: 0.8rem; color: var(--warning); white-space: nowrap; }
-.rightColumn { flex: 1; display: flex; flex-direction: column; gap: 6px; justify-content: center; }
-.name { font-size: 1.1rem; font-weight: 700; }
-.meta { display: flex; gap: 4px; color: var(--text2); font-size: 0.75rem; align-items: flex-start; }
-.meta .mi { font-size: 0.9rem; line-height: 1; display: inline-flex; align-items: flex-start; justify-content: center; margin-top: 2px; color: inherit; }
+.profileSectionFree {
+  display: flex;
+  flex-direction: column;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--border);
+}
 
-.actions { display: flex; justify-content: space-around; gap: 6px; margin: 12px 0; padding: 0 12px; }
-.actions button { display: flex; align-items: center; gap: 4px; border: none; padding: 6px 10px; font-size: 0.8rem; cursor: pointer; border-radius: 8px; white-space: nowrap; }
+.leftColumn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--surface2);
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 28px;
+  border: 2px solid var(--accent);
+  color: var(--accent);
+  overflow: hidden;
+}
+
+.avatarImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.rightColumn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  justify-content: center;
+}
+
+.name {
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.meta {
+  display: flex;
+  gap: 4px;
+  color: var(--text2);
+  font-size: 0.75rem;
+  align-items: flex-start;
+}
+
+.meta .mi {
+  font-size: 0.9rem;
+  line-height: 1;
+  display: inline-flex;
+  margin-top: 2px;
+  color: inherit;
+}
+
+.metaInline {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 12px;
+  row-gap: 6px;
+  align-items: center;
+}
+
+.metaItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text2);
+  font-size: 0.8rem;
+}
+
+.metaItem:not(:last-child)::after {
+  content: '|';
+  margin-left: 10px;
+  color: var(--border);
+  opacity: 0.5;
+}
+
+.metaItem .mi {
+  font-size: 1.1rem;
+  color: var(--accent);
+}
+
+.birthday {
+  font-weight: 600;
+  font-size: 0.8rem;
+  color: var(--warning);
+  white-space: nowrap;
+}
+
+.metaItem.birthday .mi {
+  color: var(--warning);
+}
+
+/* ── ACTION BUTTONS ── */
+.actions {
+  display: flex;
+  justify-content: space-around;
+  gap: 6px;
+  margin: 12px 0;
+  padding: 0 12px;
+}
+
+.actions button {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border: none;
+  padding: 8px 12px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  border-radius: 8px;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
 .btn.light { background: var(--surface2); color: var(--text); }
-.btn.light .mi { color: var(--text); }
 .btn.primary { background: var(--text); color: var(--bg); }
-.btn.primary .mi { color: var(--bg); }
+
+/* ── THE STICKY TABS ── */
+.stickyTabsWrapper {
+  position: sticky;
+  top: 56px; /* Sticks exactly under the navHeader */
+  z-index: 100;
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
 
 .tabs {
   display: flex;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
-  scroll-behavior: smooth;
 }
-.tabs::-webkit-scrollbar { display: none; }
+
+.tabs::-webkit-scrollbar {
+  display: none;
+}
 
 .tab {
   flex: 0 0 auto;
-  padding: 14px 18px;
+  padding: 14px 20px;
   font-size: 0.75rem;
   font-weight: 700;
   color: var(--text3);
   text-transform: uppercase;
-  letter-spacing: 0.4px;
+  letter-spacing: 0.5px;
   cursor: pointer;
   position: relative;
   text-align: center;
@@ -75,36 +193,45 @@
   transition: color 0.2s;
 }
 
-.tab.active { color: var(--accent); font-weight: 800; }
-.tab.active::after { 
-  content: ''; 
-  position: absolute; 
-  bottom: 0; 
-  left: 0; 
-  right: 0; 
-  height: 2px;
-  border-radius:1px;
-  background: var(--accent); 
+.tab.active {
+  color: var(--accent);
+  font-weight: 800;
 }
 
+.tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  border-radius:1px;
+  background: var(--accent);
+}
+
+/* ── SCROLLABLE CONTENT ── */
 .tabContent {
   padding: 12px 20px 120px;
   flex: 1;
+  background: var(--bg);
 }
 
-.fab { position: fixed; bottom: calc(30px + var(--sb)); right: 22px; width: 58px; height: 58px; border-radius: 50%; background: var(--text); color: var(--bg); border: none; display: flex; align-items: center; justify-content: center; z-index: 200; cursor: pointer; box-shadow: 0 8px 24px rgba(0,0,0,0.2); font-size: 1.8rem; }
-
-/* FREE MODE */
-.profileSectionFree {
+/* ── FLOATING ACTION BUTTON ── */
+.fab {
+  position: fixed;
+  bottom: calc(30px + var(--sb, 0px));
+  right: 22px;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: var(--text);
+  color: var(--bg);
+  border: none;
   display: flex;
-  flex-direction: column;
-  padding: 16px 18px;
-  border-bottom: 1px solid var(--border);
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  font-size: 1.8rem;
 }
-.profileSectionFree .name { font-size: 1.15rem; font-weight: 700; margin-bottom: 8px; }
-.metaInline { display: flex; flex-wrap: wrap; column-gap: 12px; row-gap: 6px; align-items: center; }
-.metaItem { display: flex; align-items: flex-start; gap: 6px; color: var(--text2); font-size: 0.8rem; }
-.metaItem:not(:last-child)::after { content: '|'; margin-left: 10px; color: var(--border); opacity: 0.5; }
-.metaItem .mi { font-size: 1.1rem; color: var(--accent); }
-.metaItem.birthday { color: var(--warning); font-weight: 600; }
-.metaItem.birthday .mi { color: var(--warning); }
