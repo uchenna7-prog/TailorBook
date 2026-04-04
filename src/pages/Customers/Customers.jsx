@@ -73,10 +73,18 @@ const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov
 const DAYS = Array.from({ length: 31 }, (_, i) => i + 1)
 
 const MALE_MEASUREMENTS = [
-  'Chest', 'Waist', 'Hip', 'Shoulder Width', 'Shirt Length',
-  'Sleeve Length', 'Neck', 'Thigh', 'Knee', 'Trouser Length',
-  'Trouser Waist', 'Inseam', 'Jacket Length', 'Coat Sleeve', 'Coat Waist'
+  'Neck', 'Shoulder Width', 'Half Shoulder', 'Chest', 'Cross Back',
+  'Waist', 'Hip', 'Shirt Length', 'Sleeve Length', 'Thigh', 'Knee',
+  'Trouser Length', 'Trouser Waist', 'Inseam', 'Jacket Length',
+  'Coat Sleeve', 'Coat Waist'
 ]
+
+const MALE_MEASUREMENT_IMAGES = {
+  'Neck':           '/neckMale.jpg',
+  'Shoulder Width': '/shoulderWidthMale.jpg',
+  'Half Shoulder':  '/halfShoulderMale.jpg',
+  'Cross Back':     '/crossBackMale.jpg',
+}
 
 const FEMALE_MEASUREMENTS = [
   'Bust', 'Waist', 'Hip', 'Shoulder Width', 'Dress Length',
@@ -278,19 +286,45 @@ function AddCustomerForm({ isOpen, onClose, onSave, isPremium }) {
                   <p style={{ fontSize:'0.65rem', fontWeight:800, color:'var(--text3)', textTransform:'uppercase', letterSpacing:1, marginBottom:14 }}>
                     {sex === 'Female' ? 'Female' : 'Male'} body measurements (inches)
                   </p>
-                  {measureFields.map(field => (
-                    <div key={field} className={styles.inputGroup}>
-                      <label className={styles.inputLabel}>{field}</label>
-                      <input
-                        type="number"
-                        className={styles.formInput}
-                        placeholder="0"
-                        inputMode="decimal"
-                        value={bodyMeasurements[field] || ''}
-                        onChange={e => updateBodyMeasure(field, e.target.value)}
-                      />
-                    </div>
-                  ))}
+                  {measureFields.map((field, idx) => {
+                    const imgSrc = sex === 'Male' ? MALE_MEASUREMENT_IMAGES[field] : null
+                    const isLastImgField = sex === 'Male' && imgSrc &&
+                      !measureFields.slice(idx + 1).some(f => MALE_MEASUREMENT_IMAGES[f])
+                    if (imgSrc) {
+                      return (
+                        <div
+                          key={field}
+                          className={`${styles.measureImgRow} ${isLastImgField ? styles.measureImgRowLast : ''}`}
+                        >
+                          <img src={imgSrc} alt={field} className={styles.measureImg} />
+                          <div className={styles.measureImgRight}>
+                            <label className={styles.inputLabel}>{field}</label>
+                            <input
+                              type="number"
+                              className={styles.formInput}
+                              placeholder="0"
+                              inputMode="decimal"
+                              value={bodyMeasurements[field] || ''}
+                              onChange={e => updateBodyMeasure(field, e.target.value)}
+                            />
+                          </div>
+                        </div>
+                      )
+                    }
+                    return (
+                      <div key={field} className={styles.inputGroup}>
+                        <label className={styles.inputLabel}>{field}</label>
+                        <input
+                          type="number"
+                          className={styles.formInput}
+                          placeholder="0"
+                          inputMode="decimal"
+                          value={bodyMeasurements[field] || ''}
+                          onChange={e => updateBodyMeasure(field, e.target.value)}
+                        />
+                      </div>
+                    )
+                  })}
                   {customFields.map(f => (
                     <div key={f.id} className={styles.customFieldRow}>
                       <div className={styles.customFieldInputs}>
