@@ -48,6 +48,7 @@ export default function CustomerDetail({ onMenuClick }) {
   const fixedRef   = useRef(null)
   const tabsRef    = useRef(null)
 
+  // Orders now come from OrdersContext (real-time Firestore)
   const orders = getOrders(id)
 
   useEffect(() => {
@@ -60,7 +61,7 @@ export default function CustomerDetail({ onMenuClick }) {
     toastTimer.current = setTimeout(() => setToastMsg(''), 2400)
   }, [])
 
-  // ── UPDATED FUNCTION ───────────────────────────────────────
+  // ── Generate invoice (called from PaymentsTab) ────────────
   const handleGenerateInvoice = useCallback(async (orderId) => {
     const existing = data.invoices.find(inv => String(inv.orderId) === String(orderId))
     if (existing) { showToast('Invoice already exists'); setActiveTab('invoice'); return }
@@ -68,23 +69,30 @@ export default function CustomerDetail({ onMenuClick }) {
     const order = orders.find(o => String(o.id) === String(orderId))
     if (!order) return
 
+    // ── Snapshot current brand/invoice settings at creation time
+    // so InvoiceView always renders this invoice with the template
+    // and brand that were active when it was generated — even if
+    // the user changes Settings later.
     let settingsSnap = {}
     try {
       settingsSnap = JSON.parse(localStorage.getItem('tailorbook_settings') || '{}')
-    } catch {}
+    } catch { /* ignore */ }
 
     const invNumber   = `INV-${String(data.invoices.length + 1).padStart(3, '0')}`
     const today       = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
     const ids         = order.measurementIds?.length ? order.measurementIds : (order.measurementId ? [order.measurementId] : [])
     const linkedNames = ids.map(mid => data.measurements.find(m => String(m.id) === String(mid))?.name).filter(Boolean)
-    const items       = Array.isArray(order.items) ? order.items : []
+
+    // Carry the itemised breakdown from the order so InvoiceView
+    // can render each garment line with its individual price.
+    const items = Array.isArray(order.items) ? order.items : []
 
     const newInvoice = {
       id:        Date.now() + Math.random(),
       orderId,
       number:    invNumber,
       orderDesc: order.desc,
-      price:     order.price,
+      price:     order.price,   // grand total — kept for legacy fallback
       qty:       order.qty,
       items,
       linkedNames,
@@ -93,16 +101,18 @@ export default function CustomerDetail({ onMenuClick }) {
       status:    'unpaid',
       date:      today,
 
+      // ── Template key locked at creation time ──────────────
       template: settingsSnap.invoiceTemplate || 'editable',
 
+      // ── Brand snapshot locked at creation time ────────────
       brandSnapshot: {
-        name:     settingsSnap.brandName     || '',
-        tagline:  settingsSnap.brandTagline  || '',
-        colour:   settingsSnap.brandColour   || '#D4AF37',
-        phone:    settingsSnap.brandPhone    || '',
-        email:    settingsSnap.brandEmail    || '',
-        address:  settingsSnap.brandAddress  || '',
-        footer:   settingsSnap.invoiceFooter || 'Thank you for your patronage 🙏',
+        name:     settingsSnap.brandName      || '',
+        tagline:  settingsSnap.brandTagline   || '',
+        colour:   settingsSnap.brandColour    || '#D4AF37',
+        phone:    settingsSnap.brandPhone     || '',
+        email:    settingsSnap.brandEmail     || '',
+        address:  settingsSnap.brandAddress   || '',
+        footer:   settingsSnap.invoiceFooter  || 'Thank you for your patronage 🙏',
         currency: settingsSnap.invoiceCurrency || '₦',
         showTax:  settingsSnap.invoiceShowTax  || false,
         taxRate:  settingsSnap.invoiceTaxRate  || 0,
@@ -119,7 +129,7 @@ export default function CustomerDetail({ onMenuClick }) {
     }
   }, [data, orders, showToast])
 
-  // ── Event listeners ───────────────────────────────────────
+  // ── Global event listeners (OrdersTab generate invoice) ───
   useEffect(() => {
     const handleSwitch   = () => setActiveTab('invoice')
     const handleGenerate = (e) => handleGenerateInvoice(e.detail.orderId)
@@ -132,7 +142,7 @@ export default function CustomerDetail({ onMenuClick }) {
     }
   }, [handleGenerateInvoice])
 
-  // ── Header height calc ────────────────────────────────────
+  // ── Measure fixed header height ───────────────────────────
   useEffect(() => {
     if (fixedRef.current) {
       const height = fixedRef.current.offsetHeight
@@ -140,72 +150,166 @@ export default function CustomerDetail({ onMenuClick }) {
     }
   }, [activeTab, data, isPremium])
 
-  // ── UI ────────────────────────────────────────────────────
-  if (!data.customer) return null
+  // ── Tab click: set active + smooth scroll into view ───────
+  const handleTabClick = (e, tabId) => {
+    setActiveTab(tabId)
+    e.currentTarget.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' })
+  }
+
+  const customer = getCustomer(id)
+  if (!customer) return null
+
+  const initials = getInitials(customer.name)
+  const birthday = getBirthday(customer.birthday)
+  const hasPhoto = isPremium && customer.photo
+
+  // FAB click — dispatch the right event per tab
+  const handleFabClick = () => {
+    if (activeTab === 'dress')    document.dispatchEvent(new CustomEvent('openMeasureModal'))
+    if (activeTab === 'orders')   document.dispatchEvent(new CustomEvent('openOrderModal'))
+    if (activeTab === 'payments') document.dispatchEvent(new CustomEvent('openPaymentModal'))
+  }
+
+  const showFab = ['dress', 'orders', 'payments'].includes(activeTab)
 
   return (
     <div className={styles.page}>
-      <Header onMenuClick={onMenuClick} />
 
-      <div ref={fixedRef} className={styles.fixedTop}>
-        <div className={styles.profile}>
-          <div className={styles.avatar}>
-            {getInitials(data.customer.name)}
-          </div>
+      {/* ── FIXED HEADER GROUP ── */}
+      <div className={styles.fixedHeaderGroup} ref={fixedRef}>
+        <Header
+          type="back"
+          title="Customer Details"
+          customActions={[
+            { icon: 'edit',   label: 'Edit Customer',   onClick: () => navigate(`/customers/edit/${id}`), outlined: true },
+            { icon: 'delete', label: 'Delete Customer', onClick: () => deleteCustomer(id), outlined: true, color: 'var(--danger)' },
+          ]}
+        />
 
-          <div>
-            <h2>{data.customer.name}</h2>
-            {data.customer.phone && <p>{data.customer.phone}</p>}
-            {getBirthday(data.customer.birthday) && (
-              <p>🎂 {getBirthday(data.customer.birthday)}</p>
-            )}
-          </div>
-        </div>
+        <div className={styles.fixedTopContainer}>
+          {isPremium ? (
+            <div className={styles.profileSection}>
+              <div className={styles.leftColumn}>
+                <div className={styles.avatar}>
+                  {hasPhoto
+                    ? <img src={customer.photo} className={styles.avatarImg} alt={customer.name} />
+                    : initials
+                  }
+                </div>
+                {birthday && <div className={styles.birthday}>🎈 {birthday}</div>}
+              </div>
+              <div className={styles.rightColumn}>
+                <div className={styles.name}>{customer.name}{customer.sex && ` (${customer.sex})`}</div>
+                <div className={styles.meta}><span className="mi">call</span>{customer.phone}</div>
+                {customer.email   && <div className={styles.meta}><span className="mi">mail_outline</span>{customer.email}</div>}
+                {customer.address && <div className={styles.meta}><span className="mi">place</span>{customer.address}</div>}
+              </div>
+            </div>
+          ) : (
+            <div className={styles.profileSectionFree}>
+              <div className={styles.name}>{customer.name}{customer.sex && ` (${customer.sex})`}</div>
+              <div className={styles.metaInline}>
+                <div className={styles.metaItem}>
+                  <span className="mi">call</span>
+                  <span>{customer.phone}</span>
+                </div>
+                {birthday && (
+                  <div className={`${styles.metaItem} ${styles.birthday}`}>
+                    <span className="mi">cake</span>
+                    <span>{birthday}</span>
+                  </div>
+                )}
+                {customer.email && (
+                  <div className={styles.metaItem}>
+                    <span className="mi">mail_outline</span>
+                    <span>{customer.email}</span>
+                  </div>
+                )}
+                {customer.address && (
+                  <div className={styles.metaItem}>
+                    <span className="mi">place</span>
+                    <span>{customer.address}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
-        <div ref={tabsRef} className={styles.tabs}>
-          {TABS.map(tab => (
-            <button
-              key={tab.id}
-              className={`${styles.tab} ${activeTab === tab.id ? styles.active : ''}`}
-              onClick={() => setActiveTab(tab.id)}
-            >
-              {tab.label}
+          <div className={styles.actions}>
+            <button className={`${styles.btn} ${styles.light}`} onClick={() => window.location = `tel:${customer.phone}`}>
+              <span className="mi">call</span>Call
             </button>
-          ))}
+            <button className={`${styles.btn} ${styles.light}`} onClick={() => window.location = `mailto:${customer.email}`}>
+              <span className="mi">mail_outline</span>Email
+            </button>
+            <button className={`${styles.btn} ${styles.primary}`}>
+              <span className="mi">straighten</span>Full Body Measurements
+            </button>
+          </div>
+
+          {/* ── TABS — horizontally scrollable with smooth scroll ── */}
+          <div className={styles.tabs} ref={tabsRef}>
+            {TABS.map(tab => (
+              <div
+                key={tab.id}
+                className={`${styles.tab} ${activeTab === tab.id ? styles.active : ''}`}
+                onClick={(e) => handleTabClick(e, tab.id)}
+              >
+                {tab.label}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
-      <div className={styles.content}>
+      {/* ── SCROLL CONTENT ── */}
+      <div className={styles.scrollContent}>
         {activeTab === 'dress' && (
-          <MeasurementsTab data={data} showToast={showToast} />
-        )}
-
-        {activeTab === 'orders' && (
-          <OrdersTab
-            data={data}
+          <MeasurementsTab
+            measurements={data.measurements}
+            onSave={data.saveMeasurement}
+            onDelete={data.deleteMeasurement}
             showToast={showToast}
           />
         )}
-
+        {activeTab === 'orders' && (
+          <OrdersTab
+            customerId={id}
+            orders={orders}
+            measurements={data.measurements}
+            showToast={showToast}
+          />
+        )}
         {activeTab === 'payments' && (
           <PaymentsTab
-            data={data}
+            customerId={id}
             orders={orders}
             showToast={showToast}
             onGenerateInvoice={handleGenerateInvoice}
           />
         )}
-
         {activeTab === 'invoice' && (
           <InvoiceTab
-            data={data}
             invoices={invoicesState}
+            orders={orders}
+            measurements={data.measurements}
+            customer={customer}
+            onSave={data.saveInvoice}
+            onDelete={data.deleteInvoice}
+            onStatusChange={data.updateInvoiceStatus}
             showToast={showToast}
           />
         )}
       </div>
 
-      {toastMsg && <Toast message={toastMsg} />}
+      {/* ── FAB ── */}
+      {showFab && (
+        <button className={styles.fab} onClick={handleFabClick}>
+          <span className="mi">add</span>
+        </button>
+      )}
+
+      <Toast message={toastMsg} />
     </div>
   )
 }
