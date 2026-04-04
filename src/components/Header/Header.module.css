@@ -99,16 +99,24 @@
   border-radius: 2px;
 }
 
-/* ── NOTIFICATION DOT ── */
+/* ── NOTIFICATION DOT / COUNT BADGE ── */
 .notifDot {
   position: absolute;
-  top: 7px;
-  right: 7px;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
+  top: 4px;
+  right: 4px;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 10px;
   background: var(--warning);
   border: 2px solid var(--bg);
+  font-size: 0.5rem;
+  font-weight: 800;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 3px;
+  line-height: 1;
 }
 
 /* ── DROPDOWN ── */
@@ -278,3 +286,84 @@
 }
 .notifEmpty span { font-size: 2.5rem; opacity: 0.2; }
 .notifEmpty p    { font-size: 0.85rem; color: var(--text3); }
+
+/* ── NOTIFICATION TABS ── */
+.notifTabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  padding: 0 20px;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.notifTabBtn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px 4px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  position: relative;
+  transition: color 0.2s;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.notifTabActive {
+  color: var(--accent);
+  font-weight: 800;
+}
+
+.notifTabActive::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 10%;
+  right: 10%;
+  height: 2px;
+  background: var(--accent);
+  border-radius: 1px;
+}
+
+.notifTabBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface2);
+  color: var(--text3);
+  font-size: 0.58rem;
+  font-weight: 800;
+  border-radius: 20px;
+  padding: 1px 5px;
+  min-width: 16px;
+  border: 1px solid var(--border);
+}
+
+.notifTabBadgeAlert {
+  background: rgba(251,146,60,0.15);
+  color: var(--warning);
+  border-color: rgba(251,146,60,0.35);
+}
+
+/* ── MARK ALL READ BUTTON ── */
+.markAllBtn {
+  background: none;
+  border: none;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--accent);
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-family: 'DM Sans', sans-serif;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+.markAllBtn:active { background: var(--surface2); }
