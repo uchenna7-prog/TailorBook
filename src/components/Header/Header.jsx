@@ -1,3 +1,5 @@
+// src/components/Header/Header.jsx
+
 import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useNotifications } from '../../contexts/NotificationContext'
@@ -14,7 +16,6 @@ const TYPE_BG = {
 
 function timeLabel(timeStr) {
   if (!timeStr) return ''
-  // If stored as YYYY-MM-DD
   if (/^\d{4}-\d{2}-\d{2}$/.test(timeStr)) {
     const diff = Math.round((new Date(timeStr + 'T00:00:00') - new Date().setHours(0,0,0,0)) / 86400000)
     if (diff === 0)  return 'Today'
@@ -23,11 +24,9 @@ function timeLabel(timeStr) {
     if (diff < 0)    return `${Math.abs(diff)}d ago`
     return `In ${diff}d`
   }
-  // If stored as "MM-DD" (birthday)
   return timeStr
 }
 
-// ── Single notification row ───────────────────────────────────
 function NotifItem({ n, onRead }) {
   return (
     <div
@@ -47,12 +46,10 @@ function NotifItem({ n, onRead }) {
   )
 }
 
-// ─────────────────────────────────────────────────────────────
-
 function Header({ onMenuClick, onBackClick, type = 'default', title, customActions = [] }) {
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [notifOpen,    setNotifOpen]    = useState(false)
-  const [notifTab,     setNotifTab]     = useState('all')   // 'all' | 'unread' | 'read'
+  const [notifTab,     setNotifTab]     = useState('all')
   const navigate = useNavigate()
   const location = useLocation()
 
@@ -64,7 +61,9 @@ function Header({ onMenuClick, onBackClick, type = 'default', title, customActio
     '/tasks':     'Tasks',
     '/settings':  'Settings',
   }
-  const pageTitle = title ?? PAGE_TITLES[location.pathname] ?? 'TailorFlow'
+
+  // UPDATED: Prioritize passed title prop strictly for dynamic updates (e.g. scrolling names)
+  const pageTitle = title || PAGE_TITLES[location.pathname] || 'TailorFlow'
 
   const PAGE_DROPDOWN = {
     '/': [
@@ -115,7 +114,6 @@ function Header({ onMenuClick, onBackClick, type = 'default', title, customActio
     else navigate(-1)
   }
 
-  // ── Filtered lists per tab ────────────────────────────────
   const visibleNotifs = (() => {
     if (notifTab === 'unread') return notifications.filter(n => n.unread)
     if (notifTab === 'read')   return notifications.filter(n => !n.unread)
@@ -142,7 +140,8 @@ function Header({ onMenuClick, onBackClick, type = 'default', title, customActio
               <span className="mi" style={{ fontSize: '1.4rem' }}>arrow_back</span>
             </button>
           )}
-          <div className={styles.title}>{pageTitle}</div>
+          {/* Added 'header-title' class for CSS targeting */}
+          <div className={`${styles.title} header-title`}>{pageTitle}</div>
         </div>
 
         {type === 'back' && customActions.length > 0 && (
@@ -172,7 +171,6 @@ function Header({ onMenuClick, onBackClick, type = 'default', title, customActio
 
         {type === 'default' && (
           <div className={styles.rightActions}>
-            {/* Notification bell */}
             <button className={styles.iconBtn} onClick={openNotif} aria-label="Notifications">
               <span className="mi" style={{ fontSize: '1.4rem', color: 'var(--text2)' }}>notifications</span>
               {unreadCount > 0 && (
@@ -182,7 +180,6 @@ function Header({ onMenuClick, onBackClick, type = 'default', title, customActio
               )}
             </button>
 
-            {/* More menu */}
             <div className={styles.dropdownWrap}>
               <button className={styles.iconBtn} onClick={toggleDropdown} aria-label="More options">
                 <span className="mi" style={{ fontSize: '1.4rem', color: 'var(--text2)' }}>more_vert</span>
@@ -212,12 +209,9 @@ function Header({ onMenuClick, onBackClick, type = 'default', title, customActio
         )}
       </header>
 
-      {/* ── NOTIFICATION PANEL ── */}
       {type === 'default' && notifOpen && (
         <div className={styles.notifOverlay} onClick={e => e.target === e.currentTarget && closeNotif()}>
           <div className={styles.notifPanel}>
-
-            {/* Panel header */}
             <div className={styles.notifHeader}>
               <span className={styles.notifTitle}>Notifications</span>
               <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -232,7 +226,6 @@ function Header({ onMenuClick, onBackClick, type = 'default', title, customActio
               </div>
             </div>
 
-            {/* Tabs */}
             <div className={styles.notifTabs}>
               {TABS.map(t => (
                 <button
@@ -250,7 +243,6 @@ function Header({ onMenuClick, onBackClick, type = 'default', title, customActio
               ))}
             </div>
 
-            {/* Body */}
             <div className={styles.notifBody}>
               {visibleNotifs.length === 0 ? (
                 <div className={styles.notifEmpty}>
@@ -267,7 +259,6 @@ function Header({ onMenuClick, onBackClick, type = 'default', title, customActio
                 ))
               )}
             </div>
-
           </div>
         </div>
       )}
