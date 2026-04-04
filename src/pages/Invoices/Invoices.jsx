@@ -1,24 +1,19 @@
 // src/pages/Invoices/Invoices.jsx
+// ─────────────────────────────────────────────────────────────
+// Displays ALL invoices across ALL customers.
+// Subscribes to each customer's invoices subcollection live.
+// ─────────────────────────────────────────────────────────────
 
 import { useState, useEffect, useRef } from 'react'
 import { useAuth }      from '../../contexts/AuthContext'
 import { useCustomers } from '../../contexts/CustomerContext'
 import { useSettings }  from '../../contexts/SettingsContext'
 import { subscribeToInvoices, updateInvoiceStatus, deleteInvoice } from '../../services/invoiceService'
-import Header      from '../../components/Header/Header'
 import InvoiceView from '../CustomerDetail/tabs/InvoiceView'
-import ConfirmSheet from '../../components/ConfirmSheet/ConfirmSheet'
-import Toast        from '../../components/Toast/Toast'
+import Header from '../../components/Header/Header'
 import styles from './Invoices.module.css'
 
 // ── Helpers ───────────────────────────────────────────────────
-
-function calculateInvoiceTotal(invoice) {
-  if (invoice.items && invoice.items.length > 0) {
-    return invoice.items.reduce((sum, item) => sum + (parseFloat(item.price) || 0), 0)
-  }
-  return parseFloat(invoice.price) || 0
-}
 
 function fmt(currency = '₦', amount) {
   const n = parseFloat(amount) || 0
@@ -31,6 +26,13 @@ function isOverdue(invoice) {
   return new Date(invoice.due + 'T23:59:59') < new Date()
 }
 
+function formatDate(dateStr) {
+  if (!dateStr) return 'Unknown Date'
+  const d = new Date(dateStr)
+  if (isNaN(d)) return dateStr
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+}
+
 // ── Tabs ──────────────────────────────────────────────────────
 
 const TABS = [
@@ -40,17 +42,21 @@ const TABS = [
   { id: 'overdue', label: 'Overdue' },
 ]
 
+const STATUS_LABELS = { unpaid: 'Unpaid', paid: 'Paid', overdue: 'Overdue' }
+
 // ── Invoice List Item ─────────────────────────────────────────
 
 function InvoiceCard({ invoice, currency, onTap, isLast }) {
-  const total   = calculateInvoiceTotal(invoice)
+  const total   = (parseFloat(invoice.price) || 0) * (parseFloat(invoice.qty) || 1)
   const overdue = isOverdue(invoice)
+  const status  = overdue && invoice.status !== 'paid' ? 'overdue' : invoice.status
 
   return (
     <div
       className={`${styles.invoiceListItem} ${isLast ? styles.invoiceListItemLast : ''} ${overdue ? styles.invoiceListItemOverdue : ''}`}
       onClick={onTap}
     >
+      {/* Left: grey outer box with white inner box */}
       <div className={styles.invoiceListOuter}>
         <div className={styles.invoiceListInner}>
           <span className="mi" style={{ fontSize: '1.5rem', color: overdue ? '#ef4444' : 'var(--text3)' }}>
@@ -59,6 +65,7 @@ function InvoiceCard({ invoice, currency, onTap, isLast }) {
         </div>
       </div>
 
+      {/* Info */}
       <div className={styles.invoiceListInfo}>
         <div className={styles.invoiceListDesc}>{invoice.orderDesc || 'Order'}</div>
         <div className={styles.invoiceListOrdRow}>{invoice.number}</div>
@@ -66,29 +73,36 @@ function InvoiceCard({ invoice, currency, onTap, isLast }) {
           <span className="mi" style={{ fontSize: '0.8rem', color: 'var(--text3)', verticalAlign: 'middle' }}>person</span>
           <span className={styles.invoiceListMetaText}>{invoice.customerName || '—'}</span>
         </div>
-        <div className={styles.invoiceListAmount}>{fmt(currency, total)}</div>
+        <div className={styles.invoiceListMeta}>
+          <span className="mi" style={{ fontSize: '0.8rem', color: 'var(--text3)', verticalAlign: 'middle' }}>autorenew</span>
+          <span className={`${styles.invoiceListMetaText} ${styles[`statusText_${status}`]}`}>
+            {STATUS_LABELS[status] ?? status}
+          </span>
+        </div>
+        <div className={`${styles.invoiceListAmount}`}>{fmt(currency, total)}</div>
       </div>
     </div>
   )
 }
 
+// ── Full Invoice View — delegated to InvoiceView component ───
+// InvoiceView reads invoice.template + invoice.brandSnapshot to
+// always render with the template active at creation time.
+
 // ── Main Page ─────────────────────────────────────────────────
 
 export default function Invoices({ onMenuClick }) {
-  const { user }       = useAuth()
-  const { customers }  = useCustomers()
-  const { settings }   = useSettings()
-  const currency       = settings.invoiceCurrency || '₦'
+  const { user }      = useAuth()
+  const { customers } = useCustomers()
+  const { settings }  = useSettings()
+  const currency      = settings.invoiceCurrency || '₦'
 
-  const [allInvoices,  setAllInvoices]  = useState([])
-  const [activeTab,    setActiveTab]    = useState('all')
-  const [viewing,      setViewing]      = useState(null)
-  const [confirmDel,   setConfirmDel]   = useState(null)
-  const [toastMsg,     setToastMsg]     = useState('')
-  const unsubsRef  = useRef({})
-  const toastTimer = useRef(null)
+  const [allInvoices, setAllInvoices] = useState([])
+  const [activeTab,   setActiveTab]   = useState('all')
+  const [viewing,     setViewing]     = useState(null)
+  const unsubsRef = useRef({})
 
-  // ── Subscribe to all customers' invoices ─────────────────
+  // ── Subscribe to every customer's invoices ────────────────
   useEffect(() => {
     Object.values(unsubsRef.current).forEach(u => u())
     unsubsRef.current = {}
@@ -99,6 +113,7 @@ export default function Invoices({ onMenuClick }) {
     }
 
     const invoiceMap = {}
+
     customers.forEach(customer => {
       const unsub = subscribeToInvoices(
         user.uid,
@@ -106,9 +121,8 @@ export default function Invoices({ onMenuClick }) {
         (invoices) => {
           invoiceMap[customer.id] = invoices.map(inv => ({
             ...inv,
-            customerName:  inv.customerName  || customer.name,
-            customerPhone: inv.customerPhone || customer.phone || '',
-            customerId:    customer.id,
+            customerName: inv.customerName || customer.name,
+            customerId:   customer.id,
           }))
           const flat = Object.values(invoiceMap)
             .flat()
@@ -130,39 +144,7 @@ export default function Invoices({ onMenuClick }) {
     }
   }, [user, customers])
 
-  const showToast = (msg) => {
-    setToastMsg(msg)
-    clearTimeout(toastTimer.current)
-    toastTimer.current = setTimeout(() => setToastMsg(''), 2400)
-  }
-
-  // ── Status change ─────────────────────────────────────────
-  const handleStatusChange = async (invoiceId, newStatus) => {
-    if (!user || !viewing) return
-    try {
-      await updateInvoiceStatus(user.uid, viewing.customerId, invoiceId, newStatus)
-      // Keep viewing invoice in sync
-      setViewing(prev => prev && prev.id === invoiceId ? { ...prev, status: newStatus } : prev)
-      showToast(`Marked as ${newStatus}`)
-    } catch {
-      showToast('Failed to update status.')
-    }
-  }
-
-  // ── Delete ────────────────────────────────────────────────
-  const handleDeleteConfirm = async () => {
-    if (!confirmDel || !user) return
-    try {
-      await deleteInvoice(user.uid, confirmDel.customerId, confirmDel.id)
-      showToast('Invoice deleted')
-      setViewing(null)
-    } catch {
-      showToast('Failed to delete invoice.')
-    }
-    setConfirmDel(null)
-  }
-
-  // ── Filter & group ────────────────────────────────────────
+  // ── Filter ───────────────────────────────────────────────
   const filtered = allInvoices.filter(inv => {
     if (activeTab === 'all')     return true
     if (activeTab === 'paid')    return inv.status === 'paid'
@@ -171,6 +153,7 @@ export default function Invoices({ onMenuClick }) {
     return true
   })
 
+  // ── Counts ───────────────────────────────────────────────
   const counts = {
     all:     allInvoices.length,
     unpaid:  allInvoices.filter(i => i.status !== 'paid' && !isOverdue(i)).length,
@@ -178,6 +161,14 @@ export default function Invoices({ onMenuClick }) {
     overdue: allInvoices.filter(i => isOverdue(i)).length,
   }
 
+  const EMPTY_TEXT = {
+    all:     'No invoices yet.',
+    unpaid:  'No unpaid invoices.',
+    paid:    'No paid invoices yet.',
+    overdue: 'No overdue invoices. All good!',
+  }
+
+  // ── Group by date ─────────────────────────────────────────
   const grouped = filtered.reduce((acc, inv) => {
     const key = inv.date || 'Unknown Date'
     if (!acc[key]) acc[key] = []
@@ -185,20 +176,11 @@ export default function Invoices({ onMenuClick }) {
     return acc
   }, {})
 
-  // ── Build the customer object InvoiceView expects ─────────
-  // InvoiceView's templates need { name, phone, address }
-  const viewingCustomer = viewing
-    ? {
-        name:    viewing.customerName  || '',
-        phone:   viewing.customerPhone || '',
-        address: viewing.customerAddress || '',
-      }
-    : null
-
   return (
     <div className={styles.page}>
       <Header title="Invoices" onMenuClick={onMenuClick} />
 
+      {/* Tabs */}
       <div className={styles.tabs}>
         {TABS.map(tab => (
           <div
@@ -219,11 +201,17 @@ export default function Invoices({ onMenuClick }) {
         ))}
       </div>
 
+      {/* List */}
       <div className={styles.listArea}>
         {filtered.length === 0 ? (
           <div className={styles.emptyState}>
             <span className="mi" style={{ fontSize: '2.8rem', opacity: 0.2 }}>receipt_long</span>
-            <p>No invoices found.</p>
+            <p>{EMPTY_TEXT[activeTab]}</p>
+            {activeTab === 'all' && (
+              <span className={styles.emptyHint}>
+                Go to a customer → Orders → Generate Invoice
+              </span>
+            )}
           </div>
         ) : (
           Object.entries(grouped).map(([date, dateInvoices]) => (
@@ -244,27 +232,31 @@ export default function Invoices({ onMenuClick }) {
         )}
       </div>
 
-      {/* ── Real InvoiceView with proper template rendering ── */}
-      {viewing && viewingCustomer && (
+      {/* Full invoice view — uses InvoiceView so template is preserved */}
+      {viewing && (
         <InvoiceView
           invoice={viewing}
-          customer={viewingCustomer}
+          customer={{
+            name:    viewing.customerName || '—',
+            phone:   viewing.customerPhone || '',
+            address: viewing.customerAddress || '',
+          }}
           onClose={() => setViewing(null)}
-          onStatusChange={handleStatusChange}
-          onDelete={(id) => setConfirmDel(viewing)}
-          showToast={showToast}
+          onStatusChange={async (id, newStatus) => {
+            try {
+              await updateInvoiceStatus(user.uid, viewing.customerId, id, newStatus)
+              setViewing(prev => prev ? { ...prev, status: newStatus } : null)
+            } catch { /* silent */ }
+          }}
+          onDelete={async (id) => {
+            try {
+              await deleteInvoice(user.uid, viewing.customerId, id)
+              setViewing(null)
+            } catch { /* silent */ }
+          }}
+          showToast={() => {}}
         />
       )}
-
-      <ConfirmSheet
-        open={!!confirmDel}
-        title="Delete this invoice?"
-        message="This can't be undone."
-        onConfirm={handleDeleteConfirm}
-        onCancel={() => setConfirmDel(null)}
-      />
-
-      <Toast message={toastMsg} />
     </div>
   )
 }
