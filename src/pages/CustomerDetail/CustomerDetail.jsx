@@ -6,6 +6,7 @@ import { useCustomers }   from '../../contexts/CustomerContext'
 import { usePremium }     from '../../contexts/PremiumContext'
 import { useCustomerData } from '../../hooks/useCustomerData'
 import { useOrders }      from '../../contexts/OrdersContext'
+import { useInvoice }     from '../../contexts/InvoiceContext'
 import { addReceipt, subscribeToReceipts, deleteReceipt } from '../../services/receiptService'
 import { useAuth }        from '../../contexts/AuthContext'
 import Header        from '../../components/Header/Header'
@@ -47,13 +48,14 @@ export default function CustomerDetail({ onMenuClick }) {
   const { isPremium } = usePremium()
   const data          = useCustomerData(id)
   const { getOrders } = useOrders()
+  const { template: invoiceTemplate, brand: invoiceBrand } = useInvoice()
 
   const [activeTab,     setActiveTab]     = useState('dress')
   const [toastMsg,      setToastMsg]      = useState('')
   const [invoicesState, setInvoicesState] = useState([])
   const [receipts,      setReceipts]      = useState([])
   const [isScrolled,    setIsScrolled]    = useState(false)
-  
+
   const toastTimer = useRef(null)
   const tabsRef    = useRef(null)
   const topSentinelRef = useRef(null)
@@ -99,6 +101,8 @@ export default function CustomerDetail({ onMenuClick }) {
     const order = orders.find(o => String(o.id) === String(orderId))
     if (!order) return
 
+    // Use live context values as the primary source for the snapshot.
+    // Fall back to localStorage for any fields the context doesn't expose.
     let settingsSnap = {}
     try { settingsSnap = JSON.parse(localStorage.getItem('tailorbook_settings') || '{}') } catch {}
 
@@ -121,15 +125,17 @@ export default function CustomerDetail({ onMenuClick }) {
       notes:     order.notes,
       status:    'unpaid',
       date:      today,
-      template:  settingsSnap.invoiceTemplate || 'editable',
+      // Snapshot the active template + brand at creation time so InvoiceView
+      // always renders with the correct template even if settings change later.
+      template:  invoiceTemplate || settingsSnap.invoiceTemplate || 'editable',
       brandSnapshot: {
-        name:     settingsSnap.brandName      || '',
-        tagline:  settingsSnap.brandTagline   || '',
-        colour:   settingsSnap.brandColour    || '#D4AF37',
-        phone:    settingsSnap.brandPhone     || '',
-        email:    settingsSnap.brandEmail     || '',
-        address:  settingsSnap.brandAddress   || '',
-        footer:   settingsSnap.invoiceFooter  || 'Thank you for your patronage 🙏',
+        name:     invoiceBrand?.name    || settingsSnap.brandName      || '',
+        tagline:  invoiceBrand?.tagline || settingsSnap.brandTagline   || '',
+        colour:   invoiceBrand?.colour  || settingsSnap.brandColour    || '#D4AF37',
+        phone:    invoiceBrand?.phone   || settingsSnap.brandPhone     || '',
+        email:    invoiceBrand?.email   || settingsSnap.brandEmail     || '',
+        address:  invoiceBrand?.address || settingsSnap.brandAddress   || '',
+        footer:   settingsSnap.invoiceFooter   || 'Thank you for your patronage 🙏',
         currency: settingsSnap.invoiceCurrency || '₦',
         showTax:  settingsSnap.invoiceShowTax  || false,
         taxRate:  settingsSnap.invoiceTaxRate  || 0,
@@ -144,7 +150,7 @@ export default function CustomerDetail({ onMenuClick }) {
     } catch {
       showToast('Failed to save invoice. Try again.')
     }
-  }, [data, orders, showToast])
+  }, [data, orders, showToast, invoiceTemplate, invoiceBrand])
 
   const handleGenerateReceipt = useCallback(async (payment) => {
     if (!user) return
@@ -192,7 +198,7 @@ export default function CustomerDetail({ onMenuClick }) {
       orderPrice:     payment.orderPrice,
       items:          order?.items || payment.orderItems || [],
       number:         rcptNumber,
-      date:   todayStr,
+      date:           todayStr,
       payments:       installmentsForReceipt.map(inst => ({
         id:     inst.id,
         amount: inst.amount,
@@ -203,15 +209,16 @@ export default function CustomerDetail({ onMenuClick }) {
       isFullPayment:  isFullPay,
       balance:        isFullPay ? 0 : balance,
       notes:          payment.notes || '',
-      template:       settingsSnap.invoiceTemplate || 'editable',
+      // Snapshot template + brand for receipts too
+      template:       invoiceTemplate || settingsSnap.invoiceTemplate || 'editable',
       brandSnapshot: {
-        name:     settingsSnap.brandName      || '',
-        tagline:  settingsSnap.brandTagline   || '',
-        colour:   settingsSnap.brandColour    || '#D4AF37',
-        phone:    settingsSnap.brandPhone     || '',
-        email:    settingsSnap.brandEmail     || '',
-        address:  settingsSnap.brandAddress   || '',
-        footer:   settingsSnap.invoiceFooter  || 'Thank you for your payment 🙏',
+        name:     invoiceBrand?.name    || settingsSnap.brandName      || '',
+        tagline:  invoiceBrand?.tagline || settingsSnap.brandTagline   || '',
+        colour:   invoiceBrand?.colour  || settingsSnap.brandColour    || '#D4AF37',
+        phone:    invoiceBrand?.phone   || settingsSnap.brandPhone     || '',
+        email:    invoiceBrand?.email   || settingsSnap.brandEmail     || '',
+        address:  invoiceBrand?.address || settingsSnap.brandAddress   || '',
+        footer:   settingsSnap.invoiceFooter   || 'Thank you for your payment 🙏',
         currency: settingsSnap.invoiceCurrency || '₦',
         showTax:  settingsSnap.invoiceShowTax  || false,
         taxRate:  settingsSnap.invoiceTaxRate  || 0,
@@ -226,7 +233,7 @@ export default function CustomerDetail({ onMenuClick }) {
     } catch {
       showToast('Failed to generate receipt. Try again.')
     }
-  }, [user, id, receipts, orders, showToast])
+  }, [user, id, receipts, orders, showToast, invoiceTemplate, invoiceBrand])
 
   const handleDeleteReceipt = useCallback(async (receiptId) => {
     if (!user) return
