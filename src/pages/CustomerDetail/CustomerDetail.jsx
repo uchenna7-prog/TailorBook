@@ -32,7 +32,7 @@ function getBirthday(birthday) {
 }
 
 const TABS = [
-  { id: 'dress',    label: 'Dress Measurements' },
+  { id: 'dress',    label: 'Dress\nMeasurements' }, 
   { id: 'orders',   label: 'Orders'             },
   { id: 'invoice',  label: 'Invoices'           },
   { id: 'payments', label: 'Payments'           },
@@ -60,11 +60,9 @@ export default function CustomerDetail({ onMenuClick }) {
 
   const orders = getOrders(id)
 
-  // ── Shrinking Header Observer ──
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
-        // If the sentinel is NOT intersecting, it means it's scrolled off-top
         setIsScrolled(!entry.isIntersecting)
       },
       { threshold: 0.1 }
@@ -194,7 +192,7 @@ export default function CustomerDetail({ onMenuClick }) {
       orderPrice:     payment.orderPrice,
       items:          order?.items || payment.orderItems || [],
       number:         rcptNumber,
-      date:           todayStr,
+      date:   todayStr,
       payments:       installmentsForReceipt.map(inst => ({
         id:     inst.id,
         amount: inst.amount,
@@ -254,6 +252,9 @@ export default function CustomerDetail({ onMenuClick }) {
 
   const handleTabClick = (e, tabId) => {
     setActiveTab(tabId)
+    if (window.scrollY > 56) {
+      window.scrollTo({ top: 56, behavior: 'auto' })
+    }
     e.currentTarget.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' })
   }
 
@@ -274,10 +275,8 @@ export default function CustomerDetail({ onMenuClick }) {
 
   return (
     <div className={styles.page}>
-      {/* ── TOP SENTINEL (Trigger for Shrinking Header) ── */}
       <div ref={topSentinelRef} className={styles.sentinel} />
 
-      {/* ── STICKY TOP NAV ── */}
       <div className={styles.navHeader}>
         <Header
           type="back"
@@ -289,7 +288,6 @@ export default function CustomerDetail({ onMenuClick }) {
         />
       </div>
 
-      {/* ── PROFILE INFO (Scrolls away) ── */}
       <div className={styles.profileContainer}>
         {isPremium ? (
           <div className={styles.profileSection}>
@@ -352,7 +350,6 @@ export default function CustomerDetail({ onMenuClick }) {
         </div>
       </div>
 
-      {/* ── STICKY TABS ── */}
       <div className={styles.stickyTabsWrapper}>
         <div className={styles.tabs} ref={tabsRef}>
           {TABS.map(tab => (
@@ -367,7 +364,6 @@ export default function CustomerDetail({ onMenuClick }) {
         </div>
       </div>
 
-      {/* ── TAB CONTENT ── */}
       <div className={styles.tabContent}>
         {activeTab === 'dress' && (
           <MeasurementsTab
