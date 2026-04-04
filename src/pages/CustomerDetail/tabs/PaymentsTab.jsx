@@ -406,7 +406,7 @@ function PaymentDetail({ payment, onClose, onDelete, onStatusChange, onAddInstal
         )}
 
         <button className={styles.generateInvoiceBtn} onClick={() => onGenerateReceipt(payment)}>
-          <span className="mi" style={{ fontSize: '1.2rem', verticalAlign: 'middle', marginRight: 4 }}>receipt</span>
+          <span className="material-icons" style={{ fontSize: '1.2rem', verticalAlign: 'middle', marginRight: 4 }}>receipt</span>
           Generate Receipt
         </button>
 
