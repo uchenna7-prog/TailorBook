@@ -99,7 +99,7 @@
 
 .metaItem {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 6px;
   color: var(--text2);
   font-size: 0.8rem;
