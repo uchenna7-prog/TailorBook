@@ -109,7 +109,6 @@
 
 /* User name */
 .userName {
-
   font-weight: 700;
   font-size: 1.1rem;
   color: var(--text);
@@ -167,13 +166,9 @@
   font-size: 1.5rem; 
 }
 
-/* ✅ Logout styling */
-.danger {
-  color: var(--danger);
-}
-
-.danger span {
-  color: var(--danger);
+/* ✅ Logout styling - Force color on both text and icon span */
+.danger, .danger span {
+  color: var(--danger) !important;
 }
 
 /* ── LEGAL LINKS ── */
