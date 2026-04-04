@@ -31,7 +31,7 @@
 
 :global(.header-title) {
   display: block;
-  max-width: 320px;
+  max-width: 350px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
