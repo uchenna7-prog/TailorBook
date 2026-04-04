@@ -1,4 +1,3 @@
-/* ── OVERLAY ── */
 .overlay {
   position: fixed; 
   inset: 0;
@@ -14,7 +13,6 @@
   to { transform: translateY(0); } 
 }
 
-/* ── STATUS BADGE ── */
 .statusRow {
     margin-bottom: 12px;
 }
@@ -34,23 +32,20 @@
 .status_paid    { background: #d1fae5; color: #065f46; }
 .status_overdue { background: #fee2e2; color: #991b1b; }
 
-/* ── SCROLL AREA ── */
 .scrollArea { 
   flex: 1; 
   overflow-y: auto; 
   padding: 16px 16px 0; 
 }
 
-/* ── PAPER WRAP ── */
 .paperWrap {
   background: #ffffff;
   border-radius: 12px;
   box-shadow: 0 4px 24px rgba(0,0,0,0.12);
-  overflow: hidden;
+  overflow: visible; /* Changed to visible for better PDF capture */
   margin-bottom: 14px;
 }
 
-/* ── TEMPLATE BASE ── */
 .tplBase {
   padding: 24px;
   color: #1a1a1a;
@@ -58,10 +53,9 @@
   font-size: 10px;
   display: flex; 
   flex-direction: column;
-  min-height: 520px; /* Increased to ensure footer space */
+  min-height: 520px; 
 }
 
-/* Spacer to push footer to bottom */
 .tplFooterPush {
   flex-grow: 1;
 }
@@ -88,7 +82,6 @@
 .metaVal { font-size: 11px; font-weight: 800; color: #1a1a1a; }
 .metaSub { font-size: 8px; color: #555; margin-top: 1px; line-height: 1.4; }
 
-/* ── TABLE LOGIC ── */
 .tableWrapper {
   width: 100%;
   margin-top: 10px;
@@ -152,7 +145,6 @@
   color: #555;
 }
 
-/* ── SUMMARY SECTION ── */
 .summary { 
   margin-left: auto; 
   width: 55%; 
@@ -174,7 +166,6 @@
   padding-top: 8px; 
 }
 
-/* ── TEMPLATE SPECIFIC FOOTERS ── */
 .printFooterCentered, .freeFooterCentered {
   text-align: center;
   padding-top: 20px;
@@ -211,7 +202,6 @@
 .freeGrid { display: flex; gap: 8px; margin-bottom: 16px; }
 .freeBox { flex: 1; border: 1px solid #eee; border-radius: 4px; padding: 6px; font-size: 7px; }
 
-/* ── NOTES & EXTRAS ── */
 .notesBox { 
   padding: 14px; 
   background: var(--surface); 
@@ -234,7 +224,6 @@
   line-height: 1.5; 
 }
 
-/* ── BOTTOM ACTION BAR ── */
 .bottomBar {
   display: flex; 
   align-items: center; 
@@ -246,21 +235,6 @@
   flex-shrink: 0;
 }
 
-.statusBtn {
-  flex: 1; 
-  display: flex; 
-  align-items: center; 
-  justify-content: center; 
-  gap: 8px;
-  padding: 14px; 
-  border-radius: 12px; 
-  font-size: 0.9rem; 
-  font-weight: 800;
-  border: none;
-  cursor: pointer;
-}
-
-.statusBtnPaid { background: var(--accent); color: var(--bg); }
 .statusBtnUnpaid { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
 
 .deleteBtn {
