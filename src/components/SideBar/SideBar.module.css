@@ -109,7 +109,7 @@
 
 /* User name */
 .userName {
-  
+
   font-weight: 700;
   font-size: 1.1rem;
   color: var(--text);
@@ -172,7 +172,7 @@
   color: var(--danger);
 }
 
-.danger .mi {
+.danger span {
   color: var(--danger);
 }
 
