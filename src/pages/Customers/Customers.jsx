@@ -84,6 +84,7 @@ const MALE_MEASUREMENT_IMAGES = {
   'Shoulder Width': '/shoulderWidthMale.jpg',
   'Half Shoulder':  '/halfShoulderMale.jpg',
   'Cross Back':     '/crossBackMale.jpg',
+  'Chest':'/chestMale.jpg'
 }
 
 const FEMALE_MEASUREMENTS = [
