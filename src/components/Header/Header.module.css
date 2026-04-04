@@ -1,6 +1,3 @@
-/* src/components/Header/Header.module.css */
-
-/* ── HEADER ── */
 .header {
   position: sticky;
   top: 0;
@@ -19,7 +16,7 @@
   align-items: center;
   gap: 8px;
   flex: 1;
-  min-width: 0; /* Critical for text-overflow to work */
+  min-width: 0;
 }
 
 .title {
@@ -30,18 +27,16 @@
   overflow: hidden;
   text-overflow: ellipsis;
   color: var(--text);
-  /* Smooth fade for the title swap */
-  transition: opacity 0.2s ease-in-out, transform 0.2s ease-out;
-  max-width: 100%;
+  flex: 1;
+  min-width: 0;
+  transition: opacity 0.2s ease;
 }
 
-/* Specific handling for the dynamic title swap */
 :global(.header-title) {
   display: inline-block;
-  max-width: 220px; /* Adjust based on your button widths */
+  max-width: 250px;
 }
 
-/* RIGHT ACTIONS */
 .rightActions {
   display: flex;
   align-items: center;
@@ -49,7 +44,6 @@
   flex-shrink: 0;
 }
 
-/* ── ICON BUTTON ── */
 .iconBtn {
   width: 38px;
   height: 38px;
@@ -65,11 +59,11 @@
   flex-shrink: 0;
   cursor: pointer;
 }
+
 .iconBtn:active {
   background: var(--surface2);
 }
 
-/* ── TEXT BUTTON (e.g. Save/Add) ── */
 .textBtn {
   background: var(--accent);
   border: none;
@@ -97,13 +91,13 @@
   transform: scale(0.96);
 }
 
-/* ── HAMBURGER LINES ── */
 .hamburgerLines {
   display: flex;
   flex-direction: column;
   gap: 5px;
   width: 18px;
 }
+
 .hamburgerLines span {
   display: block;
   height: 2px;
@@ -111,7 +105,6 @@
   border-radius: 2px;
 }
 
-/* ── NOTIFICATION DOT / COUNT BADGE ── */
 .notifDot {
   position: absolute;
   top: 4px;
@@ -131,7 +124,6 @@
   line-height: 1;
 }
 
-/* ── DROPDOWN ── */
 .dropdownWrap {
   position: relative;
 }
@@ -177,10 +169,14 @@
   cursor: pointer;
   font-family: 'DM Sans', sans-serif;
 }
+
 .dropdownItem:active {
   background: var(--surface2);
 }
-.dropdownItem.danger { color: var(--danger); }
+
+.dropdownItem.danger {
+  color: var(--danger);
+}
 
 .dropdownSeparator {
   height: 1px;
@@ -188,7 +184,6 @@
   margin: 0 8px;
 }
 
-/* ── NOTIFICATION PANEL ── */
 .notifOverlay {
   position: fixed;
   inset: 0;
@@ -248,6 +243,7 @@
   border-radius: 16px;
   margin-bottom: 10px;
 }
+
 .notifItem.unread {
   border-color: rgba(251,146,60,0.3);
   background: var(--surface2);
@@ -264,9 +260,22 @@
   font-size: 1.1rem;
 }
 
-.notifContent { flex: 1; min-width: 0; }
-.notifContent h5 { font-size: 0.88rem; font-weight: 700; margin-bottom: 2px; }
-.notifContent p  { font-size: 0.75rem; color: var(--text2); line-height: 1.4; }
+.notifContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.notifContent h5 {
+  font-size: 0.88rem;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.notifContent p {
+  font-size: 0.75rem;
+  color: var(--text2);
+  line-height: 1.4;
+}
 
 .notifTime {
   display: block;
@@ -293,10 +302,17 @@
   gap: 10px;
   text-align: center;
 }
-.notifEmpty span { font-size: 2.5rem; opacity: 0.2; }
-.notifEmpty p    { font-size: 0.85rem; color: var(--text3); }
 
-/* ── NOTIFICATION TABS ── */
+.notifEmpty span {
+  font-size: 2.5rem;
+  opacity: 0.2;
+}
+
+.notifEmpty p {
+  font-size: 0.85rem;
+  color: var(--text3);
+}
+
 .notifTabs {
   display: flex;
   border-bottom: 1px solid var(--border);
@@ -361,7 +377,6 @@
   border-color: rgba(251,146,60,0.35);
 }
 
-/* ── MARK ALL READ BUTTON ── */
 .markAllBtn {
   background: none;
   border: none;
@@ -375,4 +390,7 @@
   white-space: nowrap;
   transition: background 0.15s;
 }
-.markAllBtn:active { background: var(--surface1); }
+
+.markAllBtn:active {
+  background: var(--surface2);
+}
