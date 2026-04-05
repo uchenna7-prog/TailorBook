@@ -70,6 +70,13 @@ const APPT_STATUS_COLORS = {
   missed:     '#ef4444',
 }
 
+const ORDER_STATUS_TEXT_COLORS = {
+  pending:   '#856404',
+  completed: '#155724',
+  delivered: '#4B2E83',
+  cancelled: '#721C24',
+}
+
 // ─────────────────────────────────────────────────────────────
 
 function Home({ onMenuClick }) {
@@ -376,11 +383,15 @@ function Home({ onMenuClick }) {
                 const isLast   = idx === recentOrders.length - 1
                 const priceStr = order.price !== null && order.price !== undefined
                   ? `₦${Number(order.price).toLocaleString()}` : '—'
+                const thumb    = order.items?.[0]?.imgSrc
                 return (
                   <div key={order.id} className={`${styles.listItem} ${isLast ? styles.listItemLast : ''}`}>
                     <div className={styles.listOuter}>
                       <div className={styles.listInner}>
-                        <span className="mi" style={{ fontSize: '1.3rem', color: 'var(--text3)' }}>content_cut</span>
+                        {thumb
+                          ? <img src={thumb} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '9px' }} />
+                          : <span className="mi" style={{ fontSize: '1.3rem', color: 'var(--text3)' }}>content_cut</span>
+                        }
                       </div>
                     </div>
                     <div className={styles.listInfo}>
@@ -391,7 +402,7 @@ function Home({ onMenuClick }) {
                       </div>
                       <div className={styles.listMeta}>
                         <span className="mi" style={{ fontSize: '0.78rem', color: 'var(--text3)', verticalAlign: 'middle' }}>autorenew</span>
-                        <span className={styles.listMetaText}>{order.status || 'Pending'}</span>
+                        <span className={styles.listMetaText} style={{ color: ORDER_STATUS_TEXT_COLORS[order.status] ?? undefined }}>{order.status || 'Pending'}</span>
                       </div>
                       {(order.due || order.dueRaw) && (
                         <div className={styles.listDue}>Due On {order.due || formatDate(order.dueRaw)}</div>
