@@ -311,7 +311,7 @@ function Home({ onMenuClick }) {
                       )}
                       <div className={styles.listMeta}>
                         <span className="mi" style={{ fontSize: '0.78rem', color: 'var(--text3)', verticalAlign: 'middle' }}>schedule</span>
-                        <span className={styles.listMetaText}>{formatApptDate(appt.date, appt.time)}</span>
+                        <span className={styles.listMetaText} style={{ color: appt.status === 'missed' ? '#ef4444' : undefined }}>{formatApptDate(appt.date, appt.time)}</span>
                       </div>
                       <div className={styles.listApptStatus} style={{ color: iconColor, borderColor: `${iconColor}40`, background: `${iconColor}12` }}>
                         {appt.status === 'completed' ? 'Completed' : appt.status === 'cancelled' ? 'Cancelled' : 'Missed'}
@@ -458,7 +458,7 @@ function Home({ onMenuClick }) {
                         </span>
                       </div>
                       {task.dueDate && (
-                        <div className={styles.listDue} style={{ color: overdue ? '#ef4444' : 'var(--text2)' }}>
+                        <div className={styles.listDue} style={{ color: '#ef4444' }}>
                           Due On {formatDate(task.dueDate)}
                         </div>
                       )}
