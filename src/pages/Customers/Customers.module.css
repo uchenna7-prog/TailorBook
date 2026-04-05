@@ -504,8 +504,8 @@
 }
 
 .measureImg {
-  width: 85px;
-  height: 85px;
+  width: 87px;
+  height: 87px;
   object-fit: cover;
   flex-shrink: 0;
   border-radius: 8px;
