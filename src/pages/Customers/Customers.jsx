@@ -5,6 +5,40 @@ import { usePremium }   from '../../contexts/PremiumContext'
 import Header from '../../components/Header/Header'
 import styles from './Customers.module.css'
 
+// ── Male measurement image imports ────────────────────────────
+import aboveKneeMaleImg       from '../../assets/aboveKneeMale.jpg'
+import ankleMaleImg           from '../../assets/ankleMale.jpg'
+import armHoleMaleImg         from '../../assets/armHoleMale.jpg'
+import armLengthMaleImg       from '../../assets/armLengthMale.jpg'
+import belowKneeMaleImg       from '../../assets/belowKneeMale.jpg'
+import bicepsMaleImg          from '../../assets/bicepsMale.jpg'
+import calfMaleImg            from '../../assets/calfMale.jpg'
+import calfToAnkleMaleImg     from '../../assets/calfToAnkleMale.jpg'
+import chestMaleImg           from '../../assets/chestMale.jpg'
+import coatSleeveLengthMaleImg from '../../assets/coatSleeveLengthMale.jpg'
+import coatWaistMaleImg       from '../../assets/coatWaistMale.jpg'
+import crossBackMaleImg       from '../../assets/crossBackMale.jpg'
+import crotchMaleImg          from '../../assets/crotchMale.jpg'
+import crotchToKneeMaleImg    from '../../assets/crotchToKneeMale.jpg'
+import flyMaleImg             from '../../assets/flyMale.jpg'
+import halfShoulderMaleImg    from '../../assets/halfShoulderMale.jpg'
+import hipMaleImg             from '../../assets/hipMale.jpg'
+import inseamMaleImg          from '../../assets/inseamMale.jpg'
+import jacketLengthMaleImg    from '../../assets/jacketLengthMale.jpg'
+import kneeToCalfMaleImg      from '../../assets/kneeToCalfMale.jpg'
+import neckMaleImg            from '../../assets/neckMale.jpg'
+import pantsLengthMaleImg     from '../../assets/pantsLengthMale.jpg'
+import seatMaleImg            from '../../assets/seatMale.jpg'
+import shirtLengthMaleImg     from '../../assets/shirtLengthMale.jpg'
+import shortsLengthMaleImg    from '../../assets/shortsLengthMale.jpg'
+import shoulderWidthMaleImg   from '../../assets/shoulderWidthMale.jpg'
+import sleeveLengthForSuitMaleImg from '../../assets/sleeveLengthForSuitMale.jpg'
+import sleeveLengthMaleImg    from '../../assets/sleeveLengthMale.jpg'
+import thighsMaleImg          from '../../assets/thighsMale.jpg'
+import waistMaleImg           from '../../assets/waistMale.jpg'
+import waistToAnkleMaleImg    from '../../assets/waistToAnkleMale.jpg'
+import wristMaleImg           from '../../assets/wristMale.jpg'
+
 function getInitials(name) {
   if (!name) return ''
   const parts = name.trim().split(/\s+/)
@@ -74,29 +108,45 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1)
 
 const MALE_MEASUREMENTS = [
   'Neck', 'Shoulder Width', 'Half Shoulder', 'Chest', 'Cross Back',
-  'Waist', 'Hip', 'Shirt Length', 'Sleeve Length', 'Arm Length',
-  'Arm Hole', 'Biceps', 'Wrist', 'Thigh', 'Knee',
-  'Trouser Length', 'Trouser Waist', 'Inseam', 'Jacket Length',
-  'Coat Sleeve', 'Coat Waist'
+  'Waist', 'Hip', 'Seat', 'Shirt Length', 'Sleeve Length', 'Arm Length',
+  'Arm Hole', 'Biceps', 'Wrist', 'Thighs', 'Crotch', 'Crotch To Knee',
+  'Above Knee', 'Below Knee', 'Knee To Calf', 'Calf', 'Calf To Ankle',
+  'Ankle', 'Waist To Ankle', 'Inseam', 'Pants Length', 'Shorts Length',
+  'Fly', 'Jacket Length', 'Coat Sleeve', 'Coat Waist'
 ]
 
 const MALE_MEASUREMENT_IMAGES = {
-  'Neck':           '/neckMale.jpg',
-  'Shoulder Width': '/shoulderWidthMale.jpg',
-  'Half Shoulder':  '/halfShoulderMale.jpg',
-  'Chest':          '/chestMale.jpg',
-  'Cross Back':     '/crossBackMale.jpg',
-  'Waist':          '/waistMale.jpg',
-  'Hip':            '/hipMale.jpg',
-  'Shirt Length':   '/shirtLengthMale.jpg',
-  'Sleeve Length':  '/sleeveLengthMale.jpg',
-  'Arm Length':     '/armLengthMale.jpg',
-  'Arm Hole':       '/armHoleMale.jpg',
-  'Biceps':         '/bicepsMale.jpg',
-  'Wrist':          '/wristMale.jpg',
-  'Jacket Length':  '/jacketLengthMale.jpg',
-  'Coat Sleeve':    '/sleeveLengthForSuitMale.jpg',
-  'Coat Waist':     '/coatWaistMale.jpg',
+  'Neck':            neckMaleImg,
+  'Shoulder Width':  shoulderWidthMaleImg,
+  'Half Shoulder':   halfShoulderMaleImg,
+  'Chest':           chestMaleImg,
+  'Cross Back':      crossBackMaleImg,
+  'Waist':           waistMaleImg,
+  'Hip':             hipMaleImg,
+  'Seat':            seatMaleImg,
+  'Shirt Length':    shirtLengthMaleImg,
+  'Sleeve Length':   sleeveLengthMaleImg,
+  'Arm Length':      armLengthMaleImg,
+  'Arm Hole':        armHoleMaleImg,
+  'Biceps':          bicepsMaleImg,
+  'Wrist':           wristMaleImg,
+  'Thighs':          thighsMaleImg,
+  'Crotch':          crotchMaleImg,
+  'Crotch To Knee':  crotchToKneeMaleImg,
+  'Above Knee':      aboveKneeMaleImg,
+  'Below Knee':      belowKneeMaleImg,
+  'Knee To Calf':    kneeToCalfMaleImg,
+  'Calf':            calfMaleImg,
+  'Calf To Ankle':   calfToAnkleMaleImg,
+  'Ankle':           ankleMaleImg,
+  'Waist To Ankle':  waistToAnkleMaleImg,
+  'Inseam':          inseamMaleImg,
+  'Pants Length':    pantsLengthMaleImg,
+  'Shorts Length':   shortsLengthMaleImg,
+  'Fly':             flyMaleImg,
+  'Jacket Length':   jacketLengthMaleImg,
+  'Coat Sleeve':     sleeveLengthForSuitMaleImg,
+  'Coat Waist':      coatWaistMaleImg,
 }
 
 const FEMALE_MEASUREMENTS = [
