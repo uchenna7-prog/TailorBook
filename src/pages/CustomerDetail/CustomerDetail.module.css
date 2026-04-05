@@ -190,13 +190,39 @@
   left: 0;
   right: 0;
   height: 2px;
-  border-radius:1px;
+  border-radius: 1px;
   background: var(--accent);
 }
 
+/*
+  Tab content sizing strategy:
+  ─────────────────────────────────────────────────────────────────────────────
+  • data-empty="false"  → tab has cards → let it grow freely (min-height: 100vh)
+    so the page stays scrollable and the tabs remain stuck to the header.
+
+  • data-empty="true"   → tab is empty → clamp to exactly the remaining
+    visible viewport below the sticky header (56px) + sticky tabs bar (48px).
+    This prevents the empty-state from being scroll-reachable beneath those
+    bars, while still keeping the page tall enough that the tabs don't
+    un-stick when switching from a populated tab.
+
+  The --tab-bar-height custom property (default 48px) matches the min-height
+  set on .tab above. If you ever change that, update the fallback here too.
+*/
 .tabContent {
   padding: 12px 20px 120px;
   flex: 1;
+}
+
+/* Empty tab: fill exactly the remaining viewport — no overflow, no scroll */
+.tabContent[data-empty='true'] {
+  min-height: calc(100dvh - 56px - 48px);
+  max-height: calc(100dvh - 56px - 48px);
+  overflow: hidden;
+}
+
+/* Populated tab: allow natural growth so sticky tabs stay pinned */
+.tabContent[data-empty='false'] {
   min-height: 100vh;
 }
 
