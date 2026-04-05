@@ -71,6 +71,14 @@ const STATUS_COLORS = {
   cancelled: { color: '#94a3b8', bg: 'rgba(148,163,184,0.1)', border: 'rgba(148,163,184,0.3)' },
 }
 
+// ── Status text colours for card list items ───────────────────
+const STATUS_TEXT_COLORS = {
+  pending:   '#856404',
+  completed: '#155724',
+  delivered: '#4B2E83',
+  cancelled: '#721C24',
+}
+
 const PRIORITY_COLORS = {
   normal: { color: 'var(--text2)',  bg: 'var(--surface2)', border: 'var(--border2)' },
   urgent: { color: '#fb923c',       bg: 'rgba(251,146,60,0.1)',  border: 'rgba(251,146,60,0.3)'  },
@@ -211,7 +219,12 @@ function OrderCard({ order, isLast, onTap }) {
         {order.status && (
           <div className={styles.orderListMeta}>
             <span className="mi" style={{ fontSize: '0.8rem', color: 'var(--text3)', verticalAlign: 'middle' }}>autorenew</span>
-            <span className={styles.orderListMetaText}>{order.status}</span>
+            <span
+              className={styles.orderListMetaText}
+              style={{ color: overdue ? '#8A4B00' : (STATUS_TEXT_COLORS[order.status] ?? undefined) }}
+            >
+              {overdue ? 'overdue' : order.status}
+            </span>
           </div>
         )}
         {order.dueDate && (
