@@ -39,6 +39,13 @@ import waistMaleImg           from '../../assets/waistMale.jpg'
 import waistToAnkleMaleImg    from '../../assets/waistToAnkleMale.jpg'
 import wristMaleImg           from '../../assets/wristMale.jpg'
 
+// ── Female measurement image imports ──────────────────────────
+import blouseLengthFemaleImg  from '../../assets/female/blouseLengthFemale.jpg'
+import fullHeightFemaleImg    from '../../assets/female/fullHeightFemale.jpg'
+import kurthiHeightFemaleImg  from '../../assets/female/kurthiHeightFemale.jpg'
+import shirtLengthFemaleImg   from '../../assets/female/shirtLengthFemale.jpg'
+import upperChestFemaleImg    from '../../assets/female/upperChestFemale.jpg'
+
 function getInitials(name) {
   if (!name) return ''
   const parts = name.trim().split(/\s+/)
@@ -294,8 +301,17 @@ const MALE_MEASUREMENT_IMAGES = {
 const FEMALE_MEASUREMENTS = [
   'Bust', 'Waist', 'Hip', 'Shoulder Width', 'Dress Length',
   'Sleeve Length', 'Neck', 'Thigh', 'Knee', 'Skirt Length',
-  'Trouser Waist', 'Inseam', 'Blouse Length', 'Under Bust', 'Armhole'
+  'Trouser Waist', 'Inseam', 'Blouse Length', 'Under Bust', 'Armhole',
+  'Shirt Length', 'Full Height', 'Kurthi Height'
 ]
+
+const FEMALE_MEASUREMENT_IMAGES = {
+  'Bust':          upperChestFemaleImg,
+  'Blouse Length': blouseLengthFemaleImg,
+  'Shirt Length':  shirtLengthFemaleImg,
+  'Full Height':   fullHeightFemaleImg,
+  'Kurthi Height': kurthiHeightFemaleImg,
+}
 
 
 function AddCustomerForm({ isOpen, onClose, onSave, isPremium }) {
@@ -513,9 +529,10 @@ function AddCustomerForm({ isOpen, onClose, onSave, isPremium }) {
                     {sex === 'Female' ? 'Female' : 'Male'} body measurements (inches)
                   </p>
                   {measureFields.map((field, idx) => {
-                    const imgSrc = sex === 'Male' ? MALE_MEASUREMENT_IMAGES[field] : null
-                    const isLastImgField = sex === 'Male' && imgSrc &&
-                      !measureFields.slice(idx + 1).some(f => MALE_MEASUREMENT_IMAGES[f])
+                    const imgMap = sex === 'Male' ? MALE_MEASUREMENT_IMAGES : FEMALE_MEASUREMENT_IMAGES
+                    const imgSrc = imgMap[field] || null
+                    const isLastImgField = imgSrc &&
+                      !measureFields.slice(idx + 1).some(f => imgMap[f])
                     if (imgSrc) {
                       return (
                         <div
