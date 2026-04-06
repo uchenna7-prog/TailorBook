@@ -121,8 +121,8 @@ function Home({ onMenuClick }) {
 
   const showBanner = !pushEnabled
     && !bannerDismissed
-    && Notification.permission !== 'denied'
     && 'Notification' in window
+    && Notification.permission !== 'denied'
 
   const handleEnable = async () => {
     await requestPushPermission()
