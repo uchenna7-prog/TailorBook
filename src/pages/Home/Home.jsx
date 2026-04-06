@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useCustomers }     from '../../contexts/CustomerContext'
 import { useOrders }        from '../../contexts/OrdersContext'
@@ -5,6 +6,7 @@ import { useTasks }         from '../../contexts/TaskContext'
 import { useInvoices }      from '../../contexts/InvoiceContext'
 import { useAppointments }  from '../../contexts/AppointmentContext'
 import { useAuth }          from '../../contexts/AuthContext'
+import { useNotifications } from '../../contexts/NotificationContext'
 import Header from '../../components/Header/Header'
 import styles from './Home.module.css'
 
@@ -77,6 +79,23 @@ const ORDER_STATUS_TEXT_COLORS = {
   cancelled: '#721C24',
 }
 
+// ── Push notification banner ──────────────────────────────────
+function NotifBanner({ onEnable, onDismiss }) {
+  return (
+    <div className={styles.notifBanner}>
+      <span className="mi" style={{ fontSize: '1.3rem', color: 'var(--accent)', flexShrink: 0 }}>notifications</span>
+      <div className={styles.notifBannerText}>
+        <div className={styles.notifBannerTitle}>Enable Notifications</div>
+        <div className={styles.notifBannerSub}>Get alerts for orders, invoices & birthdays</div>
+      </div>
+      <div className={styles.notifBannerActions}>
+        <button className={styles.notifBannerEnable} onClick={onEnable}>Allow</button>
+        <button className={styles.notifBannerDismiss} onClick={onDismiss}>Not now</button>
+      </div>
+    </div>
+  )
+}
+
 // ─────────────────────────────────────────────────────────────
 
 function Home({ onMenuClick }) {
@@ -93,6 +112,28 @@ function Home({ onMenuClick }) {
     missedCount,
     upcomingThisWeek,
   } = useAppointments()
+  const { pushEnabled, requestPushPermission } = useNotifications()
+
+  // Show banner if: permission not yet decided AND user hasn't dismissed it this session
+  const [bannerDismissed, setBannerDismissed] = useState(
+    () => localStorage.getItem('tf_notif_dismissed') === 'true'
+  )
+
+  const showBanner = !pushEnabled
+    && !bannerDismissed
+    && Notification.permission !== 'denied'
+    && 'Notification' in window
+
+  const handleEnable = async () => {
+    await requestPushPermission()
+    setBannerDismissed(true)
+    localStorage.setItem('tf_notif_dismissed', 'true')
+  }
+
+  const handleDismiss = () => {
+    setBannerDismissed(true)
+    localStorage.setItem('tf_notif_dismissed', 'true')
+  }
 
   // ── Second name logic ─────────────────────────────────────
   const displayName = (() => {
@@ -145,6 +186,11 @@ function Home({ onMenuClick }) {
           <h1 className={styles.title}>{displayName}</h1>
           <p className={styles.subtitle}>Here's what's happening in your shop today.</p>
         </section>
+
+        {/* NOTIFICATION BANNER — one-time prompt */}
+        {showBanner && (
+          <NotifBanner onEnable={handleEnable} onDismiss={handleDismiss} />
+        )}
 
         {/* STATS */}
         <section className={styles.statsGrid}>
