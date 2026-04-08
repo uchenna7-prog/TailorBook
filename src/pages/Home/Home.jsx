@@ -43,9 +43,11 @@ function dueThisWeek(dateStr) {
   return due >= today && due <= end
 }
 
+// ── Icon & colour maps ────────────────────────────────────────
+
 const PRIORITY_COLORS = {
   low:    '#94a3b8',
-  normal: '#818cf8',
+  normal: '#C9A84C',   // gold replaces purple
   high:   '#fb923c',
   urgent: '#ef4444',
 }
@@ -56,16 +58,16 @@ const CATEGORY_ICONS = {
 }
 
 const APPT_TYPE_ICONS = {
-  fitting:     'checkroom',
-  measurement: 'straighten',
-  delivery:    'local_shipping',
-  consultation:'chat_bubble_outline',
-  pickup:      'inventory_2',
-  other:       'event',
+  fitting:      'checkroom',
+  measurement:  'straighten',
+  delivery:     'local_shipping',
+  consultation: 'chat_bubble_outline',
+  pickup:       'inventory_2',
+  other:        'event',
 }
 
 const APPT_STATUS_COLORS = {
-  scheduled:  '#818cf8',
+  scheduled:  '#C9A84C',   // gold
   confirmed:  '#22c55e',
   completed:  '#94a3b8',
   cancelled:  '#ef4444',
@@ -79,14 +81,15 @@ const ORDER_STATUS_TEXT_COLORS = {
   cancelled: '#721C24',
 }
 
-// ── Push notification banner ──────────────────────────────────
+// ── Notification banner ───────────────────────────────────────
+
 function NotifBanner({ onEnable, onDismiss }) {
   return (
     <div className={styles.notifBanner}>
-      <span className="mi" style={{ fontSize: '1.3rem', color: 'var(--accent)', flexShrink: 0 }}>notifications</span>
+      <span className="mi" style={{ fontSize: '1.3rem', color: 'var(--gold)', flexShrink: 0 }}>notifications</span>
       <div className={styles.notifBannerText}>
         <div className={styles.notifBannerTitle}>Enable Notifications</div>
-        <div className={styles.notifBannerSub}>Get alerts for orders, invoices & birthdays</div>
+        <div className={styles.notifBannerSub}>Get alerts for orders, invoices &amp; birthdays</div>
       </div>
       <div className={styles.notifBannerActions}>
         <button className={styles.notifBannerEnable} onClick={onEnable}>Allow</button>
@@ -114,7 +117,6 @@ function Home({ onMenuClick }) {
   } = useAppointments()
   const { pushEnabled, requestPushPermission } = useNotifications()
 
-  // Show banner if: permission not yet decided AND user hasn't dismissed it this session
   const [bannerDismissed, setBannerDismissed] = useState(
     () => localStorage.getItem('tf_notif_dismissed') === 'true'
   )
@@ -135,7 +137,7 @@ function Home({ onMenuClick }) {
     localStorage.setItem('tf_notif_dismissed', 'true')
   }
 
-  // ── Second name logic ─────────────────────────────────────
+  // ── Display name ──────────────────────────────────────────
   const displayName = (() => {
     const full = user?.displayName?.trim()
     if (full) {
@@ -165,7 +167,6 @@ function Home({ onMenuClick }) {
   const pendingTasks     = tasks.filter(t => !t.done && !isTaskOverdue(t))
   const tasksDueThisWeek = pendingTasks.filter(t => dueThisWeek(t.dueDate)).length
 
-  // ── Appointment stat ──────────────────────────────────────
   const todayCount = todayAppointments.length
 
   // ── Recent lists ──────────────────────────────────────────
@@ -174,29 +175,40 @@ function Home({ onMenuClick }) {
   const recentAppointments = upcoming.slice(0, 4)
   const pastAppointments   = recentAppts.slice(0, 4)
 
+  // ── Gold-toned icon colours (replaces generic purples) ────
+  const STAT_ICON_COLORS = {
+    customers:    '#C9A84C',   // gold
+    orders:       '#fb923c',   // warm amber
+    invoices:     '#ef4444',   // red alert
+    tasks:        '#22c55e',   // green
+    todayAppts:   '#B8922A',   // deep gold
+    weekAppts:    '#a07828',   // darkened gold
+  }
+
   return (
     <div className={styles.pageWrapper}>
       <Header onMenuClick={onMenuClick} />
 
       <main className={styles.main}>
 
-        {/* HERO */}
+        {/* ── HERO ── */}
         <section className={styles.hero}>
-          <p className={styles.welcomeLabel}>Welcome 👋</p>
+          <p className={styles.welcomeLabel}>Welcome back</p>
           <h1 className={styles.title}>{displayName}</h1>
           <p className={styles.subtitle}>Here's what's happening in your shop today.</p>
         </section>
 
-        {/* NOTIFICATION BANNER — one-time prompt */}
+        {/* ── NOTIFICATION BANNER ── */}
         {showBanner && (
           <NotifBanner onEnable={handleEnable} onDismiss={handleDismiss} />
         )}
 
-        {/* STATS */}
+        {/* ── STATS ── */}
         <section className={styles.statsGrid}>
+
           <div className={styles.statCard} onClick={() => navigate('/customers')}>
             <div className={styles.statIconWrap}>
-              <span className="mi" style={{ fontSize: '1.3rem', color: '#818cf8' }}>groups</span>
+              <span className="mi" style={{ fontSize: '1.3rem', color: STAT_ICON_COLORS.customers }}>groups</span>
             </div>
             <div>
               <div className={styles.statValue}>{customers.length}</div>
@@ -207,7 +219,7 @@ function Home({ onMenuClick }) {
 
           <div className={styles.statCard} onClick={() => navigate('/orders')}>
             <div className={styles.statIconWrap}>
-              <span className="mi" style={{ fontSize: '1.3rem', color: '#fb923c' }}>content_cut</span>
+              <span className="mi" style={{ fontSize: '1.3rem', color: STAT_ICON_COLORS.orders }}>content_cut</span>
             </div>
             <div>
               <div className={styles.statValue}>{pendingOrders.length}</div>
@@ -220,7 +232,7 @@ function Home({ onMenuClick }) {
 
           <div className={styles.statCard} onClick={() => navigate('/invoices')}>
             <div className={styles.statIconWrap}>
-              <span className="mi" style={{ fontSize: '1.3rem', color: '#ef4444' }}>receipt_long</span>
+              <span className="mi" style={{ fontSize: '1.3rem', color: STAT_ICON_COLORS.invoices }}>receipt_long</span>
             </div>
             <div>
               <div className={styles.statValue}>{totalUnpaid}</div>
@@ -233,7 +245,7 @@ function Home({ onMenuClick }) {
 
           <div className={styles.statCard} onClick={() => navigate('/tasks')}>
             <div className={styles.statIconWrap}>
-              <span className="mi" style={{ fontSize: '1.3rem', color: '#22c55e' }}>task_alt</span>
+              <span className="mi" style={{ fontSize: '1.3rem', color: STAT_ICON_COLORS.tasks }}>task_alt</span>
             </div>
             <div>
               <div className={styles.statValue}>{pendingTasks.length}</div>
@@ -246,7 +258,7 @@ function Home({ onMenuClick }) {
 
           <div className={styles.statCard} onClick={() => navigate('/appointments')}>
             <div className={styles.statIconWrap}>
-              <span className="mi" style={{ fontSize: '1.3rem', color: '#06b6d4' }}>event</span>
+              <span className="mi" style={{ fontSize: '1.3rem', color: STAT_ICON_COLORS.todayAppts }}>event</span>
             </div>
             <div>
               <div className={styles.statValue}>{todayCount}</div>
@@ -259,7 +271,7 @@ function Home({ onMenuClick }) {
 
           <div className={styles.statCard} onClick={() => navigate('/appointments')}>
             <div className={styles.statIconWrap}>
-              <span className="mi" style={{ fontSize: '1.3rem', color: '#a855f7' }}>calendar_month</span>
+              <span className="mi" style={{ fontSize: '1.3rem', color: STAT_ICON_COLORS.weekAppts }}>calendar_month</span>
             </div>
             <div>
               <div className={styles.statValue}>{upcomingThisWeek}</div>
@@ -269,9 +281,10 @@ function Home({ onMenuClick }) {
               </div>
             </div>
           </div>
+
         </section>
 
-        {/* UPCOMING APPOINTMENTS */}
+        {/* ── UPCOMING APPOINTMENTS ── */}
         {recentAppointments.length > 0 && (
           <section className={styles.section}>
             <div className={styles.sectionHeader}>
@@ -283,13 +296,13 @@ function Home({ onMenuClick }) {
               {recentAppointments.map((appt, idx) => {
                 const isLast    = idx === recentAppointments.length - 1
                 const icon      = APPT_TYPE_ICONS[appt.type] || 'event'
-                const iconColor = APPT_STATUS_COLORS[appt.status] || '#818cf8'
+                const iconColor = APPT_STATUS_COLORS[appt.status] || '#C9A84C'
                 const isToday   = todayAppointments.some(a => a.id === appt.id)
                 return (
                   <div key={appt.id} className={`${styles.listItem} ${isLast ? styles.listItemLast : ''}`}>
                     <div
                       className={styles.listOuter}
-                      style={isToday ? { borderColor: 'rgba(6,182,212,0.35)', background: 'rgba(6,182,212,0.05)' } : {}}
+                      style={isToday ? { borderColor: 'rgba(184,146,42,0.35)', background: 'rgba(184,146,42,0.05)' } : {}}
                     >
                       <div className={styles.listInner}>
                         <span className="mi" style={{ fontSize: '1.3rem', color: iconColor }}>{icon}</span>
@@ -299,12 +312,12 @@ function Home({ onMenuClick }) {
                       <div className={styles.listDesc}>{appt.title || appt.type || 'Appointment'}</div>
                       {appt.customerName && (
                         <div className={styles.listMeta}>
-                          <span className="mi" style={{ fontSize: '0.78rem', color: 'var(--text3)', verticalAlign: 'middle' }}>person</span>
+                          <span className="mi" style={{ fontSize: '0.78rem', color: 'var(--ink3)', verticalAlign: 'middle' }}>person</span>
                           <span className={styles.listMetaText}>{appt.customerName}</span>
                         </div>
                       )}
                       <div className={styles.listMeta}>
-                        <span className="mi" style={{ fontSize: '0.78rem', color: 'var(--text3)', verticalAlign: 'middle' }}>schedule</span>
+                        <span className="mi" style={{ fontSize: '0.78rem', color: 'var(--ink3)', verticalAlign: 'middle' }}>schedule</span>
                         <span className={styles.listMetaText}>{formatApptDate(appt.date, appt.time)}</span>
                       </div>
                       {isToday && <div className={styles.listApptToday}>Today</div>}
@@ -316,7 +329,7 @@ function Home({ onMenuClick }) {
           </section>
         )}
 
-        {/* RECENT APPOINTMENTS */}
+        {/* ── RECENT APPOINTMENTS (past) ── */}
         {pastAppointments.length > 0 && (
           <section className={styles.section}>
             <div className={styles.sectionHeader}>
@@ -351,16 +364,26 @@ function Home({ onMenuClick }) {
                       <div className={styles.listDesc}>{appt.title || appt.type || 'Appointment'}</div>
                       {appt.customerName && (
                         <div className={styles.listMeta}>
-                          <span className="mi" style={{ fontSize: '0.78rem', color: 'var(--text3)', verticalAlign: 'middle' }}>person</span>
+                          <span className="mi" style={{ fontSize: '0.78rem', color: 'var(--ink3)', verticalAlign: 'middle' }}>person</span>
                           <span className={styles.listMetaText}>{appt.customerName}</span>
                         </div>
                       )}
                       <div className={styles.listMeta}>
-                        <span className="mi" style={{ fontSize: '0.78rem', color: 'var(--text3)', verticalAlign: 'middle' }}>schedule</span>
-                        <span className={styles.listMetaText} style={{ color: appt.status === 'missed' ? '#ef4444' : undefined }}>{formatApptDate(appt.date, appt.time)}</span>
+                        <span className="mi" style={{ fontSize: '0.78rem', color: 'var(--ink3)', verticalAlign: 'middle' }}>schedule</span>
+                        <span
+                          className={styles.listMetaText}
+                          style={{ color: appt.status === 'missed' ? '#ef4444' : undefined }}
+                        >
+                          {formatApptDate(appt.date, appt.time)}
+                        </span>
                       </div>
-                      <div className={styles.listApptStatus} style={{ color: iconColor, borderColor: `${iconColor}40`, background: `${iconColor}12` }}>
-                        {appt.status === 'completed' ? 'Completed' : appt.status === 'cancelled' ? 'Cancelled' : 'Missed'}
+                      <div
+                        className={styles.listApptStatus}
+                        style={{ color: iconColor, borderColor: `${iconColor}40`, background: `${iconColor}12` }}
+                      >
+                        {appt.status === 'completed' ? 'Completed'
+                          : appt.status === 'cancelled' ? 'Cancelled'
+                          : 'Missed'}
                       </div>
                     </div>
                   </div>
@@ -370,13 +393,14 @@ function Home({ onMenuClick }) {
           </section>
         )}
 
-        {/* QUICK ACTIONS */}
+        {/* ── QUICK ACTIONS ── */}
         <section className={styles.section}>
           <h3 className={styles.sectionTitle}>Quick Actions</h3>
           <div className={styles.statsGrid}>
+
             <div className={styles.actionCard} onClick={() => navigate('/customers')}>
               <div className={styles.statIconWrap}>
-                <span className="mi" style={{ fontSize: '1.3rem', color: 'var(--accent)' }}>person_add</span>
+                <span className="mi" style={{ fontSize: '1.3rem', color: 'var(--gold)' }}>person_add</span>
               </div>
               <div className={styles.actionCardText}>
                 <div className={styles.statValue} style={{ fontSize: '0.82rem' }}>Add</div>
@@ -386,7 +410,7 @@ function Home({ onMenuClick }) {
 
             <div className={styles.actionCard} onClick={() => navigate('/appointments')}>
               <div className={styles.statIconWrap}>
-                <span className="mi" style={{ fontSize: '1.3rem', color: 'var(--accent)' }}>event</span>
+                <span className="mi" style={{ fontSize: '1.3rem', color: 'var(--gold)' }}>event</span>
               </div>
               <div className={styles.actionCardText}>
                 <div className={styles.statValue} style={{ fontSize: '0.82rem' }}>Book</div>
@@ -396,7 +420,7 @@ function Home({ onMenuClick }) {
 
             <div className={styles.actionCard} onClick={() => navigate('/tasks')}>
               <div className={styles.statIconWrap}>
-                <span className="mi" style={{ fontSize: '1.3rem', color: 'var(--accent)' }}>assignment</span>
+                <span className="mi" style={{ fontSize: '1.3rem', color: 'var(--gold)' }}>assignment</span>
               </div>
               <div className={styles.actionCardText}>
                 <div className={styles.statValue} style={{ fontSize: '0.82rem' }}>New</div>
@@ -406,17 +430,18 @@ function Home({ onMenuClick }) {
 
             <div className={styles.actionCard} onClick={() => navigate('/customers')}>
               <div className={styles.statIconWrap}>
-                <span className="mi" style={{ fontSize: '1.3rem', color: 'var(--accent)' }}>arrow_forward</span>
+                <span className="mi" style={{ fontSize: '1.3rem', color: 'var(--gold)' }}>arrow_forward</span>
               </div>
               <div className={styles.actionCardText}>
                 <div className={styles.statValue} style={{ fontSize: '0.82rem' }}>View All</div>
                 <div className={styles.statLabel}>Customers</div>
               </div>
             </div>
+
           </div>
         </section>
 
-        {/* RECENT ORDERS */}
+        {/* ── RECENT ORDERS ── */}
         {recentOrders.length > 0 && (
           <section className={styles.section}>
             <div className={styles.sectionHeader}>
@@ -436,19 +461,21 @@ function Home({ onMenuClick }) {
                       <div className={styles.listInner}>
                         {thumb
                           ? <img src={thumb} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '9px' }} />
-                          : <span className="mi" style={{ fontSize: '1.3rem', color: 'var(--text3)' }}>content_cut</span>
+                          : <span className="mi" style={{ fontSize: '1.3rem', color: 'var(--ink3)' }}>content_cut</span>
                         }
                       </div>
                     </div>
                     <div className={styles.listInfo}>
                       <div className={styles.listDesc}>{order.desc ?? 'Order'}</div>
                       <div className={styles.listMeta}>
-                        <span className="mi" style={{ fontSize: '0.78rem', color: 'var(--text3)', verticalAlign: 'middle' }}>person</span>
+                        <span className="mi" style={{ fontSize: '0.78rem', color: 'var(--ink3)', verticalAlign: 'middle' }}>person</span>
                         <span className={styles.listMetaText}>{order.customerName || '—'}</span>
                       </div>
                       <div className={styles.listMeta}>
-                        <span className="mi" style={{ fontSize: '0.78rem', color: 'var(--text3)', verticalAlign: 'middle' }}>autorenew</span>
-                        <span className={styles.listMetaText} style={{ color: ORDER_STATUS_TEXT_COLORS[order.status] ?? undefined }}>{order.status || 'Pending'}</span>
+                        <span className="mi" style={{ fontSize: '0.78rem', color: 'var(--ink3)', verticalAlign: 'middle' }}>autorenew</span>
+                        <span className={styles.listMetaText} style={{ color: ORDER_STATUS_TEXT_COLORS[order.status] ?? undefined }}>
+                          {order.status || 'Pending'}
+                        </span>
                       </div>
                       {(order.due || order.dueRaw) && (
                         <div className={styles.listDue}>Due On {order.due || formatDate(order.dueRaw)}</div>
@@ -465,7 +492,7 @@ function Home({ onMenuClick }) {
           </section>
         )}
 
-        {/* RECENT TASKS */}
+        {/* ── RECENT TASKS ── */}
         {recentTasks.length > 0 && (
           <section className={styles.section}>
             <div className={styles.sectionHeader}>
@@ -477,7 +504,7 @@ function Home({ onMenuClick }) {
               {recentTasks.map((task, idx) => {
                 const isLast    = idx === recentTasks.length - 1
                 const overdue   = isTaskOverdue(task)
-                const iconColor = overdue ? '#ef4444' : (PRIORITY_COLORS[task.priority] || '#818cf8')
+                const iconColor = overdue ? '#ef4444' : (PRIORITY_COLORS[task.priority] || '#C9A84C')
                 const catIcon   = CATEGORY_ICONS[task.category] || 'assignment'
                 return (
                   <div key={task.id} className={`${styles.listItem} ${isLast ? styles.listItemLast : ''}`}>
@@ -493,20 +520,21 @@ function Home({ onMenuClick }) {
                       <div className={styles.listDesc}>{task.desc}</div>
                       {task.customerName && (
                         <div className={styles.listMeta}>
-                          <span className="mi" style={{ fontSize: '0.78rem', color: 'var(--text3)', verticalAlign: 'middle' }}>person</span>
+                          <span className="mi" style={{ fontSize: '0.78rem', color: 'var(--ink3)', verticalAlign: 'middle' }}>person</span>
                           <span className={styles.listMetaText}>{task.customerName}</span>
                         </div>
                       )}
                       <div className={styles.listMeta}>
-                        <span className="mi" style={{ fontSize: '0.78rem', color: 'var(--text3)', verticalAlign: 'middle' }}>autorenew</span>
+                        <span className="mi" style={{ fontSize: '0.78rem', color: 'var(--ink3)', verticalAlign: 'middle' }}>autorenew</span>
                         <span className={styles.listMetaText} style={{ color: overdue ? '#ef4444' : undefined }}>
-                          {overdue ? 'Overdue' : (task.priority ? task.priority.charAt(0).toUpperCase() + task.priority.slice(1) : 'Normal')}
+                          {overdue
+                            ? 'Overdue'
+                            : (task.priority ? task.priority.charAt(0).toUpperCase() + task.priority.slice(1) : 'Normal')
+                          }
                         </span>
                       </div>
                       {task.dueDate && (
-                        <div className={styles.listDue} style={{ color: '#ef4444' }}>
-                          Due On {formatDate(task.dueDate)}
-                        </div>
+                        <div className={styles.listDue}>Due On {formatDate(task.dueDate)}</div>
                       )}
                     </div>
                   </div>
