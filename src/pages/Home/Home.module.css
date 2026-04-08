@@ -1,74 +1,116 @@
+/* ═══════════════════════════════════════════════════════════════
+   HOME — Atelier Gold Design System
+   Colour palette inspired by The Digital Atelier reference:
+     Gold primary:    #B8922A  /  #C9A84C  /  #E8C97A
+     Warm cream bg:   #F9F6F0  /  #FFFDF8
+     Dark ink:        #1C1810  /  #2D2416
+     Warm surfaces:   #F2EBE0  /  #EDE3D5
+     Border warm:     rgba(184,146,42,0.18)
+═══════════════════════════════════════════════════════════════ */
+
+/* ── OVERRIDE CSS VARS for Atelier palette ── */
 .pageWrapper {
-  background: var(--bg);
+  --gold:        #B8922A;
+  --gold-light:  #C9A84C;
+  --gold-pale:   #E8C97A;
+  --gold-glow:   rgba(184,146,42,0.12);
+  --gold-border: rgba(184,146,42,0.22);
+  --ink:         #1C1810;
+  --ink2:        #4A3C28;
+  --ink3:        #8A7A62;
+  --cream:       #FAF7F2;
+  --cream2:      #F2EBE0;
+  --cream3:      #EDE3D5;
+  --warm-border: rgba(139,115,80,0.18);
+  --card-bg:     #FFFFFF;
+  --shadow-warm: 0 2px 12px rgba(139,100,20,0.08);
+  --shadow-gold: 0 4px 20px rgba(184,146,42,0.15);
+
+  background: var(--cream);
   min-height: 100dvh;
+  font-family: 'DM Sans', sans-serif;
 }
 
 .main {
-  padding: 16px 20px calc(40px + var(--sb));
+  padding: 16px 20px calc(40px + var(--sb, 0px));
   max-width: 600px;
   margin: auto;
 }
 
-/* ── HERO ── */
+/* ═══════════════ HERO ═══════════════ */
 .hero {
-  margin-bottom: 20px;
-  padding-top: 8px;
+  margin-bottom: 24px;
+  padding-top: 6px;
+  position: relative;
+}
+
+/* Subtle decorative rule under hero */
+.hero::after {
+  content: '';
+  display: block;
+  width: 40px;
+  height: 2px;
+  background: linear-gradient(90deg, var(--gold), transparent);
+  margin-top: 14px;
+  border-radius: 2px;
 }
 
 .welcomeLabel {
-  font-size: 0.8rem;
-  font-weight: 500;
-  color: var(--text3);
-  margin: 0 0 2px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--gold);
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  margin: 0 0 4px;
 }
 
 .title {
-  font-size: 2rem;
+  font-size: 2.1rem;
   font-weight: 800;
-  color: var(--text);
-  margin: 0 0 6px;
-  line-height: 1.1;
+  color: var(--ink);
+  margin: 0 0 5px;
+  line-height: 1.08;
+  letter-spacing: -0.5px;
 }
 
 .subtitle {
-  font-size: 0.8rem;
-  color: var(--text3);
+  font-size: 0.78rem;
+  color: var(--ink3);
   font-weight: 400;
+  line-height: 1.5;
 }
 
-/* ── NOTIFICATION BANNER ── */
+/* ═══════════════ NOTIFICATION BANNER ═══════════════ */
 .notifBanner {
   display: flex;
   align-items: center;
   gap: 12px;
-  background: var(--surface);
-  border: 1px solid var(--border2);
+  background: linear-gradient(135deg, #fffdf6 0%, #fef9ec 100%);
+  border: 1px solid var(--gold-border);
   border-radius: 14px;
-  padding: 14px 14px;
-  margin-bottom: 18px;
-  animation: slideDown 0.3s ease;
+  padding: 14px;
+  margin-bottom: 20px;
+  animation: slideDown 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: var(--shadow-gold);
 }
 
 @keyframes slideDown {
-  from { opacity: 0; transform: translateY(-8px); }
+  from { opacity: 0; transform: translateY(-10px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
-.notifBannerText {
-  flex: 1;
-  min-width: 0;
-}
+.notifBannerText { flex: 1; min-width: 0; }
 
 .notifBannerTitle {
   font-size: 0.82rem;
   font-weight: 700;
-  color: var(--text);
+  color: var(--ink);
   margin-bottom: 2px;
 }
 
 .notifBannerSub {
-  font-size: 0.7rem;
-  color: var(--text3);
+  font-size: 0.69rem;
+  color: var(--ink3);
   font-weight: 400;
 }
 
@@ -80,25 +122,29 @@
 }
 
 .notifBannerEnable {
-  background: var(--accent);
+  background: var(--gold);
   color: #fff;
   border: none;
-  border-radius: 8px;
-  padding: 6px 14px;
-  font-size: 0.75rem;
-  font-weight: 800;
+  border-radius: 9px;
+  padding: 6px 16px;
+  font-size: 0.74rem;
+  font-weight: 700;
   font-family: inherit;
   cursor: pointer;
-  transition: opacity 0.15s;
+  transition: background 0.15s, box-shadow 0.15s;
+  letter-spacing: 0.3px;
 }
 
-.notifBannerEnable:active { opacity: 0.8; }
+.notifBannerEnable:active {
+  background: #9c7a22;
+  box-shadow: none;
+}
 
 .notifBannerDismiss {
   background: none;
   border: none;
-  color: var(--text3);
-  font-size: 0.7rem;
+  color: var(--ink3);
+  font-size: 0.69rem;
   font-weight: 600;
   font-family: inherit;
   cursor: pointer;
@@ -106,34 +152,52 @@
   padding: 2px 0;
 }
 
-/* ── STATS GRID ── */
+/* ═══════════════ STATS GRID ═══════════════ */
 .statsGrid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 10px;
-  margin-bottom: 22px;
+  margin-bottom: 26px;
 }
 
 .statCard {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 11px 10px;
+  background: var(--card-bg);
+  border: 1px solid var(--warm-border);
+  border-radius: 16px;
+  padding: 14px 12px;
   display: flex;
-  gap: 8px;
+  gap: 10px;
   align-items: flex-start;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: background 0.15s, transform 0.12s, box-shadow 0.15s;
+  box-shadow: var(--shadow-warm);
+  position: relative;
+  overflow: hidden;
 }
 
-.statCard:active { background: var(--surface2); }
+/* Subtle gold top-border accent on each card */
+.statCard::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--gold-pale), transparent 70%);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
 
-/* ── ACTION CARD (Vertical Variant) ── */
+.statCard:active {
+  background: var(--cream2);
+  transform: scale(0.985);
+  box-shadow: 0 1px 6px rgba(139,100,20,0.06);
+}
+
+/* ── ACTION CARD ── */
 .actionCard {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 16px 10px;
+  background: var(--card-bg);
+  border: 1px solid var(--warm-border);
+  border-radius: 16px;
+  padding: 18px 10px;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -141,10 +205,14 @@
   justify-content: center;
   text-align: center;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: background 0.15s, transform 0.12s, box-shadow 0.15s;
+  box-shadow: var(--shadow-warm);
 }
 
-.actionCard:active { background: var(--surface2); }
+.actionCard:active {
+  background: var(--cream2);
+  transform: scale(0.97);
+}
 
 .actionCardText {
   display: flex;
@@ -152,12 +220,13 @@
   align-items: center;
 }
 
+/* ── Icon wrap — warm parchment background ── */
 .statIconWrap {
-  width: 34px;
-  height: 34px;
-  border-radius: 9px;
-  background: var(--surface2);
-  border: 1px solid var(--border);
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--cream2);
+  border: 1px solid var(--gold-border);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -165,29 +234,31 @@
 }
 
 .statValue {
-  font-size: 1.15rem;
+  font-size: 1.2rem;
   font-weight: 800;
-  color: var(--text);
+  color: var(--ink);
   line-height: 1.1;
+  letter-spacing: -0.3px;
 }
 
 .statLabel {
-  font-size: 0.62rem;
-  color: var(--text3);
+  font-size: 0.61rem;
+  color: var(--ink3);
   font-weight: 600;
   margin-top: 2px;
+  letter-spacing: 0.2px;
 }
 
 .statSub {
   font-size: 0.58rem;
-  color: var(--text3);
-  font-weight: 600;
+  color: var(--ink3);
+  font-weight: 500;
   margin-top: 3px;
 }
 
-/* ── SECTION ── */
+/* ═══════════════ SECTION ═══════════════ */
 .section {
-  margin-bottom: 22px;
+  margin-bottom: 24px;
 }
 
 .sectionHeader {
@@ -197,32 +268,37 @@
 }
 
 .sectionTitle {
-  font-size: 0.78rem;
-  font-weight: 800;
-  color: var(--text);
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--gold);
   text-transform: uppercase;
-  letter-spacing: 0.8px;
+  letter-spacing: 1.6px;
   margin-bottom: 12px;
 }
 
 .seeAllBtn {
   background: none;
   border: none;
-  font-size: 0.75rem;
+  font-size: 0.74rem;
   font-weight: 700;
-  color: var(--accent);
+  color: var(--gold);
   cursor: pointer;
-  font-family: 'DM Sans', sans-serif;
+  font-family: inherit;
   padding: 0;
   margin-bottom: 12px;
+  letter-spacing: 0.2px;
+  opacity: 0.85;
+  transition: opacity 0.15s;
 }
 
-/* ── LIST SECTIONS ── */
+.seeAllBtn:active { opacity: 0.55; }
+
+/* ═══════════════ LIST SECTIONS ═══════════════ */
 .listSection { position: relative; }
 
 .listDivider {
   height: 1px;
-  background: var(--border);
+  background: var(--warm-border);
   width: calc(100% + 40px);
   margin-left: -20px;
 }
@@ -230,11 +306,12 @@
 .listItem {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 0;
-  background: var(--bg);
+  gap: 13px;
+  padding: 13px 0;
+  background: var(--cream);
   position: relative;
   cursor: pointer;
+  transition: background 0.12s;
 }
 
 .listItem::after {
@@ -244,29 +321,31 @@
   left: 0;
   right: -20px;
   height: 1px;
-  background: var(--border);
+  background: var(--warm-border);
 }
 
 .listItemLast::after { display: none; }
-.listItem:active { background: var(--surface); }
+.listItem:active { background: var(--cream2); }
 
+/* ── List thumbnail frame ── */
 .listOuter {
   width: 68px;
   height: 68px;
-  border-radius: 12px;
-  background: var(--surface);
-  border: 1px solid var(--border);
+  border-radius: 13px;
+  background: var(--card-bg);
+  border: 1px solid var(--gold-border);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  box-shadow: 0 1px 6px rgba(139,100,20,0.07);
 }
 
 .listInner {
   width: 50px;
   height: 50px;
   border-radius: 9px;
-  background: #fff;
+  background: var(--cream2);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -274,37 +353,75 @@
 }
 
 .listInfo { flex: 1; min-width: 0; }
-.listDesc { font-size: 0.9rem; font-weight: 600; color: var(--text); margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.listMeta { display: flex; align-items: center; gap: 4px; margin-bottom: 2px; }
-.listMetaText { font-size: 0.75rem; font-weight: 400; color: var(--text2); }
-.listDue { font-size: 0.75rem; font-weight: 500; color: #ef4444; margin-top: 1px; }
 
+.listDesc {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.listMeta {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 2px;
+}
+
+.listMetaText {
+  font-size: 0.73rem;
+  font-weight: 400;
+  color: var(--ink3);
+}
+
+.listDue {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #c0392b;
+  margin-top: 2px;
+}
+
+/* ── Status badges ── */
 .listApptToday {
   display: inline-block;
-  font-size: 0.58rem;
+  font-size: 0.57rem;
   font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: #06b6d4;
-  border: 1px solid rgba(6,182,212,0.4);
-  background: rgba(6,182,212,0.1);
+  letter-spacing: 0.6px;
+  color: var(--gold);
+  border: 1px solid var(--gold-border);
+  background: var(--gold-glow);
   border-radius: 5px;
-  padding: 2px 6px;
-  margin-top: 3px;
+  padding: 2px 7px;
+  margin-top: 4px;
 }
 
 .listApptStatus {
   display: inline-block;
-  font-size: 0.58rem;
+  font-size: 0.57rem;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   border: 1px solid;
   border-radius: 5px;
-  padding: 2px 6px;
-  margin-top: 3px;
+  padding: 2px 7px;
+  margin-top: 4px;
 }
 
 .listRight { text-align: right; flex-shrink: 0; }
-.listPrice { font-size: 0.88rem; font-weight: 700; color: var(--text); white-space: nowrap; }
-.listQty { font-size: 0.65rem; color: var(--text3); margin-top: 2px; }
+
+.listPrice {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+.listQty {
+  font-size: 0.64rem;
+  color: var(--ink3);
+  margin-top: 2px;
+}
