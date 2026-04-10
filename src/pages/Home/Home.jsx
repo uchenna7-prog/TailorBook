@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useCustomers }     from '../../contexts/CustomerContext'
 import { useOrders }        from '../../contexts/OrdersContext'
@@ -56,20 +56,20 @@ const CATEGORY_ICONS = {
 }
 
 const APPT_TYPE_ICONS = {
-  fitting:     'checkroom',
-  measurement: 'straighten',
-  delivery:    'local_shipping',
-  consultation:'chat_bubble_outline',
-  pickup:      'inventory_2',
-  other:       'event',
+  fitting:      'checkroom',
+  measurement:  'straighten',
+  delivery:     'local_shipping',
+  consultation: 'chat_bubble_outline',
+  pickup:       'inventory_2',
+  other:        'event',
 }
 
 const APPT_STATUS_COLORS = {
-  scheduled:  '#818cf8',
-  confirmed:  '#22c55e',
-  completed:  '#94a3b8',
-  cancelled:  '#ef4444',
-  missed:     '#ef4444',
+  scheduled: '#818cf8',
+  confirmed: '#22c55e',
+  completed: '#94a3b8',
+  cancelled: '#ef4444',
+  missed:    '#ef4444',
 }
 
 const ORDER_STATUS_TEXT_COLORS = {
@@ -96,29 +96,36 @@ function NotifBanner({ onEnable, onDismiss }) {
   )
 }
 
-// ── Mobile Quick Actions Bottom Bar ──────────────────────────
+// ── Mobile bottom quick-actions nav ──────────────────────────
 function MobileQuickActions({ navigate }) {
   return (
     <nav className={styles.mobileQuickNav}>
+
       <button className={styles.mobileQuickBtn} onClick={() => navigate('/customers')}>
-        <span className="mi" style={{ fontSize: '1.4rem' }}>person_add</span>
-        <span className={styles.mobileQuickLabel}>Add Customer</span>
+        <span className="mi" style={{ fontSize: '1.45rem' }}>person_add</span>
+        <span className={styles.mobileQuickLabel}>New{'\n'}Customer</span>
       </button>
+
       <button className={styles.mobileQuickBtn} onClick={() => navigate('/appointments')}>
-        <span className="mi" style={{ fontSize: '1.4rem' }}>event</span>
-        <span className={styles.mobileQuickLabel}>Appointment</span>
+        <span className="mi" style={{ fontSize: '1.45rem' }}>event</span>
+        <span className={styles.mobileQuickLabel}>Book{'\n'}Appt</span>
       </button>
+
+      {/* Centre FAB */}
       <button className={styles.mobileQuickBtnPrimary} onClick={() => navigate('/orders')}>
-        <span className="mi" style={{ fontSize: '1.6rem' }}>add</span>
+        <span className="mi" style={{ fontSize: '1.7rem' }}>add</span>
       </button>
+
       <button className={styles.mobileQuickBtn} onClick={() => navigate('/tasks')}>
-        <span className="mi" style={{ fontSize: '1.4rem' }}>assignment</span>
-        <span className={styles.mobileQuickLabel}>New Task</span>
+        <span className="mi" style={{ fontSize: '1.45rem' }}>assignment</span>
+        <span className={styles.mobileQuickLabel}>Add{'\n'}Task</span>
       </button>
+
       <button className={styles.mobileQuickBtn} onClick={() => navigate('/customers')}>
-        <span className="mi" style={{ fontSize: '1.4rem' }}>groups</span>
-        <span className={styles.mobileQuickLabel}>Customers</span>
+        <span className="mi" style={{ fontSize: '1.45rem' }}>groups</span>
+        <span className={styles.mobileQuickLabel}>All{'\n'}Customers</span>
       </button>
+
     </nav>
   )
 }
@@ -127,15 +134,15 @@ function MobileQuickActions({ navigate }) {
 
 function Home({ onMenuClick }) {
   const navigate = useNavigate()
-  const { user }              = useAuth()
-  const { customers }         = useCustomers()
-  const { allOrders }         = useOrders()
-  const { tasks }             = useTasks()
-  const { allInvoices }       = useInvoices()
+  const { user }          = useAuth()
+  const { customers }     = useCustomers()
+  const { allOrders }     = useOrders()
+  const { tasks }         = useTasks()
+  const { allInvoices }   = useInvoices()
   const {
     upcoming,
     todayAppointments,
-    recent:       recentAppts,
+    recent:          recentAppts,
     missedCount,
     upcomingThisWeek,
   } = useAppointments()
@@ -161,7 +168,7 @@ function Home({ onMenuClick }) {
     localStorage.setItem('tf_notif_dismissed', 'true')
   }
 
-  // ── Second name logic ─────────────────────────────────────
+  // ── Display name (second name preferred) ─────────────────
   const displayName = (() => {
     const full = user?.displayName?.trim()
     if (full) {
@@ -199,67 +206,68 @@ function Home({ onMenuClick }) {
   const recentAppointments = upcoming.slice(0, 4)
   const pastAppointments   = recentAppts.slice(0, 4)
 
-  // ── Stat card data ────────────────────────────────────────
+  // ── Stat card definitions ─────────────────────────────────
+  // bgIcon: representative Material Icon for each card's watermark
   const statCards = [
     {
-      icon: 'groups',
-      bgIcon: 'groups',
-      color: '#818cf8',
-      value: customers.length,
-      label: 'Total Customers',
-      sub: `+${newCustomersThisMonth} this month`,
-      subColor: undefined,
-      route: '/customers',
+      desktopIcon: 'groups',
+      bgIcon:      'groups',           // people silhouette — customers
+      iconColor:   '#818cf8',
+      value:       customers.length,
+      label:       'Total Customers',
+      sub:         `+${newCustomersThisMonth} this month`,
+      subColor:    undefined,
+      route:       '/customers',
     },
     {
-      icon: 'content_cut',
-      bgIcon: 'content_cut',
-      color: '#fb923c',
-      value: pendingOrders.length,
-      label: 'Pending Orders',
-      sub: `${ordersDueThisWeek} due this wk`,
-      subColor: ordersDueThisWeek > 0 ? '#fb923c' : undefined,
-      route: '/orders',
+      desktopIcon: 'content_cut',
+      bgIcon:      'shopping_bag',     // shopping bag — orders (matches reference)
+      iconColor:   '#fb923c',
+      value:       pendingOrders.length,
+      label:       'Pending Orders',
+      sub:         `${ordersDueThisWeek} due this wk`,
+      subColor:    ordersDueThisWeek > 0 ? 'var(--warning)' : undefined,
+      route:       '/orders',
     },
     {
-      icon: 'receipt_long',
-      bgIcon: 'receipt_long',
-      color: '#ef4444',
-      value: totalUnpaid,
-      label: 'Unpaid Invoices',
-      sub: `${totalOverdueInvoice} overdue`,
-      subColor: totalOverdueInvoice > 0 ? '#ef4444' : undefined,
-      route: '/invoices',
+      desktopIcon: 'receipt_long',
+      bgIcon:      'receipt_long',     // receipt — invoices
+      iconColor:   '#ef4444',
+      value:       totalUnpaid,
+      label:       'Unpaid Invoices',
+      sub:         `${totalOverdueInvoice} overdue`,
+      subColor:    totalOverdueInvoice > 0 ? 'var(--danger)' : undefined,
+      route:       '/invoices',
     },
     {
-      icon: 'task_alt',
-      bgIcon: 'task_alt',
-      color: '#22c55e',
-      value: pendingTasks.length,
-      label: 'Pending Tasks',
-      sub: `${tasksDueThisWeek} due this wk`,
-      subColor: tasksDueThisWeek > 0 ? '#fb923c' : undefined,
-      route: '/tasks',
+      desktopIcon: 'task_alt',
+      bgIcon:      'checklist',        // checklist — tasks
+      iconColor:   '#22c55e',
+      value:       pendingTasks.length,
+      label:       'Pending Tasks',
+      sub:         `${tasksDueThisWeek} due this wk`,
+      subColor:    tasksDueThisWeek > 0 ? 'var(--warning)' : undefined,
+      route:       '/tasks',
     },
     {
-      icon: 'event',
-      bgIcon: 'event',
-      color: '#06b6d4',
-      value: todayCount,
-      label: "Today's Appts",
-      sub: missedCount > 0 ? `${missedCount} missed` : `${upcomingThisWeek} this wk`,
-      subColor: missedCount > 0 ? '#ef4444' : undefined,
-      route: '/appointments',
+      desktopIcon: 'event',
+      bgIcon:      'today',            // calendar today — today's appts
+      iconColor:   '#06b6d4',
+      value:       todayCount,
+      label:       "Today's Appts",
+      sub:         missedCount > 0 ? `${missedCount} missed` : `${upcomingThisWeek} this wk`,
+      subColor:    missedCount > 0 ? 'var(--danger)' : undefined,
+      route:       '/appointments',
     },
     {
-      icon: 'calendar_month',
-      bgIcon: 'calendar_month',
-      color: '#a855f7',
-      value: upcomingThisWeek,
-      label: 'Appts This Wk',
-      sub: `${missedCount} missed`,
-      subColor: missedCount > 0 ? '#ef4444' : undefined,
-      route: '/appointments',
+      desktopIcon: 'calendar_month',
+      bgIcon:      'calendar_month',   // monthly calendar — weekly appts
+      iconColor:   '#a855f7',
+      value:       upcomingThisWeek,
+      label:       'Appts This Wk',
+      sub:         `${missedCount} missed`,
+      subColor:    missedCount > 0 ? 'var(--danger)' : undefined,
+      route:       '/appointments',
     },
   ]
 
@@ -281,7 +289,9 @@ function Home({ onMenuClick }) {
           <NotifBanner onEnable={handleEnable} onDismiss={handleDismiss} />
         )}
 
-        {/* STATS — desktop: 2-col grid | mobile: 1-col full-width rows */}
+        {/* STATS
+            Desktop → 2-col grid with coloured icon on left
+            Mobile  → 1-col full-width cards styled like reference image */}
         <section className={styles.statsGrid}>
           {statCards.map((card, i) => (
             <div
@@ -289,20 +299,32 @@ function Home({ onMenuClick }) {
               className={styles.statCard}
               onClick={() => navigate(card.route)}
             >
-              {/* Icon box */}
+              {/* Desktop left icon */}
               <div className={styles.statIconWrap}>
-                <span className="mi" style={{ fontSize: '1.3rem', color: card.color }}>{card.icon}</span>
+                <span className="mi" style={{ fontSize: '1.3rem', color: card.iconColor }}>
+                  {card.desktopIcon}
+                </span>
               </div>
 
-              {/* Text */}
+              {/* Card body */}
               <div className={styles.statCardBody}>
-                <div className={styles.statValue}>{card.value}</div>
+                {/* Label at the top */}
                 <div className={styles.statLabel}>{card.label}</div>
-                <div className={styles.statSub} style={{ color: card.subColor }}>{card.sub}</div>
+
+                {/* Big number + sub on same baseline row */}
+                <div className={styles.statValueRow}>
+                  <div className={styles.statValue}>{card.value}</div>
+                  <div
+                    className={styles.statSub}
+                    style={card.subColor ? { color: card.subColor } : undefined}
+                  >
+                    {card.sub}
+                  </div>
+                </div>
               </div>
 
-              {/* Background watermark icon — visible on mobile only */}
-              <span className={`mi ${styles.statBgIcon}`} style={{ color: card.color }}>{card.bgIcon}</span>
+              {/* Background watermark icon — uncoloured, shown on mobile only */}
+              <span className={`mi ${styles.statBgIcon}`}>{card.bgIcon}</span>
             </div>
           ))}
         </section>
@@ -393,7 +415,9 @@ function Home({ onMenuClick }) {
                       )}
                       <div className={styles.listMeta}>
                         <span className="mi" style={{ fontSize: '0.78rem', color: 'var(--text3)', verticalAlign: 'middle' }}>schedule</span>
-                        <span className={styles.listMetaText} style={{ color: appt.status === 'missed' ? '#ef4444' : undefined }}>{formatApptDate(appt.date, appt.time)}</span>
+                        <span className={styles.listMetaText} style={{ color: appt.status === 'missed' ? '#ef4444' : undefined }}>
+                          {formatApptDate(appt.date, appt.time)}
+                        </span>
                       </div>
                       <div className={styles.listApptStatus} style={{ color: iconColor, borderColor: `${iconColor}40`, background: `${iconColor}12` }}>
                         {appt.status === 'completed' ? 'Completed' : appt.status === 'cancelled' ? 'Cancelled' : 'Missed'}
@@ -406,7 +430,7 @@ function Home({ onMenuClick }) {
           </section>
         )}
 
-        {/* QUICK ACTIONS — desktop only (mobile has bottom nav) */}
+        {/* QUICK ACTIONS — desktop only */}
         <section className={styles.quickActionsDesktop}>
           <h3 className={styles.sectionTitle}>Quick Actions</h3>
           <div className={styles.statsGrid}>
@@ -419,7 +443,6 @@ function Home({ onMenuClick }) {
                 <div className={styles.statLabel}>Customer</div>
               </div>
             </div>
-
             <div className={styles.actionCard} onClick={() => navigate('/appointments')}>
               <div className={styles.statIconWrap}>
                 <span className="mi" style={{ fontSize: '1.3rem', color: 'var(--accent)' }}>event</span>
@@ -429,7 +452,6 @@ function Home({ onMenuClick }) {
                 <div className={styles.statLabel}>Appointment</div>
               </div>
             </div>
-
             <div className={styles.actionCard} onClick={() => navigate('/tasks')}>
               <div className={styles.statIconWrap}>
                 <span className="mi" style={{ fontSize: '1.3rem', color: 'var(--accent)' }}>assignment</span>
@@ -439,7 +461,6 @@ function Home({ onMenuClick }) {
                 <div className={styles.statLabel}>Task</div>
               </div>
             </div>
-
             <div className={styles.actionCard} onClick={() => navigate('/customers')}>
               <div className={styles.statIconWrap}>
                 <span className="mi" style={{ fontSize: '1.3rem', color: 'var(--accent)' }}>arrow_forward</span>
@@ -554,8 +575,9 @@ function Home({ onMenuClick }) {
 
       </main>
 
-      {/* MOBILE BOTTOM QUICK ACTIONS NAV */}
+      {/* MOBILE BOTTOM QUICK ACTIONS */}
       <MobileQuickActions navigate={navigate} />
+
     </div>
   )
 }
