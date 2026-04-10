@@ -666,7 +666,7 @@
 
   .mobileQuickNav {
     display: flex;
-    align-items: flex-end;
+    align-items: center;
     justify-content: space-around;
     position: fixed;
     bottom: 0;
@@ -699,6 +699,7 @@
   .mobileQuickLabel {
     font-size: 0.56rem;
     font-weight: 600;
+    text-align:center;
     width: 38px;
     line-height: 1.3;
     text-align: center;
