@@ -7,6 +7,7 @@ import { useInvoices }      from '../../contexts/InvoiceContext'
 import { useAppointments }  from '../../contexts/AppointmentContext'
 import { useAuth }          from '../../contexts/AuthContext'
 import { useNotifications } from '../../contexts/NotificationContext'
+import { useSettings }      from '../../contexts/SettingsContext'
 import Header from '../../components/Header/Header'
 import styles from './Home.module.css'
 
@@ -79,6 +80,49 @@ const ORDER_STATUS_TEXT_COLORS = {
   cancelled: '#721C24',
 }
 
+// ── Revenue donut SVG ─────────────────────────────────────────
+function RevenueDonut({ pct }) {
+  const r     = 36
+  const cx    = 44
+  const cy    = 44
+  const circ  = 2 * Math.PI * r
+  const filled = Math.min(Math.max(pct, 0), 100)
+  const dash  = (filled / 100) * circ
+
+  return (
+    <svg width="88" height="88" viewBox="0 0 88 88">
+      {/* Track */}
+      <circle
+        cx={cx} cy={cy} r={r}
+        fill="none"
+        stroke="var(--border2, #e2e8f0)"
+        strokeWidth="10"
+      />
+      {/* Revenue (pink) — starts at top */}
+      <circle
+        cx={cx} cy={cy} r={r}
+        fill="none"
+        stroke="#f472b6"
+        strokeWidth="10"
+        strokeDasharray={`${dash} ${circ}`}
+        strokeLinecap="round"
+        transform={`rotate(-90 ${cx} ${cy})`}
+      />
+      {/* Remaining (blue) — starts where pink ends */}
+      <circle
+        cx={cx} cy={cy} r={r}
+        fill="none"
+        stroke="#60a5fa"
+        strokeWidth="10"
+        strokeDasharray={`${circ - dash} ${circ}`}
+        strokeDashoffset={-(dash)}
+        strokeLinecap="round"
+        transform={`rotate(-90 ${cx} ${cy})`}
+      />
+    </svg>
+  )
+}
+
 // ── Push notification banner ──────────────────────────────────
 function NotifBanner({ onEnable, onDismiss }) {
   return (
@@ -143,6 +187,7 @@ function Home({ onMenuClick }) {
     upcomingThisWeek,
   } = useAppointments()
   const { pushEnabled, requestPushPermission } = useNotifications()
+  const { settings } = useSettings()
 
   const [bannerDismissed, setBannerDismissed] = useState(
     () => localStorage.getItem('tf_notif_dismissed') === 'true'
@@ -196,28 +241,26 @@ function Home({ onMenuClick }) {
 
   const todayCount = todayAppointments.length
 
+  // ── Revenue progress ──────────────────────────────────────
+  const revenueTarget  = settings?.revenueTarget ?? 500000
+  const revenueEarned  = allInvoices
+    .filter(i => i.status === 'paid')
+    .reduce((sum, i) => sum + (Number(i.total) || 0), 0)
+  const revenuePct     = revenueTarget > 0
+    ? Math.round((revenueEarned / revenueTarget) * 100)
+    : 0
+
   // ── Recent lists ──────────────────────────────────────────
   const recentOrders       = [...pendingOrders].slice(0, 4)
   const recentTasks        = tasks.filter(t => !t.done).slice(0, 4)
   const recentAppointments = upcoming.slice(0, 4)
   const pastAppointments   = recentAppts.slice(0, 4)
 
-  // ── Stat card definitions ─────────────────────────────────
-  // bgIcon: representative Material Icon for each card's watermark
-  const statCards = [
+  // ── Status cards (2×2 grid — exactly 4 cards) ────────────
+  const statusCards = [
     {
-      desktopIcon: 'groups',
-      bgIcon:      'groups',           // people silhouette — customers
-      iconColor:   '#818cf8',
-      value:       customers.length,
-      label:       'Total Customers',
-      sub:         `+${newCustomersThisMonth} this month`,
-      subColor:    undefined,
-      route:       '/customers',
-    },
-    {
-      desktopIcon: 'content_cut',
-      bgIcon:      'shopping_bag',     // shopping bag — orders (matches reference)
+      desktopIcon: 'shopping_bag',
+      bgIcon:      'shopping_bag',
       iconColor:   '#fb923c',
       value:       pendingOrders.length,
       label:       'Pending Orders',
@@ -227,7 +270,7 @@ function Home({ onMenuClick }) {
     },
     {
       desktopIcon: 'receipt_long',
-      bgIcon:      'receipt_long',     // receipt — invoices
+      bgIcon:      'receipt_long',
       iconColor:   '#ef4444',
       value:       totalUnpaid,
       label:       'Unpaid Invoices',
@@ -236,26 +279,26 @@ function Home({ onMenuClick }) {
       route:       '/invoices',
     },
     {
+      desktopIcon: 'event',
+      bgIcon:      'today',
+      iconColor:   '#06b6d4',
+      value:       todayCount,
+      label:       'Today Appointments',
+      sub:         missedCount > 0
+        ? `missed: ${missedCount}`
+        : `this wk: ${upcomingThisWeek}`,
+      subColor:    missedCount > 0 ? 'var(--danger)' : undefined,
+      route:       '/appointments',
+    },
+    {
       desktopIcon: 'task_alt',
-      bgIcon:      'checklist',        // checklist — tasks
+      bgIcon:      'checklist',
       iconColor:   '#22c55e',
       value:       pendingTasks.length,
       label:       'Pending Tasks',
       sub:         `${tasksDueThisWeek} due this wk`,
       subColor:    tasksDueThisWeek > 0 ? 'var(--warning)' : undefined,
       route:       '/tasks',
-    },
-    {
-      desktopIcon: 'event',
-      bgIcon:      'today',
-      iconColor:   '#06b6d4',
-      value:       todayCount,
-      label:       'Appointments',
-      sub:         missedCount > 0
-        ? `this wk: ${upcomingThisWeek} · missed: ${missedCount}`
-        : `today: ${todayCount} · this wk: ${upcomingThisWeek}`,
-      subColor:    missedCount > 0 ? 'var(--danger)' : undefined,
-      route:       '/appointments',
     },
   ]
 
@@ -277,11 +320,9 @@ function Home({ onMenuClick }) {
           <NotifBanner onEnable={handleEnable} onDismiss={handleDismiss} />
         )}
 
-        {/* STATS
-            Desktop → 2-col grid with coloured icon on left
-            Mobile  → 1-col full-width cards styled like reference image */}
+        {/* STATUS CARDS — 2×2 grid */}
         <section className={styles.statsGrid}>
-          {statCards.map((card, i) => (
+          {statusCards.map((card, i) => (
             <div
               key={i}
               className={styles.statCard}
@@ -296,26 +337,47 @@ function Home({ onMenuClick }) {
 
               {/* Card body */}
               <div className={styles.statCardBody}>
-                {/* Label at the top */}
                 <div className={styles.statLabel}>{card.label}</div>
-
-                {/* Big number + sub on same baseline row */}
                 <div className={styles.statValueRow}>
                   <div className={styles.statValue}>{card.value}</div>
-                  <div
-                    className={styles.statSub}
-                    style={card.subColor ? { color: card.subColor } : undefined}
-                  >
-                    {card.sub}
-                  </div>
+                  {card.sub && (
+                    <div
+                      className={styles.statSub}
+                      style={card.subColor ? { color: card.subColor } : undefined}
+                    >
+                      {card.sub}
+                    </div>
+                  )}
                 </div>
               </div>
 
-              {/* Background watermark icon — uncoloured, shown on mobile only */}
+              {/* Background watermark icon */}
               <span className={`mi ${styles.statBgIcon}`}>{card.bgIcon}</span>
             </div>
           ))}
         </section>
+
+        {/* REVENUE PROGRESS CARD */}
+        <div
+          className={styles.revenueCard}
+          onClick={() => navigate('/payments')}
+        >
+          <div className={styles.revenueCardLeft}>
+            <div className={styles.revenueLabel}>Revenue Progress</div>
+            <div className={styles.revenueAmount}>
+              ₦{revenueEarned.toLocaleString()}
+            </div>
+            <div className={styles.revenueTarget}>
+              Target: ₦{revenueTarget.toLocaleString()}
+            </div>
+            <div className={styles.revenuePercent}>
+              {revenuePct}% achieved
+            </div>
+          </div>
+          <div className={styles.revenueDonutWrap}>
+            <RevenueDonut pct={revenuePct} />
+          </div>
+        </div>
 
         {/* UPCOMING APPOINTMENTS */}
         {recentAppointments.length > 0 && (
@@ -571,4 +633,3 @@ function Home({ onMenuClick }) {
 }
 
 export default Home
-
