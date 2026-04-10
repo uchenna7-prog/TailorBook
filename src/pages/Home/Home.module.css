@@ -107,6 +107,7 @@
 }
 
 /* ── STATS GRID ── */
+/* Desktop: 2-column grid (unchanged) */
 .statsGrid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -114,6 +115,7 @@
   margin-bottom: 22px;
 }
 
+/* ── STAT CARD ── */
 .statCard {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -124,11 +126,33 @@
   align-items: flex-start;
   cursor: pointer;
   transition: background 0.15s;
+  /* needed for the bg icon positioning */
+  position: relative;
+  overflow: hidden;
 }
 
 .statCard:active { background: var(--surface2); }
 
-/* ── ACTION CARD (Vertical Variant) ── */
+/* Stat card body text block */
+.statCardBody {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Background watermark icon — hidden on desktop, shown on mobile */
+.statBgIcon {
+  position: absolute;
+  right: -6px;
+  bottom: -6px;
+  font-size: 4.5rem;
+  opacity: 0.07;
+  pointer-events: none;
+  user-select: none;
+  /* hidden by default (desktop 2-col is compact, doesn't need it) */
+  display: none;
+}
+
+/* ── ACTION CARD (Vertical Variant) — desktop quick actions ── */
 .actionCard {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -183,6 +207,18 @@
   color: var(--text3);
   font-weight: 600;
   margin-top: 3px;
+}
+
+/* ── QUICK ACTIONS DESKTOP — hidden on mobile ── */
+.quickActionsDesktop {
+  display: block;
+  margin-bottom: 22px;
+}
+
+/* ── MOBILE BOTTOM QUICK ACTIONS NAV ── */
+/* Hidden on desktop, shown on mobile */
+.mobileQuickNav {
+  display: none;
 }
 
 /* ── SECTION ── */
@@ -308,3 +344,122 @@
 .listRight { text-align: right; flex-shrink: 0; }
 .listPrice { font-size: 0.88rem; font-weight: 700; color: var(--text); white-space: nowrap; }
 .listQty { font-size: 0.65rem; color: var(--text3); margin-top: 2px; }
+
+
+/* ════════════════════════════════════════════
+   MOBILE  ≤ 600px
+   ════════════════════════════════════════════ */
+@media (max-width: 600px) {
+
+  /* Add bottom padding so content isn't hidden behind fixed nav */
+  .main {
+    padding-bottom: calc(80px + var(--sb, 0px));
+  }
+
+  /* ── Stats: one per row ── */
+  .statsGrid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  /* Taller card with more horizontal room for the watermark */
+  .statCard {
+    padding: 16px 14px;
+    align-items: center;
+  }
+
+  /* Show the bg watermark icon on mobile */
+  .statBgIcon {
+    display: block;
+    font-size: 5.5rem;
+    right: -8px;
+    bottom: -10px;
+  }
+
+  /* Slightly larger numbers on the bigger card */
+  .statValue {
+    font-size: 1.4rem;
+  }
+
+  .statLabel {
+    font-size: 0.7rem;
+  }
+
+  .statSub {
+    font-size: 0.63rem;
+  }
+
+  /* ── Hide desktop quick actions section on mobile ── */
+  .quickActionsDesktop {
+    display: none;
+  }
+
+  /* ── Mobile bottom quick actions nav ── */
+  .mobileQuickNav {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    padding: 8px 4px calc(8px + env(safe-area-inset-bottom, 0px));
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+  }
+
+  .mobileQuickBtn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 6px 10px;
+    border-radius: 12px;
+    color: var(--text3);
+    font-family: inherit;
+    transition: background 0.15s, color 0.15s;
+    flex: 1;
+  }
+
+  .mobileQuickBtn:active {
+    background: var(--surface2);
+    color: var(--accent);
+  }
+
+  .mobileQuickLabel {
+    font-size: 0.58rem;
+    font-weight: 600;
+    line-height: 1;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  /* Centre "+" FAB button */
+  .mobileQuickBtnPrimary {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+    transition: transform 0.15s, box-shadow 0.15s;
+    flex-shrink: 0;
+    margin-top: -18px; /* lifts it above the bar */
+  }
+
+  .mobileQuickBtnPrimary:active {
+    transform: scale(0.93);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  }
+}
