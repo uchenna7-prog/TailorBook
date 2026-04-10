@@ -122,11 +122,6 @@ function MobileQuickActions({ navigate }) {
         <span className={styles.mobileQuickLabel}>Add Task</span>
       </button>
 
-      <button className={styles.mobileQuickBtn} onClick={() => navigate('/customers')}>
-        <span className="mi" style={{ fontSize: '1.45rem' }}>groups</span>
-        <span className={styles.mobileQuickLabel}>Customers</span>
-      </button>
-
     </nav>
   )
 }
@@ -252,21 +247,13 @@ function Home({ onMenuClick }) {
     },
     {
       desktopIcon: 'event',
-      bgIcon:      'today',            // calendar today — today's appts
+      bgIcon:      'today',
       iconColor:   '#06b6d4',
       value:       todayCount,
-      label:       "Today's Appts",
-      sub:         missedCount > 0 ? `${missedCount} missed` : `${upcomingThisWeek} this wk`,
-      subColor:    missedCount > 0 ? 'var(--danger)' : undefined,
-      route:       '/appointments',
-    },
-    {
-      desktopIcon: 'calendar_month',
-      bgIcon:      'calendar_month',   // monthly calendar — weekly appts
-      iconColor:   '#a855f7',
-      value:       upcomingThisWeek,
-      label:       'Appts This Wk',
-      sub:         `${missedCount} missed`,
+      label:       'Appointments',
+      sub:         missedCount > 0
+        ? `this wk: ${upcomingThisWeek} · missed: ${missedCount}`
+        : `today: ${todayCount} · this wk: ${upcomingThisWeek}`,
       subColor:    missedCount > 0 ? 'var(--danger)' : undefined,
       route:       '/appointments',
     },
