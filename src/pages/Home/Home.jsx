@@ -92,17 +92,23 @@ function RevenueDonut({ pct }) {
 
   return (
     <svg width="88" height="88" viewBox="0 0 88 88">
-      <circle cx={cx} cy={cy} r={r} fill="none" stroke="var(--border2, #e2e8f0)" strokeWidth="10" />
+      <circle cx={cx} cy={cy} r={r} fill="none" stroke="var(--border2, #e2e8f0)" strokeWidth="8" />
       <circle
-        cx={cx} cy={cy} r={r} fill="none" stroke="#f472b6" strokeWidth="10"
+        cx={cx} cy={cy} r={r} fill="none" stroke="#f472b6" strokeWidth="8"
         strokeDasharray={`${dash} ${circ}`} strokeLinecap="round"
         transform={`rotate(-90 ${cx} ${cy})`}
       />
       <circle
-        cx={cx} cy={cy} r={r} fill="none" stroke="#60a5fa" strokeWidth="10"
+        cx={cx} cy={cy} r={r} fill="none" stroke="#60a5fa" strokeWidth="8"
         strokeDasharray={`${circ - dash} ${circ}`} strokeDashoffset={-(dash)} strokeLinecap="round"
         transform={`rotate(-90 ${cx} ${cy})`}
       />
+      <text 
+        x="50%" y="50%" textAnchor="middle" dominantBaseline="middle" 
+        fill="var(--text)" fontSize="15" fontWeight="800"
+      >
+        {pct}%
+      </text>
     </svg>
   )
 }
@@ -342,15 +348,12 @@ function Home({ onMenuClick }) {
   const todayCount = todayAppointments.length
 
   // ── Revenue calculation from PaymentContext ───────────────
-  // Uses allPayments from PaymentContext — same data source as AllPayments page.
-  // Sums all installment amounts within the goal's time window.
   const revenueEarned = (() => {
     if (!revenueGoal) return 0
     const windowStart = getWindowStart(revenueGoal.period)
 
     return allPayments
       .flatMap(p => {
-        // Each payment may have installments — sum those with a date in the window
         const installments = p.installments || []
         if (installments.length === 0) return []
 
@@ -385,7 +388,6 @@ function Home({ onMenuClick }) {
       value:       pendingOrders.length,
       label:       'Pending Orders',
       sub:         `${ordersDueThisWeek} due this wk`,
-      // Orange when there are orders due this week, muted otherwise
       subColor:    ordersDueThisWeek > 0 ? '#fb923c' : 'var(--text3)',
       route:       '/orders',
     },
@@ -408,7 +410,6 @@ function Home({ onMenuClick }) {
       sub:         missedCount > 0
         ? `${missedCount} missed`
         : `${upcomingThisWeek} this wk`,
-      // Red for missed, cyan for upcoming this week (matches the card's icon colour)
       subColor:    missedCount > 0 ? '#ef4444' : '#06b6d4',
       route:       '/appointments',
     },
@@ -419,7 +420,6 @@ function Home({ onMenuClick }) {
       value:       pendingTasks.length,
       label:       'Pending Tasks',
       sub:         `${tasksDueThisWeek} due this wk`,
-      // Orange when tasks are due this week
       subColor:    tasksDueThisWeek > 0 ? '#fb923c' : 'var(--text3)',
       route:       '/tasks',
     },
@@ -451,19 +451,15 @@ function Home({ onMenuClick }) {
               className={styles.statCard}
               onClick={() => navigate(card.route)}
             >
-              {/* Desktop left icon */}
               <div className={styles.statIconWrap}>
                 <span className="mi" style={{ fontSize: '1.3rem', color: card.iconColor }}>
                   {card.desktopIcon}
                 </span>
               </div>
 
-              {/* Card body */}
               <div className={styles.statCardBody}>
                 <div className={styles.statLabel}>{card.label}</div>
-                {/* Number on its own line */}
                 <div className={styles.statValue}>{card.value}</div>
-                {/* Sub text below, smaller, coloured */}
                 {card.sub && (
                   <div
                     className={styles.statSub}
@@ -474,7 +470,6 @@ function Home({ onMenuClick }) {
                 )}
               </div>
 
-              {/* Background watermark icon — partially cut off bottom-right */}
               <span className={`mi ${styles.statBgIcon}`}>{card.bgIcon}</span>
             </div>
           ))}
@@ -482,24 +477,20 @@ function Home({ onMenuClick }) {
 
         {/* REVENUE CARD */}
         {!revenueGoal ? (
-          /* ── Empty state: no graph, just add prompt ── */
           <div
             className={styles.revenueCard}
             onClick={() => setShowGoalModal(true)}
+            style={{ justifyContent: 'flex-start', gap: '20px' }}
           >
-            <div className={styles.revenueCardLeft}>
-              <div className={styles.revenueEmptyIconRow}>
-                <div className={styles.revenueEmptyIconWrap}>
-                  <span className="mi" style={{ fontSize: '1.4rem', color: 'var(--accent)' }}>add_circle</span>
-                </div>
-              </div>
-              <div className={styles.revenueEmptyTitle}>Set a goal</div>
-              <div className={styles.revenueEmptySub}>Track weekly, monthly or yearly revenue</div>
+            <div className={styles.revenueEmptyIconWrap}>
+              <span className="mi" style={{ fontSize: '1.6rem', color: 'var(--accent)' }}>ads_click</span>
             </div>
-            {/* No donut here — only shown when a goal exists */}
+            <div className={styles.revenueCardLeft} style={{ gap: '2px' }}>
+              <div className={styles.revenueEmptyTitle}>Set your first goal</div>
+              <div className={styles.revenueEmptySub}>Click here to track your shop's revenue growth</div>
+            </div>
           </div>
         ) : (
-          /* ── Active revenue card — donut reflects real payment data ── */
           <div
             className={styles.revenueCard}
             onClick={() => setShowGoalModal(true)}
@@ -513,9 +504,6 @@ function Home({ onMenuClick }) {
               </div>
               <div className={styles.revenueTarget}>
                 Goal: {revenueGoal.currency}{revenueGoal.goal.toLocaleString()}
-              </div>
-              <div className={styles.revenuePercent}>
-                {revenuePct}% achieved
               </div>
             </div>
             <div className={styles.revenueDonutWrap}>
