@@ -149,18 +149,20 @@
   flex-direction: column;
 }
 
-/* Background watermark — hidden on desktop */
+/* Background watermark — hidden on desktop, shown on mobile */
+/* Positioned so the icon is cut off at the bottom-right corner */
 .statBgIcon {
   display: none;
   position: absolute;
-  right: -8px;
-  bottom: -8px;
-  font-size: 7rem;
+  right: -14px;
+  bottom: -14px;
+  font-size: 5.5rem;
   color: var(--text);
-  opacity: 0.07;
+  opacity: 0.065;
   pointer-events: none;
   user-select: none;
   line-height: 1;
+  /* No rotation — straight icons like Monzo/Revolut/N26 */
 }
 
 .statValue {
@@ -179,7 +181,7 @@
   margin-top: 2px;
 }
 
-/* Sub text — now always BELOW the number */
+/* Sub text — always BELOW the number */
 .statSub {
   font-size: 0.55rem;
   font-weight: 600;
@@ -638,14 +640,16 @@
     display: none;
   }
 
-  /* Show background watermark on mobile */
+  /* Show background watermark on mobile — cut off at bottom-right corner */
   .statBgIcon {
     display: block;
     font-size: 5.5rem;
-    right: -4px;
-    bottom: -6px;
+    /* Pushed far enough right and down that roughly 30–40% of the icon
+       bleeds off the card edge, exactly like banking / fintech apps     */
+    right: -18px;
+    bottom: -16px;
     color: var(--text);
-    opacity: 0.07;
+    opacity: 0.065;
   }
 
   /* Label at top */
