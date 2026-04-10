@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useCustomers }     from '../../contexts/CustomerContext'
 import { useOrders }        from '../../contexts/OrdersContext'
@@ -8,6 +8,7 @@ import { useAppointments }  from '../../contexts/AppointmentContext'
 import { useAuth }          from '../../contexts/AuthContext'
 import { useNotifications } from '../../contexts/NotificationContext'
 import { useSettings }      from '../../contexts/SettingsContext'
+import { usePayments }      from '../../contexts/PaymentContext'
 import Header from '../../components/Header/Header'
 import styles from './Home.module.css'
 
@@ -91,35 +92,100 @@ function RevenueDonut({ pct }) {
 
   return (
     <svg width="88" height="88" viewBox="0 0 88 88">
-      {/* Track */}
+      <circle cx={cx} cy={cy} r={r} fill="none" stroke="var(--border2, #e2e8f0)" strokeWidth="10" />
       <circle
-        cx={cx} cy={cy} r={r}
-        fill="none"
-        stroke="var(--border2, #e2e8f0)"
-        strokeWidth="10"
-      />
-      {/* Revenue (pink) — starts at top */}
-      <circle
-        cx={cx} cy={cy} r={r}
-        fill="none"
-        stroke="#f472b6"
-        strokeWidth="10"
-        strokeDasharray={`${dash} ${circ}`}
-        strokeLinecap="round"
+        cx={cx} cy={cy} r={r} fill="none" stroke="#f472b6" strokeWidth="10"
+        strokeDasharray={`${dash} ${circ}`} strokeLinecap="round"
         transform={`rotate(-90 ${cx} ${cy})`}
       />
-      {/* Remaining (blue) — starts where pink ends */}
       <circle
-        cx={cx} cy={cy} r={r}
-        fill="none"
-        stroke="#60a5fa"
-        strokeWidth="10"
-        strokeDasharray={`${circ - dash} ${circ}`}
-        strokeDashoffset={-(dash)}
-        strokeLinecap="round"
+        cx={cx} cy={cy} r={r} fill="none" stroke="#60a5fa" strokeWidth="10"
+        strokeDasharray={`${circ - dash} ${circ}`} strokeDashoffset={-(dash)} strokeLinecap="round"
         transform={`rotate(-90 ${cx} ${cy})`}
       />
     </svg>
+  )
+}
+
+// ── Revenue Goal Modal ────────────────────────────────────────
+function RevenueGoalModal({ onSave, onClose }) {
+  const [period, setPeriod]     = useState('monthly')
+  const [goalInput, setGoalInput] = useState('')
+  const [currency, setCurrency] = useState('₦')
+
+  const handleSave = () => {
+    const amount = Number(goalInput.replace(/,/g, ''))
+    if (!amount || amount <= 0) return
+    onSave({ period, goal: amount, currency })
+  }
+
+  return (
+    <div className={styles.modalOverlay} onClick={onClose}>
+      <div className={styles.modalSheet} onClick={e => e.stopPropagation()}>
+        <div className={styles.modalHandle} />
+        <div className={styles.modalHeader}>
+          <h2 className={styles.modalTitle}>Set Revenue Goal</h2>
+          <p className={styles.modalSub}>Choose your tracking period and target amount</p>
+        </div>
+
+        {/* Period selector */}
+        <div className={styles.modalSection}>
+          <div className={styles.modalSectionLabel}>Track by</div>
+          <div className={styles.periodTabs}>
+            {['weekly', 'monthly', 'yearly'].map(p => (
+              <button
+                key={p}
+                className={`${styles.periodTab} ${period === p ? styles.periodTabActive : ''}`}
+                onClick={() => setPeriod(p)}
+              >
+                {p.charAt(0).toUpperCase() + p.slice(1)}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Currency + Goal amount */}
+        <div className={styles.modalSection}>
+          <div className={styles.modalSectionLabel}>Revenue target</div>
+          <div className={styles.goalInputRow}>
+            <select
+              className={styles.currencySelect}
+              value={currency}
+              onChange={e => setCurrency(e.target.value)}
+            >
+              <option value="₦">₦ NGN</option>
+              <option value="$">$ USD</option>
+              <option value="£">£ GBP</option>
+              <option value="€">€ EUR</option>
+            </select>
+            <input
+              className={styles.goalInput}
+              type="number"
+              placeholder="e.g. 500000"
+              value={goalInput}
+              onChange={e => setGoalInput(e.target.value)}
+              min="1"
+            />
+          </div>
+        </div>
+
+        {/* Period hint */}
+        <div className={styles.periodHint}>
+          {period === 'weekly'  && '📅 Resets every Monday'}
+          {period === 'monthly' && '📅 Resets on the 1st of each month'}
+          {period === 'yearly'  && '📅 Resets on January 1st each year'}
+        </div>
+
+        <button
+          className={styles.modalSaveBtn}
+          onClick={handleSave}
+          disabled={!goalInput || Number(goalInput) <= 0}
+        >
+          Save Goal
+        </button>
+        <button className={styles.modalCancelBtn} onClick={onClose}>Cancel</button>
+      </div>
+    </div>
   )
 }
 
@@ -130,7 +196,7 @@ function NotifBanner({ onEnable, onDismiss }) {
       <span className="mi" style={{ fontSize: '1.3rem', color: 'var(--accent)', flexShrink: 0 }}>notifications</span>
       <div className={styles.notifBannerText}>
         <div className={styles.notifBannerTitle}>Enable Notifications</div>
-        <div className={styles.notifBannerSub}>Get alerts for orders, invoices & birthdays</div>
+        <div className={styles.notifBannerSub}>Get alerts for orders, invoices &amp; birthdays</div>
       </div>
       <div className={styles.notifBannerActions}>
         <button className={styles.notifBannerEnable} onClick={onEnable}>Allow</button>
@@ -144,30 +210,48 @@ function NotifBanner({ onEnable, onDismiss }) {
 function MobileQuickActions({ navigate }) {
   return (
     <nav className={styles.mobileQuickNav}>
-
       <button className={styles.mobileQuickBtn} onClick={() => navigate('/customers')}>
         <span className="mi" style={{ fontSize: '1.45rem' }}>person_add</span>
         <span className={styles.mobileQuickLabel}>New Customer</span>
       </button>
-
       <button className={styles.mobileQuickBtn} onClick={() => navigate('/appointments')}>
         <span className="mi" style={{ fontSize: '1.45rem' }}>event</span>
         <span className={styles.mobileQuickLabel}>Book Appt</span>
       </button>
-
-      {/* Add Order — regular button, same style */}
       <button className={styles.mobileQuickBtn} onClick={() => navigate('/orders')}>
         <span className="mi" style={{ fontSize: '1.45rem' }}>add_shopping_cart</span>
         <span className={styles.mobileQuickLabel}>Add Order</span>
       </button>
-
       <button className={styles.mobileQuickBtn} onClick={() => navigate('/tasks')}>
         <span className="mi" style={{ fontSize: '1.45rem' }}>assignment</span>
         <span className={styles.mobileQuickLabel}>Add Task</span>
       </button>
-
     </nav>
   )
+}
+
+// ── Revenue helpers ───────────────────────────────────────────
+const REVENUE_STORAGE_KEY = 'tf_revenue_goal'
+
+function getWindowStart(period) {
+  const now = new Date()
+  if (period === 'weekly') {
+    const d = new Date(now)
+    d.setDate(d.getDate() - ((d.getDay() + 6) % 7)) // Monday
+    d.setHours(0, 0, 0, 0)
+    return d
+  }
+  if (period === 'monthly') {
+    return new Date(now.getFullYear(), now.getMonth(), 1)
+  }
+  // yearly
+  return new Date(now.getFullYear(), 0, 1)
+}
+
+function periodLabel(period) {
+  if (period === 'weekly')  return 'This week'
+  if (period === 'monthly') return 'This month'
+  return 'This year'
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -188,10 +272,26 @@ function Home({ onMenuClick }) {
   } = useAppointments()
   const { pushEnabled, requestPushPermission } = useNotifications()
   const { settings } = useSettings()
+  const { allPayments } = usePayments()
 
   const [bannerDismissed, setBannerDismissed] = useState(
     () => localStorage.getItem('tf_notif_dismissed') === 'true'
   )
+
+  // ── Revenue goal state ────────────────────────────────────
+  const [revenueGoal, setRevenueGoal] = useState(() => {
+    try {
+      const raw = localStorage.getItem(REVENUE_STORAGE_KEY)
+      return raw ? JSON.parse(raw) : null
+    } catch { return null }
+  })
+  const [showGoalModal, setShowGoalModal] = useState(false)
+
+  const handleSaveGoal = (goalData) => {
+    setRevenueGoal(goalData)
+    localStorage.setItem(REVENUE_STORAGE_KEY, JSON.stringify(goalData))
+    setShowGoalModal(false)
+  }
 
   const showBanner = !pushEnabled
     && !bannerDismissed
@@ -209,7 +309,7 @@ function Home({ onMenuClick }) {
     localStorage.setItem('tf_notif_dismissed', 'true')
   }
 
-  // ── Display name (second name preferred) ─────────────────
+  // ── Display name ──────────────────────────────────────────
   const displayName = (() => {
     const full = user?.displayName?.trim()
     if (full) {
@@ -241,13 +341,21 @@ function Home({ onMenuClick }) {
 
   const todayCount = todayAppointments.length
 
-  // ── Revenue progress ──────────────────────────────────────
-  const revenueTarget  = settings?.revenueTarget ?? 500000
-  const revenueEarned  = allInvoices
-    .filter(i => i.status === 'paid')
-    .reduce((sum, i) => sum + (Number(i.total) || 0), 0)
-  const revenuePct     = revenueTarget > 0
-    ? Math.round((revenueEarned / revenueTarget) * 100)
+  // ── Revenue calculation from PaymentContext ───────────────
+  const revenueEarned = (() => {
+    if (!revenueGoal) return 0
+    const windowStart = getWindowStart(revenueGoal.period)
+    return allPayments
+      .filter(p => {
+        if (!p.createdAt) return false
+        const ms = p.createdAt?.toMillis?.() ?? new Date(p.createdAt).getTime()
+        return ms >= windowStart.getTime()
+      })
+      .reduce((sum, p) => sum + (Number(p.amount) || 0), 0)
+  })()
+
+  const revenuePct = revenueGoal && revenueGoal.goal > 0
+    ? Math.min(Math.round((revenueEarned / revenueGoal.goal) * 100), 100)
     : 0
 
   // ── Recent lists ──────────────────────────────────────────
@@ -256,7 +364,7 @@ function Home({ onMenuClick }) {
   const recentAppointments = upcoming.slice(0, 4)
   const pastAppointments   = recentAppts.slice(0, 4)
 
-  // ── Status cards (2×2 grid — exactly 4 cards) ────────────
+  // ── Status cards ─────────────────────────────────────────
   const statusCards = [
     {
       desktopIcon: 'shopping_bag',
@@ -265,7 +373,7 @@ function Home({ onMenuClick }) {
       value:       pendingOrders.length,
       label:       'Pending Orders',
       sub:         `${ordersDueThisWeek} due this wk`,
-      subColor:    ordersDueThisWeek > 0 ? 'var(--warning)' : undefined,
+      subColor:    ordersDueThisWeek > 0 ? '#fb923c' : 'var(--text3)',
       route:       '/orders',
     },
     {
@@ -275,7 +383,7 @@ function Home({ onMenuClick }) {
       value:       totalUnpaid,
       label:       'Unpaid Invoices',
       sub:         `${totalOverdueInvoice} overdue`,
-      subColor:    totalOverdueInvoice > 0 ? 'var(--danger)' : undefined,
+      subColor:    totalOverdueInvoice > 0 ? '#ef4444' : 'var(--text3)',
       route:       '/invoices',
     },
     {
@@ -283,11 +391,11 @@ function Home({ onMenuClick }) {
       bgIcon:      'today',
       iconColor:   '#06b6d4',
       value:       todayCount,
-      label:       'Today Appointments',
+      label:       "Today's Appts",
       sub:         missedCount > 0
-        ? `missed: ${missedCount}`
-        : `this wk: ${upcomingThisWeek}`,
-      subColor:    missedCount > 0 ? 'var(--danger)' : undefined,
+        ? `${missedCount} missed`
+        : `${upcomingThisWeek} this wk`,
+      subColor:    missedCount > 0 ? '#ef4444' : 'var(--text3)',
       route:       '/appointments',
     },
     {
@@ -297,7 +405,7 @@ function Home({ onMenuClick }) {
       value:       pendingTasks.length,
       label:       'Pending Tasks',
       sub:         `${tasksDueThisWeek} due this wk`,
-      subColor:    tasksDueThisWeek > 0 ? 'var(--warning)' : undefined,
+      subColor:    tasksDueThisWeek > 0 ? '#fb923c' : 'var(--text3)',
       route:       '/tasks',
     },
   ]
@@ -338,17 +446,17 @@ function Home({ onMenuClick }) {
               {/* Card body */}
               <div className={styles.statCardBody}>
                 <div className={styles.statLabel}>{card.label}</div>
-                <div className={styles.statValueRow}>
-                  <div className={styles.statValue}>{card.value}</div>
-                  {card.sub && (
-                    <div
-                      className={styles.statSub}
-                      style={card.subColor ? { color: card.subColor } : undefined}
-                    >
-                      {card.sub}
-                    </div>
-                  )}
-                </div>
+                {/* Number on its own line */}
+                <div className={styles.statValue}>{card.value}</div>
+                {/* Sub text below, smaller, coloured */}
+                {card.sub && (
+                  <div
+                    className={styles.statSub}
+                    style={{ color: card.subColor }}
+                  >
+                    {card.sub}
+                  </div>
+                )}
               </div>
 
               {/* Background watermark icon */}
@@ -357,27 +465,59 @@ function Home({ onMenuClick }) {
           ))}
         </section>
 
-        {/* REVENUE PROGRESS CARD */}
-        <div
-          className={styles.revenueCard}
-          onClick={() => navigate('/payments')}
-        >
-          <div className={styles.revenueCardLeft}>
-            <div className={styles.revenueLabel}>Revenue Progress</div>
-            <div className={styles.revenueAmount}>
-              ₦{revenueEarned.toLocaleString()}
+        {/* REVENUE CARD */}
+        {!revenueGoal ? (
+          /* ── Empty state: Set a goal ── */
+          <div
+            className={styles.revenueCard}
+            onClick={() => setShowGoalModal(true)}
+          >
+            <div className={styles.revenueCardLeft}>
+              <div className={styles.revenueEmptyIconRow}>
+                <div className={styles.revenueEmptyIconWrap}>
+                  <span className="mi" style={{ fontSize: '1.4rem', color: 'var(--accent)' }}>add_circle</span>
+                </div>
+              </div>
+              <div className={styles.revenueEmptyTitle}>Set a goal</div>
+              <div className={styles.revenueEmptySub}>Track weekly, monthly or yearly revenue</div>
             </div>
-            <div className={styles.revenueTarget}>
-              Target: ₦{revenueTarget.toLocaleString()}
-            </div>
-            <div className={styles.revenuePercent}>
-              {revenuePct}% achieved
+            <div className={styles.revenueDonutWrap} style={{ opacity: 0.18 }}>
+              <RevenueDonut pct={0} />
             </div>
           </div>
-          <div className={styles.revenueDonutWrap}>
-            <RevenueDonut pct={revenuePct} />
+        ) : (
+          /* ── Active revenue card ── */
+          <div
+            className={styles.revenueCard}
+            onClick={() => setShowGoalModal(true)}
+          >
+            <div className={styles.revenueCardLeft}>
+              <div className={styles.revenueLabel}>
+                {periodLabel(revenueGoal.period)} · Revenue
+              </div>
+              <div className={styles.revenueAmount}>
+                {revenueGoal.currency}{revenueEarned.toLocaleString()}
+              </div>
+              <div className={styles.revenueTarget}>
+                Goal: {revenueGoal.currency}{revenueGoal.goal.toLocaleString()}
+              </div>
+              <div className={styles.revenuePercent}>
+                {revenuePct}% achieved
+              </div>
+            </div>
+            <div className={styles.revenueDonutWrap}>
+              <RevenueDonut pct={revenuePct} />
+            </div>
           </div>
-        </div>
+        )}
+
+        {/* REVENUE GOAL MODAL */}
+        {showGoalModal && (
+          <RevenueGoalModal
+            onSave={handleSaveGoal}
+            onClose={() => setShowGoalModal(false)}
+          />
+        )}
 
         {/* UPCOMING APPOINTMENTS */}
         {recentAppointments.length > 0 && (
