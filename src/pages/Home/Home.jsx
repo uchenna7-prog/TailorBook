@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useCustomers }     from '../../contexts/CustomerContext'
 import { useOrders }        from '../../contexts/OrdersContext'
@@ -43,6 +43,46 @@ function dueThisWeek(dateStr) {
   const end   = new Date(today); end.setDate(today.getDate() + 7)
   const due   = new Date(dateStr + 'T00:00:00')
   return due >= today && due <= end
+}
+
+// ── Timely greeting ───────────────────────────────────────────
+function getGreeting() {
+  const hour = new Date().getHours()
+  if (hour >= 5 && hour < 12)  return 'Good morning'
+  if (hour >= 12 && hour < 17) return 'Good afternoon'
+  if (hour >= 17 && hour < 21) return 'Good evening'
+  return 'Good night'
+}
+
+function getGreetingEmoji() {
+  const hour = new Date().getHours()
+  if (hour >= 5 && hour < 12)  return '☀️'
+  if (hour >= 12 && hour < 17) return '👋'
+  if (hour >= 17 && hour < 21) return '🌆'
+  return '🌙'
+}
+
+// ── Random subtexts ───────────────────────────────────────────
+const SUBTEXTS = [
+  "Here's what's happening in your shop today.",
+  "Let's see how your shop is doing right now.",
+  "Your shop summary is ready — take a look.",
+  "Stay on top of your shop with today's snapshot.",
+  "Everything at a glance — your shop, your day.",
+  "Here's your daily shop overview. Let's get to work.",
+  "Check in on your orders, tasks & appointments.",
+  "A fresh look at what needs your attention today.",
+  "Your shop is waiting — here's what's on the list.",
+  "Quick recap: here's where things stand today.",
+]
+
+function getRandomSubtext() {
+  return SUBTEXTS[Math.floor(Math.random() * SUBTEXTS.length)]
+}
+
+// ── Updated-now timestamp ─────────────────────────────────────
+function formatUpdatedTime(date) {
+  return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
 }
 
 const PRIORITY_COLORS = {
@@ -236,6 +276,20 @@ function MobileQuickActions({ navigate }) {
   )
 }
 
+// ── Empty state component ─────────────────────────────────────
+function EmptyState({ icon, message, sub, actionLabel, onAction }) {
+  return (
+    <div className={styles.emptyState}>
+      <span className={`mi ${styles.emptyStateIcon}`}>{icon}</span>
+      <p className={styles.emptyStateMsg}>{message}</p>
+      {sub && <p className={styles.emptyStateSub}>{sub}</p>}
+      {actionLabel && onAction && (
+        <button className={styles.emptyStateBtn} onClick={onAction}>{actionLabel}</button>
+      )}
+    </div>
+  )
+}
+
 // ── Revenue helpers ───────────────────────────────────────────
 const REVENUE_STORAGE_KEY = 'tf_revenue_goal'
 
@@ -283,6 +337,12 @@ function Home({ onMenuClick }) {
   const [bannerDismissed, setBannerDismissed] = useState(
     () => localStorage.getItem('tf_notif_dismissed') === 'true'
   )
+
+  // ── Timely greeting & random subtext (stable per session) ──
+  const greetingRef  = useRef(getGreeting())
+  const emojiRef     = useRef(getGreetingEmoji())
+  const subtextRef   = useRef(getRandomSubtext())
+  const updatedAtRef = useRef(new Date())
 
   // ── Revenue goal state ────────────────────────────────────
   const [revenueGoal, setRevenueGoal] = useState(() => {
@@ -384,7 +444,7 @@ function Home({ onMenuClick }) {
     {
       desktopIcon: 'shopping_bag',
       bgIcon:      'shopping_bag',
-      iconColor:   '#fb923c',
+      iconColor:   '#f59e0b',
       value:       pendingOrders.length,
       label:       'Pending Orders',
       sub:         `${ordersDueThisWeek} due this wk`,
@@ -433,9 +493,15 @@ function Home({ onMenuClick }) {
 
         {/* HERO */}
         <section className={styles.hero}>
-          <p className={styles.welcomeLabel}>Welcome 👋</p>
+          <p className={styles.welcomeLabel}>
+            {greetingRef.current} {emojiRef.current}
+          </p>
           <h1 className={styles.title}>{displayName}</h1>
-          <p className={styles.subtitle}>Here's what's happening in your shop today.</p>
+          <p className={styles.subtitle}>{subtextRef.current}</p>
+          <p className={styles.updatedAt}>
+            <span className="mi" style={{ fontSize: '0.7rem', verticalAlign: 'middle', marginRight: '3px' }}>update</span>
+            Updated at {formatUpdatedTime(updatedAtRef.current)}
+          </p>
         </section>
 
         {/* NOTIFICATION BANNER */}
@@ -521,12 +587,22 @@ function Home({ onMenuClick }) {
         )}
 
         {/* UPCOMING APPOINTMENTS */}
-        {recentAppointments.length > 0 && (
-          <section className={styles.section}>
-            <div className={styles.sectionHeader}>
-              <h3 className={styles.sectionTitle}>Upcoming Appointments</h3>
+        <section className={styles.section}>
+          <div className={styles.sectionHeader}>
+            <h3 className={styles.sectionTitle}>Upcoming Appointments</h3>
+            {recentAppointments.length > 0 && (
               <button className={styles.seeAllBtn} onClick={() => navigate('/appointments')}>See all</button>
-            </div>
+            )}
+          </div>
+          {recentAppointments.length === 0 ? (
+            <EmptyState
+              icon="event_available"
+              message="No upcoming appointments"
+              sub="Scheduled appointments will appear here."
+              actionLabel="Book Appointment"
+              onAction={() => navigate('/appointments')}
+            />
+          ) : (
             <div className={styles.listSection}>
               <div className={styles.listDivider} />
               {recentAppointments.map((appt, idx) => {
@@ -562,8 +638,8 @@ function Home({ onMenuClick }) {
                 )
               })}
             </div>
-          </section>
-        )}
+          )}
+        </section>
 
         {/* RECENT APPOINTMENTS */}
         {pastAppointments.length > 0 && (
@@ -593,7 +669,7 @@ function Home({ onMenuClick }) {
                       }
                     >
                       <div className={styles.listInner}>
-                        <span className="mi" style={{ fontSize: '1.3rem', color: iconColor }}>{icon}</span>
+                        <span className="mi" style={{ fontSize: '1.3rem', color: iconColor }}>{APPT_TYPE_ICONS[appt.type] || 'event'}</span>
                       </div>
                     </div>
                     <div className={styles.listInfo}>
@@ -665,12 +741,22 @@ function Home({ onMenuClick }) {
         </section>
 
         {/* RECENT ORDERS */}
-        {recentOrders.length > 0 && (
-          <section className={styles.section}>
-            <div className={styles.sectionHeader}>
-              <h3 className={styles.sectionTitle}>Recent Orders</h3>
+        <section className={styles.section}>
+          <div className={styles.sectionHeader}>
+            <h3 className={styles.sectionTitle}>Recent Orders</h3>
+            {recentOrders.length > 0 && (
               <button className={styles.seeAllBtn} onClick={() => navigate('/orders')}>See all</button>
-            </div>
+            )}
+          </div>
+          {recentOrders.length === 0 ? (
+            <EmptyState
+              icon="shopping_bag"
+              message="No pending orders"
+              sub="New and pending orders will show up here."
+              actionLabel="View Orders"
+              onAction={() => navigate('/orders')}
+            />
+          ) : (
             <div className={styles.listSection}>
               <div className={styles.listDivider} />
               {recentOrders.map((order, idx) => {
@@ -710,16 +796,26 @@ function Home({ onMenuClick }) {
                 )
               })}
             </div>
-          </section>
-        )}
+          )}
+        </section>
 
         {/* RECENT TASKS */}
-        {recentTasks.length > 0 && (
-          <section className={styles.section}>
-            <div className={styles.sectionHeader}>
-              <h3 className={styles.sectionTitle}>Recent Tasks</h3>
+        <section className={styles.section}>
+          <div className={styles.sectionHeader}>
+            <h3 className={styles.sectionTitle}>Recent Tasks</h3>
+            {recentTasks.length > 0 && (
               <button className={styles.seeAllBtn} onClick={() => navigate('/tasks')}>See all</button>
-            </div>
+            )}
+          </div>
+          {recentTasks.length === 0 ? (
+            <EmptyState
+              icon="assignment_turned_in"
+              message="No pending tasks"
+              sub="Tasks you create will appear here."
+              actionLabel="Add Task"
+              onAction={() => navigate('/tasks')}
+            />
+          ) : (
             <div className={styles.listSection}>
               <div className={styles.listDivider} />
               {recentTasks.map((task, idx) => {
@@ -761,8 +857,8 @@ function Home({ onMenuClick }) {
                 )
               })}
             </div>
-          </section>
-        )}
+          )}
+        </section>
 
       </main>
 
