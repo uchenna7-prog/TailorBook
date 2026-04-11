@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useCustomers }     from '../../contexts/CustomerContext'
 import { useOrders }        from '../../contexts/OrdersContext'
@@ -49,14 +49,14 @@ function dueThisWeek(dateStr) {
 
 function isDateInLastMonth(dateStr) {
   if (!dateStr) return false
-  const now         = new Date()
-  const lastMonth   = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+  const now          = new Date()
+  const lastMonth    = new Date(now.getFullYear(), now.getMonth() - 1, 1)
   const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59)
   const d = new Date(dateStr)
   return d >= lastMonth && d <= lastMonthEnd
 }
 
-// ── Timely greeting ───────────────────────────────────────────
+// ── Timely greeting with emoji ────────────────────────────────
 function getGreeting() {
   const h = new Date().getHours()
   if (h >= 5  && h < 12) return 'Good morning'
@@ -64,15 +64,12 @@ function getGreeting() {
   if (h >= 17 && h < 21) return 'Good evening'
   return 'Good night'
 }
-function getGreetingIcon() {
+function getGreetingEmoji() {
   const h = new Date().getHours()
-  if (h >= 5  && h < 12) return { name: 'wb_sunny',    color: '#f59e0b' }
-  if (h >= 12 && h < 17) return { name: 'waving_hand', color: '#818cf8' }
-  if (h >= 17 && h < 21) return { name: 'nights_stay', color: '#f472b6' }
-  return                         { name: 'bedtime',     color: '#94a3b8' }
-}
-function getTodayLabel() {
-  return new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
+  if (h >= 5  && h < 12) return '☀️'
+  if (h >= 12 && h < 17) return '👋'
+  if (h >= 17 && h < 21) return '🌙'
+  return '😴'
 }
 function formatUpdatedTime(date) {
   return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
@@ -386,12 +383,10 @@ function Home({ onMenuClick }) {
   })
   const [showGoalModal, setShowGoalModal] = useState(false)
 
-  // stable per session
-  const greetingRef  = useRef(getGreeting())
-  const greetIconRef = useRef(getGreetingIcon())
-  const subtextRef   = useRef(getRandomSubtext())
-  const updatedAtRef = useRef(new Date())
-  const todayRef     = useRef(getTodayLabel())
+  const greetingRef   = useRef(getGreeting())
+  const greetEmojiRef = useRef(getGreetingEmoji())
+  const subtextRef    = useRef(getRandomSubtext())
+  const updatedAtRef  = useRef(new Date())
 
   const handleSaveGoal = data => {
     setRevenueGoal(data)
@@ -432,17 +427,11 @@ function Home({ onMenuClick }) {
     const d = new Date(c.date)
     return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
   }).length
-  const newCustLastMonth  = customers.filter(c => c.date && isDateInLastMonth(c.date)).length
-  const custThisWeek      = customers.filter(c => c.date && new Date(c.date) >= weekAgo).length
-  const custLastWeek      = customers.filter(c => {
-    if (!c.date) return false
-    const d = new Date(c.date)
-    return d >= twoWksAgo && d < weekAgo
-  }).length
+  const newCustLastMonth = customers.filter(c => c.date && isDateInLastMonth(c.date)).length
 
   // ── Best customer (most orders) ───────────────────────────
-  const bestCustomer = (() => {
-    if (!customers.length) return null
+  const bestCustomerName = (() => {
+    if (!customers.length) return '—'
     const counts = {}
     allOrders.forEach(o => {
       if (o.customerId) counts[o.customerId] = (counts[o.customerId] || 0) + 1
@@ -451,11 +440,12 @@ function Home({ onMenuClick }) {
     Object.entries(counts).forEach(([id, cnt]) => {
       if (cnt > bestCount) { bestCount = cnt; bestId = id }
     })
-    if (!bestId) return customers[0]
-    return customers.find(c => c.id === bestId) || customers[0]
+    const best = bestId ? customers.find(c => c.id === bestId) : customers[0]
+    if (!best) return '—'
+    return best.name || `${best.firstName ?? ''} ${best.lastName ?? ''}`.trim() || '—'
   })()
 
-  // ── Retention rate (customers with >1 order / total) ──────
+  // ── Retention rate ────────────────────────────────────────
   const retentionRate = (() => {
     if (!totalCustomers) return 0
     const orderCounts = {}
@@ -524,13 +514,12 @@ function Home({ onMenuClick }) {
     }).reduce((s, a) => s + a, 0)
   }
 
-  const revenueEarned      = revenueGoal ? calcRevenue(getWindowStart(revenueGoal.period)) : 0
-  const revenuePrevPeriod  = revenueGoal ? calcRevenue(getPrevWindowStart(revenueGoal.period), getWindowStart(revenueGoal.period)) : 0
-  const revenuePct         = revenueGoal?.goal > 0 ? Math.min(Math.round((revenueEarned / revenueGoal.goal) * 100), 100) : 0
-  const revenueDiff        = revenueEarned - revenuePrevPeriod
-  const revenueUp          = revenueDiff >= 0
+  const revenueEarned     = revenueGoal ? calcRevenue(getWindowStart(revenueGoal.period)) : 0
+  const revenuePrevPeriod = revenueGoal ? calcRevenue(getPrevWindowStart(revenueGoal.period), getWindowStart(revenueGoal.period)) : 0
+  const revenuePct        = revenueGoal?.goal > 0 ? Math.min(Math.round((revenueEarned / revenueGoal.goal) * 100), 100) : 0
+  const revenueDiff       = revenueEarned - revenuePrevPeriod
+  const revenueUp         = revenueDiff >= 0
 
-  // 7-day sparkline
   const revenueSparkline = (() => {
     const days = Array(7).fill(0)
     allPayments.forEach(p => {
@@ -546,7 +535,6 @@ function Home({ onMenuClick }) {
 
   // ── Urgent items ──────────────────────────────────────────
   const urgentItems = []
-
   const soonAppt = upcoming.find(a => {
     if (!a.date || !a.time || a.date !== todayStr) return false
     const [hh, mm] = a.time.split(':').map(Number)
@@ -587,8 +575,7 @@ function Home({ onMenuClick }) {
   const recentAppointments = upcoming.slice(0, 4)
   const pastAppointments   = recentAppts.slice(0, 4)
 
-  // ── Stat cards — priority order ───────────────────────────
-  // Priority: Pending Orders > Unpaid Invoices > Today's Appts > Pending Tasks > New This Month > Total Customers
+  // ── Stat cards — 4 only, no customer duplicates ───────────
   const statCards = [
     {
       desktopIcon: 'shopping_bag', bgIcon: 'shopping_bag',
@@ -626,24 +613,6 @@ function Home({ onMenuClick }) {
       delta:       makeDelta(tasksThisWeek, tasksLastWeek),
       positiveIsGood: false,       route: '/tasks',
     },
-    {
-      desktopIcon: 'person_add',   bgIcon: 'person_add',
-      iconColor:   '#f472b6',      value: newCustThisMonth,
-      label:       'New This Month',
-      sub:         `${newCustLastMonth} last month`,
-      subColor:    'var(--text3)',
-      delta:       makeDelta(newCustThisMonth, newCustLastMonth),
-      positiveIsGood: true,        route: '/customers',
-    },
-    {
-      desktopIcon: 'groups',       bgIcon: 'groups',
-      iconColor:   '#a78bfa',      value: totalCustomers,
-      label:       'Total Customers',
-      sub:         `${newCustThisMonth} new this month`,
-      subColor:    newCustThisMonth > 0 ? '#a78bfa' : 'var(--text3)',
-      delta:       makeDelta(custThisWeek, custLastWeek),
-      positiveIsGood: true,        route: '/customers',
-    },
   ]
 
   // ─────────────────────────────────────────────────────────
@@ -655,15 +624,11 @@ function Home({ onMenuClick }) {
 
       <main className={styles.main}>
 
-        {/* ── HERO ── */}
+        {/* ── HERO — no date, emoji greeting ── */}
         <section className={styles.hero}>
-          <p className={styles.todayDate}>{todayRef.current}</p>
           <p className={styles.welcomeLabel}>
             {greetingRef.current}
-            <span className={`mi ${styles.greetingIcon}`}
-              style={{ color: greetIconRef.current.color }}>
-              {greetIconRef.current.name}
-            </span>
+            <span className={styles.greetingEmoji}>{greetEmojiRef.current}</span>
           </p>
           <h1 className={styles.title}>{displayName}</h1>
           <p className={styles.subtitle}>{subtextRef.current}</p>
@@ -679,7 +644,29 @@ function Home({ onMenuClick }) {
         {/* ── URGENT STRIP ── */}
         <UrgentStrip items={urgentItems} navigate={navigate} />
 
-        {/* ── REVENUE CARD  (priority #1 — full width) ── */}
+        {/* 1. STAT CARDS GRID — comes first ── */}
+        <section className={styles.statsGrid}>
+          {statCards.map((card, i) => (
+            <div key={i} className={styles.statCard} onClick={() => navigate(card.route)}>
+              <div className={styles.statIconWrap}>
+                <span className="mi" style={{ fontSize: '1.3rem', color: card.iconColor }}>
+                  {card.desktopIcon}
+                </span>
+              </div>
+              <div className={styles.statCardBody}>
+                <div className={styles.statLabel}>{card.label}</div>
+                <div className={styles.statValue}>{card.value}</div>
+                {card.sub && (
+                  <div className={styles.statSub} style={{ color: card.subColor }}>{card.sub}</div>
+                )}
+                <Delta delta={card.delta} positiveIsGood={card.positiveIsGood} />
+              </div>
+              <span className={`mi ${styles.statBgIcon}`}>{card.bgIcon}</span>
+            </div>
+          ))}
+        </section>
+
+        {/* 2. REVENUE CARD — full width ── */}
         {!revenueGoal ? (
           <div className={styles.revenueCard} onClick={() => setShowGoalModal(true)}
             style={{ justifyContent: 'flex-start', gap: '20px' }}>
@@ -723,70 +710,51 @@ function Home({ onMenuClick }) {
           </div>
         )}
 
-        {/* ── CUSTOMER INSIGHTS CARD  (priority #2 — full width) ── */}
+        {/* 3. CUSTOMER INSIGHTS CARD — full width ── */}
         <div className={styles.customerCard} onClick={() => navigate('/customers')}>
-          <div className={styles.customerCardHeader}>
-            <span className="mi" style={{ fontSize: '0.75rem', verticalAlign: 'middle', marginRight: '5px', color: 'var(--accent)' }}>groups</span>
-            Customer Insights
-          </div>
-          <div className={styles.customerCardGrid}>
-            {/* Total Customers */}
-            <div className={styles.customerStat}>
-              <div className={styles.customerStatLabel}>Total Customers</div>
-              <div className={styles.customerStatValue}>{totalCustomers.toLocaleString()}</div>
-              <div className={styles.customerStatSub}>all time</div>
+          {/* Top row: icon + title + chevron */}
+          <div className={styles.customerCardTop}>
+            <div className={styles.customerCardIconWrap}>
+              <span className={styles.customerCardEmoji}>👥</span>
             </div>
-            {/* Best Customer */}
-            <div className={`${styles.customerStat} ${styles.customerStatHighlight}`}>
-              <div className={styles.customerStatLabel}>Best Customer</div>
-              <div className={styles.customerStatName}>
-                {bestCustomer
-                  ? (bestCustomer.name || `${bestCustomer.firstName ?? ''} ${bestCustomer.lastName ?? ''}`.trim() || 'N/A')
-                  : '—'}
-              </div>
-              <div className={styles.customerStatSub}>most orders</div>
-            </div>
-            {/* New This Month */}
-            <div className={styles.customerStat}>
-              <div className={styles.customerStatLabel}>New This Month</div>
-              <div className={styles.customerStatValue}>{newCustThisMonth}</div>
-              <div className={styles.customerStatSub}>{newCustLastMonth} last month</div>
-            </div>
-            {/* Retention Rate */}
-            <div className={styles.customerStat}>
-              <div className={styles.customerStatLabel}>Retention Rate</div>
-              <div className={styles.customerStatValue}>{retentionRate}%</div>
-              <span className={styles.retentionPill}>
-                <span className="mi" style={{ fontSize: '0.55rem', verticalAlign: 'middle' }}>
-                  {retentionRate >= 50 ? 'trending_up' : 'trending_down'}
-                </span>
-                {retentionRate >= 70 ? 'Strong' : retentionRate >= 40 ? 'Building' : 'Growing'}
+            <div className={styles.customerCardTitleBlock}>
+              <span className={styles.customerCardTitle}>Customer Insights</span>
+              <span className={styles.customerCardSubtitle}>
+                {totalCustomers.toLocaleString()} total customers
               </span>
+            </div>
+            <span className="mi" style={{ fontSize: '1rem', color: 'var(--text3)', marginLeft: 'auto', flexShrink: 0 }}>
+              chevron_right
+            </span>
+          </div>
+
+          {/* Horizontal rule */}
+          <div className={styles.customerCardRule} />
+
+          {/* Three stat pills in a row */}
+          <div className={styles.customerStatRow}>
+            <div className={styles.customerStatCell}>
+              <span className={styles.customerStatVal} style={{ color: 'var(--accent)' }}>
+                {bestCustomerName}
+              </span>
+              <span className={styles.customerStatLbl}>Best Customer</span>
+            </div>
+
+            <div className={styles.customerStatSep} />
+
+            <div className={styles.customerStatCell}>
+              <span className={styles.customerStatVal}>{newCustThisMonth}</span>
+              <span className={styles.customerStatLbl}>New This Month</span>
+            </div>
+
+            <div className={styles.customerStatSep} />
+
+            <div className={styles.customerStatCell}>
+              <span className={styles.customerStatVal}>{retentionRate}%</span>
+              <span className={styles.customerStatLbl}>Retention</span>
             </div>
           </div>
         </div>
-
-        {/* ── STAT CARDS GRID  (priority #3) ── */}
-        <section className={styles.statsGrid}>
-          {statCards.map((card, i) => (
-            <div key={i} className={styles.statCard} onClick={() => navigate(card.route)}>
-              <div className={styles.statIconWrap}>
-                <span className="mi" style={{ fontSize: '1.3rem', color: card.iconColor }}>
-                  {card.desktopIcon}
-                </span>
-              </div>
-              <div className={styles.statCardBody}>
-                <div className={styles.statLabel}>{card.label}</div>
-                <div className={styles.statValue}>{card.value}</div>
-                {card.sub && (
-                  <div className={styles.statSub} style={{ color: card.subColor }}>{card.sub}</div>
-                )}
-                <Delta delta={card.delta} positiveIsGood={card.positiveIsGood} />
-              </div>
-              <span className={`mi ${styles.statBgIcon}`}>{card.bgIcon}</span>
-            </div>
-          ))}
-        </section>
 
         {showGoalModal && (
           <RevenueGoalModal onSave={handleSaveGoal} onClose={() => setShowGoalModal(false)} />
