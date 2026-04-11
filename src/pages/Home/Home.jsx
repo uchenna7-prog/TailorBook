@@ -45,6 +45,33 @@ function dueThisWeek(dateStr) {
   return due >= today && due <= end
 }
 
+// ── Timely greeting ───────────────────────────────────────────
+function getGreeting() {
+  const hour = new Date().getHours()
+  if (hour >= 5  && hour < 12) return 'Good morning'
+  if (hour >= 12 && hour < 17) return 'Good afternoon'
+  if (hour >= 17 && hour < 21) return 'Good evening'
+  return 'Good night'
+}
+
+// ── Random subtexts ───────────────────────────────────────────
+const SUBTEXTS = [
+  "Here's what's happening in your shop today.",
+  "Let's see how your shop is doing.",
+  "Your business at a glance — stay on top of things.",
+  "Here's your shop summary for today.",
+  "All caught up? Here's your latest overview.",
+  "Check in on your orders, tasks & appointments.",
+  "A quick look at what's keeping you busy today.",
+  "Ready to get things done? Here's your dashboard.",
+  "Your shop is open — here's what needs attention.",
+  "Stay sharp — here's everything you need to know.",
+]
+
+function getRandomSubtext() {
+  return SUBTEXTS[Math.floor(Math.random() * SUBTEXTS.length)]
+}
+
 const PRIORITY_COLORS = {
   low:    '#94a3b8',
   normal: '#818cf8',
@@ -81,7 +108,7 @@ const ORDER_STATUS_TEXT_COLORS = {
   cancelled: '#721C24',
 }
 
-// ── Revenue donut SVG ─────────────────────────────────────────
+// ── Revenue donut SVG — with % in center ─────────────────────
 function RevenueDonut({ pct }) {
   const r     = 36
   const cx    = 44
@@ -103,6 +130,19 @@ function RevenueDonut({ pct }) {
         strokeDasharray={`${circ - dash} ${circ}`} strokeDashoffset={-(dash)} strokeLinecap="round"
         transform={`rotate(-90 ${cx} ${cy})`}
       />
+      {/* Percentage label in the center */}
+      <text
+        x={cx}
+        y={cy + 1}
+        textAnchor="middle"
+        dominantBaseline="middle"
+        fontSize="13"
+        fontWeight="800"
+        fill="var(--text, #0f172a)"
+        fontFamily="inherit"
+      >
+        {pct}%
+      </text>
     </svg>
   )
 }
@@ -230,6 +270,21 @@ function MobileQuickActions({ navigate }) {
   )
 }
 
+// ── Empty state component ─────────────────────────────────────
+function EmptyState({ icon, message, actionLabel, onAction }) {
+  return (
+    <div className={styles.emptyState}>
+      <div className={styles.emptyStateIconWrap}>
+        <span className="mi" style={{ fontSize: '1.5rem', color: 'var(--text3)' }}>{icon}</span>
+      </div>
+      <p className={styles.emptyStateMsg}>{message}</p>
+      {actionLabel && (
+        <button className={styles.emptyStateBtn} onClick={onAction}>{actionLabel}</button>
+      )}
+    </div>
+  )
+}
+
 // ── Revenue helpers ───────────────────────────────────────────
 const REVENUE_STORAGE_KEY = 'tf_revenue_goal'
 
@@ -252,6 +307,11 @@ function periodLabel(period) {
   if (period === 'weekly')  return 'This week'
   if (period === 'monthly') return 'This month'
   return 'This year'
+}
+
+// ── Format last-updated time ──────────────────────────────────
+function formatUpdatedTime(date) {
+  return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -277,6 +337,10 @@ function Home({ onMenuClick }) {
   const [bannerDismissed, setBannerDismissed] = useState(
     () => localStorage.getItem('tf_notif_dismissed') === 'true'
   )
+
+  // ── Timely subtext — picked once per mount ─────────────────
+  const [subtext] = useState(() => getRandomSubtext())
+  const [updatedAt] = useState(() => new Date())
 
   // ── Revenue goal state ────────────────────────────────────
   const [revenueGoal, setRevenueGoal] = useState(() => {
@@ -342,15 +406,12 @@ function Home({ onMenuClick }) {
   const todayCount = todayAppointments.length
 
   // ── Revenue calculation from PaymentContext ───────────────
-  // Uses allPayments from PaymentContext — same data source as AllPayments page.
-  // Sums all installment amounts within the goal's time window.
   const revenueEarned = (() => {
     if (!revenueGoal) return 0
     const windowStart = getWindowStart(revenueGoal.period)
 
     return allPayments
       .flatMap(p => {
-        // Each payment may have installments — sum those with a date in the window
         const installments = p.installments || []
         if (installments.length === 0) return []
 
@@ -376,39 +437,62 @@ function Home({ onMenuClick }) {
   const recentAppointments = upcoming.slice(0, 4)
   const pastAppointments   = recentAppts.slice(0, 4)
 
+  // ── Customer insights ─────────────────────────────────────
+  // Best customer = customer with most orders
+  const bestCustomer = (() => {
+    if (!customers.length || !allOrders.length) return null
+    const countMap = {}
+    allOrders.forEach(o => {
+      if (o.customerId) countMap[o.customerId] = (countMap[o.customerId] || 0) + 1
+    })
+    const topId = Object.keys(countMap).sort((a, b) => countMap[b] - countMap[a])[0]
+    return customers.find(c => c.id === topId) || null
+  })()
+
+  // Retention rate = customers with >1 order / customers with any order
+  const retentionRate = (() => {
+    if (!customers.length || !allOrders.length) return 0
+    const countMap = {}
+    allOrders.forEach(o => {
+      if (o.customerId) countMap[o.customerId] = (countMap[o.customerId] || 0) + 1
+    })
+    const withOrders   = Object.keys(countMap).length
+    const withMultiple = Object.values(countMap).filter(n => n > 1).length
+    if (!withOrders) return 0
+    return Math.round((withMultiple / withOrders) * 100)
+  })()
+
   // ── Status cards ─────────────────────────────────────────
   const statusCards = [
     {
       desktopIcon: 'shopping_bag',
-      bgIcon:      'shopping_bag',
-      iconColor:   '#fb923c',
+      bgIcon:      'content_cut',
+      iconColor:   '#f472b6',
       value:       pendingOrders.length,
-      label:       'Pending Orders',
+      label:       'Active Orders',
       sub:         `${ordersDueThisWeek} due this wk`,
-      // Orange when there are orders due this week, muted otherwise
       subColor:    ordersDueThisWeek > 0 ? '#fb923c' : 'var(--text3)',
       route:       '/orders',
     },
     {
       desktopIcon: 'receipt_long',
-      bgIcon:      'receipt_long',
-      iconColor:   '#ef4444',
+      bgIcon:      'payments',
+      iconColor:   '#fb923c',
       value:       totalUnpaid,
       label:       'Unpaid Invoices',
-      sub:         `${totalOverdueInvoice} overdue`,
-      subColor:    totalOverdueInvoice > 0 ? '#ef4444' : 'var(--text3)',
+      sub:         totalOverdueInvoice > 0 ? `${totalOverdueInvoice} overdue` : 'All current',
+      subColor:    totalOverdueInvoice > 0 ? '#ef4444' : '#22c55e',
       route:       '/invoices',
     },
     {
-      desktopIcon: 'event',
-      bgIcon:      'today',
+      desktopIcon: 'calendar_month',
+      bgIcon:      'event_available',
       iconColor:   '#06b6d4',
       value:       todayCount,
-      label:       "Today's Appts",
+      label:       'Today\'s Appts',
       sub:         missedCount > 0
         ? `${missedCount} missed`
         : `${upcomingThisWeek} this wk`,
-      // Red for missed, cyan for upcoming this week (matches the card's icon colour)
       subColor:    missedCount > 0 ? '#ef4444' : '#06b6d4',
       route:       '/appointments',
     },
@@ -419,7 +503,6 @@ function Home({ onMenuClick }) {
       value:       pendingTasks.length,
       label:       'Pending Tasks',
       sub:         `${tasksDueThisWeek} due this wk`,
-      // Orange when tasks are due this week
       subColor:    tasksDueThisWeek > 0 ? '#fb923c' : 'var(--text3)',
       route:       '/tasks',
     },
@@ -433,9 +516,15 @@ function Home({ onMenuClick }) {
 
         {/* HERO */}
         <section className={styles.hero}>
-          <p className={styles.welcomeLabel}>Welcome 👋</p>
+          <div className={styles.heroTopRow}>
+            <p className={styles.welcomeLabel}>{getGreeting()} 👋</p>
+            <div className={styles.updatedBadge}>
+              <span className="mi" style={{ fontSize: '0.7rem' }}>sync</span>
+              Updated {formatUpdatedTime(updatedAt)}
+            </div>
+          </div>
           <h1 className={styles.title}>{displayName}</h1>
-          <p className={styles.subtitle}>Here's what's happening in your shop today.</p>
+          <p className={styles.subtitle}>{subtext}</p>
         </section>
 
         {/* NOTIFICATION BANNER */}
@@ -461,20 +550,15 @@ function Home({ onMenuClick }) {
               {/* Card body */}
               <div className={styles.statCardBody}>
                 <div className={styles.statLabel}>{card.label}</div>
-                {/* Number on its own line */}
                 <div className={styles.statValue}>{card.value}</div>
-                {/* Sub text below, smaller, coloured */}
                 {card.sub && (
-                  <div
-                    className={styles.statSub}
-                    style={{ color: card.subColor }}
-                  >
+                  <div className={styles.statSub} style={{ color: card.subColor }}>
                     {card.sub}
                   </div>
                 )}
               </div>
 
-              {/* Background watermark icon — partially cut off bottom-right */}
+              {/* Background watermark icon */}
               <span className={`mi ${styles.statBgIcon}`}>{card.bgIcon}</span>
             </div>
           ))}
@@ -482,11 +566,7 @@ function Home({ onMenuClick }) {
 
         {/* REVENUE CARD */}
         {!revenueGoal ? (
-          /* ── Empty state: no graph, just add prompt ── */
-          <div
-            className={styles.revenueCard}
-            onClick={() => setShowGoalModal(true)}
-          >
+          <div className={styles.revenueCard} onClick={() => setShowGoalModal(true)}>
             <div className={styles.revenueCardLeft}>
               <div className={styles.revenueEmptyIconRow}>
                 <div className={styles.revenueEmptyIconWrap}>
@@ -496,14 +576,9 @@ function Home({ onMenuClick }) {
               <div className={styles.revenueEmptyTitle}>Set a goal</div>
               <div className={styles.revenueEmptySub}>Track weekly, monthly or yearly revenue</div>
             </div>
-            {/* No donut here — only shown when a goal exists */}
           </div>
         ) : (
-          /* ── Active revenue card — donut reflects real payment data ── */
-          <div
-            className={styles.revenueCard}
-            onClick={() => setShowGoalModal(true)}
-          >
+          <div className={styles.revenueCard} onClick={() => setShowGoalModal(true)}>
             <div className={styles.revenueCardLeft}>
               <div className={styles.revenueLabel}>
                 {periodLabel(revenueGoal.period)} · Revenue
@@ -532,13 +607,51 @@ function Home({ onMenuClick }) {
           />
         )}
 
-        {/* UPCOMING APPOINTMENTS */}
-        {recentAppointments.length > 0 && (
-          <section className={styles.section}>
-            <div className={styles.sectionHeader}>
-              <h3 className={styles.sectionTitle}>Upcoming Appointments</h3>
-              <button className={styles.seeAllBtn} onClick={() => navigate('/appointments')}>See all</button>
+        {/* CUSTOMER INSIGHTS CARD */}
+        <section className={styles.insightsCard}>
+          <div className={styles.insightsHeader}>
+            <div className={styles.insightsIconWrap}>
+              <span className="mi" style={{ fontSize: '1.1rem', color: '#818cf8' }}>people</span>
             </div>
+            <div>
+              <div className={styles.insightsTitle}>Customer Insights</div>
+              <div className={styles.insightsSub}>Your customer base at a glance</div>
+            </div>
+            <button className={styles.insightsViewAll} onClick={() => navigate('/customers')}>
+              View all
+            </button>
+          </div>
+          <div className={styles.insightsGrid}>
+            <div className={styles.insightsStat}>
+              <div className={styles.insightsStatValue}>{customers.length}</div>
+              <div className={styles.insightsStatLabel}>Total Customers</div>
+            </div>
+            <div className={styles.insightsStat}>
+              <div className={styles.insightsStatValue}>{newCustomersThisMonth}</div>
+              <div className={styles.insightsStatLabel}>New This Month</div>
+            </div>
+            <div className={styles.insightsStat}>
+              <div className={styles.insightsStatValue}>{retentionRate}%</div>
+              <div className={styles.insightsStatLabel}>Retention Rate</div>
+            </div>
+            <div className={`${styles.insightsStat} ${styles.insightsStatWide}`}>
+              <div className={styles.insightsBestLabel}>Best Customer</div>
+              {bestCustomer ? (
+                <div className={styles.insightsBestName}>{bestCustomer.name}</div>
+              ) : (
+                <div className={styles.insightsBestEmpty}>No orders yet</div>
+              )}
+            </div>
+          </div>
+        </section>
+
+        {/* UPCOMING APPOINTMENTS */}
+        <section className={styles.section}>
+          <div className={styles.sectionHeader}>
+            <h3 className={styles.sectionTitle}>Upcoming Appointments</h3>
+            <button className={styles.seeAllBtn} onClick={() => navigate('/appointments')}>See all</button>
+          </div>
+          {recentAppointments.length > 0 ? (
             <div className={styles.listSection}>
               <div className={styles.listDivider} />
               {recentAppointments.map((appt, idx) => {
@@ -574,8 +687,15 @@ function Home({ onMenuClick }) {
                 )
               })}
             </div>
-          </section>
-        )}
+          ) : (
+            <EmptyState
+              icon="event"
+              message="No upcoming appointments. Book one to get started."
+              actionLabel="Book Appointment"
+              onAction={() => navigate('/appointments')}
+            />
+          )}
+        </section>
 
         {/* RECENT APPOINTMENTS */}
         {pastAppointments.length > 0 && (
@@ -677,12 +797,12 @@ function Home({ onMenuClick }) {
         </section>
 
         {/* RECENT ORDERS */}
-        {recentOrders.length > 0 && (
-          <section className={styles.section}>
-            <div className={styles.sectionHeader}>
-              <h3 className={styles.sectionTitle}>Recent Orders</h3>
-              <button className={styles.seeAllBtn} onClick={() => navigate('/orders')}>See all</button>
-            </div>
+        <section className={styles.section}>
+          <div className={styles.sectionHeader}>
+            <h3 className={styles.sectionTitle}>Recent Orders</h3>
+            <button className={styles.seeAllBtn} onClick={() => navigate('/orders')}>See all</button>
+          </div>
+          {recentOrders.length > 0 ? (
             <div className={styles.listSection}>
               <div className={styles.listDivider} />
               {recentOrders.map((order, idx) => {
@@ -722,16 +842,23 @@ function Home({ onMenuClick }) {
                 )
               })}
             </div>
-          </section>
-        )}
+          ) : (
+            <EmptyState
+              icon="content_cut"
+              message="No active orders yet. Add your first order to track it here."
+              actionLabel="Add Order"
+              onAction={() => navigate('/orders')}
+            />
+          )}
+        </section>
 
         {/* RECENT TASKS */}
-        {recentTasks.length > 0 && (
-          <section className={styles.section}>
-            <div className={styles.sectionHeader}>
-              <h3 className={styles.sectionTitle}>Recent Tasks</h3>
-              <button className={styles.seeAllBtn} onClick={() => navigate('/tasks')}>See all</button>
-            </div>
+        <section className={styles.section}>
+          <div className={styles.sectionHeader}>
+            <h3 className={styles.sectionTitle}>Recent Tasks</h3>
+            <button className={styles.seeAllBtn} onClick={() => navigate('/tasks')}>See all</button>
+          </div>
+          {recentTasks.length > 0 ? (
             <div className={styles.listSection}>
               <div className={styles.listDivider} />
               {recentTasks.map((task, idx) => {
@@ -773,8 +900,15 @@ function Home({ onMenuClick }) {
                 )
               })}
             </div>
-          </section>
-        )}
+          ) : (
+            <EmptyState
+              icon="assignment"
+              message="You're all clear — no pending tasks right now."
+              actionLabel="Add Task"
+              onAction={() => navigate('/tasks')}
+            />
+          )}
+        </section>
 
       </main>
 
