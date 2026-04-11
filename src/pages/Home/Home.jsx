@@ -440,6 +440,32 @@ function Home({ onMenuClick }) {
     return d >= twoWksAgo && d < weekAgo
   }).length
 
+  // ── Best customer (most orders) ───────────────────────────
+  const bestCustomer = (() => {
+    if (!customers.length) return null
+    const counts = {}
+    allOrders.forEach(o => {
+      if (o.customerId) counts[o.customerId] = (counts[o.customerId] || 0) + 1
+    })
+    let bestId = null, bestCount = 0
+    Object.entries(counts).forEach(([id, cnt]) => {
+      if (cnt > bestCount) { bestCount = cnt; bestId = id }
+    })
+    if (!bestId) return customers[0]
+    return customers.find(c => c.id === bestId) || customers[0]
+  })()
+
+  // ── Retention rate (customers with >1 order / total) ──────
+  const retentionRate = (() => {
+    if (!totalCustomers) return 0
+    const orderCounts = {}
+    allOrders.forEach(o => {
+      if (o.customerId) orderCounts[o.customerId] = (orderCounts[o.customerId] || 0) + 1
+    })
+    const returning = Object.values(orderCounts).filter(c => c > 1).length
+    return Math.round((returning / totalCustomers) * 100)
+  })()
+
   // ── Orders ────────────────────────────────────────────────
   const pendingOrders         = allOrders.filter(o => !['completed','delivered','cancelled'].includes(o.status))
   const ordersDueThisWeek     = pendingOrders.filter(o => dueThisWeek(o.dueDate || o.dueRaw)).length
@@ -561,17 +587,9 @@ function Home({ onMenuClick }) {
   const recentAppointments = upcoming.slice(0, 4)
   const pastAppointments   = recentAppts.slice(0, 4)
 
-  // ── Stat cards ────────────────────────────────────────────
+  // ── Stat cards — priority order ───────────────────────────
+  // Priority: Pending Orders > Unpaid Invoices > Today's Appts > Pending Tasks > New This Month > Total Customers
   const statCards = [
-    {
-      desktopIcon: 'groups',       bgIcon: 'groups',
-      iconColor:   '#a78bfa',      value: totalCustomers,
-      label:       'Total Customers',
-      sub:         `${newCustThisMonth} new this month`,
-      subColor:    newCustThisMonth > 0 ? '#a78bfa' : 'var(--text3)',
-      delta:       makeDelta(custThisWeek, custLastWeek),
-      positiveIsGood: true,        route: '/customers',
-    },
     {
       desktopIcon: 'shopping_bag', bgIcon: 'shopping_bag',
       iconColor:   '#f59e0b',      value: pendingOrders.length,
@@ -617,6 +635,15 @@ function Home({ onMenuClick }) {
       delta:       makeDelta(newCustThisMonth, newCustLastMonth),
       positiveIsGood: true,        route: '/customers',
     },
+    {
+      desktopIcon: 'groups',       bgIcon: 'groups',
+      iconColor:   '#a78bfa',      value: totalCustomers,
+      label:       'Total Customers',
+      sub:         `${newCustThisMonth} new this month`,
+      subColor:    newCustThisMonth > 0 ? '#a78bfa' : 'var(--text3)',
+      delta:       makeDelta(custThisWeek, custLastWeek),
+      positiveIsGood: true,        route: '/customers',
+    },
   ]
 
   // ─────────────────────────────────────────────────────────
@@ -652,29 +679,7 @@ function Home({ onMenuClick }) {
         {/* ── URGENT STRIP ── */}
         <UrgentStrip items={urgentItems} navigate={navigate} />
 
-        {/* ── STAT CARDS ── */}
-        <section className={styles.statsGrid}>
-          {statCards.map((card, i) => (
-            <div key={i} className={styles.statCard} onClick={() => navigate(card.route)}>
-              <div className={styles.statIconWrap}>
-                <span className="mi" style={{ fontSize: '1.3rem', color: card.iconColor }}>
-                  {card.desktopIcon}
-                </span>
-              </div>
-              <div className={styles.statCardBody}>
-                <div className={styles.statLabel}>{card.label}</div>
-                <div className={styles.statValue}>{card.value}</div>
-                {card.sub && (
-                  <div className={styles.statSub} style={{ color: card.subColor }}>{card.sub}</div>
-                )}
-                <Delta delta={card.delta} positiveIsGood={card.positiveIsGood} />
-              </div>
-              <span className={`mi ${styles.statBgIcon}`}>{card.bgIcon}</span>
-            </div>
-          ))}
-        </section>
-
-        {/* ── REVENUE CARD ── */}
+        {/* ── REVENUE CARD  (priority #1 — full width) ── */}
         {!revenueGoal ? (
           <div className={styles.revenueCard} onClick={() => setShowGoalModal(true)}
             style={{ justifyContent: 'flex-start', gap: '20px' }}>
@@ -717,6 +722,71 @@ function Home({ onMenuClick }) {
             </div>
           </div>
         )}
+
+        {/* ── CUSTOMER INSIGHTS CARD  (priority #2 — full width) ── */}
+        <div className={styles.customerCard} onClick={() => navigate('/customers')}>
+          <div className={styles.customerCardHeader}>
+            <span className="mi" style={{ fontSize: '0.75rem', verticalAlign: 'middle', marginRight: '5px', color: 'var(--accent)' }}>groups</span>
+            Customer Insights
+          </div>
+          <div className={styles.customerCardGrid}>
+            {/* Total Customers */}
+            <div className={styles.customerStat}>
+              <div className={styles.customerStatLabel}>Total Customers</div>
+              <div className={styles.customerStatValue}>{totalCustomers.toLocaleString()}</div>
+              <div className={styles.customerStatSub}>all time</div>
+            </div>
+            {/* Best Customer */}
+            <div className={`${styles.customerStat} ${styles.customerStatHighlight}`}>
+              <div className={styles.customerStatLabel}>Best Customer</div>
+              <div className={styles.customerStatName}>
+                {bestCustomer
+                  ? (bestCustomer.name || `${bestCustomer.firstName ?? ''} ${bestCustomer.lastName ?? ''}`.trim() || 'N/A')
+                  : '—'}
+              </div>
+              <div className={styles.customerStatSub}>most orders</div>
+            </div>
+            {/* New This Month */}
+            <div className={styles.customerStat}>
+              <div className={styles.customerStatLabel}>New This Month</div>
+              <div className={styles.customerStatValue}>{newCustThisMonth}</div>
+              <div className={styles.customerStatSub}>{newCustLastMonth} last month</div>
+            </div>
+            {/* Retention Rate */}
+            <div className={styles.customerStat}>
+              <div className={styles.customerStatLabel}>Retention Rate</div>
+              <div className={styles.customerStatValue}>{retentionRate}%</div>
+              <span className={styles.retentionPill}>
+                <span className="mi" style={{ fontSize: '0.55rem', verticalAlign: 'middle' }}>
+                  {retentionRate >= 50 ? 'trending_up' : 'trending_down'}
+                </span>
+                {retentionRate >= 70 ? 'Strong' : retentionRate >= 40 ? 'Building' : 'Growing'}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* ── STAT CARDS GRID  (priority #3) ── */}
+        <section className={styles.statsGrid}>
+          {statCards.map((card, i) => (
+            <div key={i} className={styles.statCard} onClick={() => navigate(card.route)}>
+              <div className={styles.statIconWrap}>
+                <span className="mi" style={{ fontSize: '1.3rem', color: card.iconColor }}>
+                  {card.desktopIcon}
+                </span>
+              </div>
+              <div className={styles.statCardBody}>
+                <div className={styles.statLabel}>{card.label}</div>
+                <div className={styles.statValue}>{card.value}</div>
+                {card.sub && (
+                  <div className={styles.statSub} style={{ color: card.subColor }}>{card.sub}</div>
+                )}
+                <Delta delta={card.delta} positiveIsGood={card.positiveIsGood} />
+              </div>
+              <span className={`mi ${styles.statBgIcon}`}>{card.bgIcon}</span>
+            </div>
+          ))}
+        </section>
 
         {showGoalModal && (
           <RevenueGoalModal onSave={handleSaveGoal} onClose={() => setShowGoalModal(false)} />
