@@ -12,7 +12,9 @@ import { usePayments }      from '../../contexts/PaymentContext'
 import Header from '../../components/Header/Header'
 import styles from './Home.module.css'
 
-// ── Helpers ───────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+// HELPERS
+// ─────────────────────────────────────────────────────────────
 
 function isTaskOverdue(task) {
   if (!task.dueDate || task.done) return false
@@ -45,21 +47,35 @@ function dueThisWeek(dateStr) {
   return due >= today && due <= end
 }
 
-// ── Timely greeting ───────────────────────────────────────────
-function getGreeting() {
-  const hour = new Date().getHours()
-  if (hour >= 5 && hour < 12)  return 'Good morning'
-  if (hour >= 12 && hour < 17) return 'Good afternoon'
-  if (hour >= 17 && hour < 21) return 'Good evening'
-  return 'Good night'
+function isDateInLastMonth(dateStr) {
+  if (!dateStr) return false
+  const now         = new Date()
+  const lastMonth   = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+  const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59)
+  const d = new Date(dateStr)
+  return d >= lastMonth && d <= lastMonthEnd
 }
 
+// ── Timely greeting ───────────────────────────────────────────
+function getGreeting() {
+  const h = new Date().getHours()
+  if (h >= 5  && h < 12) return 'Good morning'
+  if (h >= 12 && h < 17) return 'Good afternoon'
+  if (h >= 17 && h < 21) return 'Good evening'
+  return 'Good night'
+}
 function getGreetingIcon() {
-  const hour = new Date().getHours()
-  if (hour >= 5 && hour < 12)  return 'wb_sunny'
-  if (hour >= 12 && hour < 17) return 'waving_hand'
-  if (hour >= 17 && hour < 21) return 'nights_stay'
-  return 'bedtime'
+  const h = new Date().getHours()
+  if (h >= 5  && h < 12) return { name: 'wb_sunny',    color: '#f59e0b' }
+  if (h >= 12 && h < 17) return { name: 'waving_hand', color: '#818cf8' }
+  if (h >= 17 && h < 21) return { name: 'nights_stay', color: '#f472b6' }
+  return                         { name: 'bedtime',     color: '#94a3b8' }
+}
+function getTodayLabel() {
+  return new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
+}
+function formatUpdatedTime(date) {
+  return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
 }
 
 // ── Random subtexts ───────────────────────────────────────────
@@ -75,89 +91,138 @@ const SUBTEXTS = [
   "Your shop is waiting, here's what's on the list.",
   "Quick recap: here's where things stand today.",
 ]
-
 function getRandomSubtext() {
   return SUBTEXTS[Math.floor(Math.random() * SUBTEXTS.length)]
 }
 
-// ── Updated-now timestamp ─────────────────────────────────────
-function formatUpdatedTime(date) {
-  return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
+// ── Delta helper ──────────────────────────────────────────────
+function makeDelta(current, previous) {
+  const diff = current - previous
+  if (diff > 0) return { value: diff, direction: 'up'   }
+  if (diff < 0) return { value: Math.abs(diff), direction: 'down' }
+  return             { value: 0,    direction: 'same'  }
 }
 
+// ─────────────────────────────────────────────────────────────
+// CONSTANTS
+// ─────────────────────────────────────────────────────────────
 const PRIORITY_COLORS = {
-  low:    '#94a3b8',
-  normal: '#818cf8',
-  high:   '#fb923c',
-  urgent: '#ef4444',
+  low: '#94a3b8', normal: '#818cf8', high: '#fb923c', urgent: '#ef4444',
 }
-
 const CATEGORY_ICONS = {
   general: 'assignment', sewing: 'content_cut', delivery: 'local_shipping',
-  payment: 'payments',   fitting: 'checkroom',  shopping: 'shopping_cart',
+  payment: 'payments', fitting: 'checkroom', shopping: 'shopping_cart',
 }
-
 const APPT_TYPE_ICONS = {
-  fitting:      'checkroom',
-  measurement:  'straighten',
-  delivery:     'local_shipping',
-  consultation: 'chat_bubble_outline',
-  pickup:       'inventory_2',
-  other:        'event',
+  fitting: 'checkroom', measurement: 'straighten', delivery: 'local_shipping',
+  consultation: 'chat_bubble_outline', pickup: 'inventory_2', other: 'event',
 }
-
 const APPT_STATUS_COLORS = {
-  scheduled: '#818cf8',
-  confirmed: '#22c55e',
-  completed: '#94a3b8',
-  cancelled: '#ef4444',
-  missed:    '#ef4444',
+  scheduled: '#818cf8', confirmed: '#22c55e', completed: '#94a3b8',
+  cancelled: '#ef4444', missed: '#ef4444',
+}
+const ORDER_STATUS_STYLES = {
+  pending:   { bg: 'rgba(234,179,8,0.12)',   color: '#a16207', border: 'rgba(234,179,8,0.3)'   },
+  completed: { bg: 'rgba(34,197,94,0.12)',   color: '#15803d', border: 'rgba(34,197,94,0.3)'   },
+  delivered: { bg: 'rgba(129,140,248,0.12)', color: '#4f46e5', border: 'rgba(129,140,248,0.3)' },
+  cancelled: { bg: 'rgba(239,68,68,0.12)',   color: '#dc2626', border: 'rgba(239,68,68,0.3)'   },
 }
 
-const ORDER_STATUS_TEXT_COLORS = {
-  pending:   '#856404',
-  completed: '#155724',
-  delivered: '#4B2E83',
-  cancelled: '#721C24',
-}
+// ─────────────────────────────────────────────────────────────
+// SUB-COMPONENTS
+// ─────────────────────────────────────────────────────────────
 
-// ── Revenue donut SVG ─────────────────────────────────────────
 function RevenueDonut({ pct }) {
-  const r     = 36
-  const cx    = 44
-  const cy    = 44
-  const circ  = 2 * Math.PI * r
+  const r = 36, cx = 44, cy = 44
+  const circ   = 2 * Math.PI * r
   const filled = Math.min(Math.max(pct, 0), 100)
-  const dash  = (filled / 100) * circ
-
+  const dash   = (filled / 100) * circ
   return (
     <svg width="88" height="88" viewBox="0 0 88 88">
-      <circle cx={cx} cy={cy} r={r} fill="none" stroke="var(--border2, #e2e8f0)" strokeWidth="8" />
-      <circle
-        cx={cx} cy={cy} r={r} fill="none" stroke="#f472b6" strokeWidth="8"
+      <circle cx={cx} cy={cy} r={r} fill="none" stroke="var(--border2,#e2e8f0)" strokeWidth="8" />
+      <circle cx={cx} cy={cy} r={r} fill="none" stroke="#f472b6" strokeWidth="8"
         strokeDasharray={`${dash} ${circ}`} strokeLinecap="round"
-        transform={`rotate(-90 ${cx} ${cy})`}
-      />
-      <circle
-        cx={cx} cy={cy} r={r} fill="none" stroke="#60a5fa" strokeWidth="8"
-        strokeDasharray={`${circ - dash} ${circ}`} strokeDashoffset={-(dash)} strokeLinecap="round"
-        transform={`rotate(-90 ${cx} ${cy})`}
-      />
-      <text 
-        x="50%" y="50%" textAnchor="middle" dominantBaseline="middle" 
-        fill="var(--text)" fontSize="15" fontWeight="800"
-      >
-        {pct}%
-      </text>
+        transform={`rotate(-90 ${cx} ${cy})`} />
+      <circle cx={cx} cy={cy} r={r} fill="none" stroke="#60a5fa" strokeWidth="8"
+        strokeDasharray={`${circ - dash} ${circ}`} strokeDashoffset={-dash} strokeLinecap="round"
+        transform={`rotate(-90 ${cx} ${cy})`} />
+      <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle"
+        fill="var(--text)" fontSize="15" fontWeight="800">{pct}%</text>
     </svg>
   )
 }
 
-// ── Revenue Goal Modal ────────────────────────────────────────
+function Sparkline({ data, color = '#f472b6' }) {
+  if (!data || data.length < 2) return null
+  const w = 80, h = 28
+  const max = Math.max(...data, 1)
+  const min = Math.min(...data)
+  const range = max - min || 1
+  const pts = data.map((v, i) =>
+    `${(i / (data.length - 1)) * w},${h - ((v - min) / range) * (h - 4) - 2}`
+  ).join(' ')
+  return (
+    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} style={{ display: 'block' }}>
+      <polyline points={pts} fill="none" stroke={color} strokeWidth="2"
+        strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+function Delta({ delta, positiveIsGood = true }) {
+  if (!delta || delta.direction === 'same') return (
+    <span className={styles.deltaNeutral}>
+      <span className="mi" style={{ fontSize: '0.6rem', verticalAlign: 'middle' }}>remove</span> No change
+    </span>
+  )
+  const isPositive = delta.direction === 'up'
+  const isGood     = positiveIsGood ? isPositive : !isPositive
+  return (
+    <span className={isGood ? styles.deltaUp : styles.deltaDown}>
+      <span className="mi" style={{ fontSize: '0.62rem', verticalAlign: 'middle' }}>
+        {isPositive ? 'arrow_upward' : 'arrow_downward'}
+      </span>
+      {' '}{delta.value} vs last wk
+    </span>
+  )
+}
+
+function StatusPill({ status }) {
+  const s   = (status || 'pending').toLowerCase()
+  const sty = ORDER_STATUS_STYLES[s] || ORDER_STATUS_STYLES.pending
+  return (
+    <span className={styles.statusPill}
+      style={{ background: sty.bg, color: sty.color, borderColor: sty.border }}>
+      {s.charAt(0).toUpperCase() + s.slice(1)}
+    </span>
+  )
+}
+
+function UrgentStrip({ items, navigate }) {
+  if (!items || items.length === 0) return null
+  return (
+    <div className={styles.urgentStrip}>
+      <div className={styles.urgentStripHeader}>
+        <span className={`mi ${styles.urgentStripHeaderIcon}`}>warning_amber</span>
+        <span className={styles.urgentStripTitle}>Needs attention</span>
+      </div>
+      <div className={styles.urgentStripItems}>
+        {items.map((item, i) => (
+          <button key={i} className={styles.urgentItem} onClick={() => navigate(item.route)}>
+            <span className={`mi ${styles.urgentItemIcon}`}>{item.icon}</span>
+            <span className={styles.urgentItemText}>{item.text}</span>
+            <span className="mi" style={{ fontSize: '0.8rem', color: 'var(--text3)', marginLeft: 'auto', flexShrink: 0 }}>chevron_right</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 function RevenueGoalModal({ onSave, onClose }) {
-  const [period, setPeriod]     = useState('monthly')
+  const [period, setPeriod]       = useState('monthly')
   const [goalInput, setGoalInput] = useState('')
-  const [currency, setCurrency] = useState('₦')
+  const [currency, setCurrency]   = useState('₦')
 
   const handleSave = () => {
     const amount = Number(goalInput.replace(/,/g, ''))
@@ -173,69 +238,44 @@ function RevenueGoalModal({ onSave, onClose }) {
           <h2 className={styles.modalTitle}>Set Revenue Goal</h2>
           <p className={styles.modalSub}>Choose your tracking period and target amount</p>
         </div>
-
-        {/* Period selector */}
         <div className={styles.modalSection}>
           <div className={styles.modalSectionLabel}>Track by</div>
           <div className={styles.periodTabs}>
-            {['weekly', 'monthly', 'yearly'].map(p => (
-              <button
-                key={p}
+            {['weekly','monthly','yearly'].map(p => (
+              <button key={p}
                 className={`${styles.periodTab} ${period === p ? styles.periodTabActive : ''}`}
-                onClick={() => setPeriod(p)}
-              >
+                onClick={() => setPeriod(p)}>
                 {p.charAt(0).toUpperCase() + p.slice(1)}
               </button>
             ))}
           </div>
         </div>
-
-        {/* Currency + Goal amount */}
         <div className={styles.modalSection}>
           <div className={styles.modalSectionLabel}>Revenue target</div>
           <div className={styles.goalInputRow}>
-            <select
-              className={styles.currencySelect}
-              value={currency}
-              onChange={e => setCurrency(e.target.value)}
-            >
+            <select className={styles.currencySelect} value={currency} onChange={e => setCurrency(e.target.value)}>
               <option value="₦">₦ NGN</option>
               <option value="$">$ USD</option>
               <option value="£">£ GBP</option>
               <option value="€">€ EUR</option>
             </select>
-            <input
-              className={styles.goalInput}
-              type="number"
-              placeholder="e.g. 500000"
-              value={goalInput}
-              onChange={e => setGoalInput(e.target.value)}
-              min="1"
-            />
+            <input className={styles.goalInput} type="number" placeholder="e.g. 500000"
+              value={goalInput} onChange={e => setGoalInput(e.target.value)} min="1" />
           </div>
         </div>
-
-        {/* Period hint */}
         <div className={styles.periodHint}>
           {period === 'weekly'  && <><span className="mi" style={{ fontSize: '0.85rem', verticalAlign: 'middle', marginRight: '5px' }}>date_range</span>Resets every Monday</>}
           {period === 'monthly' && <><span className="mi" style={{ fontSize: '0.85rem', verticalAlign: 'middle', marginRight: '5px' }}>calendar_month</span>Resets on the 1st of each month</>}
           {period === 'yearly'  && <><span className="mi" style={{ fontSize: '0.85rem', verticalAlign: 'middle', marginRight: '5px' }}>event_repeat</span>Resets on January 1st each year</>}
         </div>
-
-        <button
-          className={styles.modalSaveBtn}
-          onClick={handleSave}
-          disabled={!goalInput || Number(goalInput) <= 0}
-        >
-          Save Goal
-        </button>
+        <button className={styles.modalSaveBtn} onClick={handleSave}
+          disabled={!goalInput || Number(goalInput) <= 0}>Save Goal</button>
         <button className={styles.modalCancelBtn} onClick={onClose}>Cancel</button>
       </div>
     </div>
   )
 }
 
-// ── Push notification banner ──────────────────────────────────
 function NotifBanner({ onEnable, onDismiss }) {
   return (
     <div className={styles.notifBanner}>
@@ -252,31 +292,29 @@ function NotifBanner({ onEnable, onDismiss }) {
   )
 }
 
-// ── Mobile bottom quick-actions nav ──────────────────────────
 function MobileQuickActions({ navigate }) {
   return (
     <nav className={styles.mobileQuickNav}>
       <button className={styles.mobileQuickBtn} onClick={() => navigate('/customers')}>
         <span className="mi" style={{ fontSize: '1.45rem' }}>groups</span>
-        <span className={styles.mobileQuickLabel}> Customers</span>
+        <span className={styles.mobileQuickLabel}>Customers</span>
       </button>
       <button className={styles.mobileQuickBtn} onClick={() => navigate('/appointments')}>
         <span className="mi" style={{ fontSize: '1.45rem' }}>event</span>
-        <span className={styles.mobileQuickLabel}> Appointments</span>
+        <span className={styles.mobileQuickLabel}>Appointments</span>
       </button>
       <button className={styles.mobileQuickBtn} onClick={() => navigate('/orders')}>
         <span className="mi" style={{ fontSize: '1.45rem' }}>shopping_cart</span>
-        <span className={styles.mobileQuickLabel}> Orders</span>
+        <span className={styles.mobileQuickLabel}>Orders</span>
       </button>
       <button className={styles.mobileQuickBtn} onClick={() => navigate('/tasks')}>
         <span className="mi" style={{ fontSize: '1.45rem' }}>assignment</span>
-        <span className={styles.mobileQuickLabel}> Tasks</span>
+        <span className={styles.mobileQuickLabel}>Tasks</span>
       </button>
     </nav>
   )
 }
 
-// ── Empty state component ─────────────────────────────────────
 function EmptyState({ icon, message, sub }) {
   return (
     <div className={styles.emptyState}>
@@ -287,22 +325,33 @@ function EmptyState({ icon, message, sub }) {
   )
 }
 
-// ── Revenue helpers ───────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+// REVENUE HELPERS
+// ─────────────────────────────────────────────────────────────
 const REVENUE_STORAGE_KEY = 'tf_revenue_goal'
 
 function getWindowStart(period) {
   const now = new Date()
   if (period === 'weekly') {
     const d = new Date(now)
-    d.setDate(d.getDate() - ((d.getDay() + 6) % 7)) // Monday
+    d.setDate(d.getDate() - ((d.getDay() + 6) % 7))
     d.setHours(0, 0, 0, 0)
     return d
   }
-  if (period === 'monthly') {
-    return new Date(now.getFullYear(), now.getMonth(), 1)
-  }
-  // yearly
+  if (period === 'monthly') return new Date(now.getFullYear(), now.getMonth(), 1)
   return new Date(now.getFullYear(), 0, 1)
+}
+
+function getPrevWindowStart(period) {
+  const now = new Date()
+  if (period === 'weekly') {
+    const d = new Date(now)
+    d.setDate(d.getDate() - ((d.getDay() + 6) % 7) - 7)
+    d.setHours(0, 0, 0, 0)
+    return d
+  }
+  if (period === 'monthly') return new Date(now.getFullYear(), now.getMonth() - 1, 1)
+  return new Date(now.getFullYear() - 1, 0, 1)
 }
 
 function periodLabel(period) {
@@ -312,7 +361,8 @@ function periodLabel(period) {
 }
 
 // ─────────────────────────────────────────────────────────────
-
+// MAIN COMPONENT
+// ─────────────────────────────────────────────────────────────
 function Home({ onMenuClick }) {
   const navigate = useNavigate()
   const { user }          = useAuth()
@@ -321,52 +371,42 @@ function Home({ onMenuClick }) {
   const { tasks }         = useTasks()
   const { allInvoices }   = useInvoices()
   const {
-    upcoming,
-    todayAppointments,
-    recent:          recentAppts,
-    missedCount,
-    upcomingThisWeek,
+    upcoming, todayAppointments, recent: recentAppts, missedCount, upcomingThisWeek,
   } = useAppointments()
   const { pushEnabled, requestPushPermission } = useNotifications()
-  const { settings } = useSettings()
+  const { settings }    = useSettings()
   const { allPayments } = usePayments()
 
   const [bannerDismissed, setBannerDismissed] = useState(
     () => localStorage.getItem('tf_notif_dismissed') === 'true'
   )
-
-  // ── Timely greeting & random subtext (stable per session) ──
-  const greetingRef  = useRef(getGreeting())
-  const iconRef      = useRef(getGreetingIcon())
-  const subtextRef   = useRef(getRandomSubtext())
-  const updatedAtRef = useRef(new Date())
-
-  // ── Revenue goal state ────────────────────────────────────
   const [revenueGoal, setRevenueGoal] = useState(() => {
-    try {
-      const raw = localStorage.getItem(REVENUE_STORAGE_KEY)
-      return raw ? JSON.parse(raw) : null
-    } catch { return null }
+    try { const r = localStorage.getItem(REVENUE_STORAGE_KEY); return r ? JSON.parse(r) : null }
+    catch { return null }
   })
   const [showGoalModal, setShowGoalModal] = useState(false)
 
-  const handleSaveGoal = (goalData) => {
-    setRevenueGoal(goalData)
-    localStorage.setItem(REVENUE_STORAGE_KEY, JSON.stringify(goalData))
+  // stable per session
+  const greetingRef  = useRef(getGreeting())
+  const greetIconRef = useRef(getGreetingIcon())
+  const subtextRef   = useRef(getRandomSubtext())
+  const updatedAtRef = useRef(new Date())
+  const todayRef     = useRef(getTodayLabel())
+
+  const handleSaveGoal = data => {
+    setRevenueGoal(data)
+    localStorage.setItem(REVENUE_STORAGE_KEY, JSON.stringify(data))
     setShowGoalModal(false)
   }
 
-  const showBanner = !pushEnabled
-    && !bannerDismissed
-    && 'Notification' in window
-    && Notification.permission !== 'denied'
+  const showBanner = !pushEnabled && !bannerDismissed
+    && 'Notification' in window && Notification.permission !== 'denied'
 
   const handleEnable = async () => {
     await requestPushPermission()
     setBannerDismissed(true)
     localStorage.setItem('tf_notif_dismissed', 'true')
   }
-
   const handleDismiss = () => {
     setBannerDismissed(true)
     localStorage.setItem('tf_notif_dismissed', 'true')
@@ -375,60 +415,145 @@ function Home({ onMenuClick }) {
   // ── Display name ──────────────────────────────────────────
   const displayName = (() => {
     const full = user?.displayName?.trim()
-    if (full) {
-      const parts = full.split(/\s+/)
-      return parts.length >= 2 ? parts[1] : parts[0]
-    }
+    if (full) { const p = full.split(/\s+/); return p.length >= 2 ? p[1] : p[0] }
     return user?.email?.split('@')[0] ?? 'there'
   })()
 
-  // ── Stats ─────────────────────────────────────────────────
-  const now = new Date()
+  // ── Date boundaries ───────────────────────────────────────
+  const now       = new Date()
+  const todayStr  = now.toISOString().slice(0, 10)
+  const weekAgo   = new Date(now); weekAgo.setDate(weekAgo.getDate() - 7)
+  const twoWksAgo = new Date(now); twoWksAgo.setDate(twoWksAgo.getDate() - 14)
 
-  const newCustomersThisMonth = customers.filter(c => {
+  // ── Customers ─────────────────────────────────────────────
+  const totalCustomers   = customers.length
+  const newCustThisMonth = customers.filter(c => {
     if (!c.date) return false
     const d = new Date(c.date)
     return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
   }).length
+  const newCustLastMonth  = customers.filter(c => c.date && isDateInLastMonth(c.date)).length
+  const custThisWeek      = customers.filter(c => c.date && new Date(c.date) >= weekAgo).length
+  const custLastWeek      = customers.filter(c => {
+    if (!c.date) return false
+    const d = new Date(c.date)
+    return d >= twoWksAgo && d < weekAgo
+  }).length
 
-  const pendingOrders     = allOrders.filter(o => !['completed', 'delivered', 'cancelled'].includes(o.status))
-  const ordersDueThisWeek = pendingOrders.filter(o => dueThisWeek(o.dueDate || o.dueRaw)).length
+  // ── Orders ────────────────────────────────────────────────
+  const pendingOrders         = allOrders.filter(o => !['completed','delivered','cancelled'].includes(o.status))
+  const ordersDueThisWeek     = pendingOrders.filter(o => dueThisWeek(o.dueDate || o.dueRaw)).length
+  const ordersCreatedThisWeek = allOrders.filter(o => o.createdAt && new Date(o.createdAt) >= weekAgo).length
+  const ordersCreatedLastWeek = allOrders.filter(o => {
+    if (!o.createdAt) return false; const d = new Date(o.createdAt)
+    return d >= twoWksAgo && d < weekAgo
+  }).length
 
-  const unpaidInvoices      = allInvoices.filter(i => i.status !== 'paid' && !isInvoiceOverdue(i))
-  const overdueInvoices     = allInvoices.filter(i => isInvoiceOverdue(i))
-  const totalUnpaid         = unpaidInvoices.length
-  const totalOverdueInvoice = overdueInvoices.length
+  // ── Invoices ──────────────────────────────────────────────
+  const unpaidInvoices  = allInvoices.filter(i => i.status !== 'paid' && !isInvoiceOverdue(i))
+  const overdueInvoices = allInvoices.filter(i => isInvoiceOverdue(i))
+  const totalUnpaid     = unpaidInvoices.length
+  const totalOverdue    = overdueInvoices.length
+  const invThisWeek     = allInvoices.filter(i => i.createdAt && new Date(i.createdAt) >= weekAgo).length
+  const invLastWeek     = allInvoices.filter(i => {
+    if (!i.createdAt) return false; const d = new Date(i.createdAt)
+    return d >= twoWksAgo && d < weekAgo
+  }).length
 
+  // ── Tasks ─────────────────────────────────────────────────
   const pendingTasks     = tasks.filter(t => !t.done && !isTaskOverdue(t))
+  const overdueTasks     = tasks.filter(t => isTaskOverdue(t))
   const tasksDueThisWeek = pendingTasks.filter(t => dueThisWeek(t.dueDate)).length
+  const tasksThisWeek    = tasks.filter(t => t.createdAt && new Date(t.createdAt) >= weekAgo).length
+  const tasksLastWeek    = tasks.filter(t => {
+    if (!t.createdAt) return false; const d = new Date(t.createdAt)
+    return d >= twoWksAgo && d < weekAgo
+  }).length
 
-  const todayCount = todayAppointments.length
+  // ── Appointments ──────────────────────────────────────────
+  const todayCount   = todayAppointments.length
+  const apptThisWeek = upcoming.filter(a => dueThisWeek(a.date)).length
+  const apptLastWeek = recentAppts.filter(a => {
+    if (!a.date) return false
+    const d = new Date(a.date + 'T00:00:00')
+    return d >= twoWksAgo && d < weekAgo
+  }).length
 
-  // ── Revenue calculation from PaymentContext ───────────────
-  const revenueEarned = (() => {
+  // ── Revenue ───────────────────────────────────────────────
+  const calcRevenue = (sinceDate, beforeDate = null) => {
     if (!revenueGoal) return 0
-    const windowStart = getWindowStart(revenueGoal.period)
+    return allPayments.flatMap(p => {
+      const insts = p.installments || []
+      if (!insts.length) return []
+      return insts
+        .filter(inst => {
+          const ds = inst.date || p.date
+          if (!ds) return false
+          const d = new Date(ds)
+          if (d < sinceDate) return false
+          if (beforeDate && d >= beforeDate) return false
+          return true
+        })
+        .map(inst => Number(inst.amount) || 0)
+    }).reduce((s, a) => s + a, 0)
+  }
 
-    return allPayments
-      .flatMap(p => {
-        const installments = p.installments || []
-        if (installments.length === 0) return []
+  const revenueEarned      = revenueGoal ? calcRevenue(getWindowStart(revenueGoal.period)) : 0
+  const revenuePrevPeriod  = revenueGoal ? calcRevenue(getPrevWindowStart(revenueGoal.period), getWindowStart(revenueGoal.period)) : 0
+  const revenuePct         = revenueGoal?.goal > 0 ? Math.min(Math.round((revenueEarned / revenueGoal.goal) * 100), 100) : 0
+  const revenueDiff        = revenueEarned - revenuePrevPeriod
+  const revenueUp          = revenueDiff >= 0
 
-        return installments
-          .filter(inst => {
-            const dateStr = inst.date || p.date
-            if (!dateStr) return false
-            const ms = new Date(dateStr).getTime()
-            return ms >= windowStart.getTime()
-          })
-          .map(inst => Number(inst.amount) || 0)
+  // 7-day sparkline
+  const revenueSparkline = (() => {
+    const days = Array(7).fill(0)
+    allPayments.forEach(p => {
+      ;(p.installments || []).forEach(inst => {
+        const ds = inst.date || p.date
+        if (!ds) return
+        const diffDays = Math.floor((now - new Date(ds)) / 86400000)
+        if (diffDays >= 0 && diffDays < 7) days[6 - diffDays] += Number(inst.amount) || 0
       })
-      .reduce((sum, amt) => sum + amt, 0)
+    })
+    return days
   })()
 
-  const revenuePct = revenueGoal && revenueGoal.goal > 0
-    ? Math.min(Math.round((revenueEarned / revenueGoal.goal) * 100), 100)
-    : 0
+  // ── Urgent items ──────────────────────────────────────────
+  const urgentItems = []
+
+  const soonAppt = upcoming.find(a => {
+    if (!a.date || !a.time || a.date !== todayStr) return false
+    const [hh, mm] = a.time.split(':').map(Number)
+    const apptTime = new Date(); apptTime.setHours(hh, mm, 0, 0)
+    const diff = apptTime - Date.now()
+    return diff > 0 && diff < 2 * 60 * 60 * 1000
+  })
+  if (soonAppt) {
+    const [hh, mm] = soonAppt.time.split(':').map(Number)
+    const apptTime = new Date(); apptTime.setHours(hh, mm, 0, 0)
+    const minsLeft = Math.round((apptTime - Date.now()) / 60000)
+    urgentItems.push({
+      icon:  APPT_TYPE_ICONS[soonAppt.type] || 'event',
+      text:  `Appointment in ${minsLeft} min${minsLeft !== 1 ? 's' : ''}${soonAppt.customerName ? ` · ${soonAppt.customerName}` : ''}`,
+      route: '/appointments',
+    })
+  }
+  if (overdueTasks.length > 0) urgentItems.push({
+    icon: 'assignment_late',
+    text: `${overdueTasks.length} overdue task${overdueTasks.length > 1 ? 's' : ''}`,
+    route: '/tasks',
+  })
+  const ordersDueToday = pendingOrders.filter(o => (o.dueDate || o.dueRaw) === todayStr).length
+  if (ordersDueToday > 0) urgentItems.push({
+    icon: 'local_shipping',
+    text: `${ordersDueToday} order${ordersDueToday > 1 ? 's' : ''} due today`,
+    route: '/orders',
+  })
+  if (totalOverdue > 0) urgentItems.push({
+    icon: 'receipt_long',
+    text: `${totalOverdue} overdue invoice${totalOverdue > 1 ? 's' : ''}`,
+    route: '/invoices',
+  })
 
   // ── Recent lists ──────────────────────────────────────────
   const recentOrders       = [...pendingOrders].slice(0, 4)
@@ -436,68 +561,82 @@ function Home({ onMenuClick }) {
   const recentAppointments = upcoming.slice(0, 4)
   const pastAppointments   = recentAppts.slice(0, 4)
 
-  // ── Status cards ─────────────────────────────────────────
-  const statusCards = [
+  // ── Stat cards ────────────────────────────────────────────
+  const statCards = [
     {
-      desktopIcon: 'shopping_bag',
-      bgIcon:      'shopping_bag',
-      iconColor:   '#f59e0b',
-      value:       pendingOrders.length,
+      desktopIcon: 'groups',       bgIcon: 'groups',
+      iconColor:   '#a78bfa',      value: totalCustomers,
+      label:       'Total Customers',
+      sub:         `${newCustThisMonth} new this month`,
+      subColor:    newCustThisMonth > 0 ? '#a78bfa' : 'var(--text3)',
+      delta:       makeDelta(custThisWeek, custLastWeek),
+      positiveIsGood: true,        route: '/customers',
+    },
+    {
+      desktopIcon: 'shopping_bag', bgIcon: 'shopping_bag',
+      iconColor:   '#f59e0b',      value: pendingOrders.length,
       label:       'Pending Orders',
       sub:         `${ordersDueThisWeek} due this wk`,
       subColor:    ordersDueThisWeek > 0 ? '#fb923c' : 'var(--text3)',
-      route:       '/orders',
+      delta:       makeDelta(ordersCreatedThisWeek, ordersCreatedLastWeek),
+      positiveIsGood: true,        route: '/orders',
     },
     {
-      desktopIcon: 'receipt_long',
-      bgIcon:      'receipt_long',
-      iconColor:   '#ef4444',
-      value:       totalUnpaid,
+      desktopIcon: 'receipt_long', bgIcon: 'receipt_long',
+      iconColor:   '#ef4444',      value: totalUnpaid,
       label:       'Unpaid Invoices',
-      sub:         `${totalOverdueInvoice} overdue`,
-      subColor:    totalOverdueInvoice > 0 ? '#ef4444' : 'var(--text3)',
-      route:       '/invoices',
+      sub:         totalOverdue > 0 ? `${totalOverdue} overdue` : 'All current',
+      subColor:    totalOverdue > 0 ? '#ef4444' : 'var(--text3)',
+      delta:       makeDelta(invThisWeek, invLastWeek),
+      positiveIsGood: false,       route: '/invoices',
     },
     {
-      desktopIcon: 'event',
-      bgIcon:      'today',
-      iconColor:   '#06b6d4',
-      value:       todayCount,
+      desktopIcon: 'event',        bgIcon: 'today',
+      iconColor:   '#06b6d4',      value: todayCount,
       label:       "Today's Appts",
-      sub:         missedCount > 0
-        ? `${missedCount} missed`
-        : `${upcomingThisWeek} this wk`,
+      sub:         missedCount > 0 ? `${missedCount} missed` : `${upcomingThisWeek} this wk`,
       subColor:    missedCount > 0 ? '#ef4444' : '#06b6d4',
-      route:       '/appointments',
+      delta:       makeDelta(apptThisWeek, apptLastWeek),
+      positiveIsGood: true,        route: '/appointments',
     },
     {
-      desktopIcon: 'task_alt',
-      bgIcon:      'checklist',
-      iconColor:   '#22c55e',
-      value:       pendingTasks.length,
+      desktopIcon: 'task_alt',     bgIcon: 'checklist',
+      iconColor:   '#22c55e',      value: pendingTasks.length,
       label:       'Pending Tasks',
       sub:         `${tasksDueThisWeek} due this wk`,
       subColor:    tasksDueThisWeek > 0 ? '#fb923c' : 'var(--text3)',
-      route:       '/tasks',
+      delta:       makeDelta(tasksThisWeek, tasksLastWeek),
+      positiveIsGood: false,       route: '/tasks',
+    },
+    {
+      desktopIcon: 'person_add',   bgIcon: 'person_add',
+      iconColor:   '#f472b6',      value: newCustThisMonth,
+      label:       'New This Month',
+      sub:         `${newCustLastMonth} last month`,
+      subColor:    'var(--text3)',
+      delta:       makeDelta(newCustThisMonth, newCustLastMonth),
+      positiveIsGood: true,        route: '/customers',
     },
   ]
 
+  // ─────────────────────────────────────────────────────────
+  // RENDER
+  // ─────────────────────────────────────────────────────────
   return (
     <div className={styles.pageWrapper}>
       <Header onMenuClick={onMenuClick} />
 
       <main className={styles.main}>
 
-        {/* HERO */}
+        {/* ── HERO ── */}
         <section className={styles.hero}>
+          <p className={styles.todayDate}>{todayRef.current}</p>
           <p className={styles.welcomeLabel}>
             {greetingRef.current}
-            <span className={`mi ${styles.greetingIcon}`} data-icon={iconRef.current} style={
-              iconRef.current === 'wb_sunny'    ? { color: '#f59e0b' } :
-              iconRef.current === 'waving_hand' ? { color: '#818cf8' } :
-              iconRef.current === 'nights_stay' ? { color: '#f472b6' } :
-                                                   { color: '#94a3b8' }
-            }>{iconRef.current}</span>
+            <span className={`mi ${styles.greetingIcon}`}
+              style={{ color: greetIconRef.current.color }}>
+              {greetIconRef.current.name}
+            </span>
           </p>
           <h1 className={styles.title}>{displayName}</h1>
           <p className={styles.subtitle}>{subtextRef.current}</p>
@@ -507,72 +646,70 @@ function Home({ onMenuClick }) {
           </p>
         </section>
 
-        {/* NOTIFICATION BANNER */}
-        {showBanner && (
-          <NotifBanner onEnable={handleEnable} onDismiss={handleDismiss} />
-        )}
+        {/* ── NOTIFICATION BANNER ── */}
+        {showBanner && <NotifBanner onEnable={handleEnable} onDismiss={handleDismiss} />}
 
-        {/* STATUS CARDS — 2×2 grid */}
+        {/* ── URGENT STRIP ── */}
+        <UrgentStrip items={urgentItems} navigate={navigate} />
+
+        {/* ── STAT CARDS ── */}
         <section className={styles.statsGrid}>
-          {statusCards.map((card, i) => (
-            <div
-              key={i}
-              className={styles.statCard}
-              onClick={() => navigate(card.route)}
-            >
+          {statCards.map((card, i) => (
+            <div key={i} className={styles.statCard} onClick={() => navigate(card.route)}>
               <div className={styles.statIconWrap}>
                 <span className="mi" style={{ fontSize: '1.3rem', color: card.iconColor }}>
                   {card.desktopIcon}
                 </span>
               </div>
-
               <div className={styles.statCardBody}>
                 <div className={styles.statLabel}>{card.label}</div>
                 <div className={styles.statValue}>{card.value}</div>
                 {card.sub && (
-                  <div
-                    className={styles.statSub}
-                    style={{ color: card.subColor }}
-                  >
-                    {card.sub}
-                  </div>
+                  <div className={styles.statSub} style={{ color: card.subColor }}>{card.sub}</div>
                 )}
+                <Delta delta={card.delta} positiveIsGood={card.positiveIsGood} />
               </div>
-
               <span className={`mi ${styles.statBgIcon}`}>{card.bgIcon}</span>
             </div>
           ))}
         </section>
 
-        {/* REVENUE CARD */}
+        {/* ── REVENUE CARD ── */}
         {!revenueGoal ? (
-          <div
-            className={styles.revenueCard}
-            onClick={() => setShowGoalModal(true)}
-            style={{ justifyContent: 'flex-start', gap: '20px' }}
-          >
+          <div className={styles.revenueCard} onClick={() => setShowGoalModal(true)}
+            style={{ justifyContent: 'flex-start', gap: '20px' }}>
             <div className={styles.revenueEmptyIconWrap}>
               <span className="mi" style={{ fontSize: '1.6rem', color: 'var(--accent)' }}>ads_click</span>
             </div>
             <div className={styles.revenueCardLeft} style={{ gap: '2px' }}>
               <div className={styles.revenueEmptyTitle}>Set your first goal</div>
-              <div className={styles.revenueEmptySub}>Click here to track your shop's revenue growth</div>
+              <div className={styles.revenueEmptySub}>Tap here to track your shop's revenue growth</div>
             </div>
           </div>
         ) : (
-          <div
-            className={styles.revenueCard}
-            onClick={() => setShowGoalModal(true)}
-          >
+          <div className={styles.revenueCard} onClick={() => setShowGoalModal(true)}>
             <div className={styles.revenueCardLeft}>
-              <div className={styles.revenueLabel}>
-                {periodLabel(revenueGoal.period)} · Revenue
-              </div>
+              <div className={styles.revenueLabel}>{periodLabel(revenueGoal.period)} · Revenue</div>
               <div className={styles.revenueAmount}>
                 {revenueGoal.currency}{revenueEarned.toLocaleString()}
               </div>
               <div className={styles.revenueTarget}>
                 Goal: {revenueGoal.currency}{revenueGoal.goal.toLocaleString()}
+              </div>
+              <div className={styles.revenueVs}>
+                <span className="mi" style={{
+                  fontSize: '0.7rem', verticalAlign: 'middle', marginRight: '3px',
+                  color: revenueUp ? '#22c55e' : '#ef4444'
+                }}>{revenueUp ? 'arrow_upward' : 'arrow_downward'}</span>
+                <span style={{ color: revenueUp ? '#22c55e' : '#ef4444', fontSize: '0.72rem', fontWeight: 700 }}>
+                  {revenueGoal.currency}{Math.abs(revenueDiff).toLocaleString()}
+                </span>
+                <span style={{ color: 'var(--text3)', fontSize: '0.7rem', marginLeft: '3px' }}>
+                  vs last {revenueGoal.period === 'weekly' ? 'week' : revenueGoal.period === 'monthly' ? 'month' : 'year'}
+                </span>
+              </div>
+              <div style={{ marginTop: '8px' }}>
+                <Sparkline data={revenueSparkline} color={revenueUp ? '#22c55e' : '#f472b6'} />
               </div>
             </div>
             <div className={styles.revenueDonutWrap}>
@@ -581,28 +718,19 @@ function Home({ onMenuClick }) {
           </div>
         )}
 
-        {/* REVENUE GOAL MODAL */}
         {showGoalModal && (
-          <RevenueGoalModal
-            onSave={handleSaveGoal}
-            onClose={() => setShowGoalModal(false)}
-          />
+          <RevenueGoalModal onSave={handleSaveGoal} onClose={() => setShowGoalModal(false)} />
         )}
 
-        {/* UPCOMING APPOINTMENTS */}
+        {/* ── UPCOMING APPOINTMENTS ── */}
         <section className={styles.section}>
           <div className={styles.sectionHeader}>
             <h3 className={styles.sectionTitle}>Upcoming Appointments</h3>
-            {recentAppointments.length > 0 && (
-              <button className={styles.seeAllBtn} onClick={() => navigate('/appointments')}>See all</button>
-            )}
+            <button className={styles.seeAllBtn} onClick={() => navigate('/appointments')}>See all</button>
           </div>
           {recentAppointments.length === 0 ? (
-            <EmptyState
-              icon="event_available"
-              message="No upcoming appointments"
-              sub="Scheduled appointments will appear here."
-            />
+            <EmptyState icon="event_available" message="No upcoming appointments"
+              sub="Scheduled appointments will appear here." />
           ) : (
             <div className={styles.listSection}>
               <div className={styles.listDivider} />
@@ -613,10 +741,8 @@ function Home({ onMenuClick }) {
                 const isToday   = todayAppointments.some(a => a.id === appt.id)
                 return (
                   <div key={appt.id} className={`${styles.listItem} ${isLast ? styles.listItemLast : ''}`}>
-                    <div
-                      className={styles.listOuter}
-                      style={isToday ? { borderColor: 'rgba(6,182,212,0.35)', background: 'rgba(6,182,212,0.05)' } : {}}
-                    >
+                    <div className={styles.listOuter}
+                      style={isToday ? { borderColor: 'rgba(6,182,212,0.35)', background: 'rgba(6,182,212,0.05)' } : {}}>
                       <div className={styles.listInner}>
                         <span className="mi" style={{ fontSize: '1.3rem', color: iconColor }}>{icon}</span>
                       </div>
@@ -642,7 +768,7 @@ function Home({ onMenuClick }) {
           )}
         </section>
 
-        {/* RECENT APPOINTMENTS */}
+        {/* ── RECENT APPOINTMENTS ── */}
         {pastAppointments.length > 0 && (
           <section className={styles.section}>
             <div className={styles.sectionHeader}>
@@ -653,24 +779,21 @@ function Home({ onMenuClick }) {
               <div className={styles.listDivider} />
               {pastAppointments.map((appt, idx) => {
                 const isLast    = idx === pastAppointments.length - 1
-                const icon      = APPT_TYPE_ICONS[appt.type] || 'event'
                 const iconColor = appt.status === 'completed' ? '#22c55e'
-                  : appt.status === 'cancelled' ? '#94a3b8'
-                  : '#ef4444'
+                  : appt.status === 'cancelled' ? '#94a3b8' : '#ef4444'
                 return (
                   <div key={appt.id} className={`${styles.listItem} ${isLast ? styles.listItemLast : ''}`}>
-                    <div
-                      className={styles.listOuter}
-                      style={
-                        appt.status === 'completed'
-                          ? { borderColor: 'rgba(34,197,94,0.3)', background: 'rgba(34,197,94,0.04)' }
-                          : appt.status === 'cancelled'
-                          ? { borderColor: 'rgba(148,163,184,0.3)' }
-                          : { borderColor: 'rgba(239,68,68,0.3)', background: 'rgba(239,68,68,0.04)' }
-                      }
-                    >
+                    <div className={styles.listOuter} style={
+                      appt.status === 'completed'
+                        ? { borderColor: 'rgba(34,197,94,0.3)', background: 'rgba(34,197,94,0.04)' }
+                        : appt.status === 'cancelled'
+                        ? { borderColor: 'rgba(148,163,184,0.3)' }
+                        : { borderColor: 'rgba(239,68,68,0.3)', background: 'rgba(239,68,68,0.04)' }
+                    }>
                       <div className={styles.listInner}>
-                        <span className="mi" style={{ fontSize: '1.3rem', color: iconColor }}>{APPT_TYPE_ICONS[appt.type] || 'event'}</span>
+                        <span className="mi" style={{ fontSize: '1.3rem', color: iconColor }}>
+                          {APPT_TYPE_ICONS[appt.type] || 'event'}
+                        </span>
                       </div>
                     </div>
                     <div className={styles.listInfo}>
@@ -683,11 +806,13 @@ function Home({ onMenuClick }) {
                       )}
                       <div className={styles.listMeta}>
                         <span className="mi" style={{ fontSize: '0.78rem', color: 'var(--text3)', verticalAlign: 'middle' }}>schedule</span>
-                        <span className={styles.listMetaText} style={{ color: appt.status === 'missed' ? '#ef4444' : undefined }}>
+                        <span className={styles.listMetaText}
+                          style={{ color: appt.status === 'missed' ? '#ef4444' : undefined }}>
                           {formatApptDate(appt.date, appt.time)}
                         </span>
                       </div>
-                      <div className={styles.listApptStatus} style={{ color: iconColor, borderColor: `${iconColor}40`, background: `${iconColor}12` }}>
+                      <div className={styles.listApptStatus}
+                        style={{ color: iconColor, borderColor: `${iconColor}40`, background: `${iconColor}12` }}>
                         {appt.status === 'completed' ? 'Completed' : appt.status === 'cancelled' ? 'Cancelled' : 'Missed'}
                       </div>
                     </div>
@@ -698,70 +823,43 @@ function Home({ onMenuClick }) {
           </section>
         )}
 
-        {/* QUICK ACTIONS — desktop only */}
+        {/* ── QUICK ACTIONS — desktop only ── */}
         <section className={styles.quickActionsDesktop}>
           <h3 className={styles.sectionTitle}>Quick Actions</h3>
           <div className={styles.statsGrid}>
-            <div className={styles.actionCard} onClick={() => navigate('/customers')}>
-              <div className={styles.statIconWrap}>
-                <span className="mi" style={{ fontSize: '1.3rem', color: 'var(--accent)' }}>person_add</span>
+            {[
+              { icon: 'person_add', label: 'Add Customer',     route: '/customers'    },
+              { icon: 'event',      label: 'Book Appointment', route: '/appointments' },
+              { icon: 'assignment', label: 'New Task',         route: '/tasks'        },
+              { icon: 'receipt',    label: 'New Invoice',      route: '/invoices'     },
+            ].map(a => (
+              <div key={a.label} className={styles.actionCard} onClick={() => navigate(a.route)}>
+                <div className={styles.statIconWrap}>
+                  <span className="mi" style={{ fontSize: '1.3rem', color: 'var(--accent)' }}>{a.icon}</span>
+                </div>
+                <div className={styles.actionCardText}>
+                  <div className={styles.actionLabel}>{a.label}</div>
+                </div>
               </div>
-              <div className={styles.actionCardText}>
-                <div className={styles.statValue} style={{ fontSize: '0.82rem' }}>Add</div>
-                <div className={styles.statLabel}>Customer</div>
-              </div>
-            </div>
-            <div className={styles.actionCard} onClick={() => navigate('/appointments')}>
-              <div className={styles.statIconWrap}>
-                <span className="mi" style={{ fontSize: '1.3rem', color: 'var(--accent)' }}>event</span>
-              </div>
-              <div className={styles.actionCardText}>
-                <div className={styles.statValue} style={{ fontSize: '0.82rem' }}>Book</div>
-                <div className={styles.statLabel}>Appointment</div>
-              </div>
-            </div>
-            <div className={styles.actionCard} onClick={() => navigate('/tasks')}>
-              <div className={styles.statIconWrap}>
-                <span className="mi" style={{ fontSize: '1.3rem', color: 'var(--accent)' }}>assignment</span>
-              </div>
-              <div className={styles.actionCardText}>
-                <div className={styles.statValue} style={{ fontSize: '0.82rem' }}>New</div>
-                <div className={styles.statLabel}>Task</div>
-              </div>
-            </div>
-            <div className={styles.actionCard} onClick={() => navigate('/customers')}>
-              <div className={styles.statIconWrap}>
-                <span className="mi" style={{ fontSize: '1.3rem', color: 'var(--accent)' }}>arrow_forward</span>
-              </div>
-              <div className={styles.actionCardText}>
-                <div className={styles.statValue} style={{ fontSize: '0.82rem' }}>View All</div>
-                <div className={styles.statLabel}>Customers</div>
-              </div>
-            </div>
+            ))}
           </div>
         </section>
 
-        {/* RECENT ORDERS */}
+        {/* ── RECENT ORDERS ── */}
         <section className={styles.section}>
           <div className={styles.sectionHeader}>
             <h3 className={styles.sectionTitle}>Recent Orders</h3>
-            {recentOrders.length > 0 && (
-              <button className={styles.seeAllBtn} onClick={() => navigate('/orders')}>See all</button>
-            )}
+            <button className={styles.seeAllBtn} onClick={() => navigate('/orders')}>See all</button>
           </div>
           {recentOrders.length === 0 ? (
-            <EmptyState
-              icon="shopping_bag"
-              message="No pending orders"
-              sub="New and pending orders will show up here."
-            />
+            <EmptyState icon="shopping_bag" message="No pending orders"
+              sub="New and pending orders will show up here." />
           ) : (
             <div className={styles.listSection}>
               <div className={styles.listDivider} />
               {recentOrders.map((order, idx) => {
                 const isLast   = idx === recentOrders.length - 1
-                const priceStr = order.price !== null && order.price !== undefined
-                  ? `₦${Number(order.price).toLocaleString()}` : '—'
+                const priceStr = order.price != null ? `₦${Number(order.price).toLocaleString()}` : '—'
                 const thumb    = order.items?.[0]?.imgSrc
                 return (
                   <div key={order.id} className={`${styles.listItem} ${isLast ? styles.listItemLast : ''}`}>
@@ -779,12 +877,9 @@ function Home({ onMenuClick }) {
                         <span className="mi" style={{ fontSize: '0.78rem', color: 'var(--text3)', verticalAlign: 'middle' }}>person</span>
                         <span className={styles.listMetaText}>{order.customerName || '—'}</span>
                       </div>
-                      <div className={styles.listMeta}>
-                        <span className="mi" style={{ fontSize: '0.78rem', color: 'var(--text3)', verticalAlign: 'middle' }}>autorenew</span>
-                        <span className={styles.listMetaText} style={{ color: ORDER_STATUS_TEXT_COLORS[order.status] ?? undefined }}>{order.status || 'Pending'}</span>
-                      </div>
+                      <StatusPill status={order.status} />
                       {(order.due || order.dueRaw) && (
-                        <div className={styles.listDue}>Due On {order.due || formatDate(order.dueRaw)}</div>
+                        <div className={styles.listDue}>Due {order.due || formatDate(order.dueRaw)}</div>
                       )}
                     </div>
                     <div className={styles.listRight}>
@@ -798,20 +893,15 @@ function Home({ onMenuClick }) {
           )}
         </section>
 
-        {/* RECENT TASKS */}
+        {/* ── RECENT TASKS ── */}
         <section className={styles.section}>
           <div className={styles.sectionHeader}>
             <h3 className={styles.sectionTitle}>Recent Tasks</h3>
-            {recentTasks.length > 0 && (
-              <button className={styles.seeAllBtn} onClick={() => navigate('/tasks')}>See all</button>
-            )}
+            <button className={styles.seeAllBtn} onClick={() => navigate('/tasks')}>See all</button>
           </div>
           {recentTasks.length === 0 ? (
-            <EmptyState
-              icon="assignment_turned_in"
-              message="No pending tasks"
-              sub="Tasks you create will appear here."
-            />
+            <EmptyState icon="assignment_turned_in" message="No pending tasks"
+              sub="Tasks you create will appear here." />
           ) : (
             <div className={styles.listSection}>
               <div className={styles.listDivider} />
@@ -822,10 +912,8 @@ function Home({ onMenuClick }) {
                 const catIcon   = CATEGORY_ICONS[task.category] || 'assignment'
                 return (
                   <div key={task.id} className={`${styles.listItem} ${isLast ? styles.listItemLast : ''}`}>
-                    <div
-                      className={styles.listOuter}
-                      style={overdue ? { borderColor: 'rgba(239,68,68,0.35)', background: 'rgba(239,68,68,0.05)' } : {}}
-                    >
+                    <div className={styles.listOuter}
+                      style={overdue ? { borderColor: 'rgba(239,68,68,0.35)', background: 'rgba(239,68,68,0.05)' } : {}}>
                       <div className={styles.listInner}>
                         <span className="mi" style={{ fontSize: '1.3rem', color: iconColor }}>{catIcon}</span>
                       </div>
@@ -839,15 +927,13 @@ function Home({ onMenuClick }) {
                         </div>
                       )}
                       <div className={styles.listMeta}>
-                        <span className="mi" style={{ fontSize: '0.78rem', color: 'var(--text3)', verticalAlign: 'middle' }}>autorenew</span>
+                        <span className="mi" style={{ fontSize: '0.78rem', color: 'var(--text3)', verticalAlign: 'middle' }}>flag</span>
                         <span className={styles.listMetaText} style={{ color: overdue ? '#ef4444' : undefined }}>
                           {overdue ? 'Overdue' : (task.priority ? task.priority.charAt(0).toUpperCase() + task.priority.slice(1) : 'Normal')}
                         </span>
                       </div>
                       {task.dueDate && (
-                        <div className={styles.listDue} style={{ color: '#ef4444' }}>
-                          Due On {formatDate(task.dueDate)}
-                        </div>
+                        <div className={styles.listDue}>Due {formatDate(task.dueDate)}</div>
                       )}
                     </div>
                   </div>
@@ -859,9 +945,7 @@ function Home({ onMenuClick }) {
 
       </main>
 
-      {/* MOBILE BOTTOM QUICK ACTIONS */}
       <MobileQuickActions navigate={navigate} />
-
     </div>
   )
 }
