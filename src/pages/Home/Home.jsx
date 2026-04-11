@@ -149,29 +149,11 @@ function RevenueDonut({ pct }) {
   )
 }
 
-function Sparkline({ data, color = '#f472b6' }) {
-  if (!data || data.length < 2) return null
-  const w = 80, h = 28
-  const max = Math.max(...data, 1)
-  const min = Math.min(...data)
-  const range = max - min || 1
-  const pts = data.map((v, i) =>
-    `${(i / (data.length - 1)) * w},${h - ((v - min) / range) * (h - 4) - 2}`
-  ).join(' ')
-  return (
-    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} style={{ display: 'block' }}>
-      <polyline points={pts} fill="none" stroke={color} strokeWidth="2"
-        strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  )
-}
-
+// ── Delta: renders nothing when there's no change ────────────
 function Delta({ delta, positiveIsGood = true }) {
-  if (!delta || delta.direction === 'same') return (
-    <span className={styles.deltaNeutral}>
-      <span className="mi" style={{ fontSize: '0.6rem', verticalAlign: 'middle' }}>remove</span> No change
-    </span>
-  )
+  // No change → render nothing at all
+  if (!delta || delta.direction === 'same') return null
+
   const isPositive = delta.direction === 'up'
   const isGood     = positiveIsGood ? isPositive : !isPositive
   return (
@@ -520,19 +502,6 @@ function Home({ onMenuClick }) {
   const revenueDiff       = revenueEarned - revenuePrevPeriod
   const revenueUp         = revenueDiff >= 0
 
-  const revenueSparkline = (() => {
-    const days = Array(7).fill(0)
-    allPayments.forEach(p => {
-      ;(p.installments || []).forEach(inst => {
-        const ds = inst.date || p.date
-        if (!ds) return
-        const diffDays = Math.floor((now - new Date(ds)) / 86400000)
-        if (diffDays >= 0 && diffDays < 7) days[6 - diffDays] += Number(inst.amount) || 0
-      })
-    })
-    return days
-  })()
-
   // ── Urgent items ──────────────────────────────────────────
   const urgentItems = []
   const soonAppt = upcoming.find(a => {
@@ -575,14 +544,18 @@ function Home({ onMenuClick }) {
   const recentAppointments = upcoming.slice(0, 4)
   const pastAppointments   = recentAppts.slice(0, 4)
 
-  // ── Stat cards — 4 only, no customer duplicates ───────────
+  // ── Stat cards ────────────────────────────────────────────
+  // Sub-text colour logic:
+  //   • Red   → overdue / missed / alert state
+  //   • Amber → approaching deadline (due this week) / warning
+  //   • var(--text3) (neutral) → normal / all-clear state
   const statCards = [
     {
       desktopIcon: 'shopping_bag', bgIcon: 'shopping_bag',
       iconColor:   '#f59e0b',      value: pendingOrders.length,
       label:       'Pending Orders',
-      sub:         `${ordersDueThisWeek} due this wk`,
-      subColor:    ordersDueThisWeek > 0 ? '#fb923c' : 'var(--text3)',
+      sub:         ordersDueThisWeek > 0 ? `${ordersDueThisWeek} due this week` : null,
+      subColor:    '#fb923c',   // amber — deadline approaching
       delta:       makeDelta(ordersCreatedThisWeek, ordersCreatedLastWeek),
       positiveIsGood: true,        route: '/orders',
     },
@@ -590,8 +563,8 @@ function Home({ onMenuClick }) {
       desktopIcon: 'receipt_long', bgIcon: 'receipt_long',
       iconColor:   '#ef4444',      value: totalUnpaid,
       label:       'Unpaid Invoices',
-      sub:         totalOverdue > 0 ? `${totalOverdue} overdue` : 'All current',
-      subColor:    totalOverdue > 0 ? '#ef4444' : 'var(--text3)',
+      sub:         totalOverdue > 0 ? `${totalOverdue} overdue` : null,
+      subColor:    '#ef4444',   // red — overdue is urgent
       delta:       makeDelta(invThisWeek, invLastWeek),
       positiveIsGood: false,       route: '/invoices',
     },
@@ -599,8 +572,12 @@ function Home({ onMenuClick }) {
       desktopIcon: 'event',        bgIcon: 'today',
       iconColor:   '#06b6d4',      value: todayCount,
       label:       "Today's Appts",
-      sub:         missedCount > 0 ? `${missedCount} missed` : `${upcomingThisWeek} this wk`,
-      subColor:    missedCount > 0 ? '#ef4444' : '#06b6d4',
+      sub:         missedCount > 0
+                     ? `${missedCount} missed`
+                     : upcomingThisWeek > 0
+                       ? `${upcomingThisWeek} this week`
+                       : null,
+      subColor:    missedCount > 0 ? '#ef4444' : '#06b6d4',  // red for missed, teal for upcoming
       delta:       makeDelta(apptThisWeek, apptLastWeek),
       positiveIsGood: true,        route: '/appointments',
     },
@@ -608,8 +585,8 @@ function Home({ onMenuClick }) {
       desktopIcon: 'task_alt',     bgIcon: 'checklist',
       iconColor:   '#22c55e',      value: pendingTasks.length,
       label:       'Pending Tasks',
-      sub:         `${tasksDueThisWeek} due this wk`,
-      subColor:    tasksDueThisWeek > 0 ? '#fb923c' : 'var(--text3)',
+      sub:         tasksDueThisWeek > 0 ? `${tasksDueThisWeek} due this week` : null,
+      subColor:    '#fb923c',   // amber — deadlines approaching
       delta:       makeDelta(tasksThisWeek, tasksLastWeek),
       positiveIsGood: false,       route: '/tasks',
     },
@@ -644,7 +621,7 @@ function Home({ onMenuClick }) {
         {/* ── URGENT STRIP ── */}
         <UrgentStrip items={urgentItems} navigate={navigate} />
 
-        {/* 1. STAT CARDS GRID — comes first ── */}
+        {/* 1. STAT CARDS GRID ── */}
         <section className={styles.statsGrid}>
           {statCards.map((card, i) => (
             <div key={i} className={styles.statCard} onClick={() => navigate(card.route)}>
@@ -656,6 +633,7 @@ function Home({ onMenuClick }) {
               <div className={styles.statCardBody}>
                 <div className={styles.statLabel}>{card.label}</div>
                 <div className={styles.statValue}>{card.value}</div>
+                {/* Only render sub-text when there's something meaningful to show */}
                 {card.sub && (
                   <div className={styles.statSub} style={{ color: card.subColor }}>{card.sub}</div>
                 )}
@@ -688,21 +666,22 @@ function Home({ onMenuClick }) {
               <div className={styles.revenueTarget}>
                 Goal: {revenueGoal.currency}{revenueGoal.goal.toLocaleString()}
               </div>
-              <div className={styles.revenueVs}>
-                <span className="mi" style={{
-                  fontSize: '0.7rem', verticalAlign: 'middle', marginRight: '3px',
-                  color: revenueUp ? '#22c55e' : '#ef4444'
-                }}>{revenueUp ? 'arrow_upward' : 'arrow_downward'}</span>
-                <span style={{ color: revenueUp ? '#22c55e' : '#ef4444', fontSize: '0.72rem', fontWeight: 700 }}>
-                  {revenueGoal.currency}{Math.abs(revenueDiff).toLocaleString()}
-                </span>
-                <span style={{ color: 'var(--text3)', fontSize: '0.7rem', marginLeft: '3px' }}>
-                  vs last {revenueGoal.period === 'weekly' ? 'week' : revenueGoal.period === 'monthly' ? 'month' : 'year'}
-                </span>
-              </div>
-              <div style={{ marginTop: '8px' }}>
-                <Sparkline data={revenueSparkline} color={revenueUp ? '#22c55e' : '#f472b6'} />
-              </div>
+              {/* Only show vs-last-period row when there's an actual difference */}
+              {revenueDiff !== 0 && (
+                <div className={styles.revenueVs}>
+                  <span className="mi" style={{
+                    fontSize: '0.7rem', verticalAlign: 'middle', marginRight: '3px',
+                    color: revenueUp ? '#22c55e' : '#ef4444'
+                  }}>{revenueUp ? 'arrow_upward' : 'arrow_downward'}</span>
+                  <span style={{ color: revenueUp ? '#22c55e' : '#ef4444', fontSize: '0.72rem', fontWeight: 700 }}>
+                    {revenueGoal.currency}{Math.abs(revenueDiff).toLocaleString()}
+                  </span>
+                  <span style={{ color: 'var(--text3)', fontSize: '0.7rem', marginLeft: '3px' }}>
+                    vs last {revenueGoal.period === 'weekly' ? 'week' : revenueGoal.period === 'monthly' ? 'month' : 'year'}
+                  </span>
+                </div>
+              )}
+              {/* Sparkline removed — donut is sufficient visual */}
             </div>
             <div className={styles.revenueDonutWrap}>
               <RevenueDonut pct={revenuePct} />
@@ -717,18 +696,19 @@ function Home({ onMenuClick }) {
             <div className={styles.customerCardIconWrap}>
               <span className={styles.customerCardEmoji}>👥</span>
             </div>
-            <div className={styles.customerCardTitleBlock}>
-              <span className={styles.customerCardTitle}>Customer Insights</span>
-              <span className={styles.customerCardSubtitle}>
-                {totalCustomers.toLocaleString()} total customers
-              </span>
-            </div>
+            <span className={styles.customerCardTitle}>Customer Insights</span>
             <span className="mi" style={{ fontSize: '1rem', color: 'var(--text3)', marginLeft: 'auto', flexShrink: 0 }}>
               chevron_right
             </span>
           </div>
 
-          {/* Horizontal rule */}
+          {/* Hero total customers number */}
+          <div className={styles.customerHeroBlock}>
+            <div className={styles.customerHeroLabel}>Total Customers</div>
+            <div className={styles.customerHeroNumber}>{totalCustomers.toLocaleString()}</div>
+          </div>
+
+          {/* Thin horizontal rule */}
           <div className={styles.customerCardRule} />
 
           {/* Three stat pills in a row */}
