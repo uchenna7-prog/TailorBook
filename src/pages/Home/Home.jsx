@@ -632,19 +632,22 @@ function Home({ onMenuClick }) {
         <section className={styles.statsGrid}>
           {statCards.map((card, i) => (
             <div key={i} className={styles.statCard} onClick={() => navigate(card.route)}>
-              <div className={styles.statIconWrap}>
-                <span className="mi" style={{ fontSize: '1.3rem', color: card.iconColor }}>
+              {/* Icon — top left, tinted background */}
+              <div className={styles.statIconWrap}
+                style={{ background: `${card.iconColor}18`, border: `1px solid ${card.iconColor}30` }}>
+                <span className="mi" style={{ fontSize: '1.25rem', color: card.iconColor }}>
                   {card.desktopIcon}
                 </span>
               </div>
-              <div className={styles.statCardBody}>
-                <div className={styles.statLabel}>{card.label}</div>
-                <div className={styles.statValue}>{card.value}</div>
-                {card.sub && (
-                  <div className={styles.statSub} style={{ color: card.subColor }}>{card.sub}</div>
-                )}
-                <Delta delta={card.delta} positiveIsGood={card.positiveIsGood} />
-              </div>
+              {/* Big number */}
+              <div className={styles.statValue}>{card.value}</div>
+              {/* Label — wraps naturally */}
+              <div className={styles.statLabel}>{card.label}</div>
+              {/* Sub-text pinned to bottom */}
+              {card.sub && (
+                <div className={styles.statSub} style={{ color: card.subColor }}>{card.sub}</div>
+              )}
+              <Delta delta={card.delta} positiveIsGood={card.positiveIsGood} />
             </div>
           ))}
         </section>
