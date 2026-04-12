@@ -449,28 +449,31 @@ function Home({ onMenuClick }) {
   }).length
 
   // ── Invoices ──────────────────────────────────────────────
-  const unpaidInvoices  = allInvoices.filter(i => i.status !== 'paid' && !isInvoiceOverdue(i))
-  const overdueInvoices = allInvoices.filter(i => isInvoiceOverdue(i))
+  // Helper: get the due date string for any invoice, computed or explicit
+  const getInvDueDate = (i) => {
+    const explicit = i.due || i.dueDate || i.due_date || i.dueOn
+    if (explicit) return explicit
+    const ms = i.createdAt?.toMillis?.() ?? (i.createdAt?.seconds ? i.createdAt.seconds * 1000 : null)
+    if (!ms) return null
+    const dueDays = settings.invoiceDueDays ?? 7
+    return new Date(ms + dueDays * 86400000).toISOString().slice(0, 10)
+  }
+  const isInvOverdue = (i) => {
+    if (i.status === 'paid') return false
+    const due = getInvDueDate(i)
+    if (!due) return false
+    return new Date(due + 'T23:59:59') < new Date()
+  }
+  const unpaidInvoices  = allInvoices.filter(i => i.status !== 'paid' && !isInvOverdue(i))
+  const overdueInvoices = allInvoices.filter(i => isInvOverdue(i))
   const totalUnpaid     = unpaidInvoices.length
   const totalOverdue    = overdueInvoices.length
-  const invThisWeek          = allInvoices.filter(i => i.createdAt && new Date(i.createdAt) >= weekAgo).length
-  const invLastWeek          = allInvoices.filter(i => {
+  const invThisWeek     = allInvoices.filter(i => i.createdAt && new Date(i.createdAt) >= weekAgo).length
+  const invLastWeek     = allInvoices.filter(i => {
     if (!i.createdAt) return false; const d = new Date(i.createdAt)
     return d >= twoWksAgo && d < weekAgo
   }).length
-  const invoicesDueThisWeek  = (() => {
-    const dueDays = settings.invoiceDueDays ?? 7
-    return unpaidInvoices.filter(i => {
-      // 1. Use explicit due date field if present
-      const explicit = i.due || i.dueDate || i.due_date || i.dueOn
-      if (explicit) return dueThisWeek(explicit)
-      // 2. Compute from createdAt + invoiceDueDays (Firestore Timestamp or plain value)
-      const ms = i.createdAt?.toMillis?.() ?? (i.createdAt ? new Date(i.createdAt).getTime() : null)
-      if (!ms) return false
-      const dueDateStr = new Date(ms + dueDays * 86400000).toISOString().slice(0, 10)
-      return dueThisWeek(dueDateStr)
-    }).length
-  })()
+  const invoicesDueThisWeek = unpaidInvoices.filter(i => dueThisWeek(getInvDueDate(i))).length
 
   // ── Tasks ─────────────────────────────────────────────────
   const pendingTasks     = tasks.filter(t => !t.done && !isTaskOverdue(t))
