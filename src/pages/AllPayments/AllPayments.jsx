@@ -41,9 +41,9 @@ const METHOD_LABELS = {
 }
 
 const STATUS_META = {
-  paid:     { label: 'Paid',         color: '#22c55e' },
-  part:     { label: 'Part Payment', color: '#fb923c' },
-  not_paid: { label: 'Not Paid',     color: '#ef4444' },
+  paid:     { label: 'Paid',         color: '#15803d', bg: 'rgba(34,197,94,0.12)',   border: 'rgba(34,197,94,0.3)'   },
+  part:     { label: 'Part Payment', color: '#c2410c', bg: 'rgba(251,146,60,0.12)',  border: 'rgba(251,146,60,0.3)'  },
+  not_paid: { label: 'Not Paid',     color: '#dc2626', bg: 'rgba(239,68,68,0.12)',   border: 'rgba(239,68,68,0.3)'   },
 }
 
 // ── Flatten all payments into individual installment rows ─────
@@ -220,7 +220,7 @@ function PaymentRow({ row, isLast, onTap }) {
         </div>
         <div
           className={styles.statusPill}
-          style={{ background: `${sm.color}18`, color: sm.color, borderColor: `${sm.color}40` }}
+          style={{ background: sm.bg, color: sm.color, borderColor: sm.border }}
         >
           {sm.label}
         </div>
