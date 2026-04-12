@@ -263,3 +263,62 @@
   border-color: var(--success);
   color: var(--success);
 }
+
+
+/* ─────────────────────────────────────────────────────────────
+   APPEND THESE STYLES TO THE BOTTOM OF Tabs.module.css
+   (Orders-only — measurements styles are untouched)
+   ───────────────────────────────────────────────────────────── */
+
+/* ── STAGE CHIP ROW (used in form modal + detail view) ── */
+.stageChipRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+  margin-bottom: 4px;
+}
+
+.stageChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--border2);
+  background: transparent;
+  color: var(--text3);
+  font-size: 0.7rem;
+  font-weight: 800;
+  font-family: 'DM Sans', sans-serif;
+  cursor: pointer;
+  transition: all 0.18s;
+  white-space: nowrap;
+}
+
+.stageChip:active {
+  opacity: 0.7;
+}
+
+.stageChipActive {
+  background: rgba(var(--accent-rgb, 99, 102, 241), 0.12);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ── STAGE TEXT on order list card ── */
+.orderListStageText {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+/* ── STATUS TOGGLE — in-progress colour ── */
+/* Tapping "In Progress" in the detail view gets a blue-ish highlight */
+.statusToggleBtn.statusActive[data-status="in-progress"],
+.statusActive {
+  /* existing .statusActive handles the colour; 
+     override just for in-progress if you want a distinct colour:
+     uncomment and adjust below */
+  /* border-color: #3b82f6; color: #3b82f6; background: rgba(59,130,246,0.08); */
+}
