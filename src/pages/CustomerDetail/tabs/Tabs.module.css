@@ -337,6 +337,7 @@
   white-space: nowrap;
   /* chips size to their own content — never stretch to fill the row */
   flex: 0 0 auto;
+  width: fit-content;
 }
 
 .stageChip:active {
