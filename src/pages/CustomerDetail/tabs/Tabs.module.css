@@ -1,4 +1,3 @@
-
 .emptyState { text-align: center; padding-top: 60px; padding-bottom: 20px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
 .emptyState p { font-size: 0.8rem; color: var(--text3); }
 .hint { font-size: 0.7rem; color: var(--text3); opacity: 0.6; }
@@ -32,13 +31,70 @@
 /* Text — small, not bold */
 .orderListInfo { flex: 1; min-width: 0; }
 .orderListDesc { font-size: 0.95rem; font-weight: 600; color: var(--text); margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.orderListOrdRow { font-size: 0.78rem; font-weight: 400; color: var(--text2); margin-bottom: 3px; }
-.orderListStatusRow { display: flex; align-items: center; gap: 4px; margin-bottom: 3px; }
-.orderListStatusText { font-size: 0.78rem; font-weight: 400; color: var(--text2); }
+.orderListOrdRow { font-size: 0.78rem; font-weight: 400; color: var(--text2); margin-bottom: 4px; }
+.orderListStatusRow { display: flex; align-items: center; gap: 4px; margin-bottom: 4px; }
 .orderListPriceLine { font-size: 0.78rem; font-weight: 500; color: var(--text); margin-bottom: 3px; }
 .orderListQty { font-size: 0.78rem; font-weight: 400; color: var(--text2); }
 .orderListDue { font-size: 0.78rem; font-weight: 500; color: var(--danger, #ef4444); }
 
+/* ── STATUS BADGE on order list cards (coloured pill, no icon) ── */
+.orderListStatusBadge {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: capitalize;
+  letter-spacing: 0.3px;
+  border-radius: 6px;
+  padding: 3px 8px;
+}
+
+/* Pending — amber/orange */
+.statusBadge_pending {
+  color: #d97706;
+  background: rgba(251, 146, 60, 0.15);
+  border: 1px solid rgba(251, 146, 60, 0.35);
+}
+
+/* In Progress — blue */
+.statusBadge_in_progress {
+  color: #2563eb;
+  background: rgba(59, 130, 246, 0.12);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+/* Completed — green */
+.statusBadge_completed {
+  color: #16a34a;
+  background: rgba(34, 197, 94, 0.12);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+/* Delivered — teal/cyan */
+.statusBadge_delivered {
+  color: #0891b2;
+  background: rgba(6, 182, 212, 0.12);
+  border: 1px solid rgba(6, 182, 212, 0.3);
+}
+
+/* Cancelled — red */
+.statusBadge_cancelled {
+  color: #dc2626;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+/* ── STAGE LINE on order list cards (replaces price/qty) ── */
+.orderListStageLine {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--accent);
+  margin-bottom: 3px;
+}
+
+/* Legacy badge kept for any other uses */
 .statusBadge { display: inline-block; font-size: 0.58rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; border-radius: 5px; padding: 2px 6px; border: 1px solid; }
 .statusPending { color: var(--warning); border-color: rgba(251,146,60,0.4); background: rgba(251,146,60,0.08); }
 .statusDone { color: var(--success); border-color: rgba(34,197,94,0.4); background: rgba(34,197,94,0.08); }
@@ -179,9 +235,6 @@
 
 @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
-
-/* ... Keep existing styles ... */
-
 /* ── PER-ITEM PRICING IN MODAL ── */
 .pricingList {
   display: flex;
@@ -233,18 +286,6 @@
   color: var(--text2);
 }
 
-/* ── ORDER DETAIL PRICING BREAKDOWN ── */
-.linkedRow {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 12px;
-}
-
-.linkedRow:last-child {
-  margin-bottom: 0;
-}
-
 /* Ensure the status buttons look clean */
 .statusToggleBtn {
   flex: 1;
@@ -265,76 +306,16 @@
   color: var(--success);
 }
 
-
-/* ─────────────────────────────────────────────────────────────
-   APPEND THESE STYLES TO THE BOTTOM OF Tabs.module.css
-   (Orders-only — measurements styles are untouched)
-   ───────────────────────────────────────────────────────────── */
-
 /* ── STAGE CHIP ROW (used in form modal + detail view) ── */
+/*
+  KEY FIX: flex-wrap: wrap + align-items: flex-start + flex: 0 0 auto on chips
+  prevents any chip (incl. "Fabric Ready") from stretching to fill the row.
+*/
 .stageChipRow {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-top: 4px;
-  margin-bottom: 4px;
-}
-
-.stageChip {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 8px 12px;
-  border-radius: 20px;
-  border: 1px solid var(--border2);
-  background: transparent;
-  color: var(--text3);
-  font-size: 0.7rem;
-  font-weight: 800;
-  font-family: 'DM Sans', sans-serif;
-  cursor: pointer;
-  transition: all 0.18s;
-  white-space: nowrap;
-}
-
-.stageChip:active {
-  opacity: 0.7;
-}
-
-.stageChipActive {
-  background: rgba(var(--accent-rgb, 99, 102, 241), 0.12);
-  border-color: var(--accent);
-  color: var(--accent);
-}
-
-/* ── STAGE TEXT on order list card ── */
-.orderListStageText {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--accent);
-}
-
-/* ── STATUS TOGGLE — in-progress colour ── */
-/* Tapping "In Progress" in the detail view gets a blue-ish highlight */
-.statusToggleBtn.statusActive[data-status="in-progress"],
-.statusActive {
-  /* existing .statusActive handles the colour; 
-     override just for in-progress if you want a distinct colour:
-     uncomment and adjust below */
-  /* border-color: #3b82f6; color: #3b82f6; background: rgba(59,130,246,0.08); */
-}
-
-/* ─────────────────────────────────────────────────────────────
-   APPEND THESE STYLES TO THE BOTTOM OF Tabs.module.css
-   (Orders-only — measurements styles are untouched)
-   ───────────────────────────────────────────────────────────── */
-
-/* ── STAGE CHIP ROW (used in form modal + detail view) ── */
-.stageChipRow {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: flex-start;   /* prevents chips stretching to fill row height */
+  align-items: flex-start;
   margin-top: 4px;
   margin-bottom: 4px;
 }
@@ -368,10 +349,9 @@
   color: var(--accent);
 }
 
-/* ── STAGE TEXT on order list card ── */
+/* ── STAGE TEXT on order list card (kept for backwards compat) ── */
 .orderListStageText {
   font-size: 0.75rem;
   font-weight: 600;
   color: var(--accent);
 }
-
