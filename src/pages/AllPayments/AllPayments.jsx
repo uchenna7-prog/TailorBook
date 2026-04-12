@@ -163,7 +163,13 @@ function PaymentRow({ row, isLast, onTap }) {
       onClick={() => onTap(row)}
     >
       {/* ── Icon box ── */}
-      <div className={styles.iconOuter}>
+      <div
+        className={styles.iconOuter}
+        style={{
+          borderColor: !isPending ? sm.border : undefined,
+          background:  !isPending ? sm.bg     : undefined,
+        }}
+      >
         <div className={styles.iconInner}>
           <span className="mi" style={{ fontSize: '1.4rem', color: isPending ? '#94a3b8' : sm.color }}>
             {isPending ? 'hourglass_empty' : mIcon}
@@ -173,7 +179,6 @@ function PaymentRow({ row, isLast, onTap }) {
 
       {/* ── Info ── */}
       <div className={styles.info}>
-        {/* Order desc + installment badge */}
         <div className={styles.titleRow}>
           <span className={styles.desc}>{row.orderDesc || 'Payment'}</span>
           {isPartInstall && (
@@ -189,17 +194,23 @@ function PaymentRow({ row, isLast, onTap }) {
           <span className={styles.metaText}>{row.customerName}</span>
         </div>
 
+        {/* Status pill — sits under customer name like inventory */}
+        <span
+          className={styles.statusPill}
+          style={{ background: sm.bg, color: sm.color, borderColor: sm.border }}
+        >
+          {sm.label}
+        </span>
+
         {/* Method */}
         {row.method && (
-          <div className={styles.metaRow}>
-            <span className="mi" style={{ fontSize: '0.78rem', color: 'var(--text3)' }}>
-              {mIcon}
-            </span>
+          <div className={styles.metaRow} style={{ marginTop: 4 }}>
+            <span className="mi" style={{ fontSize: '0.78rem', color: 'var(--text3)' }}>{mIcon}</span>
             <span className={styles.metaText}>{mLabel}</span>
           </div>
         )}
 
-        {/* Progress bar — only when there are multiple installments */}
+        {/* Progress bar */}
         {fullPrice > 0 && row.totalInstallments > 0 && (
           <div className={styles.progressWrap}>
             <div
@@ -210,19 +221,13 @@ function PaymentRow({ row, isLast, onTap }) {
         )}
       </div>
 
-      {/* ── Amount ── */}
+      {/* ── Amount (right column — amount only) ── */}
       <div className={styles.amountCol}>
         <div
           className={styles.amount}
           style={{ color: isPending ? 'var(--text3)' : sm.color }}
         >
           {isPending ? '—' : fmt(row.amount)}
-        </div>
-        <div
-          className={styles.statusPill}
-          style={{ background: sm.bg, color: sm.color, borderColor: sm.border }}
-        >
-          {sm.label}
         </div>
       </div>
     </div>
@@ -351,7 +356,8 @@ export default function AllPayments({ onMenuClick }) {
   const [detailRow,  setDetailRow]  = useState(null)
   const [toastMsg,   setToastMsg]   = useState('')
   const [search,     setSearch]     = useState('')
-  const [searchOpen, setSearchOpen] = useState(false)
+  const [filterOpen, setFilterOpen] = useState(false)
+  const [filterStatus, setFilterStatus] = useState('all')
   const toastTimer = useRef(null)
 
   const showToast = useCallback((msg) => {
@@ -405,46 +411,58 @@ export default function AllPayments({ onMenuClick }) {
     <div className={styles.page}>
       <Header onMenuClick={onMenuClick} title="Payments" />
 
-      {/* ── Search bar (conditional) ── */}
-      {searchOpen && (
-        <div className={styles.searchBar}>
-          <span className="mi" style={{ color: 'var(--text3)', fontSize: '1.1rem', flexShrink: 0 }}>search</span>
-          <input
-            autoFocus
-            type="text"
-            className={styles.searchInput}
-            placeholder="Search client or order…"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-          />
-          {search && (
-            <button
-              style={{ background: 'none', border: 'none', color: 'var(--text3)', display: 'flex', cursor: 'pointer' }}
-              onClick={() => setSearch('')}
-            >
-              <span className="mi" style={{ fontSize: '1.1rem' }}>close</span>
-            </button>
-          )}
+      {/* ── Search + filter ── */}
+      <div className={styles.searchContainer}>
+        <div className={styles.searchRow}>
+          <div className={styles.searchBox}>
+            <span className="mi" style={{ color: 'var(--text3)', fontSize: '1.1rem' }}>search</span>
+            <input
+              type="text"
+              placeholder="Search client or order…"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+            />
+            {search && (
+              <button
+                style={{ background: 'none', border: 'none', color: 'var(--text3)', display: 'flex', cursor: 'pointer', padding: 0 }}
+                onClick={() => setSearch('')}
+              >
+                <span className="mi" style={{ fontSize: '1rem' }}>close</span>
+              </button>
+            )}
+          </div>
+          <button
+            className={`${styles.filterBtn} ${filterOpen ? styles.filterBtnActive : ''}`}
+            onClick={() => setFilterOpen(p => !p)}
+          >
+            <span className="mi" style={{ fontSize: '1.2rem' }}>tune</span>
+          </button>
         </div>
-      )}
 
-      {/* ── Summary strip ── */}
-      <div className={styles.summaryStrip}>
-        <div className={styles.summaryItem}>
-          <span className={styles.summaryLabel}>Showing</span>
-          <span className={styles.summaryVal}>{filtered.length} entries</span>
+        {/* Total received — sits under search bar */}
+        <div className={styles.totalRow}>
+          <span className={styles.totalLabel}>Total Received</span>
+          <span className={styles.totalVal} style={{ color: '#22c55e' }}>{fmt(totalReceived)}</span>
         </div>
-        <div className={styles.summaryDivider} />
-        <div className={styles.summaryItem}>
-          <span className={styles.summaryLabel}>Total Received</span>
-          <span className={styles.summaryVal} style={{ color: '#22c55e' }}>{fmt(totalReceived)}</span>
-        </div>
-        <button
-          className={`${styles.searchToggle} ${searchOpen ? styles.searchToggleActive : ''}`}
-          onClick={() => { setSearchOpen(p => !p); if (searchOpen) setSearch('') }}
-        >
-          <span className="mi" style={{ fontSize: '1.2rem' }}>search</span>
-        </button>
+
+        {filterOpen && (
+          <div className={styles.filterDropdown}>
+            <div className={styles.filterDropdownTitle}>Filter by Status</div>
+            {[{ id: 'all', label: 'All Statuses' }, ...TABS.slice(1)].map(t => (
+              <button
+                key={t.id}
+                className={`${styles.filterOption} ${filterStatus === t.id ? styles.filterOptionActive : ''}`}
+                onClick={() => { setFilterStatus(t.id); setActiveTab(t.id); setFilterOpen(false) }}
+              >
+                <span className="mi" style={{ fontSize: '1.1rem' }}>
+                  {t.id === 'paid' ? 'check_circle' : t.id === 'part' ? 'pending' : t.id === 'not_paid' ? 'cancel' : 'payments'}
+                </span>
+                {t.label || 'All Statuses'}
+                {filterStatus === t.id && <span className="mi" style={{ fontSize: '1rem', marginLeft: 'auto', color: 'var(--accent)' }}>check</span>}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* ── Tabs ── */}
