@@ -458,7 +458,19 @@ function Home({ onMenuClick }) {
     if (!i.createdAt) return false; const d = new Date(i.createdAt)
     return d >= twoWksAgo && d < weekAgo
   }).length
-  const invoicesDueThisWeek  = unpaidInvoices.filter(i => dueThisWeek(i.due || i.dueDate)).length
+  const invoicesDueThisWeek  = (() => {
+    const dueDays = settings.invoiceDueDays ?? 7
+    return unpaidInvoices.filter(i => {
+      // 1. Use explicit due date field if present
+      const explicit = i.due || i.dueDate || i.due_date || i.dueOn
+      if (explicit) return dueThisWeek(explicit)
+      // 2. Compute from createdAt + invoiceDueDays (Firestore Timestamp or plain value)
+      const ms = i.createdAt?.toMillis?.() ?? (i.createdAt ? new Date(i.createdAt).getTime() : null)
+      if (!ms) return false
+      const dueDateStr = new Date(ms + dueDays * 86400000).toISOString().slice(0, 10)
+      return dueThisWeek(dueDateStr)
+    }).length
+  })()
 
   // ── Tasks ─────────────────────────────────────────────────
   const pendingTasks     = tasks.filter(t => !t.done && !isTaskOverdue(t))
