@@ -483,6 +483,11 @@
 .listMeta     { display: flex; align-items: center; gap: 4px; margin-bottom: 2px; }
 .listMetaText { font-size: 0.75rem; font-weight: 400; color: var(--text2); }
 .listDue      { font-size: 0.72rem; font-weight: 600; color: #ef4444; margin-top: 3px; }
+.listStageLine {
+  display: flex; align-items: center; gap: 4px;
+  font-size: 0.72rem; font-weight: 600; color: var(--accent);
+  margin-top: 3px;
+}
 
 .listApptToday {
   display: inline-block; font-size: 0.58rem; font-weight: 800; text-transform: uppercase;
