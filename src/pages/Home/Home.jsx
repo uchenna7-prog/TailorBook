@@ -133,6 +133,11 @@ const ORDER_STATUS_STYLES = {
   delivered:   { bg: 'rgba(129,140,248,0.12)', color: '#4f46e5', border: 'rgba(129,140,248,0.3)' },
   cancelled:   { bg: 'rgba(239,68,68,0.12)',   color: '#dc2626', border: 'rgba(239,68,68,0.3)'   },
 }
+const TASK_STATUS_STYLES = {
+  completed: { bg: 'rgba(34,197,94,0.12)',   color: '#15803d', border: 'rgba(34,197,94,0.3)'   },
+  overdue:   { bg: 'rgba(239,68,68,0.12)',   color: '#dc2626', border: 'rgba(239,68,68,0.3)'   },
+  pending:   { bg: 'rgba(234,179,8,0.12)',   color: '#a16207', border: 'rgba(234,179,8,0.3)'   },
+}
 
 // Production stages — must match OrdersTab
 const STAGES = [
@@ -974,12 +979,17 @@ function Home({ onMenuClick }) {
                           <span className={styles.listMetaText}>{task.customerName}</span>
                         </div>
                       )}
-                      <div className={styles.listMeta}>
-                        <span className="mi" style={{ fontSize: '0.78rem', color: 'var(--text3)', verticalAlign: 'middle' }}>flag</span>
-                        <span className={styles.listMetaText} style={{ color: overdue ? '#ef4444' : undefined }}>
-                          {overdue ? 'Overdue' : (task.priority ? task.priority.charAt(0).toUpperCase() + task.priority.slice(1) : 'Normal')}
-                        </span>
-                      </div>
+                      {(() => {
+                        const statusKey = overdue ? 'overdue' : task.done ? 'completed' : 'pending'
+                        const sty = TASK_STATUS_STYLES[statusKey]
+                        const label = statusKey.charAt(0).toUpperCase() + statusKey.slice(1)
+                        return (
+                          <span className={styles.statusPill}
+                            style={{ background: sty.bg, color: sty.color, borderColor: sty.border }}>
+                            {label}
+                          </span>
+                        )
+                      })()}
                       {task.dueDate && (
                         <div className={styles.listDue}>Due {formatDate(task.dueDate)}</div>
                       )}
