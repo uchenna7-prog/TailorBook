@@ -44,6 +44,12 @@ const TABS = [
 
 const STATUS_LABELS = { unpaid: 'Unpaid', paid: 'Paid', overdue: 'Overdue' }
 
+const STATUS_STYLES = {
+  paid:    { bg: 'rgba(34,197,94,0.12)',   color: '#15803d', border: 'rgba(34,197,94,0.3)'   },
+  unpaid:  { bg: 'rgba(234,179,8,0.12)',   color: '#a16207', border: 'rgba(234,179,8,0.3)'   },
+  overdue: { bg: 'rgba(239,68,68,0.12)',   color: '#dc2626', border: 'rgba(239,68,68,0.3)'   },
+}
+
 // ── Invoice List Item ─────────────────────────────────────────
 
 function InvoiceCard({ invoice, currency, onTap, isLast }) {
@@ -73,12 +79,19 @@ function InvoiceCard({ invoice, currency, onTap, isLast }) {
           <span className="mi" style={{ fontSize: '0.8rem', color: 'var(--text3)', verticalAlign: 'middle' }}>person</span>
           <span className={styles.invoiceListMetaText}>{invoice.customerName || '—'}</span>
         </div>
-        <div className={styles.invoiceListMeta}>
-          <span className="mi" style={{ fontSize: '0.8rem', color: 'var(--text3)', verticalAlign: 'middle' }}>autorenew</span>
-          <span className={`${styles.invoiceListMetaText} ${styles[`statusText_${status}`]}`}>
-            {STATUS_LABELS[status] ?? status}
-          </span>
-        </div>
+        <span style={{
+          display: 'inline-block',
+          marginTop: '4px',
+          padding: '2px 8px',
+          borderRadius: '6px',
+          fontSize: '0.72rem',
+          fontWeight: 600,
+          background: (STATUS_STYLES[status] ?? STATUS_STYLES.unpaid).bg,
+          color:      (STATUS_STYLES[status] ?? STATUS_STYLES.unpaid).color,
+          border:     `1px solid ${(STATUS_STYLES[status] ?? STATUS_STYLES.unpaid).border}`,
+        }}>
+          {STATUS_LABELS[status] ?? status}
+        </span>
         <div className={`${styles.invoiceListAmount}`}>{fmt(currency, total)}</div>
       </div>
     </div>
