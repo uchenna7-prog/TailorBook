@@ -131,18 +131,19 @@ const ORDER_STATUS_STYLES = {
 
 function RevenueDonut({ pct }) {
   const r = 36, cx = 44, cy = 44
-  const circ   = 2 * Math.PI * r
-  const filled = Math.min(Math.max(pct, 0), 100)
-  const dash   = (filled / 100) * circ
+  const circ    = 2 * Math.PI * r
+  const filled  = Math.min(Math.max(pct, 0), 100)
+  const blueDash = (filled / 100) * circ
   return (
     <svg width="88" height="88" viewBox="0 0 88 88">
-      <circle cx={cx} cy={cy} r={r} fill="none" stroke="var(--border2,#e2e8f0)" strokeWidth="8" />
-      <circle cx={cx} cy={cy} r={r} fill="none" stroke="#94a3b8" strokeWidth="8"
-        strokeDasharray={`${dash} ${circ}`} strokeLinecap="round"
-        transform={`rotate(-90 ${cx} ${cy})`} />
-      <circle cx={cx} cy={cy} r={r} fill="none" stroke="#60a5fa" strokeWidth="8"
-        strokeDasharray={`${circ - dash} ${circ}`} strokeDashoffset={-dash} strokeLinecap="round"
-        transform={`rotate(-90 ${cx} ${cy})`} />
+      {/* Gray full-circle track — always visible, shows 100% gray at 0% */}
+      <circle cx={cx} cy={cy} r={r} fill="none" stroke="#94a3b8" strokeWidth="8" />
+      {/* Blue arc fills in from top as pct increases */}
+      {filled > 0 && (
+        <circle cx={cx} cy={cy} r={r} fill="none" stroke="#60a5fa" strokeWidth="8"
+          strokeDasharray={`${blueDash} ${circ}`} strokeLinecap="round"
+          transform={`rotate(-90 ${cx} ${cy})`} />
+      )}
       <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle"
         fill="var(--text)" fontSize="15" fontWeight="800">{pct}%</text>
     </svg>
@@ -457,7 +458,7 @@ function Home({ onMenuClick }) {
     if (!i.createdAt) return false; const d = new Date(i.createdAt)
     return d >= twoWksAgo && d < weekAgo
   }).length
-  const invoicesDueThisWeek  = unpaidInvoices.filter(i => dueThisWeek(i.due)).length
+  const invoicesDueThisWeek  = unpaidInvoices.filter(i => dueThisWeek(i.due || i.dueDate)).length
 
   // ── Tasks ─────────────────────────────────────────────────
   const pendingTasks     = tasks.filter(t => !t.done && !isTaskOverdue(t))
@@ -581,7 +582,7 @@ function Home({ onMenuClick }) {
                      : upcomingThisWeek > 0
                        ? `${upcomingThisWeek} this wk`
                        : null,
-      subColor:    missedCount > 0 ? '#ef4444' : 'var(--text3)',
+      subColor:    missedCount > 0 ? '#ef4444' : '#fb923c',
       delta:       null,
       positiveIsGood: true,        route: '/appointments',
     },
