@@ -107,7 +107,7 @@ function OrderDetailPanel({ order, onClose }) {
         <div className={styles.detailHeader}>
           <div className={styles.detailHeaderTitle}>Order Details</div>
           <button onClick={onClose} className={styles.detailCloseBtn}>
-            <span className="mi" style={{ fontSize: '1.4rem' }}>close</span>
+            <span className="material-icons" style={{ fontSize: '1.4rem' }}>close</span>
           </button>
         </div>
 
@@ -117,7 +117,7 @@ function OrderDetailPanel({ order, onClose }) {
 
           {order.customerName && (
             <div className={styles.detailCustomer}>
-              <span className="mi" style={{ fontSize: '1rem', color: 'var(--text3)' }}>person</span>
+              <span className="material-icons" style={{ fontSize: '1rem', color: 'var(--text3)' }}>person</span>
               {order.customerName}
             </div>
           )}
@@ -158,19 +158,25 @@ function OrderDetailPanel({ order, onClose }) {
             )}
             <div className={styles.detailCell}>
               <div className={styles.detailCellLabel}>Placed On</div>
-              <div className={styles.detailCellVal} style={{ fontSize: '0.8rem' }}>{order.date || '—'}</div>
-            </div>
-            {order.dueDate && (
-              <div className={styles.detailCell} style={{ gridColumn: '1 / -1' }}>
-                <div className={styles.detailCellLabel}>Due Date</div>
-                <div
-                  className={styles.detailCellVal}
-                  style={{ fontSize: '0.85rem', color: overdue ? '#ef4444' : undefined }}
-                >
-                  {formatDate(order.dueDate)}{due ? ` · ${due}` : ''}
-                </div>
+              <div className={styles.detailCellVal} style={{ fontSize: '0.8rem' }}>
+                {order.takenAt || (order.createdAt ? formatDate(
+                  typeof order.createdAt.toDate === 'function'
+                    ? order.createdAt.toDate().toISOString()
+                    : order.createdAt
+                ) : null) || order.date || '—'}
               </div>
-            )}
+            </div>
+            <div className={styles.detailCell} style={{ gridColumn: '1 / -1' }}>
+              <div className={styles.detailCellLabel}>Due Date</div>
+              <div
+                className={styles.detailCellVal}
+                style={{ fontSize: '0.85rem', color: overdue ? '#ef4444' : order.dueDate ? undefined : 'var(--text3)' }}
+              >
+                {order.dueDate
+                  ? `${formatDate(order.dueDate)}${due ? ` · ${due}` : ''}`
+                  : order.due || '—'}
+              </div>
+            </div>
           </div>
 
           {/* Notes */}
@@ -228,7 +234,7 @@ function OrderCard({ order, isLast, onTap }) {
         <div className={styles.orderListInner}>
           {thumb
             ? <img src={thumb} alt="" className={styles.orderListThumbImg} />
-            : <span className="mi" style={{ fontSize: '1.5rem', color: overdue ? '#ef4444' : 'var(--text3)' }}>
+            : <span className="material-icons" style={{ fontSize: '1.5rem', color: overdue ? '#ef4444' : 'var(--text3)' }}>
                 {overdue ? 'alarm_on' : (STATUS_ICON[order.status] || 'assignment')}
               </span>
           }
@@ -241,7 +247,7 @@ function OrderCard({ order, isLast, onTap }) {
 
         {/* Customer name */}
         <div className={styles.orderListMeta}>
-          <span className="mi" style={{ fontSize: '0.8rem', color: 'var(--text3)', verticalAlign: 'middle' }}>person</span>
+          <span className="material-icons" style={{ fontSize: '0.8rem', color: 'var(--text3)', verticalAlign: 'middle' }}>person</span>
           <span className={styles.orderListMetaText}>{order.customerName || '—'}</span>
         </div>
 
@@ -283,16 +289,16 @@ function OrderCard({ order, isLast, onTap }) {
               background: 'var(--surface2)',
               border: '1px solid var(--border2)',
             }}>
-              <span className="mi" style={{ fontSize: '0.7rem' }}>{stageObj.icon}</span>
+              <span className="material-icons" style={{ fontSize: '0.7rem' }}>{stageObj.icon}</span>
               {stageObj.label}
             </span>
           </div>
         )}
 
         {/* Due date */}
-        {order.dueDate && (
+        {(order.dueDate || order.due) && (
           <div className={`${styles.orderListDue} ${overdue ? styles.orderListDueOverdue : ''}`}>
-            Due {formatDate(order.dueDate)}{due ? ` · ${due}` : ''}
+            Due: {order.dueDate ? formatDate(order.dueDate) : order.due}{order.dueDate && due ? ` · ${due}` : ''}
           </div>
         )}
       </div>
@@ -375,7 +381,7 @@ export default function Orders({ onMenuClick }) {
       <div className={styles.listArea}>
         {filtered.length === 0 ? (
           <div className={styles.emptyState}>
-            <span className="mi" style={{ fontSize: '2.8rem', opacity: 0.2 }}>
+            <span className="material-icons" style={{ fontSize: '2.8rem', opacity: 0.2 }}>
               {EMPTY_CONFIG[activeTab].icon}
             </span>
             <p>{EMPTY_CONFIG[activeTab].text}</p>
