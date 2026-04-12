@@ -322,3 +322,54 @@
      uncomment and adjust below */
   /* border-color: #3b82f6; color: #3b82f6; background: rgba(59,130,246,0.08); */
 }
+
+/* ─────────────────────────────────────────────────────────────
+   APPEND THESE STYLES TO THE BOTTOM OF Tabs.module.css
+   (Orders-only — measurements styles are untouched)
+   ───────────────────────────────────────────────────────────── */
+
+/* ── STAGE CHIP ROW (used in form modal + detail view) ── */
+.stageChipRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: flex-start;   /* prevents chips stretching to fill row height */
+  margin-top: 4px;
+  margin-bottom: 4px;
+}
+
+.stageChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--border2);
+  background: transparent;
+  color: var(--text3);
+  font-size: 0.7rem;
+  font-weight: 800;
+  font-family: 'DM Sans', sans-serif;
+  cursor: pointer;
+  transition: all 0.18s;
+  white-space: nowrap;
+  /* chips size to their own content — never stretch to fill the row */
+  flex: 0 0 auto;
+}
+
+.stageChip:active {
+  opacity: 0.7;
+}
+
+.stageChipActive {
+  background: rgba(99, 102, 241, 0.1);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ── STAGE TEXT on order list card ── */
+.orderListStageText {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--accent);
+}
