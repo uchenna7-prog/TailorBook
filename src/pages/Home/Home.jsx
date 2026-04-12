@@ -766,14 +766,12 @@ function Home({ onMenuClick }) {
           <div className={styles.customerStatStack}>
             <div className={styles.customerStatRow}>
               <span className={styles.customerStatLbl}>Top Customer</span>
-              <span className={styles.customerStatVal} style={{ color: 'var(--accent)' }}>
-                {topCustomer.name}
+              <div className={styles.customerTopVal}>
+                <span style={{ color: 'var(--accent)' }}>{topCustomer.name}</span>
                 {topCustomerMeta && (
-                  <span style={{ color: 'var(--text3)', fontWeight: 400, fontSize: '0.72rem', marginLeft: '6px' }}>
-                    {topCustomerMeta}
-                  </span>
+                  <span className={styles.customerTopMeta}>{topCustomerMeta}</span>
                 )}
-              </span>
+              </div>
             </div>
             <div className={styles.customerStatRow}>
               <span className={styles.customerStatLbl}>New This Month</span>
