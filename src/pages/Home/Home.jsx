@@ -56,6 +56,14 @@ function isDateInLastMonth(dateStr) {
   return d >= lastMonth && d <= lastMonthEnd
 }
 
+// ── Compact naira formatter: ₦30k, ₦1.2m, ₦500 ───────────────
+function formatNairaCompact(amount) {
+  if (!amount || amount <= 0) return null
+  if (amount >= 1_000_000) return `₦${(amount / 1_000_000).toFixed(1).replace(/\.0$/, '')}m`
+  if (amount >= 1_000)     return `₦${(amount / 1_000).toFixed(1).replace(/\.0$/, '')}k`
+  return `₦${amount.toLocaleString()}`
+}
+
 // ── Timely greeting with emoji ────────────────────────────────
 function getGreeting() {
   const h = new Date().getHours()
@@ -412,20 +420,27 @@ function Home({ onMenuClick }) {
   }).length
   const newCustLastMonth = customers.filter(c => c.date && isDateInLastMonth(c.date)).length
 
-  // ── Best customer (most orders) ───────────────────────────
-  const bestCustomerName = (() => {
-    if (!customers.length) return '—'
+  // ── Top customer (most orders + total spend) ──────────────
+  const topCustomer = (() => {
+    if (!customers.length) return { name: '—', orderCount: 0, totalSpend: 0 }
     const counts = {}
+    const spend  = {}
     allOrders.forEach(o => {
-      if (o.customerId) counts[o.customerId] = (counts[o.customerId] || 0) + 1
+      if (!o.customerId) return
+      counts[o.customerId] = (counts[o.customerId] || 0) + 1
+      spend[o.customerId]  = (spend[o.customerId]  || 0) + (Number(o.price) || 0)
     })
     let bestId = null, bestCount = 0
     Object.entries(counts).forEach(([id, cnt]) => {
       if (cnt > bestCount) { bestCount = cnt; bestId = id }
     })
     const best = bestId ? customers.find(c => c.id === bestId) : customers[0]
-    if (!best) return '—'
-    return best.name || `${best.firstName ?? ''} ${best.lastName ?? ''}`.trim() || '—'
+    if (!best) return { name: '—', orderCount: 0, totalSpend: 0 }
+    return {
+      name:       best.name || `${best.firstName ?? ''} ${best.lastName ?? ''}`.trim() || '—',
+      orderCount: counts[best.id] || 0,
+      totalSpend: spend[best.id]  || 0,
+    }
   })()
 
   // ── Retention rate ────────────────────────────────────────
@@ -625,6 +640,17 @@ function Home({ onMenuClick }) {
     },
   ]
 
+  // ── Top customer sub-line: "₦30k • 5 orders" ─────────────
+  const topCustomerMeta = (() => {
+    const { orderCount, totalSpend } = topCustomer
+    if (!orderCount) return null
+    const parts = []
+    const spendStr = formatNairaCompact(totalSpend)
+    if (spendStr) parts.push(spendStr)
+    parts.push(`${orderCount} order${orderCount !== 1 ? 's' : ''}`)
+    return parts.join(' • ')
+  })()
+
   // ─────────────────────────────────────────────────────────
   // RENDER
   // ─────────────────────────────────────────────────────────
@@ -736,11 +762,18 @@ function Home({ onMenuClick }) {
           {/* Divider */}
           <div className={styles.customerCardRule} />
 
-          {/* Two stats only — best customer + new this month */}
+          {/* Two stats only — top customer + new this month */}
           <div className={styles.customerStatStack}>
             <div className={styles.customerStatRow}>
-              <span className={styles.customerStatLbl}>Best Customer</span>
-              <span className={styles.customerStatVal} style={{ color: 'var(--accent)' }}>{bestCustomerName}</span>
+              <span className={styles.customerStatLbl}>Top Customer</span>
+              <span className={styles.customerStatVal} style={{ color: 'var(--accent)' }}>
+                {topCustomer.name}
+                {topCustomerMeta && (
+                  <span style={{ color: 'var(--text3)', fontWeight: 400, fontSize: '0.72rem', marginLeft: '6px' }}>
+                    {topCustomerMeta}
+                  </span>
+                )}
+              </span>
             </div>
             <div className={styles.customerStatRow}>
               <span className={styles.customerStatLbl}>New This Month</span>
