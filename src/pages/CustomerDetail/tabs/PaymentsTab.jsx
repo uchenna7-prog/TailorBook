@@ -425,7 +425,7 @@ function PaymentDetail({ payment, onClose, onDelete, onStatusChange, onAddInstal
 
 // ── MAIN TAB ──────────────────────────────────────────────────
 
-export default function PaymentsTab({ customerId, orders, showToast, onGenerateReceipt }) {
+export default function PaymentsTab({ customerId, orders, showToast, onGenerateReceipt, onInvoicePaid }) {
   const { user } = useAuth()
 
   const [payments,   setPayments]   = useState([])
@@ -454,6 +454,10 @@ export default function PaymentsTab({ customerId, orders, showToast, onGenerateR
     try {
       await createPayment(user.uid, customerId, paymentData)
       showToast('Payment recorded ✓')
+      // If payment was saved as fully paid, auto-update the matching invoice
+      if (paymentData.status === 'paid') {
+        onInvoicePaid?.(paymentData.orderId)
+      }
     } catch {
       showToast('Failed to save payment.')
     }
@@ -484,8 +488,13 @@ export default function PaymentsTab({ customerId, orders, showToast, onGenerateR
         installments: updatedInstallments,
         status: newStatus,
       })
-      if (newStatus === 'paid') showToast('Payment complete! Marked as Paid ✓')
-      else showToast('Payment recorded ✓')
+      if (newStatus === 'paid') {
+        showToast('Payment complete! Marked as Paid ✓')
+        // Auto-update the matching invoice to paid
+        onInvoicePaid?.(payment.orderId)
+      } else {
+        showToast('Payment recorded ✓')
+      }
     } catch {
       showToast('Failed to record payment.')
     }
