@@ -123,7 +123,7 @@ function OrderModal({ isOpen, onClose, measurements, onSave }) {
       measurementIds: selectedItems.map(i => i.id),
       status:         'pending',
       stage:          stage || null,
-      takenAt:        todayReadable(),   // human-readable date the order was taken
+      takenAt:        todayReadable(),
     })
     reset()
     onClose()
@@ -467,7 +467,6 @@ export default function OrdersTab({ customerId, orders, measurements, showToast,
   const handleStageChange = async (id, stage) => {
     try {
       await updateOrderStage(customerId, id, stage)
-      // Auto-update status based on selected stage
       const autoStatus = stage ? STAGE_TO_STATUS[stage] : null
       if (autoStatus) {
         await updateOrderStatus(customerId, id, autoStatus)
@@ -506,11 +505,11 @@ export default function OrdersTab({ customerId, orders, measurements, showToast,
           <div className={styles.orderGroupDate}>{date}</div>
           <div className={styles.orderGroupDivider} />
           {dateOrders.map((o, idx) => {
-            const priceStr   = o.price ? `₦${Number(o.price).toLocaleString()}` : '₦0'
-            const statusObj  = STATUSES.find(s => s.value === o.status) ?? STATUSES[0]
-            const stageObj   = STAGES.find(s => s.value === o.stage)
-            const itemsList  = o.items || []
-            const thumb      = itemsList[0]?.imgSrc
+            const priceStr  = o.price ? `₦${Number(o.price).toLocaleString()}` : '₦0'
+            const statusObj = STATUSES.find(s => s.value === o.status) ?? STATUSES[0]
+            const stageObj  = STAGES.find(s => s.value === o.stage)
+            const itemsList = o.items || []
+            const thumb     = itemsList[0]?.imgSrc
 
             return (
               <div
@@ -525,25 +524,37 @@ export default function OrdersTab({ customerId, orders, measurements, showToast,
                       : <span className="mi" style={{ fontSize: '1.5rem', color: 'var(--text3)' }}>content_cut</span>}
                   </div>
                 </div>
+
                 <div className={styles.orderListInfo}>
+                  {/* Garment name */}
                   <div className={styles.orderListDesc}>{o.desc}</div>
 
-                  {/* Status row */}
+                  {/* Customer / order meta row */}
+                  <div className={styles.orderListOrdRow}>{o.customerName || ''}</div>
+
+                  {/* Status badge — coloured pill, no icon */}
                   <div className={styles.orderListStatusRow}>
-                    <span className="mi" style={{ fontSize: '0.85rem', color: 'var(--text3)' }}>autorenew</span>
-                    <span className={styles.orderListStatusText}>{statusObj.label}</span>
-                    {stageObj && (
-                      <>
-                        <span style={{ color: 'var(--border2)', fontSize: '0.7rem' }}>•</span>
-                        <span className="mi" style={{ fontSize: '0.82rem', color: 'var(--accent)' }}>{stageObj.icon}</span>
-                        <span className={styles.orderListStageText}>{stageObj.label}</span>
-                      </>
-                    )}
+                    <span className={`${styles.orderListStatusBadge} ${styles[`statusBadge_${(o.status || 'pending').replace('-', '_')}`]}`}>
+                      {statusObj.label}
+                    </span>
                   </div>
 
-                  <div className={styles.orderListPriceLine}>
-                    {priceStr} <span className={styles.orderListQty}>({o.qty} pcs)</span>
-                  </div>
+                  {/* Stage — replaces price/qty line */}
+                  {stageObj
+                    ? (
+                      <div className={styles.orderListStageLine}>
+                        <span className="mi" style={{ fontSize: '0.8rem' }}>{stageObj.icon}</span>
+                        {stageObj.label}
+                      </div>
+                    )
+                    : (
+                      <div className={styles.orderListStageLine} style={{ color: 'var(--text3)' }}>
+                        No stage set
+                      </div>
+                    )
+                  }
+
+                  {/* Due date */}
                   {o.due && <div className={styles.orderListDue}>Due: {o.due}</div>}
                 </div>
               </div>
