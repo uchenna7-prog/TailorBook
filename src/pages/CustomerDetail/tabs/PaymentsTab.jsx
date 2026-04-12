@@ -24,9 +24,9 @@ function today() {
 }
 
 const PAY_STATUS = [
-  { value: 'not_paid', label: 'Not Paid',     color: '#ef4444' },
-  { value: 'part',     label: 'Part Payment', color: '#fb923c' },
-  { value: 'paid',     label: 'Paid',         color: '#22c55e' },
+  { value: 'not_paid', label: 'Not Paid',     color: '#dc2626', bg: 'rgba(239,68,68,0.12)',   border: 'rgba(239,68,68,0.3)'   },
+  { value: 'part',     label: 'Part Payment', color: '#c2410c', bg: 'rgba(251,146,60,0.12)',  border: 'rgba(251,146,60,0.3)'  },
+  { value: 'paid',     label: 'Paid',         color: '#15803d', bg: 'rgba(34,197,94,0.12)',   border: 'rgba(34,197,94,0.3)'   },
 ]
 
 function statusMeta(value) {
@@ -553,10 +553,19 @@ export default function PaymentsTab({ customerId, orders, showToast, onGenerateR
                 </div>
                 <div className={styles.payListInfo}>
                   <div className={styles.payListDesc}>{p.orderDesc || 'Payment'}</div>
-                  <div className={styles.payListMeta}>
-                    <span className="mi" style={{ fontSize: '0.8rem', color: 'var(--text3)', verticalAlign: 'middle' }}>autorenew</span>
-                    <span className={styles.payListMetaText} style={{ color: sm.color }}>{sm.label}</span>
-                  </div>
+                  <span style={{
+                    display: 'inline-block',
+                    marginTop: '4px',
+                    padding: '2px 8px',
+                    borderRadius: '6px',
+                    fontSize: '0.72rem',
+                    fontWeight: 600,
+                    border: `1px solid ${sm.border}`,
+                    background: sm.bg,
+                    color: sm.color,
+                  }}>
+                    {sm.label}
+                  </span>
                   {fullPrice > 0 && (
                     <div className={styles.payListMeta}>
                       <span className="mi" style={{ fontSize: '0.8rem', color: 'var(--text3)', verticalAlign: 'middle' }}>account_balance_wallet</span>
