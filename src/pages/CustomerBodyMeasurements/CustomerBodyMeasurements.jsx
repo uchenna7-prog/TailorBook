@@ -107,8 +107,10 @@ const FEMALE_MEASUREMENT_IMAGES = {
   'Kurthi Height': kurthiHeightFemaleImg,
 }
 
-// ── Embed an asset URL as base64 (for jsPDF image embedding) ─
-async function toBase64(src) {
+// ── Load image as base64 AND return its natural dimensions ────
+// This lets us do proper aspect-ratio fitting in the PDF cell
+// instead of blindly stretching to a fixed square.
+async function loadImage(src) {
   return new Promise((resolve) => {
     const img = new Image()
     img.crossOrigin = 'anonymous'
@@ -117,11 +119,25 @@ async function toBase64(src) {
       canvas.width  = img.naturalWidth
       canvas.height = img.naturalHeight
       canvas.getContext('2d').drawImage(img, 0, 0)
-      resolve(canvas.toDataURL('image/jpeg', 0.85))
+      resolve({
+        b64:    canvas.toDataURL('image/jpeg', 0.85),
+        width:  img.naturalWidth,
+        height: img.naturalHeight,
+      })
     }
     img.onerror = () => resolve(null)
     img.src = src
   })
+}
+
+// ── Fit dimensions into a box while preserving aspect ratio ──
+// Equivalent to CSS object-fit: contain.
+function fitInBox(imgW, imgH, boxW, boxH) {
+  const scale = Math.min(boxW / imgW, boxH / imgH)
+  return {
+    w: imgW * scale,
+    h: imgH * scale,
+  }
 }
 
 // ── PDF export ────────────────────────────────────────────────
@@ -146,11 +162,11 @@ async function exportPDF(customer, allEntries, imgMap) {
   const COL_COUNT = 2
   const GAP       = 5
   const COL_W     = (CONTENT_W - GAP) / COL_COUNT
-  const ROW_H     = 26
-  const IMG_SIZE  = 20
+  const ROW_H     = 28      // card height
+  const IMG_BOX   = 22      // square box reserved for the image (contain inside it)
   const CARD_PAD  = 4
 
-  // Header band
+  // ── Header band ──
   doc.setFillColor(18, 18, 18)
   doc.rect(0, 0, PAGE_W, 24, 'F')
   doc.setFont('helvetica', 'bold')
@@ -170,6 +186,7 @@ async function exportPDF(customer, allEntries, imgMap) {
     const { field, value } = allEntries[i]
     const col = i % COL_COUNT
 
+    // Page break at the start of a new row
     if (col === 0 && i > 0 && y + ROW_H > PAGE_H - 14) {
       doc.addPage()
       y = 14
@@ -178,39 +195,52 @@ async function exportPDF(customer, allEntries, imgMap) {
     const cardX = MARGIN + col * (COL_W + GAP)
     const cardY = y
 
+    // Card background + border
     doc.setFillColor(247, 247, 247)
     doc.setDrawColor(218, 218, 218)
     doc.setLineWidth(0.3)
     doc.roundedRect(cardX, cardY, COL_W, ROW_H, 2.5, 2.5, 'FD')
 
+    // Image — load with natural dimensions, then fit into IMG_BOX × IMG_BOX
     const imgSrc = imgMap[field] || null
     if (imgSrc) {
-      const b64 = await toBase64(imgSrc)
-      if (b64) {
+      const result = await loadImage(imgSrc)
+      if (result) {
         try {
-          doc.addImage(b64, 'JPEG', cardX + CARD_PAD, cardY + (ROW_H - IMG_SIZE) / 2, IMG_SIZE, IMG_SIZE)
-        } catch (_) {}
+          const { w, h } = fitInBox(result.width, result.height, IMG_BOX, IMG_BOX)
+          // Center the fitted image within the reserved IMG_BOX area
+          const imgAreaX = cardX + CARD_PAD
+          const imgAreaY = cardY + (ROW_H - IMG_BOX) / 2
+          const imgX = imgAreaX + (IMG_BOX - w) / 2
+          const imgY = imgAreaY + (IMG_BOX - h) / 2
+          doc.addImage(result.b64, 'JPEG', imgX, imgY, w, h)
+        } catch (_) { /* skip broken image */ }
       }
     }
 
-    const textX    = imgSrc ? cardX + CARD_PAD + IMG_SIZE + 4 : cardX + CARD_PAD
-    const maxTextW = COL_W - (imgSrc ? CARD_PAD + IMG_SIZE + 4 + CARD_PAD : CARD_PAD * 2)
+    // Text starts after the image area (or at card edge if no image)
+    const textX    = imgSrc ? cardX + CARD_PAD + IMG_BOX + 4 : cardX + CARD_PAD
+    const maxTextW = COL_W - (imgSrc ? CARD_PAD + IMG_BOX + 4 + CARD_PAD : CARD_PAD * 2)
 
+    // Field label
     doc.setFont('helvetica', 'bold')
     doc.setFontSize(6)
     doc.setTextColor(130, 130, 130)
     doc.text(field.toUpperCase(), textX, cardY + ROW_H / 2 - 2.5, { maxWidth: maxTextW })
 
+    // Value
     doc.setFont('helvetica', 'bold')
     doc.setFontSize(14)
     doc.setTextColor(18, 18, 18)
     doc.text(`${value}"`, textX, cardY + ROW_H / 2 + 6, { maxWidth: maxTextW })
 
+    // Advance row after the second column (or last item)
     if (col === COL_COUNT - 1 || i === allEntries.length - 1) {
       y += ROW_H + 4
     }
   }
 
+  // ── Footer on every page ──
   const totalPages = doc.internal.getNumberOfPages()
   for (let p = 1; p <= totalPages; p++) {
     doc.setPage(p)
@@ -238,17 +268,12 @@ function EditMeasurementsModal({ isOpen, customer, onClose, onSave }) {
   // Pre-fill standard fields + restore any previously saved custom fields
   useEffect(() => {
     if (!isOpen || !customer) return
-
     const saved = customer.bodyMeasurements || {}
-
-    // Standard fields → draft object
     const standardDraft = {}
     measureFields.forEach(f => {
       if (saved[f] !== undefined) standardDraft[f] = saved[f]
     })
     setDraft(standardDraft)
-
-    // Non-standard keys → customFields array (so they show up in the custom section)
     const existing = Object.entries(saved)
       .filter(([k]) => !knownSet.has(k))
       .map(([k, v]) => ({ id: Date.now() + Math.random(), label: k, value: String(v) }))
@@ -258,7 +283,6 @@ function EditMeasurementsModal({ isOpen, customer, onClose, onSave }) {
   const updateDraft = (field, val) =>
     setDraft(prev => ({ ...prev, [field]: val }))
 
-  // Custom field helpers — identical to AddCustomerForm
   const addCustomField = () =>
     setCustomFields(prev => [...prev, { id: Date.now(), label: '', value: '' }])
 
@@ -269,12 +293,10 @@ function EditMeasurementsModal({ isOpen, customer, onClose, onSave }) {
     setCustomFields(prev => prev.filter(f => f.id !== id))
 
   const handleSave = async () => {
-    // Merge standard draft + custom fields into one object
     const merged = { ...draft }
     customFields.forEach(f => {
       if (f.label.trim()) merged[f.label.trim()] = f.value
     })
-    // Strip blanks
     const cleaned = Object.fromEntries(
       Object.entries(merged).filter(([, v]) => v !== '' && v !== undefined)
     )
@@ -293,30 +315,21 @@ function EditMeasurementsModal({ isOpen, customer, onClose, onSave }) {
     <>
       <div className={`${styles.editOverlay} ${isOpen ? styles.editOverlayOpen : ''}`}>
 
-        {/* Header */}
         <div className={styles.editHeader}>
           <button className={styles.editCloseBtn} onClick={onClose}>
             <span className="mi" style={{ fontSize: '1.3rem' }}>close</span>
           </button>
           <span className={styles.editHeaderTitle}>Edit Measurements</span>
-          <button
-            className={styles.editSaveBtn}
-            onClick={handleSave}
-            disabled={saving}
-          >
+          <button className={styles.editSaveBtn} onClick={handleSave} disabled={saving}>
             {saving ? 'Saving…' : 'Save'}
           </button>
         </div>
 
-        {/* Unit hint */}
         <div className={styles.editSubheader}>
           {sex ? `${sex} body measurements (inches)` : 'Body measurements (inches)'}
         </div>
 
-        {/* Scrollable fields */}
         <div className={styles.editBody}>
-
-          {/* Standard fields with images */}
           {measureFields.map((field, idx) => {
             const imgSrc = imgMap[field] || null
             const isLastImgField = imgSrc &&
@@ -359,7 +372,6 @@ function EditMeasurementsModal({ isOpen, customer, onClose, onSave }) {
             )
           })}
 
-          {/* Custom fields — same layout as AddCustomerForm */}
           {customFields.map(f => (
             <div key={f.id} className={styles.customFieldRow}>
               <div className={styles.customFieldInputs}>
@@ -379,20 +391,15 @@ function EditMeasurementsModal({ isOpen, customer, onClose, onSave }) {
                   onChange={e => updateCustomField(f.id, 'value', e.target.value)}
                 />
               </div>
-              <button
-                className={styles.removeCustomBtn}
-                onClick={() => removeCustomField(f.id)}
-              >
+              <button className={styles.removeCustomBtn} onClick={() => removeCustomField(f.id)}>
                 <span className="mi" style={{ fontSize: '1.2rem' }}>remove_circle_outline</span>
               </button>
             </div>
           ))}
 
-          {/* Add custom field button */}
           <button className={styles.addCustomFieldBtn} onClick={addCustomField}>
             <span className="mi" style={{ fontSize: '1rem' }}>add</span> Add Custom Field
           </button>
-
         </div>
       </div>
 
@@ -475,11 +482,7 @@ export default function CustomerBodyMeasurements({ onMenuClick }) {
           type="back"
           title={isScrolled ? customer.name : 'Body Measurements'}
           customActions={[
-            {
-              icon:     'edit',
-              onClick:  () => setEditOpen(true),
-              outlined: true,
-            },
+            { icon: 'edit', onClick: () => setEditOpen(true), outlined: true },
             {
               icon:     exporting ? 'hourglass_empty' : 'ios_share',
               onClick:  isEmpty || exporting ? undefined : handleExport,
@@ -490,7 +493,6 @@ export default function CustomerBodyMeasurements({ onMenuClick }) {
         />
       </div>
 
-      {/* Identity strip */}
       <div className={styles.identityStrip}>
         <div className={styles.stripName}>
           {customer.name}{sex ? ` (${sex})` : ''}
