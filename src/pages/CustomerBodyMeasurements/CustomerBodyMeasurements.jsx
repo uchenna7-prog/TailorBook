@@ -1,7 +1,7 @@
 // src/pages/CustomerBodyMeasurements/CustomerBodyMeasurements.jsx
 
 import { useRef, useState, useEffect } from 'react'
-import { useParams, useNavigate }       from 'react-router-dom'
+import { useParams }                    from 'react-router-dom'
 import { useCustomers }                 from '../../contexts/CustomerContext'
 import Header                           from '../../components/Header/Header'
 import styles                           from './CustomerBodyMeasurements.module.css'
@@ -124,7 +124,7 @@ async function toBase64(src) {
   })
 }
 
-// ── PDF export (client-side via jsPDF CDN) ────────────────────
+// ── PDF export ────────────────────────────────────────────────
 async function exportPDF(customer, allEntries, imgMap) {
   if (!window.jspdf) {
     await new Promise((resolve, reject) => {
@@ -150,26 +150,18 @@ async function exportPDF(customer, allEntries, imgMap) {
   const IMG_SIZE  = 20
   const CARD_PAD  = 4
 
-  // ── Header band ──────────────────────────────────────────────
+  // Header band
   doc.setFillColor(18, 18, 18)
   doc.rect(0, 0, PAGE_W, 24, 'F')
-
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(14)
   doc.setTextColor(255, 255, 255)
-  doc.text(
-    customer.name + (customer.sex ? `  (${customer.sex})` : ''),
-    MARGIN, 13
-  )
-
+  doc.text(customer.name + (customer.sex ? `  (${customer.sex})` : ''), MARGIN, 13)
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(7)
   doc.setTextColor(170, 170, 170)
   doc.text('FULL BODY MEASUREMENTS  ·  INCHES', MARGIN, 20)
-
-  const dateStr = new Date().toLocaleDateString('en-US', {
-    month: 'short', day: 'numeric', year: 'numeric',
-  })
+  const dateStr = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
   doc.text(dateStr, PAGE_W - MARGIN, 20, { align: 'right' })
 
   let y = 30
@@ -178,7 +170,6 @@ async function exportPDF(customer, allEntries, imgMap) {
     const { field, value } = allEntries[i]
     const col = i % COL_COUNT
 
-    // Page break — only at the start of a new row
     if (col === 0 && i > 0 && y + ROW_H > PAGE_H - 14) {
       doc.addPage()
       y = 14
@@ -187,50 +178,39 @@ async function exportPDF(customer, allEntries, imgMap) {
     const cardX = MARGIN + col * (COL_W + GAP)
     const cardY = y
 
-    // Card background + border
     doc.setFillColor(247, 247, 247)
     doc.setDrawColor(218, 218, 218)
     doc.setLineWidth(0.3)
     doc.roundedRect(cardX, cardY, COL_W, ROW_H, 2.5, 2.5, 'FD')
 
-    // Image
     const imgSrc = imgMap[field] || null
     if (imgSrc) {
       const b64 = await toBase64(imgSrc)
       if (b64) {
         try {
-          const imgY = cardY + (ROW_H - IMG_SIZE) / 2
-          doc.addImage(b64, 'JPEG', cardX + CARD_PAD, imgY, IMG_SIZE, IMG_SIZE)
-        } catch (_) { /* skip broken image */ }
+          doc.addImage(b64, 'JPEG', cardX + CARD_PAD, cardY + (ROW_H - IMG_SIZE) / 2, IMG_SIZE, IMG_SIZE)
+        } catch (_) {}
       }
     }
 
-    const textX    = imgSrc
-      ? cardX + CARD_PAD + IMG_SIZE + 4
-      : cardX + CARD_PAD
-    const maxTextW = COL_W - (imgSrc
-      ? CARD_PAD + IMG_SIZE + 4 + CARD_PAD
-      : CARD_PAD * 2)
+    const textX    = imgSrc ? cardX + CARD_PAD + IMG_SIZE + 4 : cardX + CARD_PAD
+    const maxTextW = COL_W - (imgSrc ? CARD_PAD + IMG_SIZE + 4 + CARD_PAD : CARD_PAD * 2)
 
-    // Field label (small caps)
     doc.setFont('helvetica', 'bold')
     doc.setFontSize(6)
     doc.setTextColor(130, 130, 130)
     doc.text(field.toUpperCase(), textX, cardY + ROW_H / 2 - 2.5, { maxWidth: maxTextW })
 
-    // Value — large and bold
     doc.setFont('helvetica', 'bold')
     doc.setFontSize(14)
     doc.setTextColor(18, 18, 18)
     doc.text(`${value}"`, textX, cardY + ROW_H / 2 + 6, { maxWidth: maxTextW })
 
-    // Advance row after the second column (or last item)
     if (col === COL_COUNT - 1 || i === allEntries.length - 1) {
       y += ROW_H + 4
     }
   }
 
-  // ── Footer on every page ─────────────────────────────────────
   const totalPages = doc.internal.getNumberOfPages()
   for (let p = 1; p <= totalPages; p++) {
     doc.setPage(p)
@@ -249,24 +229,58 @@ function EditMeasurementsModal({ isOpen, customer, onClose, onSave }) {
   const sex           = customer?.sex || ''
   const measureFields = sex === 'Female' ? FEMALE_MEASUREMENTS : MALE_MEASUREMENTS
   const imgMap        = sex === 'Female' ? FEMALE_MEASUREMENT_IMAGES : MALE_MEASUREMENT_IMAGES
+  const knownSet      = new Set(measureFields)
 
-  const [draft,  setDraft]  = useState({})
-  const [saving, setSaving] = useState(false)
+  const [draft,        setDraft]        = useState({})
+  const [customFields, setCustomFields] = useState([])
+  const [saving,       setSaving]       = useState(false)
 
-  // Pre-fill with current saved values each time the modal opens
+  // Pre-fill standard fields + restore any previously saved custom fields
   useEffect(() => {
-    if (isOpen && customer) {
-      setDraft({ ...(customer.bodyMeasurements || {}) })
-    }
-  }, [isOpen, customer])
+    if (!isOpen || !customer) return
 
-  const update = (field, val) =>
+    const saved = customer.bodyMeasurements || {}
+
+    // Standard fields → draft object
+    const standardDraft = {}
+    measureFields.forEach(f => {
+      if (saved[f] !== undefined) standardDraft[f] = saved[f]
+    })
+    setDraft(standardDraft)
+
+    // Non-standard keys → customFields array (so they show up in the custom section)
+    const existing = Object.entries(saved)
+      .filter(([k]) => !knownSet.has(k))
+      .map(([k, v]) => ({ id: Date.now() + Math.random(), label: k, value: String(v) }))
+    setCustomFields(existing)
+  }, [isOpen, customer]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const updateDraft = (field, val) =>
     setDraft(prev => ({ ...prev, [field]: val }))
 
+  // Custom field helpers — identical to AddCustomerForm
+  const addCustomField = () =>
+    setCustomFields(prev => [...prev, { id: Date.now(), label: '', value: '' }])
+
+  const updateCustomField = (id, key, val) =>
+    setCustomFields(prev => prev.map(f => f.id === id ? { ...f, [key]: val } : f))
+
+  const removeCustomField = (id) =>
+    setCustomFields(prev => prev.filter(f => f.id !== id))
+
   const handleSave = async () => {
+    // Merge standard draft + custom fields into one object
+    const merged = { ...draft }
+    customFields.forEach(f => {
+      if (f.label.trim()) merged[f.label.trim()] = f.value
+    })
+    // Strip blanks
+    const cleaned = Object.fromEntries(
+      Object.entries(merged).filter(([, v]) => v !== '' && v !== undefined)
+    )
     setSaving(true)
     try {
-      await onSave(draft)
+      await onSave(cleaned)
       onClose()
     } finally {
       setSaving(false)
@@ -279,7 +293,7 @@ function EditMeasurementsModal({ isOpen, customer, onClose, onSave }) {
     <>
       <div className={`${styles.editOverlay} ${isOpen ? styles.editOverlayOpen : ''}`}>
 
-        {/* Modal header */}
+        {/* Header */}
         <div className={styles.editHeader}>
           <button className={styles.editCloseBtn} onClick={onClose}>
             <span className="mi" style={{ fontSize: '1.3rem' }}>close</span>
@@ -301,6 +315,8 @@ function EditMeasurementsModal({ isOpen, customer, onClose, onSave }) {
 
         {/* Scrollable fields */}
         <div className={styles.editBody}>
+
+          {/* Standard fields with images */}
           {measureFields.map((field, idx) => {
             const imgSrc = imgMap[field] || null
             const isLastImgField = imgSrc &&
@@ -321,7 +337,7 @@ function EditMeasurementsModal({ isOpen, customer, onClose, onSave }) {
                       className={styles.editInput}
                       placeholder="0"
                       value={draft[field] || ''}
-                      onChange={e => update(field, e.target.value)}
+                      onChange={e => updateDraft(field, e.target.value)}
                     />
                   </div>
                 </div>
@@ -337,15 +353,49 @@ function EditMeasurementsModal({ isOpen, customer, onClose, onSave }) {
                   className={styles.editInput}
                   placeholder="0"
                   value={draft[field] || ''}
-                  onChange={e => update(field, e.target.value)}
+                  onChange={e => updateDraft(field, e.target.value)}
                 />
               </div>
             )
           })}
+
+          {/* Custom fields — same layout as AddCustomerForm */}
+          {customFields.map(f => (
+            <div key={f.id} className={styles.customFieldRow}>
+              <div className={styles.customFieldInputs}>
+                <input
+                  type="text"
+                  className={styles.editInput}
+                  placeholder="Field name"
+                  value={f.label}
+                  onChange={e => updateCustomField(f.id, 'label', e.target.value)}
+                />
+                <input
+                  type="number"
+                  className={styles.editInput}
+                  placeholder="0"
+                  inputMode="decimal"
+                  value={f.value}
+                  onChange={e => updateCustomField(f.id, 'value', e.target.value)}
+                />
+              </div>
+              <button
+                className={styles.removeCustomBtn}
+                onClick={() => removeCustomField(f.id)}
+              >
+                <span className="mi" style={{ fontSize: '1.2rem' }}>remove_circle_outline</span>
+              </button>
+            </div>
+          ))}
+
+          {/* Add custom field button */}
+          <button className={styles.addCustomFieldBtn} onClick={addCustomField}>
+            <span className="mi" style={{ fontSize: '1rem' }}>add</span> Add Custom Field
+          </button>
+
         </div>
       </div>
 
-      {/* Dimmed backdrop */}
       {isOpen && <div className={styles.editBackdrop} onClick={onClose} />}
     </>
   )
@@ -398,11 +448,7 @@ export default function CustomerBodyMeasurements({ onMenuClick }) {
   const allEntries = [...knownEntries, ...customEntries]
   const isEmpty    = allEntries.length === 0
 
-  const handleSaveMeasurements = async (draft) => {
-    // Strip empty strings so we don't store blank fields
-    const cleaned = Object.fromEntries(
-      Object.entries(draft).filter(([, v]) => v !== '' && v !== undefined)
-    )
+  const handleSaveMeasurements = async (cleaned) => {
     await updateCustomer(id, { bodyMeasurements: cleaned })
     showToast('Measurements saved ✓')
   }
@@ -444,7 +490,7 @@ export default function CustomerBodyMeasurements({ onMenuClick }) {
         />
       </div>
 
-      {/* Customer identity strip */}
+      {/* Identity strip */}
       <div className={styles.identityStrip}>
         <div className={styles.stripName}>
           {customer.name}{sex ? ` (${sex})` : ''}
