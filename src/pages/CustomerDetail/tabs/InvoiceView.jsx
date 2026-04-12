@@ -29,6 +29,89 @@ function getDueDate(invoice, dueDays) {
 }
 
 // ─────────────────────────────────────────────────────────────
+// Confirmation Sheet
+// ─────────────────────────────────────────────────────────────
+
+function ConfirmUnpaidSheet({ open, onConfirm, onCancel }) {
+  if (!open) return null
+  return (
+    <div
+      style={{
+        position: 'fixed', inset: 0, zIndex: 9999,
+        background: 'rgba(0,0,0,0.45)',
+        display: 'flex', alignItems: 'flex-end',
+      }}
+      onClick={e => e.target === e.currentTarget && onCancel()}
+    >
+      <div style={{
+        width: '100%',
+        background: 'var(--surface, #1c1c1e)',
+        borderRadius: '18px 18px 0 0',
+        padding: '24px 20px 36px',
+      }}>
+        <div style={{
+          width: 36, height: 4,
+          background: 'var(--text3, #555)',
+          borderRadius: 2,
+          margin: '0 auto 20px',
+        }} />
+        <div style={{
+          fontSize: '1.05rem',
+          fontWeight: 700,
+          color: 'var(--text1, #fff)',
+          marginBottom: 8,
+          textAlign: 'center',
+        }}>
+          Mark as Unpaid?
+        </div>
+        <div style={{
+          fontSize: '0.88rem',
+          color: 'var(--text2, #aaa)',
+          textAlign: 'center',
+          marginBottom: 24,
+          lineHeight: 1.5,
+        }}>
+          This invoice is already marked as paid.{'\n'}Are you sure you want to revert it to unpaid?
+        </div>
+        <button
+          onClick={onConfirm}
+          style={{
+            width: '100%',
+            padding: '14px',
+            borderRadius: 12,
+            border: 'none',
+            background: '#ef4444',
+            color: '#fff',
+            fontWeight: 700,
+            fontSize: '0.95rem',
+            cursor: 'pointer',
+            marginBottom: 10,
+          }}
+        >
+          Yes, Mark as Unpaid
+        </button>
+        <button
+          onClick={onCancel}
+          style={{
+            width: '100%',
+            padding: '14px',
+            borderRadius: 12,
+            border: 'none',
+            background: 'var(--surface2, #2c2c2e)',
+            color: 'var(--text1, #fff)',
+            fontWeight: 600,
+            fontSize: '0.95rem',
+            cursor: 'pointer',
+          }}
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────
 // Shared inner pieces
 // ─────────────────────────────────────────────────────────────
 
@@ -252,17 +335,17 @@ async function generatePDF(paperEl, filename) {
     height: paperEl.scrollHeight,
     windowHeight: paperEl.scrollHeight
   })
-  
+
   const imgData = canvas.toDataURL('image/png')
   const pdfW = 450
   const pdfH = (canvas.height * pdfW) / canvas.width
-  
+
   const pdf = new jsPDF({ 
     orientation: 'portrait', 
     unit: 'px', 
     format: [pdfW, pdfH] 
   })
-  
+
   pdf.addImage(imgData, 'PNG', 0, 0, pdfW, pdfH)
   pdf.save(filename)
 }
@@ -270,8 +353,9 @@ async function generatePDF(paperEl, filename) {
 export default function InvoiceView({ invoice: initialInvoice, customer, onClose, onStatusChange, onDelete, showToast }) {
   const { brand } = useBrand()
   const paperRef  = useRef(null)
-  const [invoice,    setInvoice]    = useState(initialInvoice)
-  const [pdfLoading, setPdfLoading] = useState(false)
+  const [invoice,         setInvoice]         = useState(initialInvoice)
+  const [pdfLoading,      setPdfLoading]      = useState(false)
+  const [showUnpaidSheet, setShowUnpaidSheet] = useState(false)
 
   const templateKey = invoice.template || brand.template || 'editable'
   const Template    = TEMPLATE_MAP[templateKey] || EditableTemplate
@@ -282,10 +366,23 @@ export default function InvoiceView({ invoice: initialInvoice, customer, onClose
   }
 
   const handleToggleStatus = () => {
+    // If already paid, show confirmation before reverting to unpaid
+    if (invoice.status === 'paid') {
+      setShowUnpaidSheet(true)
+      return
+    }
+    // For unpaid/overdue → paid, no confirmation needed
     const newStatus = STATUS_NEXT[invoice.status] || 'paid'
     onStatusChange(invoice.id, newStatus)
     setInvoice(prev => ({ ...prev, status: newStatus }))
     showToast?.(`Marked as ${newStatus}`)
+  }
+
+  const handleConfirmUnpaid = () => {
+    setShowUnpaidSheet(false)
+    onStatusChange(invoice.id, 'unpaid')
+    setInvoice(prev => ({ ...prev, status: 'unpaid' }))
+    showToast?.('Marked as unpaid')
   }
 
   const handleShare = async () => {
@@ -352,6 +449,12 @@ export default function InvoiceView({ invoice: initialInvoice, customer, onClose
           <span className="mi">delete</span>
         </button>
       </div>
+
+      <ConfirmUnpaidSheet
+        open={showUnpaidSheet}
+        onConfirm={handleConfirmUnpaid}
+        onCancel={() => setShowUnpaidSheet(false)}
+      />
     </div>
   )
 }
