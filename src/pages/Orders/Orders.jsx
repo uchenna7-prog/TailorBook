@@ -159,7 +159,7 @@ function OrderDetailPanel({ order, onClose }) {
               className={styles.detailPill}
               style={{ color: sc.color, background: sc.bg, borderColor: sc.border }}
             >
-              {overdue ? 'Overdue' : (order.status ? order.status.replace('-', ' ') : 'Pending')}
+              {overdue ? 'Overdue' : (order.status ? order.status.replace('-', ' ').replace(/\b\w/g, c => c.toUpperCase()) : 'Pending')}
             </span>
             {order.priority && order.priority !== 'normal' && (
               <span
@@ -177,22 +177,60 @@ function OrderDetailPanel({ order, onClose }) {
             )}
           </div>
 
-          {/* Info grid */}
-          <div className={styles.detailGrid}>
-            <div className={styles.detailCell}>
-              <div className={styles.detailCellLabel}>Price</div>
-              <div className={styles.detailCellVal}>{fmt(order.price)}</div>
-            </div>
-            <div className={styles.detailCell}>
-              <div className={styles.detailCellLabel}>Qty</div>
-              <div className={styles.detailCellVal}>{order.qty ?? 1}</div>
-            </div>
-            {total && (
-              <div className={styles.detailCell}>
-                <div className={styles.detailCellLabel}>Total</div>
-                <div className={styles.detailCellVal}>{fmt(total)}</div>
+          {/* Per-item prices + total — matching OrdersTab style */}
+          {items.length > 0 && (
+            <div style={{
+              background: 'var(--bg)',
+              border: '1px solid var(--border)',
+              borderRadius: 12,
+              padding: '2px 0',
+              marginBottom: 14,
+            }}>
+              {items.map((item, idx) => (
+                <div key={idx} style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  padding: '10px 14px',
+                  borderBottom: idx < items.length - 1 ? '1px solid var(--border)' : 'none',
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div style={{
+                      width: 32, height: 32, borderRadius: 8,
+                      background: 'var(--surface2)', border: '1px solid var(--border)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      overflow: 'hidden', flexShrink: 0,
+                    }}>
+                      {item.imgSrc
+                        ? <img src={item.imgSrc} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 8 }} />
+                        : <span className="material-icons" style={{ fontSize: '1rem', color: 'var(--text3)' }}>checkroom</span>
+                      }
+                    </div>
+                    <span style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--text)' }}>{item.name || 'Item'}</span>
+                  </div>
+                  <span style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--accent)' }}>
+                    {fmt(item.price)}
+                  </span>
+                </div>
+              ))}
+              {/* Total row */}
+              <div style={{
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                padding: '10px 14px',
+                borderTop: '1px solid var(--border)',
+                background: 'var(--surface)',
+                borderRadius: '0 0 12px 12px',
+              }}>
+                <span style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  Total (Qty: {items.length})
+                </span>
+                <span style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--accent)' }}>
+                  {fmt(items.reduce((sum, i) => sum + (Number(i.price) || 0), 0))}
+                </span>
               </div>
-            )}
+            </div>
+          )}
+
+          {/* Info grid — placed on + due date */}
+          <div className={styles.detailGrid}>
             <div className={styles.detailCell}>
               <div className={styles.detailCellLabel}>Placed On</div>
               <div className={styles.detailCellVal} style={{ fontSize: '0.8rem' }}>
@@ -203,11 +241,11 @@ function OrderDetailPanel({ order, onClose }) {
                 ) : null) || order.date || '—'}
               </div>
             </div>
-            <div className={styles.detailCell} style={{ gridColumn: '1 / -1' }}>
+            <div className={styles.detailCell}>
               <div className={styles.detailCellLabel}>Due Date</div>
               <div
                 className={styles.detailCellVal}
-                style={{ fontSize: '0.85rem', color: overdue ? '#ef4444' : order.dueDate ? undefined : 'var(--text3)' }}
+                style={{ fontSize: '0.8rem', color: overdue ? '#ef4444' : order.dueDate ? undefined : 'var(--text3)' }}
               >
                 {order.dueDate
                   ? `${formatDate(order.dueDate)}${due ? ` · ${due}` : ''}`
