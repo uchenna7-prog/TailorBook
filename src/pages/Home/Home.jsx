@@ -703,8 +703,8 @@ function Home({ onMenuClick }) {
             <span className="mi" style={{ fontSize: '0.95rem', color: 'var(--text3)' }}>chevron_right</span>
           </div>
 
-          {/* Hero total */}
-          <div className={styles.customerHeroRow}>
+          {/* Hero total — number big, label underneath */}
+          <div className={styles.customerHeroBlock}>
             <div className={styles.customerHeroNumber}>{totalCustomers.toLocaleString()}</div>
             <div className={styles.customerHeroLabel}>Total Customers</div>
           </div>
@@ -712,7 +712,7 @@ function Home({ onMenuClick }) {
           {/* Divider */}
           <div className={styles.customerCardRule} />
 
-          {/* Stats — stacked rows, label left / value right — names never clip */}
+          {/* Two stats only — best customer + new this month */}
           <div className={styles.customerStatStack}>
             <div className={styles.customerStatRow}>
               <span className={styles.customerStatLbl}>Best Customer</span>
@@ -721,10 +721,6 @@ function Home({ onMenuClick }) {
             <div className={styles.customerStatRow}>
               <span className={styles.customerStatLbl}>New This Month</span>
               <span className={styles.customerStatVal}>{newCustThisMonth}</span>
-            </div>
-            <div className={styles.customerStatRow}>
-              <span className={styles.customerStatLbl}>Retention Rate</span>
-              <span className={styles.customerStatVal}>{retentionRate}%</span>
             </div>
           </div>
         </div>
