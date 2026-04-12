@@ -36,6 +36,21 @@ const STAGES = [
   { value: 'ready',             label: 'Ready',             icon: 'check_circle'   },
 ]
 
+// Auto-status derived from stage selection
+const STAGE_TO_STATUS = {
+  measurement_taken: 'pending',
+  fabric_ready:      'pending',
+  cutting:           'in-progress',
+  weaving:           'in-progress',
+  sewing:            'in-progress',
+  embroidery:        'in-progress',
+  fitting:           'in-progress',
+  adjustments:       'in-progress',
+  finishing:         'in-progress',
+  quality_check:     'in-progress',
+  ready:             'completed',
+}
+
 function formatDate(ts) {
   if (!ts) return 'Unknown Date'
   if (typeof ts.toDate === 'function') {
@@ -452,7 +467,18 @@ export default function OrdersTab({ customerId, orders, measurements, showToast,
   const handleStageChange = async (id, stage) => {
     try {
       await updateOrderStage(customerId, id, stage)
-      setDetailOrder(prev => prev && String(prev.id) === String(id) ? { ...prev, stage } : prev)
+      // Auto-update status based on selected stage
+      const autoStatus = stage ? STAGE_TO_STATUS[stage] : null
+      if (autoStatus) {
+        await updateOrderStatus(customerId, id, autoStatus)
+        setDetailOrder(prev =>
+          prev && String(prev.id) === String(id) ? { ...prev, stage, status: autoStatus } : prev
+        )
+      } else {
+        setDetailOrder(prev =>
+          prev && String(prev.id) === String(id) ? { ...prev, stage } : prev
+        )
+      }
     } catch {
       showToast('Failed to update stage')
     }
