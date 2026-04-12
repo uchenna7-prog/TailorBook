@@ -332,9 +332,20 @@ function AddCustomerForm({ isOpen, onClose, onSave, isPremium }) {
 
   const [bodyMeasurements, setBodyMeasurements] = useState({})
   const [customFields, setCustomFields]         = useState([])
+  const [sexError, setSexError]                 = useState(false)
+  const [formInlineMsg, setFormInlineMsg]       = useState(null) // { text, ok }
+  const formInlineMsgTimer                      = useRef(null)
 
-  const initials      = getInitials(name) || '+'
-  const measureFields = sex === 'Female' ? FEMALE_MEASUREMENTS : MALE_MEASUREMENTS
+  const initials         = getInitials(name) || '+'
+  const measureFields    = sex === 'Female' ? FEMALE_MEASUREMENTS : MALE_MEASUREMENTS
+  const hasMeasurements  = Object.values(bodyMeasurements).some(v => v !== '' && v !== undefined && v !== '0' && v !== 0)
+    || customFields.some(f => f.label.trim() && f.value !== '')
+
+  const showInlineMsg = (text, ok = true) => {
+    setFormInlineMsg({ text, ok })
+    clearTimeout(formInlineMsgTimer.current)
+    formInlineMsgTimer.current = setTimeout(() => setFormInlineMsg(null), 2600)
+  }
 
   const handlePhotoPicker = () => {
     if (!isPremium) { setShowPremiumSheet(true); return }
@@ -369,27 +380,47 @@ function AddCustomerForm({ isOpen, onClose, onSave, isPremium }) {
     setName(''); setLocalPhone(''); setSelectedCountry(DEFAULT_COUNTRY)
     setPhoneType('Mobile'); setSex('')
     setBdayDay(''); setBdayMonth(''); setEmail(''); setAddress('')
-    setNotes(''); setPhoto(null); setBodyMeasurements({}); setCustomFields([]); setFormTab('personal')
+    setNotes(''); setPhoto(null); setBodyMeasurements({}); setCustomFields([])
+    setFormTab('personal'); setSexError(false); setFormInlineMsg(null)
+    clearTimeout(formInlineMsgTimer.current)
     if (fileInputRef.current) fileInputRef.current.value = ''
     onClose()
   }
 
   const handleSave = () => {
-    const allBody = { ...bodyMeasurements }
-    customFields.forEach(f => { if (f.label.trim()) allBody[f.label.trim()] = f.value })
-    const birthday = bdayMonth && bdayDay ? `${bdayMonth}-${bdayDay}` : ''
-
-    // Build the phone number using our formatting rules
-    const builtPhone = buildPhoneNumber(localPhone, selectedCountry.dial_code)
-    // If localPhone is non-empty but builtPhone is null → invalid
-    if (localPhone.trim() && builtPhone === null) {
-      // Pass it back to parent which will show the toast
-      onSave({ name, phone: '__INVALID_PHONE__', phoneType, sex, birthday, email, address, notes, photo, bodyMeasurements: allBody })
+    // ── Phase 1: Personal Info tab ─────────────────────────────
+    if (formTab === 'personal') {
+      if (!name)  { showInlineMsg('Name is required', false); return }
+      if (!sex)   { setSexError(true); showInlineMsg('Please select a sex', false); return }
+      const builtPhone = buildPhoneNumber(localPhone, selectedCountry.dial_code)
+      if (!localPhone.trim()) { showInlineMsg('Phone number is required', false); return }
+      if (builtPhone === null) { showInlineMsg('Phone must be 10 digits (or 11 starting with 0)', false); return }
+      // All personal validations passed — show inline success and advance to body tab
+      showInlineMsg('Personal info saved ✓', true)
+      setFormTab('body')
       return
     }
 
+    // ── Phase 2: Body Measurements tab ─────────────────────────
+    const allBody = { ...bodyMeasurements }
+    customFields.forEach(f => { if (f.label.trim()) allBody[f.label.trim()] = f.value })
+    const birthday = bdayMonth && bdayDay ? `${bdayMonth}-${bdayDay}` : ''
+    const builtPhone = buildPhoneNumber(localPhone, selectedCountry.dial_code)
+    if (localPhone.trim() && builtPhone === null) {
+      onSave({ name, phone: '__INVALID_PHONE__', phoneType, sex, birthday, email, address, notes, photo, bodyMeasurements: allBody })
+      return
+    }
     const phone = builtPhone || ''
     onSave({ name, phone, phoneType, sex, birthday, email, address, notes, photo, bodyMeasurements: allBody })
+    handleClose()
+  }
+
+  const handleSkip = () => {
+    // Save without any body measurements
+    const birthday = bdayMonth && bdayDay ? `${bdayMonth}-${bdayDay}` : ''
+    const builtPhone = buildPhoneNumber(localPhone, selectedCountry.dial_code)
+    const phone = builtPhone || ''
+    onSave({ name, phone, phoneType, sex, birthday, email, address, notes, photo, bodyMeasurements: {} })
     handleClose()
   }
 
@@ -412,7 +443,11 @@ function AddCustomerForm({ isOpen, onClose, onSave, isPremium }) {
           title="New Customer" 
           onBackClick={handleClose} 
           customActions={[
-            { label: 'Save', onClick: handleSave, color: 'var(--accent)' }
+            formTab === 'personal'
+              ? { label: 'Save', onClick: handleSave, color: 'var(--accent)' }
+              : hasMeasurements
+                ? { label: 'Save', onClick: handleSave, color: 'var(--accent)' }
+                : { label: 'Skip', onClick: handleSkip, color: 'var(--text2)' }
           ]}
         />
 
@@ -420,6 +455,14 @@ function AddCustomerForm({ isOpen, onClose, onSave, isPremium }) {
           <button className={`${styles.formTab} ${formTab === 'personal' ? styles.formTabActive : ''}`} onClick={() => setFormTab('personal')}>Personal Info</button>
           <button className={`${styles.formTab} ${formTab === 'body' ? styles.formTabActive : ''}`} onClick={() => setFormTab('body')}>Body Measurements</button>
         </div>
+
+        {/* Inline status banner */}
+        {formInlineMsg && (
+          <div className={`${styles.formInlineMsg} ${formInlineMsg.ok ? styles.formInlineMsgOk : styles.formInlineMsgErr}`}>
+            <span className="mi" style={{ fontSize: '0.95rem' }}>{formInlineMsg.ok ? 'check_circle' : 'error_outline'}</span>
+            {formInlineMsg.text}
+          </div>
+        )}
 
         <div className={styles.formBody}>
           {formTab === 'personal' && (
@@ -446,10 +489,17 @@ function AddCustomerForm({ isOpen, onClose, onSave, isPremium }) {
               </div>
 
               <div className={styles.inputGroup}>
-                <label className={styles.inputLabel}>Sex</label>
+                <label className={styles.inputLabel}>
+                  Sex *
+                  {sexError && <span style={{ color: 'var(--danger)', marginLeft: 6, fontWeight: 700, textTransform: 'none', letterSpacing: 0 }}>Required</span>}
+                </label>
                 <div className={styles.sexRow}>
                   {['Male', 'Female'].map(s => (
-                    <button key={s} className={`${styles.sexChip} ${sex === s ? styles.sexChipActive : ''}`} onClick={() => setSex(s)}>{s}</button>
+                    <button
+                      key={s}
+                      className={`${styles.sexChip} ${sex === s ? styles.sexChipActive : ''} ${sexError && !sex ? styles.sexChipError : ''}`}
+                      onClick={() => { setSex(s); setSexError(false) }}
+                    >{s}</button>
                   ))}
                 </div>
               </div>
@@ -663,9 +713,10 @@ export default function Customers({ onMenuClick }) {
     if (!phone) { showToast('Phone number is required'); return }
     if (phone === '__INVALID_PHONE__') { showToast('Phone number must be 10 digits (or 11 starting with 0)'); return }
     const today = new Date().toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' })
+    const hasMeasurements = Object.keys(bodyMeasurements || {}).length > 0
     try {
       await addCustomer({ name, phone, phoneType, sex, birthday, email, address, notes, photo, bodyMeasurements, date: today })
-      showToast(`${name} added ✓`)
+      showToast(hasMeasurements ? `${name} saved with measurements ✓` : `${name} added — no measurements saved`)
     } catch (err) {
       showToast(`ERROR: ${err?.code || err?.message || String(err)}`)
     }
