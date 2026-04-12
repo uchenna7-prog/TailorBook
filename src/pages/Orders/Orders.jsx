@@ -40,21 +40,23 @@ function fmt(price) {
 // ── Tabs ──────────────────────────────────────────────────────
 
 const TABS = [
-  { id: 'all',       label: 'All',       icon: 'assignment'     },
-  { id: 'pending',   label: 'Pending',   icon: 'schedule'       },
-  { id: 'completed', label: 'Completed', icon: 'check_circle'   },
-  { id: 'delivered', label: 'Delivered', icon: 'local_shipping'  },
-  { id: 'cancelled', label: 'Cancelled', icon: 'cancel'         },
-  { id: 'overdue',   label: 'Overdue',   icon: 'alarm_on'       },
+  { id: 'all',         label: 'All',         icon: 'assignment'     },
+  { id: 'pending',     label: 'Pending',     icon: 'schedule'       },
+  { id: 'in-progress', label: 'In Progress', icon: 'autorenew'      },
+  { id: 'completed',   label: 'Completed',   icon: 'check_circle'   },
+  { id: 'delivered',   label: 'Delivered',   icon: 'local_shipping'  },
+  { id: 'cancelled',   label: 'Cancelled',   icon: 'cancel'         },
+  { id: 'overdue',     label: 'Overdue',     icon: 'alarm_on'       },
 ]
 
 const EMPTY_CONFIG = {
-  all:       { icon: 'assignment',     text: 'No orders yet.' },
-  pending:   { icon: 'schedule',       text: 'No pending orders.' },
-  completed: { icon: 'check_circle',   text: 'No completed orders yet.' },
-  delivered: { icon: 'local_shipping', text: 'No delivered orders yet.' },
-  cancelled: { icon: 'cancel',         text: 'No cancelled orders.' },
-  overdue:   { icon: 'alarm_on',       text: 'No overdue orders. Good job!' },
+  all:          { icon: 'assignment',     text: 'No orders yet.' },
+  pending:      { icon: 'schedule',       text: 'No pending orders.' },
+  'in-progress':{ icon: 'autorenew',     text: 'No orders in progress.' },
+  completed:    { icon: 'check_circle',   text: 'No completed orders yet.' },
+  delivered:    { icon: 'local_shipping', text: 'No delivered orders yet.' },
+  cancelled:    { icon: 'cancel',         text: 'No cancelled orders.' },
+  overdue:      { icon: 'alarm_on',       text: 'No overdue orders. Good job!' },
 }
 
 const STATUS_ICON = {
@@ -65,17 +67,19 @@ const STATUS_ICON = {
 }
 
 const STATUS_COLORS = {
-  pending:   { color: '#818cf8', bg: 'rgba(129,140,248,0.1)',  border: 'rgba(129,140,248,0.3)'  },
-  completed: { color: '#22c55e', bg: 'rgba(34,197,94,0.1)',   border: 'rgba(34,197,94,0.3)'   },
-  delivered: { color: '#a855f7', bg: 'rgba(168,85,247,0.1)',  border: 'rgba(168,85,247,0.3)'  },
-  cancelled: { color: '#94a3b8', bg: 'rgba(148,163,184,0.1)', border: 'rgba(148,163,184,0.3)' },
+  pending:       { color: '#818cf8', bg: 'rgba(129,140,248,0.1)',  border: 'rgba(129,140,248,0.3)'  },
+  'in-progress': { color: '#f59e0b', bg: 'rgba(245,158,11,0.1)',  border: 'rgba(245,158,11,0.3)'  },
+  completed:     { color: '#22c55e', bg: 'rgba(34,197,94,0.1)',   border: 'rgba(34,197,94,0.3)'   },
+  delivered:     { color: '#a855f7', bg: 'rgba(168,85,247,0.1)',  border: 'rgba(168,85,247,0.3)'  },
+  cancelled:     { color: '#94a3b8', bg: 'rgba(148,163,184,0.1)', border: 'rgba(148,163,184,0.3)' },
 }
 
 const STATUS_TEXT_COLORS = {
-  pending:   '#856404',
-  completed: '#155724',
-  delivered: '#4B2E83',
-  cancelled: '#721C24',
+  pending:       '#856404',
+  'in-progress': '#92400e',
+  completed:     '#155724',
+  delivered:     '#4B2E83',
+  cancelled:     '#721C24',
 }
 
 const PRIORITY_COLORS = {
@@ -190,12 +194,30 @@ function OrderDetailPanel({ order, onClose }) {
   )
 }
 
+const STAGES = [
+  { value: 'measurement_taken', label: 'Measurement Taken', icon: 'straighten'    },
+  { value: 'fabric_ready',      label: 'Fabric Ready',      icon: 'roll_content'  },
+  { value: 'cutting',           label: 'Cutting',           icon: 'content_cut'   },
+  { value: 'weaving',           label: 'Weaving',           icon: 'texture'       },
+  { value: 'sewing',            label: 'Sewing',            icon: 'send'          },
+  { value: 'embroidery',        label: 'Embroidery',        icon: 'auto_awesome'  },
+  { value: 'fitting',           label: 'Fitting',           icon: 'accessibility' },
+  { value: 'adjustments',       label: 'Adjustments',       icon: 'tune'          },
+  { value: 'finishing',         label: 'Finishing',         icon: 'dry_cleaning'  },
+  { value: 'quality_check',     label: 'Quality Check',     icon: 'fact_check'    },
+  { value: 'ready',             label: 'Ready',             icon: 'check_circle'  },
+]
+
 // ── Order List Item ───────────────────────────────────────────
 
 function OrderCard({ order, isLast, onTap }) {
-  const overdue = isOverdue(order)
-  const due     = daysUntil(order.dueDate)
-  const thumb   = order.items?.[0]?.imgSrc
+  const overdue  = isOverdue(order)
+  const due      = daysUntil(order.dueDate)
+  const thumb    = order.items?.[0]?.imgSrc
+  const sc       = overdue
+    ? { color: '#ef4444', bg: 'rgba(239,68,68,0.1)', border: 'rgba(239,68,68,0.3)' }
+    : STATUS_COLORS[order.status] ?? STATUS_COLORS.pending
+  const stageObj = STAGES.find(s => s.value === order.stage)
 
   return (
     <div
@@ -214,25 +236,63 @@ function OrderCard({ order, isLast, onTap }) {
       </div>
 
       <div className={styles.orderListInfo}>
+        {/* Garment name */}
         <div className={styles.orderListDesc}>{order.desc || order.name || 'Order'}</div>
+
+        {/* Customer name */}
         <div className={styles.orderListMeta}>
           <span className="mi" style={{ fontSize: '0.8rem', color: 'var(--text3)', verticalAlign: 'middle' }}>person</span>
           <span className={styles.orderListMetaText}>{order.customerName || '—'}</span>
         </div>
+
+        {/* Status badge — coloured pill */}
         {order.status && (
-          <div className={styles.orderListMeta}>
-            <span className="mi" style={{ fontSize: '0.8rem', color: 'var(--text3)', verticalAlign: 'middle' }}>autorenew</span>
-            <span
-              className={styles.orderListMetaText}
-              style={{ color: overdue ? '#8A4B00' : (STATUS_TEXT_COLORS[order.status] ?? undefined) }}
-            >
-              {overdue ? 'overdue' : order.status}
+          <div style={{ marginBottom: 4 }}>
+            <span style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              fontSize: '0.62rem',
+              fontWeight: 800,
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+              padding: '3px 8px',
+              borderRadius: 20,
+              color: sc.color,
+              background: sc.bg,
+              border: `1px solid ${sc.border}`,
+            }}>
+              {overdue ? 'Overdue' : order.status.replace('-', ' ')}
             </span>
           </div>
         )}
+
+        {/* Stage badge */}
+        {stageObj && (
+          <div style={{ marginBottom: 3 }}>
+            <span style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 4,
+              fontSize: '0.62rem',
+              fontWeight: 700,
+              textTransform: 'uppercase',
+              letterSpacing: '0.4px',
+              padding: '3px 8px',
+              borderRadius: 20,
+              color: 'var(--text2)',
+              background: 'var(--surface2)',
+              border: '1px solid var(--border2)',
+            }}>
+              <span className="mi" style={{ fontSize: '0.7rem' }}>{stageObj.icon}</span>
+              {stageObj.label}
+            </span>
+          </div>
+        )}
+
+        {/* Due date */}
         {order.dueDate && (
           <div className={`${styles.orderListDue} ${overdue ? styles.orderListDueOverdue : ''}`}>
-            Due On {formatDate(order.dueDate)}{due ? ` · ${due}` : ''}
+            Due {formatDate(order.dueDate)}{due ? ` · ${due}` : ''}
           </div>
         )}
       </div>
@@ -255,22 +315,24 @@ export default function Orders({ onMenuClick }) {
   }
 
   const filtered = allOrders.filter(o => {
-    if (activeTab === 'all')       return true
-    if (activeTab === 'pending')   return !['completed','delivered','cancelled'].includes(o.status) && !isOverdue(o)
-    if (activeTab === 'completed') return o.status === 'completed'
-    if (activeTab === 'delivered') return o.status === 'delivered'
-    if (activeTab === 'cancelled') return o.status === 'cancelled'
-    if (activeTab === 'overdue')   return isOverdue(o)
+    if (activeTab === 'all')          return true
+    if (activeTab === 'pending')      return o.status === 'pending' && !isOverdue(o)
+    if (activeTab === 'in-progress')  return o.status === 'in-progress' && !isOverdue(o)
+    if (activeTab === 'completed')    return o.status === 'completed'
+    if (activeTab === 'delivered')    return o.status === 'delivered'
+    if (activeTab === 'cancelled')    return o.status === 'cancelled'
+    if (activeTab === 'overdue')      return isOverdue(o)
     return true
   })
 
   const counts = {
-    all:       allOrders.length,
-    pending:   allOrders.filter(o => !['completed','delivered','cancelled'].includes(o.status) && !isOverdue(o)).length,
-    completed: allOrders.filter(o => o.status === 'completed').length,
-    delivered: allOrders.filter(o => o.status === 'delivered').length,
-    cancelled: allOrders.filter(o => o.status === 'cancelled').length,
-    overdue:   allOrders.filter(o => isOverdue(o)).length,
+    all:           allOrders.length,
+    pending:       allOrders.filter(o => o.status === 'pending' && !isOverdue(o)).length,
+    'in-progress': allOrders.filter(o => o.status === 'in-progress' && !isOverdue(o)).length,
+    completed:     allOrders.filter(o => o.status === 'completed').length,
+    delivered:     allOrders.filter(o => o.status === 'delivered').length,
+    cancelled:     allOrders.filter(o => o.status === 'cancelled').length,
+    overdue:       allOrders.filter(o => isOverdue(o)).length,
   }
 
   const grouped = [...filtered]
