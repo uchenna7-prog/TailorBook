@@ -306,19 +306,20 @@
   color: var(--success);
 }
 
-/* ── STAGE CHIP ROW (used in form modal + detail view) ── */
+/* ── STAGE CHIP ROW ── */
 .stageChipRow {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  justify-content: flex-start; /* Corrected to align chips to the left */
-  align-items: flex-start;
+  justify-content: flex-start;
+  /* ADDED LINE: Force the container itself to only take up needed space */
+  align-items: flex-start !important;
   margin-top: 4px;
   margin-bottom: 4px;
 }
 
 .stageChip {
-  display: inline-flex !important; /* Force inline layout */
+  display: inline-flex !important;
   align-items: center;
   gap: 5px;
   padding: 8px 12px;
@@ -333,9 +334,9 @@
   transition: all 0.18s;
   white-space: nowrap;
   
-  /* FIXED: Use !important to prevent stretching */
+  /* FIXED: Use !important on width to win the "war" against stretching */
   flex: 0 0 auto !important;
-  width: auto !important;
+  width: fit-content !important;
   max-width: max-content !important;
 }
 
