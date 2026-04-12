@@ -58,7 +58,6 @@ function formatDate(ts) {
   return 'Unknown Date'
 }
 
-// Returns today's date as a readable string e.g. "Apr 12, 2026"
 function todayReadable() {
   return new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 }
@@ -121,7 +120,7 @@ function OrderModal({ isOpen, onClose, measurements, onSave }) {
       measurementIds: selectedItems.map(i => i.id),
       status:         'pending',
       stage:          stage || null,
-      takenAt:        todayReadable(),   // human-readable date the order was taken
+      takenAt:        todayReadable(),
     })
     reset()
     onClose()
@@ -141,7 +140,6 @@ function OrderModal({ isOpen, onClose, measurements, onSave }) {
       <div className={styles.modalBody}>
         <div style={{ padding: '20px' }}>
 
-          {/* ── 1. Select Clothes ── */}
           <p className={styles.sectionHeading}>1. Select Clothes</p>
           {measurements.length > 5 && (
             <div className={styles.pickerSearchWrap}>
@@ -182,7 +180,6 @@ function OrderModal({ isOpen, onClose, measurements, onSave }) {
             })}
           </div>
 
-          {/* ── 2. Pricing ── */}
           {selectedItems.length > 0 && (
             <>
               <p className={styles.sectionHeading} style={{ marginTop: 24 }}>2. Pricing Per Item</p>
@@ -212,7 +209,6 @@ function OrderModal({ isOpen, onClose, measurements, onSave }) {
             </>
           )}
 
-          {/* ── 3. Final Details ── */}
           <p className={styles.sectionHeading} style={{ marginTop: 24 }}>3. Final Details</p>
           <div className={styles.orderFormCard}>
             <label className={styles.labelTiny}>Order Description</label>
@@ -254,7 +250,6 @@ function OrderModal({ isOpen, onClose, measurements, onSave }) {
               ))}
             </div>
 
-            {/* ── Stage Selector ── */}
             <label className={styles.labelTiny} style={{ marginTop: 20 }}>Current Stage</label>
             <div className={styles.stageChipRow}>
               {STAGES.map(s => (
@@ -305,7 +300,6 @@ function OrderDetail({ order, measurements, onClose, onDelete, onStatusChange, o
       <div className={styles.detailBody}>
         <span className={`${styles.priorityBanner} ${banner.cls}`}>{banner.text}</span>
 
-        {/* Meta grid — price, status, stage, due */}
         <div className={styles.orderMetaGrid}>
           <div className={styles.orderMetaCell}>
             <div className={styles.cellLabel}>Total Price</div>
@@ -336,7 +330,6 @@ function OrderDetail({ order, measurements, onClose, onDelete, onStatusChange, o
           </div>
         </div>
 
-        {/* Garments */}
         {order.items && order.items.length > 0 && (
           <div className={styles.linkedSection}>
             <div className={styles.linkLabel}>Selected Garments & Prices</div>
@@ -358,7 +351,6 @@ function OrderDetail({ order, measurements, onClose, onDelete, onStatusChange, o
           </div>
         )}
 
-        {/* Change Status */}
         <div className={styles.linkedSection}>
           <div className={styles.linkLabel}>Change Status</div>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -374,7 +366,6 @@ function OrderDetail({ order, measurements, onClose, onDelete, onStatusChange, o
           </div>
         </div>
 
-        {/* Change Stage */}
         <div className={styles.linkedSection}>
           <div className={styles.linkLabel}>Change Stage</div>
           <div className={styles.stageChipRow}>
@@ -391,7 +382,6 @@ function OrderDetail({ order, measurements, onClose, onDelete, onStatusChange, o
           </div>
         </div>
 
-        {/* Notes */}
         {order.notes && (
           <div className={styles.notesSection}>
             <div className={styles.linkLabel}>Notes</div>
@@ -399,14 +389,12 @@ function OrderDetail({ order, measurements, onClose, onDelete, onStatusChange, o
           </div>
         )}
 
-        {/* Footer dates */}
         <div className={styles.detailDate}>
           Order Taken: {placedOn}
           {order.due && <> &nbsp;•&nbsp; Due: {order.due}</>}
           &nbsp;•&nbsp; Qty: {order.qty}
         </div>
 
-        {/* Generate Invoice */}
         <button
           className={styles.generateInvoiceBtn}
           onClick={() => onGenerateInvoice(order.id)}
@@ -465,7 +453,6 @@ export default function OrdersTab({ customerId, orders, measurements, showToast,
   const handleStageChange = async (id, stage) => {
     try {
       await updateOrderStage(customerId, id, stage)
-      // Auto-update status based on selected stage
       const autoStatus = stage ? STAGE_TO_STATUS[stage] : null
       if (autoStatus) {
         await updateOrderStatus(customerId, id, autoStatus)
@@ -482,7 +469,6 @@ export default function OrdersTab({ customerId, orders, measurements, showToast,
     }
   }
 
-  // Group by takenAt (human date) or createdAt — most recent date first
   const grouped = orders.reduce((acc, o) => {
     const key = o.takenAt || formatDate(o.createdAt) || o.date || 'Unknown Date'
     if (!acc[key]) acc[key] = []
@@ -510,6 +496,14 @@ export default function OrdersTab({ customerId, orders, measurements, showToast,
             const itemsList  = o.items || []
             const thumb      = itemsList[0]?.imgSrc
 
+            // Helper to determine status class
+            const getStatusClass = (status) => {
+              if (status === 'pending') return styles.statusPending;
+              if (status === 'in-progress') return styles.statusProgress;
+              if (status === 'completed' || status === 'delivered') return styles.statusDone;
+              return '';
+            }
+
             return (
               <div
                 key={o.id}
@@ -526,18 +520,11 @@ export default function OrdersTab({ customerId, orders, measurements, showToast,
                 <div className={styles.orderListInfo}>
                   <div className={styles.orderListDesc}>{o.desc}</div>
 
-                  {/* ── Status Badge Line ── */}
-                  <div style={{ marginBottom: 4 }}>
-                    <span className={`${styles.statusBadge} ${
-                      o.status === 'pending' ? styles.statusPending : 
-                      o.status === 'in-progress' ? styles.statusProgress : 
-                      styles.statusDone
-                    }`}>
-                      {statusObj.label}
-                    </span>
+                  <div className={styles.orderListStatusRow}>
+                    <span className="mi" style={{ fontSize: '0.85rem', color: 'var(--text3)' }}>autorenew</span>
+                    <span className={`${styles.statusBadge} ${getStatusClass(o.status)}`}>{statusObj.label}</span>
                   </div>
 
-                  {/* ── Stage Row (Moved to next line) ── */}
                   {stageObj && (
                     <div className={styles.orderListStageRow}>
                       <span className="mi" style={{ fontSize: '0.82rem', color: 'var(--accent)' }}>{stageObj.icon}</span>
