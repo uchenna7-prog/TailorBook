@@ -434,6 +434,27 @@
 .formTabActive { color: var(--accent); }
 .formTabActive::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px; background: var(--accent); }
 
+/* ── Form inline status banner ── */
+.formInlineMsg {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  animation: fadeSlideIn 0.22s ease;
+}
+
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.formInlineMsgOk  { background: rgba(34, 197, 94, 0.10); color: #16a34a; border-bottom: 1px solid rgba(34, 197, 94, 0.18); }
+.formInlineMsgErr { background: rgba(239, 68, 68, 0.08);  color: var(--danger); border-bottom: 1px solid rgba(239, 68, 68, 0.15); }
+
 /* ── SEX CHIPS ── */
 .sexRow { display: flex; gap: 10px; }
 
@@ -452,6 +473,7 @@
 }
 
 .sexChipActive { background: var(--accent); color: #ffffff; border-color: var(--accent); }
+.sexChipError  { border-color: var(--danger); color: var(--danger); }
 
 /* ── CUSTOM BODY FIELDS ── */
 .customFieldRow { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
@@ -665,4 +687,3 @@
   padding-left: 4px;
   transition: color 0.2s;
 }
-
