@@ -428,7 +428,7 @@ function AppointmentCard({ appt, onOpen, onStatusChange, isLast }) {
         <div className={styles.apptListBottom}>
           <span
             className={styles.statusPill}
-            style={{ background: effectiveSc.bg, color: effectiveSc.color, borderColor: effectiveSc.border }}
+            style={{ background: effectiveSc.bg, color: effectiveSc.color, borderColor: effectiveSc.border, borderRadius: '6px' }}
           >
             {overdue ? 'Missed' : effectiveSc.label}
           </span>
