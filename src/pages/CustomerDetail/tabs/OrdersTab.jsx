@@ -529,9 +529,6 @@ export default function OrdersTab({ customerId, orders, measurements, showToast,
                   {/* Garment name */}
                   <div className={styles.orderListDesc}>{o.desc}</div>
 
-                  {/* Customer / order meta row */}
-                  <div className={styles.orderListOrdRow}>{o.customerName || ''}</div>
-
                   {/* Status badge — coloured pill, no icon */}
                   <div className={styles.orderListStatusRow}>
                     <span className={`${styles.orderListStatusBadge} ${styles[`statusBadge_${(o.status || 'pending').replace('-', '_')}`]}`}>
