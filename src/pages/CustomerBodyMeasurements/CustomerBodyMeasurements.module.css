@@ -190,7 +190,6 @@
 
 /* ════════════════════════════════════════════════════════════
    EDIT MEASUREMENTS MODAL
-   Slides up from bottom, same animation as AddCustomerForm
    ════════════════════════════════════════════════════════════ */
 
 .editBackdrop {
@@ -213,7 +212,7 @@
 
 .editOverlayOpen { transform: translateY(0); }
 
-/* Header */
+/* Modal header */
 .editHeader {
   padding: calc(12px + var(--st, 0px)) 20px 12px;
   border-bottom: 1px solid var(--border);
@@ -235,7 +234,6 @@
   justify-content: center;
   color: var(--text2);
   cursor: pointer;
-  flex-shrink: 0;
 }
 
 .editCloseBtn:active { background: var(--surface); }
@@ -264,10 +262,10 @@
   flex-shrink: 0;
 }
 
-.editSaveBtn:active  { opacity: 0.75; }
+.editSaveBtn:active   { opacity: 0.75; }
 .editSaveBtn:disabled { opacity: 0.45; cursor: not-allowed; }
 
-/* Sub-header unit hint */
+/* Unit hint below header */
 .editSubheader {
   font-size: 0.6rem;
   font-weight: 800;
@@ -314,9 +312,7 @@
 }
 
 /* Text-only row inside modal */
-.editTextRow {
-  margin-bottom: 14px;
-}
+.editTextRow { margin-bottom: 14px; }
 
 /* Label */
 .editLabel {
@@ -345,5 +341,54 @@
   box-sizing: border-box;
 }
 
-.editInput:focus { border-color: var(--text2); }
+.editInput:focus       { border-color: var(--text2); }
 .editInput::placeholder { color: var(--text3); }
+
+/* ── Custom field row — identical to Customers.module.css ── */
+.customFieldRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.customFieldInputs {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 8px;
+}
+
+.removeCustomBtn {
+  background: none;
+  border: none;
+  color: var(--text3);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 4px;
+  flex-shrink: 0;
+}
+
+.removeCustomBtn:active { color: var(--danger); }
+
+/* ── Add custom field button ── */
+.addCustomFieldBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: 1px dashed var(--border2);
+  color: var(--text2);
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  width: 100%;
+  margin-top: 8px;
+  transition: border-color 0.2s;
+}
+
+.addCustomFieldBtn:active { border-color: var(--accent); }
