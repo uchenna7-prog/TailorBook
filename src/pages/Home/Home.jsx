@@ -544,14 +544,9 @@ function Home({ onMenuClick }) {
   const recentAppointments = upcoming.slice(0, 4)
   const pastAppointments   = recentAppts.slice(0, 4)
 
-  // ── Stat cards ────────────────────────────────────────────
-  // Sub-text colour logic:
-  //   • Red   → overdue / missed / alert state
-  //   • Amber → approaching deadline (due this week) / warning
-  //   • var(--text3) (neutral muted) → normal info (this wk count with no urgency)
   const statCards = [
     {
-      desktopIcon: 'shopping_bag', bgIcon: 'shopping_bag',
+      desktopIcon: 'shopping_bag',
       iconColor:   '#f59e0b',      value: pendingOrders.length,
       label:       'Pending Orders',
       sub:         ordersDueThisWeek > 0
@@ -564,7 +559,7 @@ function Home({ onMenuClick }) {
       positiveIsGood: true,        route: '/orders',
     },
     {
-      desktopIcon: 'receipt_long', bgIcon: 'receipt_long',
+      desktopIcon: 'receipt_long',
       iconColor:   '#ef4444',      value: totalUnpaid,
       label:       'Unpaid Invoices',
       sub:         totalOverdue > 0
@@ -577,7 +572,7 @@ function Home({ onMenuClick }) {
       positiveIsGood: false,       route: '/invoices',
     },
     {
-      desktopIcon: 'event',        bgIcon: 'today',
+      desktopIcon: 'event',
       iconColor:   '#06b6d4',      value: todayCount,
       label:       "Today's Appts",
       sub:         missedCount > 0
@@ -590,7 +585,7 @@ function Home({ onMenuClick }) {
       positiveIsGood: true,        route: '/appointments',
     },
     {
-      desktopIcon: 'task_alt',     bgIcon: 'checklist',
+      desktopIcon: 'task_alt',
       iconColor:   '#22c55e',      value: pendingTasks.length,
       label:       'Pending Tasks',
       sub:         tasksDueThisWeek > 0
@@ -645,13 +640,11 @@ function Home({ onMenuClick }) {
               <div className={styles.statCardBody}>
                 <div className={styles.statLabel}>{card.label}</div>
                 <div className={styles.statValue}>{card.value}</div>
-                {/* Only render sub-text when there's something meaningful to show */}
                 {card.sub && (
                   <div className={styles.statSub} style={{ color: card.subColor }}>{card.sub}</div>
                 )}
                 <Delta delta={card.delta} positiveIsGood={card.positiveIsGood} />
               </div>
-              <span className={`mi ${styles.statBgIcon}`}>{card.bgIcon}</span>
             </div>
           ))}
         </section>
@@ -704,47 +697,34 @@ function Home({ onMenuClick }) {
         {/* 3. CUSTOMER INSIGHTS CARD — full width ── */}
         <div className={styles.customerCard} onClick={() => navigate('/customers')}>
 
-          {/* Section label + chevron */}
+          {/* Header row */}
           <div className={styles.customerCardHeader}>
             <span className={styles.customerCardSectionLabel}>Customer Insights</span>
             <span className="mi" style={{ fontSize: '0.95rem', color: 'var(--text3)' }}>chevron_right</span>
           </div>
 
-          {/* Hero: big number + label side by side (like Stripe's summary cards) */}
+          {/* Hero total */}
           <div className={styles.customerHeroRow}>
-            <div className={styles.customerHeroLeft}>
-              <div className={styles.customerHeroNumber}>{totalCustomers.toLocaleString()}</div>
-              <div className={styles.customerHeroLabel}>Total Customers</div>
-            </div>
-            <div className={styles.customerCardIconWrap}>
-              <span className={styles.customerCardEmoji}>👥</span>
-            </div>
+            <div className={styles.customerHeroNumber}>{totalCustomers.toLocaleString()}</div>
+            <div className={styles.customerHeroLabel}>Total Customers</div>
           </div>
 
-          {/* Thin horizontal rule */}
+          {/* Divider */}
           <div className={styles.customerCardRule} />
 
-          {/* Three stat cells */}
-          <div className={styles.customerStatRow}>
-            <div className={styles.customerStatCell}>
-              <span className={styles.customerStatVal} style={{ color: 'var(--accent)' }}>
-                {bestCustomerName}
-              </span>
+          {/* Stats — stacked rows, label left / value right — names never clip */}
+          <div className={styles.customerStatStack}>
+            <div className={styles.customerStatRow}>
               <span className={styles.customerStatLbl}>Best Customer</span>
+              <span className={styles.customerStatVal} style={{ color: 'var(--accent)' }}>{bestCustomerName}</span>
             </div>
-
-            <div className={styles.customerStatSep} />
-
-            <div className={styles.customerStatCell}>
-              <span className={styles.customerStatVal}>{newCustThisMonth}</span>
+            <div className={styles.customerStatRow}>
               <span className={styles.customerStatLbl}>New This Month</span>
+              <span className={styles.customerStatVal}>{newCustThisMonth}</span>
             </div>
-
-            <div className={styles.customerStatSep} />
-
-            <div className={styles.customerStatCell}>
+            <div className={styles.customerStatRow}>
+              <span className={styles.customerStatLbl}>Retention Rate</span>
               <span className={styles.customerStatVal}>{retentionRate}%</span>
-              <span className={styles.customerStatLbl}>Retention</span>
             </div>
           </div>
         </div>
