@@ -383,7 +383,10 @@ export default function CustomerDetail({ onMenuClick }) {
           <button className={`${styles.btn} ${styles.light}`} onClick={() => window.location = `mailto:${customer.email}`}>
             <span className="mi">mail_outline</span>Email
           </button>
-          <button className={`${styles.btn} ${styles.primary}`}>
+          <button
+            className={`${styles.btn} ${styles.primary}`}
+            onClick={() => navigate(`/customers/${id}/body-measurements`)}
+          >
             <span className="mi">straighten</span>Full Body Measurements
           </button>
         </div>
