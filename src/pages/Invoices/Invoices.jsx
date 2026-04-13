@@ -36,18 +36,20 @@ function formatDate(dateStr) {
 // ── Tabs ──────────────────────────────────────────────────────
 
 const TABS = [
-  { id: 'all',     label: 'All'     },
-  { id: 'unpaid',  label: 'Unpaid'  },
-  { id: 'paid',    label: 'Paid'    },
-  { id: 'overdue', label: 'Overdue' },
+  { id: 'all',       label: 'All'          },
+  { id: 'unpaid',    label: 'Unpaid'       },
+  { id: 'part_paid', label: 'Part Payment' },
+  { id: 'paid',      label: 'Paid'         },
+  { id: 'overdue',   label: 'Overdue'      },
 ]
 
-const STATUS_LABELS = { unpaid: 'Unpaid', paid: 'Paid', overdue: 'Overdue' }
+const STATUS_LABELS = { unpaid: 'Unpaid', part_paid: 'Part Payment', paid: 'Paid', overdue: 'Overdue' }
 
 const STATUS_STYLES = {
-  paid:    { bg: 'rgba(34,197,94,0.12)',   color: '#15803d', border: 'rgba(34,197,94,0.3)'   },
-  unpaid:  { bg: 'rgba(234,179,8,0.12)',   color: '#a16207', border: 'rgba(234,179,8,0.3)'   },
-  overdue: { bg: 'rgba(239,68,68,0.12)',   color: '#dc2626', border: 'rgba(239,68,68,0.3)'   },
+  paid:      { bg: 'rgba(34,197,94,0.12)',   color: '#15803d', border: 'rgba(34,197,94,0.3)'   },
+  part_paid: { bg: 'rgba(251,146,60,0.12)',  color: '#c2410c', border: 'rgba(251,146,60,0.3)'  },
+  unpaid:    { bg: 'rgba(234,179,8,0.12)',   color: '#a16207', border: 'rgba(234,179,8,0.3)'   },
+  overdue:   { bg: 'rgba(239,68,68,0.12)',   color: '#dc2626', border: 'rgba(239,68,68,0.3)'   },
 }
 
 // ── Invoice List Item ─────────────────────────────────────────
@@ -56,8 +58,9 @@ function InvoiceCard({ invoice, currency, onTap, isLast }) {
   const total = invoice.items?.length > 0
     ? invoice.items.reduce((sum, item) => sum + (parseFloat(item.price) || 0), 0)
     : (parseFloat(invoice.price) || 0)
-  const overdue = isOverdue(invoice)
-  const status  = overdue && invoice.status !== 'paid' ? 'overdue' : invoice.status
+  const overdue    = isOverdue(invoice)
+  const statusKey  = overdue && invoice.status !== 'paid' ? 'overdue' : (invoice.status || 'unpaid')
+  const sty        = STATUS_STYLES[statusKey] ?? STATUS_STYLES.unpaid
 
   return (
     <div
@@ -88,11 +91,11 @@ function InvoiceCard({ invoice, currency, onTap, isLast }) {
           borderRadius: '6px',
           fontSize: '0.72rem',
           fontWeight: 600,
-          background: (STATUS_STYLES[status] ?? STATUS_STYLES.unpaid).bg,
-          color:      (STATUS_STYLES[status] ?? STATUS_STYLES.unpaid).color,
-          border:     `1px solid ${(STATUS_STYLES[status] ?? STATUS_STYLES.unpaid).border}`,
+          background: sty.bg,
+          color:      sty.color,
+          border:     `1px solid ${sty.border}`,
         }}>
-          {STATUS_LABELS[status] ?? status}
+          {STATUS_LABELS[statusKey] ?? statusKey}
         </span>
         <div className={`${styles.invoiceListAmount}`}>{fmt(currency, total)}</div>
       </div>
@@ -163,26 +166,29 @@ export default function Invoices({ onMenuClick }) {
 
   // ── Filter ───────────────────────────────────────────────
   const filtered = allInvoices.filter(inv => {
-    if (activeTab === 'all')     return true
-    if (activeTab === 'paid')    return inv.status === 'paid'
-    if (activeTab === 'unpaid')  return inv.status !== 'paid' && !isOverdue(inv)
-    if (activeTab === 'overdue') return isOverdue(inv)
+    if (activeTab === 'all')       return true
+    if (activeTab === 'paid')      return inv.status === 'paid'
+    if (activeTab === 'unpaid')    return inv.status !== 'paid' && inv.status !== 'part_paid' && !isOverdue(inv)
+    if (activeTab === 'part_paid') return inv.status === 'part_paid' && !isOverdue(inv)
+    if (activeTab === 'overdue')   return isOverdue(inv)
     return true
   })
 
   // ── Counts ───────────────────────────────────────────────
   const counts = {
-    all:     allInvoices.length,
-    unpaid:  allInvoices.filter(i => i.status !== 'paid' && !isOverdue(i)).length,
-    paid:    allInvoices.filter(i => i.status === 'paid').length,
-    overdue: allInvoices.filter(i => isOverdue(i)).length,
+    all:       allInvoices.length,
+    unpaid:    allInvoices.filter(i => i.status !== 'paid' && i.status !== 'part_paid' && !isOverdue(i)).length,
+    part_paid: allInvoices.filter(i => i.status === 'part_paid' && !isOverdue(i)).length,
+    paid:      allInvoices.filter(i => i.status === 'paid').length,
+    overdue:   allInvoices.filter(i => isOverdue(i)).length,
   }
 
   const EMPTY_TEXT = {
-    all:     'No invoices yet.',
-    unpaid:  'No unpaid invoices.',
-    paid:    'No paid invoices yet.',
-    overdue: 'No overdue invoices. All good!',
+    all:       'No invoices yet.',
+    unpaid:    'No unpaid invoices.',
+    part_paid: 'No part-payment invoices.',
+    paid:      'No paid invoices yet.',
+    overdue:   'No overdue invoices. All good!',
   }
 
   // ── Search filter ────────────────────────────────────────
@@ -244,7 +250,7 @@ export default function Invoices({ onMenuClick }) {
                 onClick={() => { setActiveTab(t.id); setFilterOpen(false) }}
               >
                 <span className="mi" style={{ fontSize: '1.1rem' }}>
-                  {t.id === 'paid' ? 'check_circle' : t.id === 'unpaid' ? 'pending' : t.id === 'overdue' ? 'alarm' : 'receipt_long'}
+                  {t.id === 'paid' ? 'check_circle' : t.id === 'unpaid' ? 'pending' : t.id === 'part_paid' ? 'payments' : t.id === 'overdue' ? 'alarm' : 'receipt_long'}
                 </span>
                 {t.label}
                 {activeTab === t.id && <span className="mi" style={{ fontSize: '1rem', marginLeft: 'auto', color: 'var(--accent)' }}>check</span>}
