@@ -512,9 +512,12 @@ export default function PaymentsTab({ customerId, orders, showToast, onGenerateR
     try {
       await createPayment(user.uid, customerId, paymentData)
       showToast('Payment recorded ✓')
-      // If payment was saved as fully paid, auto-update the matching invoice
+      // Auto-update the matching invoice status based on payment type:
+      // 'paid' → Full Payment, 'part' → Part Payment
       if (paymentData.status === 'paid') {
-        onInvoicePaid?.(paymentData.orderId)
+        onInvoicePaid?.(paymentData.orderId, 'paid')
+      } else if (paymentData.status === 'part') {
+        onInvoicePaid?.(paymentData.orderId, 'part_paid')
       }
     } catch {
       showToast('Failed to save payment.')
@@ -548,10 +551,12 @@ export default function PaymentsTab({ customerId, orders, showToast, onGenerateR
       })
       if (newStatus === 'paid') {
         showToast('Payment complete! Marked as Paid ✓')
-        // Auto-update the matching invoice to paid
-        onInvoicePaid?.(payment.orderId)
+        // Auto-update the matching invoice to Full Payment
+        onInvoicePaid?.(payment.orderId, 'paid')
       } else {
         showToast('Payment recorded ✓')
+        // Auto-update the matching invoice to Part Payment
+        onInvoicePaid?.(payment.orderId, 'part_paid')
       }
     } catch {
       showToast('Failed to record payment.')
