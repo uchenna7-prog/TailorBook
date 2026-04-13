@@ -570,6 +570,8 @@ export default function Appointments({ onMenuClick }) {
   const [detailAppt,    setDetailAppt]    = useState(null)
   const [confirmDel,    setConfirmDel]    = useState(null)
   const [toastMsg,      setToastMsg]      = useState('')
+  const [search,        setSearch]        = useState('')
+  const [filterOpen,    setFilterOpen]    = useState(false)
   const toastTimer = useRef(null)
 
   // ── Subscribe to Firestore ────────────────────────────────
@@ -645,8 +647,17 @@ export default function Appointments({ onMenuClick }) {
     missed:   appointments.filter(a => a.status === 'missed' || (isOverdue(a) && a.status === 'upcoming')).length,
   }
 
+  // ── Search filter ────────────────────────────────────────
+  const searchFiltered = search.trim()
+    ? filtered.filter(a =>
+        (a.title        || '').toLowerCase().includes(search.toLowerCase()) ||
+        (a.customerName || '').toLowerCase().includes(search.toLowerCase()) ||
+        (a.orderDesc    || '').toLowerCase().includes(search.toLowerCase())
+      )
+    : filtered
+
   // ── Group by date ─────────────────────────────────────────
-  const grouped = filtered.reduce((acc, a) => {
+  const grouped = searchFiltered.reduce((acc, a) => {
     const key = a.date ? formatDate(a.date) : 'No Date'
     if (!acc[key]) acc[key] = []
     acc[key].push(a)
@@ -657,8 +668,56 @@ export default function Appointments({ onMenuClick }) {
     <div className={styles.page}>
       <Header title="Appointments" onMenuClick={onMenuClick} />
 
+      {/* ── Search + filter ── */}
+      <div className={styles.searchContainer}>
+        <div className={styles.searchRow}>
+          <div className={styles.searchBox}>
+            <span className="mi" style={{ color: 'var(--text3)', fontSize: '1.1rem' }}>search</span>
+            <input
+              type="text"
+              placeholder="Search appointments or clients…"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+            />
+            {search && (
+              <button
+                style={{ background: 'none', border: 'none', color: 'var(--text3)', display: 'flex', cursor: 'pointer', padding: 0 }}
+                onClick={() => setSearch('')}
+              >
+                <span className="mi" style={{ fontSize: '1rem' }}>close</span>
+              </button>
+            )}
+          </div>
+          <button
+            className={`${styles.filterBtn} ${filterOpen ? styles.filterBtnActive : ''}`}
+            onClick={() => setFilterOpen(p => !p)}
+          >
+            <span className="mi" style={{ fontSize: '1.2rem' }}>tune</span>
+          </button>
+        </div>
+
+        {filterOpen && (
+          <div className={styles.filterDropdown}>
+            <div className={styles.filterDropdownTitle}>Filter by Status</div>
+            {TABS.map(t => (
+              <button
+                key={t.id}
+                className={`${styles.filterOption} ${activeTab === t.id ? styles.filterOptionActive : ''}`}
+                onClick={() => { setActiveTab(t.id); setFilterOpen(false) }}
+              >
+                <span className="mi" style={{ fontSize: '1.1rem' }}>
+                  {t.id === 'upcoming' ? 'event_available' : t.id === 'done' ? 'check_circle' : t.id === 'missed' ? 'event_busy' : 'calendar_today'}
+                </span>
+                {t.label}
+                {activeTab === t.id && <span className="mi" style={{ fontSize: '1rem', marginLeft: 'auto', color: 'var(--accent)' }}>check</span>}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
       {/* ── TABS ── */}
-      <div className={styles.tabs}>
+      <div className={styles.tabs} onClick={() => filterOpen && setFilterOpen(false)}>
         {TABS.map(tab => (
           <div
             key={tab.id}
@@ -676,8 +735,8 @@ export default function Appointments({ onMenuClick }) {
       </div>
 
       {/* ── LIST ── */}
-      <div className={styles.listArea}>
-        {filtered.length === 0 && (
+      <div className={styles.listArea} onClick={() => filterOpen && setFilterOpen(false)}>
+        {searchFiltered.length === 0 && (
           <div className={styles.emptyState}>
             <span className="mi" style={{ fontSize: '2.8rem', opacity: 0.2 }}>
               {activeTab === 'done'    ? 'check_circle'   :
