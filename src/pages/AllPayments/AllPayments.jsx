@@ -18,6 +18,7 @@
 import { useState, useRef, useCallback } from 'react'
 import { useNavigate }  from 'react-router-dom'
 import { usePayments }  from '../../contexts/PaymentContext'
+import { useOrders }    from '../../contexts/OrdersContext'
 import Header           from '../../components/Header/Header'
 import Toast            from '../../components/Toast/Toast'
 import styles from './AllPayments.module.css'
@@ -169,7 +170,7 @@ const TABS = [
 
 // ── PAYMENT ROW ───────────────────────────────────────────────
 
-function PaymentRow({ row, isLast, onTap }) {
+function PaymentRow({ row, isLast, onTap, orderImageUrl }) {
   const sm        = STATUS_META[row.paymentStatus] ?? STATUS_META.not_paid
   const mIcon     = METHOD_ICONS[row.method] ?? 'payments'
   const mLabel    = METHOD_LABELS[row.method] ?? 'Cash'
@@ -197,9 +198,17 @@ function PaymentRow({ row, isLast, onTap }) {
         }}
       >
         <div className={styles.iconInner}>
-          <span className="mi" style={{ fontSize: '1.4rem', color: isPending ? '#94a3b8' : sm.color }}>
-            {isPending ? 'hourglass_empty' : mIcon}
-          </span>
+          {orderImageUrl ? (
+            <img
+              src={orderImageUrl}
+              alt={row.orderDesc || 'Order'}
+              className={styles.orderImg}
+            />
+          ) : (
+            <span className="mi" style={{ fontSize: '1.4rem', color: isPending ? '#94a3b8' : sm.color }}>
+              {isPending ? 'hourglass_empty' : mIcon}
+            </span>
+          )}
         </div>
       </div>
 
@@ -262,7 +271,7 @@ function PaymentRow({ row, isLast, onTap }) {
 
 // ── ROW DETAIL SHEET ──────────────────────────────────────────
 
-function PaymentDetail({ row, onClose, onNavigateToCustomer }) {
+function PaymentDetail({ row, onClose, onNavigateToCustomer, orderImageUrl }) {
   if (!row) return null
 
   const sm              = STATUS_META[row.paymentStatus] ?? STATUS_META.not_paid
@@ -306,6 +315,15 @@ function PaymentDetail({ row, onClose, onNavigateToCustomer }) {
 
           {/* ── Amount hero ── */}
           <div className={styles.amountHero}>
+            {orderImageUrl && (
+              <div className={styles.detailImgWrap}>
+                <img
+                  src={orderImageUrl}
+                  alt={row.orderDesc || 'Order'}
+                  className={styles.detailImg}
+                />
+              </div>
+            )}
             <div className={styles.heroAmount} style={{ color: sm.color }}>
               {row.amount !== null ? fmt(row.amount) : '₦ —'}
             </div>
@@ -444,6 +462,7 @@ function PaymentDetail({ row, onClose, onNavigateToCustomer }) {
 export default function AllPayments({ onMenuClick }) {
   const navigate         = useNavigate()
   const { allPayments }  = usePayments()
+  const { allOrders }    = useOrders()
 
   const [activeTab,  setActiveTab]  = useState('all')
   const [detailRow,  setDetailRow]  = useState(null)
@@ -458,6 +477,14 @@ export default function AllPayments({ onMenuClick }) {
     clearTimeout(toastTimer.current)
     toastTimer.current = setTimeout(() => setToastMsg(''), 2400)
   }, [])
+
+  // ── Build order image lookup: "customerId__orderId" → imageUrl ─
+  const orderImageMap = {}
+  for (const order of allOrders) {
+    if (order.imageUrl && order.customerId && order.id) {
+      orderImageMap[`${order.customerId}__${order.id}`] = order.imageUrl
+    }
+  }
 
   // ── Flatten → sort ────────────────────────────────────────
   const allRows = sortRows(flattenPayments(allPayments))
@@ -606,6 +633,7 @@ export default function AllPayments({ onMenuClick }) {
                 row={row}
                 isLast={idx === rows.length - 1}
                 onTap={setDetailRow}
+                orderImageUrl={orderImageMap[`${row.customerId}__${row.orderId}`] ?? null}
               />
             ))}
           </div>
@@ -620,6 +648,7 @@ export default function AllPayments({ onMenuClick }) {
           row={detailRow}
           onClose={() => setDetailRow(null)}
           onNavigateToCustomer={(id) => navigate(`/customers/${id}`)}
+          orderImageUrl={orderImageMap[`${detailRow.customerId}__${detailRow.orderId}`] ?? null}
         />
       )}
 
