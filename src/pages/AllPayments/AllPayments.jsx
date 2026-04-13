@@ -75,7 +75,7 @@ function flattenPayments(allPayments) {
 
   for (const p of allPayments) {
     const installments = p.installments || []
-    const totalPaid = installments.reduce((s, i) => s + (parseFloat(i.amount) || 0), 0)
+    const fullPrice    = parseFloat(p.orderPrice) || 0
 
     if (installments.length === 0) {
       // No money has moved yet — show a placeholder row on creation date
@@ -97,7 +97,19 @@ function flattenPayments(allPayments) {
         notes:             p.notes,
       })
     } else {
+      // Each installment row gets its OWN snapshot:
+      //   - totalPaid = cumulative sum UP TO AND INCLUDING this installment
+      //   - paymentStatus = derived from that running total, not the parent's final status
+      // This way earlier part-payments stay "Part Payment" even after the last
+      // installment tips the overall payment to "paid".
+      let runningTotal = 0
       installments.forEach((inst, idx) => {
+        runningTotal += parseFloat(inst.amount) || 0
+
+        const rowStatus = fullPrice > 0
+          ? (runningTotal >= fullPrice ? 'paid' : 'part')
+          : (idx === installments.length - 1 ? p.status : 'part')
+
         rows.push({
           rowKey:            `${p.id}__${inst.id ?? idx}`,
           paymentId:         p.id,
@@ -106,13 +118,13 @@ function flattenPayments(allPayments) {
           orderId:           p.orderId,
           orderDesc:         p.orderDesc,
           orderPrice:        p.orderPrice,
-          paymentStatus:     p.status,
+          paymentStatus:     rowStatus,
           amount:            inst.amount,
           method:            inst.method || 'cash',
           date:              inst.date || p.date || 'Unknown Date',
           installIndex:      idx + 1,
           totalInstallments: installments.length,
-          totalPaid,
+          totalPaid:         runningTotal,
           notes:             p.notes,
         })
       })
