@@ -115,6 +115,8 @@ export default function Invoices({ onMenuClick }) {
   const [allInvoices, setAllInvoices] = useState([])
   const [activeTab,   setActiveTab]   = useState('all')
   const [viewing,     setViewing]     = useState(null)
+  const [search,      setSearch]      = useState('')
+  const [filterOpen,  setFilterOpen]  = useState(false)
   const unsubsRef = useRef({})
 
   // ── Subscribe to every customer's invoices ────────────────
@@ -183,8 +185,17 @@ export default function Invoices({ onMenuClick }) {
     overdue: 'No overdue invoices. All good!',
   }
 
+  // ── Search filter ────────────────────────────────────────
+  const searchFiltered = search.trim()
+    ? filtered.filter(inv =>
+        (inv.orderDesc    || '').toLowerCase().includes(search.toLowerCase()) ||
+        (inv.customerName || '').toLowerCase().includes(search.toLowerCase()) ||
+        (inv.number       || '').toLowerCase().includes(search.toLowerCase())
+      )
+    : filtered
+
   // ── Group by date ─────────────────────────────────────────
-  const grouped = filtered.reduce((acc, inv) => {
+  const grouped = searchFiltered.reduce((acc, inv) => {
     const key = inv.date || 'Unknown Date'
     if (!acc[key]) acc[key] = []
     acc[key].push(inv)
@@ -195,8 +206,56 @@ export default function Invoices({ onMenuClick }) {
     <div className={styles.page}>
       <Header title="Invoices" onMenuClick={onMenuClick} />
 
+      {/* ── Search + filter ── */}
+      <div className={styles.searchContainer}>
+        <div className={styles.searchRow}>
+          <div className={styles.searchBox}>
+            <span className="mi" style={{ color: 'var(--text3)', fontSize: '1.1rem' }}>search</span>
+            <input
+              type="text"
+              placeholder="Search invoices or clients…"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+            />
+            {search && (
+              <button
+                style={{ background: 'none', border: 'none', color: 'var(--text3)', display: 'flex', cursor: 'pointer', padding: 0 }}
+                onClick={() => setSearch('')}
+              >
+                <span className="mi" style={{ fontSize: '1rem' }}>close</span>
+              </button>
+            )}
+          </div>
+          <button
+            className={`${styles.filterBtn} ${filterOpen ? styles.filterBtnActive : ''}`}
+            onClick={() => setFilterOpen(p => !p)}
+          >
+            <span className="mi" style={{ fontSize: '1.2rem' }}>tune</span>
+          </button>
+        </div>
+
+        {filterOpen && (
+          <div className={styles.filterDropdown}>
+            <div className={styles.filterDropdownTitle}>Filter by Status</div>
+            {TABS.map(t => (
+              <button
+                key={t.id}
+                className={`${styles.filterOption} ${activeTab === t.id ? styles.filterOptionActive : ''}`}
+                onClick={() => { setActiveTab(t.id); setFilterOpen(false) }}
+              >
+                <span className="mi" style={{ fontSize: '1.1rem' }}>
+                  {t.id === 'paid' ? 'check_circle' : t.id === 'unpaid' ? 'pending' : t.id === 'overdue' ? 'alarm' : 'receipt_long'}
+                </span>
+                {t.label}
+                {activeTab === t.id && <span className="mi" style={{ fontSize: '1rem', marginLeft: 'auto', color: 'var(--accent)' }}>check</span>}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
       {/* Tabs */}
-      <div className={styles.tabs}>
+      <div className={styles.tabs} onClick={() => filterOpen && setFilterOpen(false)}>
         {TABS.map(tab => (
           <div
             key={tab.id}
@@ -217,8 +276,8 @@ export default function Invoices({ onMenuClick }) {
       </div>
 
       {/* List */}
-      <div className={styles.listArea}>
-        {filtered.length === 0 ? (
+      <div className={styles.listArea} onClick={() => filterOpen && setFilterOpen(false)}>
+        {searchFiltered.length === 0 ? (
           <div className={styles.emptyState}>
             <span className="mi" style={{ fontSize: '2.8rem', opacity: 0.2 }}>receipt_long</span>
             <p>{EMPTY_TEXT[activeTab]}</p>
