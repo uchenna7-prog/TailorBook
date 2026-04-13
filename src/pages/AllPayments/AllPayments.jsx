@@ -564,6 +564,7 @@ export default function AllPayments({ onMenuClick }) {
           <div
             key={tab.id}
             className={`${styles.tab} ${activeTab === tab.id ? styles.tabActive : ''}`}
+            style={{ whiteSpace: 'nowrap' }}
             onClick={() => setActiveTab(tab.id)}
           >
             {tab.label}
