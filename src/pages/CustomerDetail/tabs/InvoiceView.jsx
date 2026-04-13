@@ -323,8 +323,28 @@ const TEMPLATE_MAP = {
   free:      FreeTemplate,
 }
 
-const STATUS_LABELS = { unpaid: 'Unpaid', paid: 'Paid', overdue: 'Overdue' }
-const STATUS_NEXT   = { unpaid: 'paid', paid: 'unpaid', overdue: 'paid' }
+// ─────────────────────────────────────────────────────────────
+// Status config
+// 'part_paid' = invoice auto-updated when a part payment was recorded
+// 'paid'      = invoice auto-updated when full payment was recorded
+// ─────────────────────────────────────────────────────────────
+const STATUS_LABELS = {
+  unpaid:    'Unpaid',
+  part_paid: 'Part Payment',
+  paid:      'Full Payment',
+  overdue:   'Overdue',
+}
+
+// Toggling from the invoice view:
+//   unpaid / overdue  → paid (manual full-pay)
+//   part_paid         → paid (confirm balance settled)
+//   paid              → unpaid (requires confirmation)
+const STATUS_NEXT = {
+  unpaid:    'paid',
+  overdue:   'paid',
+  part_paid: 'paid',
+  paid:      'unpaid',
+}
 
 async function generatePDF(paperEl, filename) {
   const canvas = await html2canvas(paperEl, { 
@@ -366,16 +386,17 @@ export default function InvoiceView({ invoice: initialInvoice, customer, onClose
   }
 
   const handleToggleStatus = () => {
-    // If already paid, show confirmation before reverting to unpaid
+    // paid → unpaid requires confirmation
     if (invoice.status === 'paid') {
       setShowUnpaidSheet(true)
       return
     }
-    // For unpaid/overdue → paid, no confirmation needed
+    // part_paid → paid: mark balance as settled
+    // unpaid / overdue → paid
     const newStatus = STATUS_NEXT[invoice.status] || 'paid'
     onStatusChange(invoice.id, newStatus)
     setInvoice(prev => ({ ...prev, status: newStatus }))
-    showToast?.(`Marked as ${newStatus}`)
+    showToast?.(`Marked as ${STATUS_LABELS[newStatus] || newStatus}`)
   }
 
   const handleConfirmUnpaid = () => {
@@ -399,6 +420,15 @@ export default function InvoiceView({ invoice: initialInvoice, customer, onClose
       setPdfLoading(false)
     }
   }
+
+  // Determine bottom button label based on current status
+  const isAlreadyPaid = invoice.status === 'paid'
+  const isPartPaid    = invoice.status === 'part_paid'
+  const bottomBtnLabel = isAlreadyPaid
+    ? 'Mark as Unpaid'
+    : isPartPaid
+      ? 'Mark as Fully Paid'
+      : 'Mark as Paid'
 
   return (
     <div className={styles.overlay}>
@@ -437,13 +467,13 @@ export default function InvoiceView({ invoice: initialInvoice, customer, onClose
 
       <div className={styles.bottomBar}>
         <button
-          className={`${styles.statusBtn} ${invoice.status === 'paid' ? styles.statusBtnUnpaid : styles.statusBtnPaid}`}
+          className={`${styles.statusBtn} ${isAlreadyPaid ? styles.statusBtnUnpaid : styles.statusBtnPaid}`}
           onClick={handleToggleStatus}
         >
           <span className="mi" style={{ fontSize: '1rem' }}>
-            {invoice.status === 'paid' ? 'undo' : 'check_circle'}
+            {isAlreadyPaid ? 'undo' : 'check_circle'}
           </span>
-          {invoice.status === 'paid' ? 'Mark as Unpaid' : 'Mark as Paid'}
+          {bottomBtnLabel}
         </button>
         <button className={styles.deleteBtn} onClick={() => onDelete(invoice.id)}>
           <span className="mi">delete</span>
