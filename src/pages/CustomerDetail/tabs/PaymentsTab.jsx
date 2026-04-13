@@ -545,6 +545,15 @@ export default function PaymentsTab({ customerId, orders, showToast, onGenerateR
     return unsub
   }, [user, customerId])
 
+  // Build order image lookup: orderId → imgSrc
+  const orderImageMap = {}
+  for (const order of (orders || [])) {
+    const imgSrc = order.items?.[0]?.imgSrc
+    if (imgSrc && order.id) {
+      orderImageMap[order.id] = imgSrc
+    }
+  }
+
   const handleSave = async (paymentData) => {
     if (!user) return
     try {
@@ -675,6 +684,7 @@ export default function PaymentsTab({ customerId, orders, showToast, onGenerateR
             const pct            = fullPrice > 0
               ? (p.status === 'part' ? Math.min(99, (totalPaid / fullPrice) * 100) : Math.min(100, (totalPaid / fullPrice) * 100))
               : 0
+            const orderImgSrc    = orderImageMap[p.orderId] ?? null
 
             return (
               <div
@@ -684,7 +694,15 @@ export default function PaymentsTab({ customerId, orders, showToast, onGenerateR
               >
                 <div className={styles.payListOuter}>
                   <div className={styles.payListInner}>
-                    <span className="mi" style={{ fontSize: '1.5rem', color: sm.color }}>payments</span>
+                    {orderImgSrc ? (
+                      <img
+                        src={orderImgSrc}
+                        alt={p.orderDesc || 'Order'}
+                        className={styles.orderImg}
+                      />
+                    ) : (
+                      <span className="mi" style={{ fontSize: '1.5rem', color: sm.color }}>payments</span>
+                    )}
                   </div>
                 </div>
                 <div className={styles.payListInfo}>
