@@ -188,6 +188,7 @@ export default function CustomerDetail({ onMenuClick }) {
       return
     }
 
+    // ── Which installments are new (not yet receipted)? ───────
     const usedInstallmentIds = new Set(
       receipts
         .filter(r => String(r.paymentId) === String(payment.id))
@@ -202,10 +203,15 @@ export default function CustomerDetail({ onMenuClick }) {
       ? newInstallments
       : allInstallments
 
-    const totalPaid  = allInstallments.reduce((s, i) => s + (parseFloat(i.amount) || 0), 0)
-    const orderTotal = parseFloat(payment.orderPrice) || 0
-    const balance    = Math.max(0, orderTotal - totalPaid)
-    const isFullPay  = balance <= 0
+    // ── FIX: cumulativePaid = running total of ALL installments ──
+    // This is the total the customer has paid so far across every
+    // installment, regardless of which ones appear on this receipt.
+    // It drives the "Amount Paid" and "Balance Remaining" on the receipt,
+    // so it must reflect the true running balance — not just this payment.
+    const cumulativePaid = allInstallments.reduce((s, i) => s + (parseFloat(i.amount) || 0), 0)
+    const orderTotal     = parseFloat(payment.orderPrice) || 0
+    const balance        = Math.max(0, orderTotal - cumulativePaid)
+    const isFullPay      = balance <= 0
 
     const order = orders.find(o => String(o.id) === String(payment.orderId))
 
@@ -221,6 +227,8 @@ export default function CustomerDetail({ onMenuClick }) {
       items:          order?.items || payment.orderItems || [],
       number:         rcptNumber,
       date:           todayStr,
+      // payments = only the installment(s) being receipted right now (shown
+      // in the "Payments Received" section of the receipt).
       payments:       installmentsForReceipt.map(inst => ({
         id:     inst.id,
         amount: inst.amount,
@@ -228,8 +236,14 @@ export default function CustomerDetail({ onMenuClick }) {
         date:   inst.date,
       })),
       installmentIds: installmentsForReceipt.map(inst => String(inst.id)),
+      // ── THE FIX ──────────────────────────────────────────────
+      // cumulativePaid is the grand running total paid so far.
+      // ReceiptView uses this (not receipt.payments) to compute
+      // "Amount Paid" and "Balance Remaining" so every receipt
+      // in a part-payment chain shows the correct balance.
+      cumulativePaid,
       isFullPayment:  isFullPay,
-      balance:        isFullPay ? 0 : balance,
+      balance,
       notes:          payment.notes || '',
       brandSnapshot: {
         name:     invoiceBrand?.name    || settingsSnap.brandName      || '',
