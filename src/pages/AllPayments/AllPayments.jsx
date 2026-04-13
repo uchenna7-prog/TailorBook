@@ -100,18 +100,20 @@ function flattenPayments(allPayments) {
     } else {
       // Each installment row gets its OWN snapshot:
       //   - totalPaid = cumulative sum UP TO AND INCLUDING this installment
-      //   - paymentStatus = always the parent payment's original status (p.status).
-      //     A part payment that eventually clears the balance stays 'part' — it
-      //     belongs in the Part Payment tab with part colours. Only payments that
-      //     were entered as Full Payment from the start have p.status === 'paid'
-      //     and appear in the Full Payments tab.
+      //   - paymentStatus:
+      //       * Single installment  -> trust p.status ('paid' = Full Payment, 'part' = Part Payment)
+      //         The user explicitly chose Full or Part when creating it.
+      //       * Multiple installments -> always 'part', regardless of p.status.
+      //         p.status may have been upgraded to 'paid' after the final installment
+      //         cleared the balance, but every row in this payment was part of a
+      //         part-payment journey and must stay orange in the Part Payment tab.
+      const isSingleInstallment = installments.length === 1
       let runningTotal = 0
       installments.forEach((inst, idx) => {
         const previousPaid = runningTotal  // what was paid BEFORE this installment
         runningTotal += parseFloat(inst.amount) || 0
 
-        // Always inherit the original payment status — never derive from math.
-        const rowStatus = p.status
+        const rowStatus = isSingleInstallment ? p.status : 'part'
 
         // previousInstallments = all installments before this one (for detail sheet)
         const previousInstallments = installments.slice(0, idx).map(i => ({
