@@ -151,11 +151,17 @@
   top: 56px;
   z-index: 50;
   flex-shrink: 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;        /* Firefox */
+  -ms-overflow-style: none;     /* IE/Edge */
 }
 
+.tabs::-webkit-scrollbar { display: none; } /* Chrome/Safari */
+
 .tab {
-  flex: 1;
-  padding: 14px 4px;
+  flex: 0 0 auto;               /* don't shrink — let them scroll */
+  padding: 14px 16px;
   text-align: center;
   font-size: 0.68rem;
   font-weight: 700;
@@ -169,6 +175,7 @@
   align-items: center;
   justify-content: center;
   gap: 5px;
+  white-space: nowrap;
 }
 
 .tabActive {
