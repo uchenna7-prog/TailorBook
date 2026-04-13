@@ -163,7 +163,7 @@ function sortRows(rows) {
 const TABS = [
   { id: 'all',      label: 'All'      },
   { id: 'paid',     label: 'Paid'     },
-  { id: 'part',     label: 'Partial'  },
+  { id: 'part',     label: 'Part Payment'  },
   { id: 'not_paid', label: 'Not Paid' },
 ]
 
