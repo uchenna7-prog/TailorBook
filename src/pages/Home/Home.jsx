@@ -557,15 +557,22 @@ function Home({ onMenuClick }) {
   const invoicesDueThisWeek = unpaidInvoices.filter(i => dueThisWeek(getInvDueDate(i))).length
 
   // ── Zero-paid invoices (no payment recorded at all) ───────
+  // Payments link to invoices via orderId — match on orderId AND invoiceId.
+  // Also exclude 'part_paid' directly since those have a confirmed part payment.
   const getPaidAmount = (inv) => {
-    const matched = allPayments.filter(p => p.invoiceId === inv.id)
+    const matched = allPayments.filter(p =>
+      (inv.orderId && String(p.orderId) === String(inv.orderId)) ||
+      (p.invoiceId && String(p.invoiceId) === String(inv.id))
+    )
     return matched.reduce((sum, p) => {
       const insts = p.installments || []
       if (insts.length) return sum + insts.reduce((s, inst) => s + (Number(inst.amount) || 0), 0)
       return sum + (Number(p.amount) || 0)
     }, 0)
   }
-  const zeroPaidInvoices    = allInvoices.filter(i => i.status !== 'paid' && getPaidAmount(i) === 0)
+  const zeroPaidInvoices    = allInvoices.filter(i =>
+    i.status !== 'paid' && i.status !== 'part_paid' && getPaidAmount(i) === 0
+  )
   const zeroPaidDueThisWeek = zeroPaidInvoices.filter(i => dueThisWeek(getInvDueDate(i))).length
 
   // ── Tasks ─────────────────────────────────────────────────
