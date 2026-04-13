@@ -123,18 +123,18 @@ const APPT_TYPE_ICONS = {
   consultation: 'chat_bubble_outline', pickup: 'inventory_2', other: 'event',
 }
 const APPT_STATUS_COLORS = {
-  scheduled: '#818cf8', confirmed: '#22c55e', completed: '#94a3b8',
+  scheduled: '#818cf8', confirmed: '#15803d', completed: '#94a3b8',
   cancelled: '#ef4444', missed: '#ef4444',
 }
 const ORDER_STATUS_STYLES = {
   pending:     { bg: 'rgba(234,179,8,0.12)',   color: '#a16207', border: 'rgba(234,179,8,0.3)'   },
   'in-progress':{ bg: 'rgba(59,130,246,0.12)', color: '#2563eb', border: 'rgba(59,130,246,0.3)'  },
-  completed:   { bg: 'rgba(34,197,94,0.12)',   color: '#15803d', border: 'rgba(34,197,94,0.3)'   },
+  completed:   { bg: 'rgba(21,128,61,0.12)',   color: '#15803d', border: 'rgba(21,128,61,0.3)'   },
   delivered:   { bg: 'rgba(129,140,248,0.12)', color: '#4f46e5', border: 'rgba(129,140,248,0.3)' },
   cancelled:   { bg: 'rgba(239,68,68,0.12)',   color: '#dc2626', border: 'rgba(239,68,68,0.3)'   },
 }
 const TASK_STATUS_STYLES = {
-  completed: { bg: 'rgba(34,197,94,0.12)',   color: '#15803d', border: 'rgba(34,197,94,0.3)'   },
+  completed: { bg: 'rgba(21,128,61,0.12)',   color: '#15803d', border: 'rgba(21,128,61,0.3)'   },
   overdue:   { bg: 'rgba(239,68,68,0.12)',   color: '#dc2626', border: 'rgba(239,68,68,0.3)'   },
   pending:   { bg: 'rgba(234,179,8,0.12)',   color: '#a16207', border: 'rgba(234,179,8,0.3)'   },
 }
@@ -632,7 +632,7 @@ function Home({ onMenuClick }) {
     },
     {
       desktopIcon: 'task_alt',
-      iconColor:   '#22c55e',      value: pendingTasks.length,
+      iconColor:   '#15803d',      value: pendingTasks.length,
       label:       'Pending Tasks',
       sub:         tasksDueThisWeek > 0
                      ? `${tasksDueThisWeek} due this wk`
@@ -730,9 +730,9 @@ function Home({ onMenuClick }) {
                 <div className={styles.revenueVs}>
                   <span className="mi" style={{
                     fontSize: '0.7rem', verticalAlign: 'middle', marginRight: '3px',
-                    color: revenueUp ? '#22c55e' : '#ef4444'
+                    color: revenueUp ? '#15803d' : '#ef4444'
                   }}>{revenueUp ? 'arrow_upward' : 'arrow_downward'}</span>
-                  <span style={{ color: revenueUp ? '#22c55e' : '#ef4444', fontSize: '0.72rem', fontWeight: 700 }}>
+                  <span style={{ color: revenueUp ? '#15803d' : '#ef4444', fontSize: '0.72rem', fontWeight: 700 }}>
                     {revenueGoal.currency}{Math.abs(revenueDiff).toLocaleString()}
                   </span>
                   <span style={{ color: 'var(--text3)', fontSize: '0.7rem', marginLeft: '3px' }}>
@@ -833,13 +833,13 @@ function Home({ onMenuClick }) {
               <div className={styles.listDivider} />
               {pastAppointments.map((appt, idx) => {
                 const isLast    = idx === pastAppointments.length - 1
-                const iconColor = appt.status === 'completed' ? '#22c55e'
+                const iconColor = appt.status === 'completed' ? '#15803d'
                   : appt.status === 'cancelled' ? '#94a3b8' : '#ef4444'
                 return (
                   <div key={appt.id} className={`${styles.listItem} ${isLast ? styles.listItemLast : ''}`}>
                     <div className={styles.listOuter} style={
                       appt.status === 'completed'
-                        ? { borderColor: 'rgba(34,197,94,0.3)', background: 'rgba(34,197,94,0.04)' }
+                        ? { borderColor: 'rgba(21,128,61,0.3)', background: 'rgba(21,128,61,0.04)' }
                         : appt.status === 'cancelled'
                         ? { borderColor: 'rgba(148,163,184,0.3)' }
                         : { borderColor: 'rgba(239,68,68,0.3)', background: 'rgba(239,68,68,0.04)' }
@@ -963,12 +963,12 @@ function Home({ onMenuClick }) {
               {recentTasks.map((task, idx) => {
                 const isLast    = idx === recentTasks.length - 1
                 const overdue   = isTaskOverdue(task)
-                const iconColor = overdue ? '#ef4444' : task.done ? '#22c55e' : '#818cf8'
+                const iconColor = overdue ? '#ef4444' : task.done ? '#15803d' : '#818cf8'
                 const catIcon   = CATEGORY_ICONS[task.category] || 'assignment'
                 return (
                   <div key={task.id} className={`${styles.listItem} ${isLast ? styles.listItemLast : ''}`}>
                     <div className={styles.listOuter}
-                      style={overdue ? { borderColor: 'rgba(239,68,68,0.35)', background: 'rgba(239,68,68,0.05)' } : task.done ? { borderColor: 'rgba(34,197,94,0.3)', background: 'rgba(34,197,94,0.04)' } : {}}>
+                      style={overdue ? { borderColor: 'rgba(239,68,68,0.35)', background: 'rgba(239,68,68,0.05)' } : task.done ? { borderColor: 'rgba(21,128,61,0.3)', background: 'rgba(21,128,61,0.04)' } : {}}>
                       <div className={styles.listInner}>
                         <span className="mi" style={{ fontSize: '1.3rem', color: iconColor }}>{catIcon}</span>
                       </div>
