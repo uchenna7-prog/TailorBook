@@ -39,16 +39,10 @@ function ReceiptItemsTable({ receipt, brand }) {
   const previousPaid   = parseFloat(receipt.previousPaid) || 0
   const hasPrevious    = (receipt.previousInstallments?.length > 0) || previousPaid > 0
 
-  // "New Balance Value" = what was still owed before this receipt's payment
-  // i.e. orderTotal minus everything paid in previous receipts
-  const newBalanceValue = Math.max(0, orderTotal - previousPaid)
-
-  // This receipt's payment amount
-  const thisPaymentTotal = (receipt.payments || []).reduce((s, p) => s + (parseFloat(p.amount) || 0), 0)
-
-  // Final balance after this receipt
-  const balanceRemaining = Math.max(0, orderTotal - cumulativePaid)
-  const isFullPayment    = balanceRemaining <= 0
+  const newBalanceValue   = Math.max(0, orderTotal - previousPaid)
+  const thisPaymentTotal  = (receipt.payments || []).reduce((s, p) => s + (parseFloat(p.amount) || 0), 0)
+  const balanceRemaining  = Math.max(0, orderTotal - cumulativePaid)
+  const isFullPayment     = balanceRemaining <= 0
 
   return (
     <div className={styles.tableWrapper}>
@@ -93,7 +87,6 @@ function ReceiptItemsTable({ receipt, brand }) {
               </span>
             </div>
           ))}
-          {/* If old receipt had no previousInstallments array but has previousPaid */}
           {!receipt.previousInstallments?.length && previousPaid > 0 && (
             <div className={styles.tRowSub}>
               <span className={styles.tColDesc}>Prior payments</span>
@@ -133,7 +126,6 @@ function ReceiptItemsTable({ receipt, brand }) {
         )}
 
         {hasPrevious ? (
-          // Part-payment chain: show "New Balance Value" (what was owed before this payment)
           <>
             <div className={styles.sumRow}>
               <span>New Balance Value</span>
@@ -145,7 +137,6 @@ function ReceiptItemsTable({ receipt, brand }) {
             </div>
           </>
         ) : (
-          // First receipt: show plain "Order Value" then amount paid
           <>
             <div className={styles.sumRow}>
               <span>Order Value</span>
@@ -206,7 +197,7 @@ function EditableTemplate({ receipt, customer, brand }) {
         <div style={{ textAlign: 'right' }}>
           <div className={styles.metaLabel}>RECEIPT #</div>
           <div className={styles.metaVal}>{receipt.number}</div>
-          <div className={styles.metaSub}>Date: {receipt.date}</div>
+          <div className={styles.metaSub}>{receipt.date}</div>
         </div>
       </div>
       <ReceiptItemsTable receipt={receipt} brand={brand} />
@@ -214,7 +205,7 @@ function EditableTemplate({ receipt, customer, brand }) {
       {(brand.phone || brand.email || brand.footer) && (
         <div className={styles.editFooter}>
           <div className={styles.footSection}>
-            <strong>Contact</strong><br />
+            <strong>Payment / Contact</strong><br />
             {brand.phone && <span>{brand.phone}<br /></span>}
             {brand.email && <span>{brand.email}<br /></span>}
             {brand.footer && <span>{brand.footer}</span>}
@@ -386,13 +377,18 @@ export default function ReceiptView({ receipt: initialReceipt, customer, onClose
             icon: pdfLoading ? 'hourglass_top' : 'download',
             onClick: handleShare,
             disabled: pdfLoading,
-          }
+          },
+          {
+            icon: 'delete',
+            onClick: () => onDelete(receipt.id),
+            className: styles.headerDeleteBtn,
+          },
         ]}
       />
 
       <div className={styles.scrollArea}>
         <div className={styles.statusRow}>
-          <div className={`${styles.statusBadge} ${isFullPay ? styles.status_paid : styles.status_unpaid}`}>
+          <div className={`${styles.statusBadge} ${isFullPay ? styles.status_paid : styles.status_part_paid}`}>
             {isFullPay ? 'Paid in Full' : 'Part Payment'}
           </div>
         </div>
@@ -407,21 +403,7 @@ export default function ReceiptView({ receipt: initialReceipt, customer, onClose
             <div className={styles.notesText}>{receipt.notes}</div>
           </div>
         )}
-        <div style={{ height: 100 }} />
-      </div>
-
-      <div className={styles.bottomBar}>
-        <button
-          className={styles.statusBtnUnpaid}
-          style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: 14, borderRadius: 12, fontSize: '0.9rem', fontWeight: 800, border: '1px solid var(--border)', cursor: 'pointer' }}
-          onClick={onClose}
-        >
-          <span className="mi" style={{ fontSize: '1rem' }}>arrow_back</span>
-          Back
-        </button>
-        <button className={styles.deleteBtn} onClick={() => onDelete(receipt.id)}>
-          <span className="mi">delete</span>
-        </button>
+        <div style={{ height: 32 }} />
       </div>
     </div>
   )
