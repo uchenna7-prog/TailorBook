@@ -17,6 +17,17 @@ function calcTax(subtotal, taxRate, showTax) {
   return subtotal * (taxRate / 100)
 }
 
+// ── Resolve the cumulative amount paid for a receipt ──────────
+// New receipts store cumulativePaid directly (the running total of
+// all installments up to and including this receipt).
+// Old receipts (before the fix) fall back to summing receipt.payments.
+function resolveCumulativePaid(receipt) {
+  if (receipt.cumulativePaid != null) {
+    return parseFloat(receipt.cumulativePaid)
+  }
+  return (receipt.payments || []).reduce((s, p) => s + (parseFloat(p.amount) || 0), 0)
+}
+
 // ── Receipt-specific items table ──────────────────────────────
 
 function ReceiptItemsTable({ receipt, brand }) {
@@ -26,10 +37,13 @@ function ReceiptItemsTable({ receipt, brand }) {
     ? receipt.items.reduce((sum, item) => sum + (parseFloat(item.price) || 0), 0)
     : (parseFloat(receipt.orderPrice) || 0)
 
-  const tax          = calcTax(orderTotal, taxRate, showTax)
-  const totalPaid    = (receipt.payments || []).reduce((s, p) => s + (parseFloat(p.amount) || 0), 0)
-  const balance      = Math.max(0, orderTotal - totalPaid)
-  const isFullPayment = balance <= 0
+  const tax = calcTax(orderTotal, taxRate, showTax)
+
+  // cumulativePaid = total paid across ALL installments up to this receipt.
+  // This is what drives the balance and summary — NOT just this receipt's payments array.
+  const cumulativePaid = resolveCumulativePaid(receipt)
+  const balance        = Math.max(0, orderTotal - cumulativePaid)
+  const isFullPayment  = balance <= 0
 
   return (
     <div className={styles.tableWrapper}>
@@ -55,6 +69,7 @@ function ReceiptItemsTable({ receipt, brand }) {
         </div>
       )}
 
+      {/* Payments Received — shows only the installment(s) on this receipt */}
       <div className={styles.itemizedSection} style={{ marginTop: 8 }}>
         <div className={styles.itemizedLabel}>Payments Received:</div>
         {(receipt.payments || []).map((p, idx) => (
@@ -71,6 +86,7 @@ function ReceiptItemsTable({ receipt, brand }) {
         ))}
       </div>
 
+      {/* Summary — uses cumulativePaid so balance is always correct */}
       <div className={styles.summary}>
         <div className={styles.sumRow}>
           <span>Order Value</span>
@@ -84,7 +100,7 @@ function ReceiptItemsTable({ receipt, brand }) {
         )}
         <div className={styles.sumRow}>
           <span>Amount Paid</span>
-          <span style={{ color: '#16a34a', fontWeight: 700 }}>{fmt(currency, totalPaid)}</span>
+          <span style={{ color: '#16a34a', fontWeight: 700 }}>{fmt(currency, cumulativePaid)}</span>
         </div>
         {!isFullPayment && (
           <div className={styles.sumRow}>
@@ -95,7 +111,7 @@ function ReceiptItemsTable({ receipt, brand }) {
         <div className={`${styles.sumRow} ${styles.sumTotal}`}>
           <span>{isFullPayment ? 'PAID IN FULL' : 'AMOUNT RECEIVED'}</span>
           <span style={{ color: isFullPayment ? '#16a34a' : '#1a1a1a' }}>
-            {fmt(currency, totalPaid)}
+            {fmt(currency, cumulativePaid)}
           </span>
         </div>
       </div>
@@ -262,17 +278,17 @@ async function generatePDF(paperEl, filename) {
     height: paperEl.scrollHeight, 
     windowHeight: paperEl.scrollHeight
   })
-  
+
   const imgData = canvas.toDataURL('image/png')
-  const pdfW = 450; // Use a fixed base width for calculation
+  const pdfW = 450
   const pdfH = (canvas.height * pdfW) / canvas.width
-  
+
   const pdf = new jsPDF({ 
     orientation: 'portrait', 
     unit: 'px', 
     format: [pdfW, pdfH] 
   })
-  
+
   pdf.addImage(imgData, 'PNG', 0, 0, pdfW, pdfH)
   pdf.save(filename)
 }
@@ -283,8 +299,8 @@ export default function ReceiptView({ receipt: initialReceipt, customer, onClose
   const [receipt,    setReceipt]    = useState(initialReceipt)
   const [pdfLoading, setPdfLoading] = useState(false)
 
-  const templateKey  = receipt.template || brand.template || 'editable'
-  const Template     = TEMPLATE_MAP[templateKey] || EditableTemplate
+  const templateKey    = receipt.template || brand.template || 'editable'
+  const Template       = TEMPLATE_MAP[templateKey] || EditableTemplate
   const effectiveBrand = { ...brand, ...(receipt.brandSnapshot || {}) }
 
   const handleShare = async () => {
@@ -303,9 +319,10 @@ export default function ReceiptView({ receipt: initialReceipt, customer, onClose
     }
   }
 
-  const totalPaid  = (receipt.payments || []).reduce((s, p) => s + (parseFloat(p.amount) || 0), 0)
-  const orderTotal = receipt.orderPrice ? parseFloat(receipt.orderPrice) : totalPaid
-  const isFullPay  = totalPaid >= orderTotal && orderTotal > 0
+  // Use cumulativePaid for the status badge — same logic as the table
+  const cumulativePaid = resolveCumulativePaid(receipt)
+  const orderTotal     = receipt.orderPrice ? parseFloat(receipt.orderPrice) : cumulativePaid
+  const isFullPay      = cumulativePaid >= orderTotal && orderTotal > 0
 
   return (
     <div className={styles.overlay}>
@@ -343,7 +360,9 @@ export default function ReceiptView({ receipt: initialReceipt, customer, onClose
       </div>
 
       <div className={styles.bottomBar}>
-        <button className={styles.statusBtnUnpaid} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: 14, borderRadius: 12, fontSize: '0.9rem', fontWeight: 800, border: '1px solid var(--border)', cursor: 'pointer' }}
+        <button
+          className={styles.statusBtnUnpaid}
+          style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: 14, borderRadius: 12, fontSize: '0.9rem', fontWeight: 800, border: '1px solid var(--border)', cursor: 'pointer' }}
           onClick={onClose}
         >
           <span className="mi" style={{ fontSize: '1rem' }}>arrow_back</span>
