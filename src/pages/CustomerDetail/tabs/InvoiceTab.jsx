@@ -27,7 +27,7 @@ const STATUS_STYLES = {
 // Invoice card
 // ─────────────────────────────────────────────────────────────
 
-function InvoiceCard({ invoice, currency, onTap, isLast }) {
+function InvoiceCard({ invoice, currency, onTap, isLast, orderImageUrl }) {
   const total = invoice.items?.length > 0
     ? invoice.items.reduce((sum, item) => sum + (parseFloat(item.price) || 0), 0)
     : (parseFloat(invoice.price) || 0)
@@ -45,7 +45,15 @@ function InvoiceCard({ invoice, currency, onTap, isLast }) {
       {/* Left: grey outer box with white inner box */}
       <div className={styles.invoiceListOuter}>
         <div className={styles.invoiceListInner}>
-          <span className="mi" style={{ fontSize: '1.5rem', color: 'var(--text3)' }}>receipt_long</span>
+          {orderImageUrl ? (
+            <img
+              src={orderImageUrl}
+              alt={invoice.orderDesc || 'Order'}
+              className={styles.orderImg}
+            />
+          ) : (
+            <span className="mi" style={{ fontSize: '1.5rem', color: 'var(--text3)' }}>receipt_long</span>
+          )}
         </div>
       </div>
 
@@ -67,7 +75,7 @@ function InvoiceCard({ invoice, currency, onTap, isLast }) {
           {statusLabel}
         </span>
         <div className={styles.invoiceListAmount}>
-          {fmt(currency, total)}
+          {fmt('₦', total)}
           {pieceCount && (
             <span style={{ fontSize: '0.75rem', fontWeight: 400, color: 'var(--text3)', marginLeft: '5px' }}>
               ({pieceCount} {pieceCount === 1 ? 'pc' : 'pcs'})
@@ -102,6 +110,7 @@ function EmptyState() {
 
 export default function InvoiceTab({
   invoices = [],
+  orders = [],
   customer,
   onStatusChange,
   onDelete,
@@ -116,6 +125,15 @@ export default function InvoiceTab({
       return s.invoiceCurrency || '₦'
     } catch { return '₦' }
   })()
+
+  // Build order image lookup: orderId → imgSrc
+  const orderImageMap = {}
+  for (const order of orders) {
+    const imgSrc = order.items?.[0]?.imgSrc
+    if (imgSrc && order.id) {
+      orderImageMap[order.id] = imgSrc
+    }
+  }
 
   const confirmDelete = () => {
     onDelete(deleteTarget)
@@ -156,6 +174,7 @@ export default function InvoiceTab({
               currency={currency}
               isLast={idx === dateInvoices.length - 1}
               onTap={() => setViewingInvoice(inv)}
+              orderImageUrl={orderImageMap[inv.orderId] ?? null}
             />
           ))}
         </div>
