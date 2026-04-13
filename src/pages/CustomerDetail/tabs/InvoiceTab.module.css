@@ -14,6 +14,9 @@
 /* Inner white box */
 .invoiceListInner { width: 58px; height: 58px; border-radius: 10px; background: #fff; display: flex; align-items: center; justify-content: center; overflow: hidden; }
 
+/* Order image inside card icon box */
+.orderImg { width: 100%; height: 100%; object-fit: cover; border-radius: 10px; }
+
 /* Text */
 .invoiceListInfo { flex: 1; min-width: 0; }
 .invoiceListDesc { font-size: 0.95rem; font-weight: 600; color: var(--text); margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -81,3 +84,6 @@
 
 /* ... Keep summary, footers, and other styles exactly as they were ... */
 
+/* ── MODAL OVERLAY ── */
+.modalOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 3000; display: flex; flex-direction: column; animation: slideUp 0.35s cubic-bezier(0.4,0,0.2,1); }
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
