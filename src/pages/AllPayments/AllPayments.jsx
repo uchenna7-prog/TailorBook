@@ -58,7 +58,7 @@ const STATUS_META = {
 //   orderId
 //   orderDesc
 //   orderPrice
-//   paymentStatus — 'paid' when this installment clears the balance, else 'part'
+//   paymentStatus — mirrors the parent payment's original status (paid / part / not_paid)
 //   amount        — this installment's amount
 //   method        — this installment's method
 //   date          — this installment's date (for grouping)
@@ -100,24 +100,18 @@ function flattenPayments(allPayments) {
     } else {
       // Each installment row gets its OWN snapshot:
       //   - totalPaid = cumulative sum UP TO AND INCLUDING this installment
-      //   - paymentStatus = 'paid' if this installment clears (or exceeds) the full
-      //     price, OR if there is only one installment and the parent status is 'paid'.
-      //     Otherwise 'part'.
+      //   - paymentStatus = always the parent payment's original status (p.status).
+      //     A part payment that eventually clears the balance stays 'part' — it
+      //     belongs in the Part Payment tab with part colours. Only payments that
+      //     were entered as Full Payment from the start have p.status === 'paid'
+      //     and appear in the Full Payments tab.
       let runningTotal = 0
       installments.forEach((inst, idx) => {
         const previousPaid = runningTotal  // what was paid BEFORE this installment
         runningTotal += parseFloat(inst.amount) || 0
 
-        // Determine if this installment row is a full payment:
-        // - Single installment whose parent status is 'paid'  (entered as Full Payment)
-        // - Any installment that brings runningTotal to >= fullPrice
-        let rowStatus
-        if (fullPrice > 0) {
-          rowStatus = runningTotal >= fullPrice ? 'paid' : 'part'
-        } else {
-          // No order price — single installment marked paid by parent, trust it
-          rowStatus = installments.length === 1 && p.status === 'paid' ? 'paid' : 'part'
-        }
+        // Always inherit the original payment status — never derive from math.
+        const rowStatus = p.status
 
         // previousInstallments = all installments before this one (for detail sheet)
         const previousInstallments = installments.slice(0, idx).map(i => ({
@@ -180,12 +174,9 @@ function PaymentRow({ row, isLast, onTap, orderImageUrl }) {
   const mLabel    = METHOD_LABELS[row.method] ?? 'Cash'
   const fullPrice = parseFloat(row.orderPrice) || 0
 
-  // For full payments show a complete bar; for part payments cap at 99%
-  const pct = fullPrice > 0 && row.totalPaid > 0
-    ? (row.paymentStatus === 'paid'
-        ? Math.min(100, (row.totalPaid / fullPrice) * 100)
-        : Math.min(99,  (row.totalPaid / fullPrice) * 100))
-    : 0
+  // Show 100% bar when fully paid (balance cleared), else cap at 99% for partial rows
+  const rawPct = fullPrice > 0 && row.totalPaid > 0 ? (row.totalPaid / fullPrice) * 100 : 0
+  const pct    = rawPct >= 100 ? 100 : Math.min(99, rawPct)
 
   const isPartInstall = row.totalInstallments > 1
   const isPending     = row.amount === null
@@ -289,11 +280,8 @@ function PaymentDetail({ row, onClose, onNavigateToCustomer, orderImageUrl }) {
   const balanceBefore   = fullPrice > 0 ? Math.max(0, fullPrice - previousPaid) : 0
   const balanceAfter    = fullPrice > 0 ? Math.max(0, fullPrice - totalPaid)    : 0
   const hasPrevious     = (row.previousInstallments?.length > 0) || previousPaid > 0
-  const pct             = fullPrice > 0
-    ? (row.paymentStatus === 'paid'
-        ? Math.min(100, (totalPaid / fullPrice) * 100)
-        : Math.min(99,  (totalPaid / fullPrice) * 100))
-    : 0
+  const rawPct = fullPrice > 0 ? (totalPaid / fullPrice) * 100 : 0
+  const pct    = rawPct >= 100 ? 100 : Math.min(99, rawPct)
 
   const cellStyle = {
     background: 'var(--bg)',
