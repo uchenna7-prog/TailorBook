@@ -47,7 +47,7 @@ function stockStatus(item) {
 }
 
 const STATUS_CONFIG = {
-  ok:  { label: 'In Stock',  color: '#22c55e', bg: 'rgba(34,197,94,0.12)',  border: 'rgba(34,197,94,0.3)'  },
+  ok:  { label: 'In Stock',  color: '#15803d', bg: 'rgba(21,128,61,0.12)',  border: 'rgba(21,128,61,0.3)'  },
   low: { label: 'Low Stock', color: '#fb923c', bg: 'rgba(251,146,60,0.12)', border: 'rgba(251,146,60,0.3)' },
   out: { label: 'Out',       color: '#ef4444', bg: 'rgba(239,68,68,0.12)',  border: 'rgba(239,68,68,0.3)'  },
 }
@@ -304,7 +304,7 @@ function AdjustSheet({ item, onClose, onAdjust }) {
 
           {delta && parseFloat(delta) > 0 && (
             <div className={styles.adjustPreview}>
-              New quantity: <strong style={{ color: previewQty <= 0 ? '#ef4444' : previewQty <= (item.lowStockAt || 5) ? '#fb923c' : '#22c55e' }}>
+              New quantity: <strong style={{ color: previewQty <= 0 ? '#ef4444' : previewQty <= (item.lowStockAt || 5) ? '#fb923c' : '#15803d' }}>
                 {previewQty} {item.unit}
               </strong>
             </div>
