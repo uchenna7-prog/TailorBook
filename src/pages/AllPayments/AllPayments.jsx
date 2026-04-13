@@ -42,9 +42,9 @@ const METHOD_LABELS = {
 }
 
 const STATUS_META = {
-  paid:     { label: 'Paid',         color: '#15803d', bg: 'rgba(34,197,94,0.12)',   border: 'rgba(34,197,94,0.3)'   },
-  part:     { label: 'Part Payment', color: '#c2410c', bg: 'rgba(251,146,60,0.12)',  border: 'rgba(251,146,60,0.3)'  },
-  not_paid: { label: 'Not Paid',     color: '#dc2626', bg: 'rgba(239,68,68,0.12)',   border: 'rgba(239,68,68,0.3)'   },
+  paid:     { label: 'Full Payment',  color: '#15803d', bg: 'rgba(34,197,94,0.12)',   border: 'rgba(34,197,94,0.3)'   },
+  part:     { label: 'Part Payment',  color: '#c2410c', bg: 'rgba(251,146,60,0.12)',  border: 'rgba(251,146,60,0.3)'  },
+  not_paid: { label: 'Not Paid',      color: '#dc2626', bg: 'rgba(239,68,68,0.12)',   border: 'rgba(239,68,68,0.3)'   },
 }
 
 // ── Flatten all payments into individual installment rows ─────
@@ -58,7 +58,7 @@ const STATUS_META = {
 //   orderId
 //   orderDesc
 //   orderPrice
-//   paymentStatus — overall payment status (paid/part/not_paid)
+//   paymentStatus — 'paid' when this installment clears the balance, else 'part'
 //   amount        — this installment's amount
 //   method        — this installment's method
 //   date          — this installment's date (for grouping)
@@ -100,19 +100,24 @@ function flattenPayments(allPayments) {
     } else {
       // Each installment row gets its OWN snapshot:
       //   - totalPaid = cumulative sum UP TO AND INCLUDING this installment
-      //   - paymentStatus = derived from that running total, not the parent's final status
-      // This way earlier part-payments stay "Part Payment" even after the last
-      // installment tips the overall payment to "paid".
+      //   - paymentStatus = 'paid' if this installment clears (or exceeds) the full
+      //     price, OR if there is only one installment and the parent status is 'paid'.
+      //     Otherwise 'part'.
       let runningTotal = 0
       installments.forEach((inst, idx) => {
         const previousPaid = runningTotal  // what was paid BEFORE this installment
         runningTotal += parseFloat(inst.amount) || 0
 
-        // Every installment row always shows 'part' status and a partial bar —
-        // even the last one that clears the balance. The N/N badge already
-        // signals it's the final payment; the status pill stays "Part Payment"
-        // so each row is independent and self-consistent.
-        const rowStatus = 'part'
+        // Determine if this installment row is a full payment:
+        // - Single installment whose parent status is 'paid'  (entered as Full Payment)
+        // - Any installment that brings runningTotal to >= fullPrice
+        let rowStatus
+        if (fullPrice > 0) {
+          rowStatus = runningTotal >= fullPrice ? 'paid' : 'part'
+        } else {
+          // No order price — single installment marked paid by parent, trust it
+          rowStatus = installments.length === 1 && p.status === 'paid' ? 'paid' : 'part'
+        }
 
         // previousInstallments = all installments before this one (for detail sheet)
         const previousInstallments = installments.slice(0, idx).map(i => ({
@@ -162,10 +167,9 @@ function sortRows(rows) {
 
 // ── TABS ──────────────────────────────────────────────────────
 const TABS = [
-  { id: 'all',      label: 'All'      },
-  { id: 'paid',     label: 'Paid'     },
-  { id: 'part',     label: 'Part Payment'  },
-  { id: 'not_paid', label: 'Not Paid' },
+  { id: 'all',           label: 'All'           },
+  { id: 'full_payment',  label: 'Full Payments' },
+  { id: 'part',          label: 'Part Payment'  },
 ]
 
 // ── PAYMENT ROW ───────────────────────────────────────────────
@@ -176,9 +180,11 @@ function PaymentRow({ row, isLast, onTap, orderImageUrl }) {
   const mLabel    = METHOD_LABELS[row.method] ?? 'Cash'
   const fullPrice = parseFloat(row.orderPrice) || 0
 
-  // Progress bar shows cumulative up to this installment (not 100% even for last)
+  // For full payments show a complete bar; for part payments cap at 99%
   const pct = fullPrice > 0 && row.totalPaid > 0
-    ? Math.min(99, (row.totalPaid / fullPrice) * 100)  // cap at 99% — each row is a part payment
+    ? (row.paymentStatus === 'paid'
+        ? Math.min(100, (row.totalPaid / fullPrice) * 100)
+        : Math.min(99,  (row.totalPaid / fullPrice) * 100))
     : 0
 
   const isPartInstall = row.totalInstallments > 1
@@ -283,7 +289,11 @@ function PaymentDetail({ row, onClose, onNavigateToCustomer, orderImageUrl }) {
   const balanceBefore   = fullPrice > 0 ? Math.max(0, fullPrice - previousPaid) : 0
   const balanceAfter    = fullPrice > 0 ? Math.max(0, fullPrice - totalPaid)    : 0
   const hasPrevious     = (row.previousInstallments?.length > 0) || previousPaid > 0
-  const pct             = fullPrice > 0 ? Math.min(99, (totalPaid / fullPrice) * 100) : 0
+  const pct             = fullPrice > 0
+    ? (row.paymentStatus === 'paid'
+        ? Math.min(100, (totalPaid / fullPrice) * 100)
+        : Math.min(99,  (totalPaid / fullPrice) * 100))
+    : 0
 
   const cellStyle = {
     background: 'var(--bg)',
@@ -492,10 +502,9 @@ export default function AllPayments({ onMenuClick }) {
 
   // ── Filter by tab ─────────────────────────────────────────
   const tabFiltered = allRows.filter(r => {
-    if (activeTab === 'all')      return true
-    if (activeTab === 'paid')     return r.paymentStatus === 'paid'
-    if (activeTab === 'part')     return r.paymentStatus === 'part'
-    if (activeTab === 'not_paid') return r.paymentStatus === 'not_paid'
+    if (activeTab === 'all')          return true
+    if (activeTab === 'full_payment') return r.paymentStatus === 'paid'
+    if (activeTab === 'part')         return r.paymentStatus === 'part'
     return true
   })
 
@@ -509,10 +518,9 @@ export default function AllPayments({ onMenuClick }) {
 
   // ── Tab counts ────────────────────────────────────────────
   const counts = {
-    all:      allRows.length,
-    paid:     allRows.filter(r => r.paymentStatus === 'paid').length,
-    part:     allRows.filter(r => r.paymentStatus === 'part').length,
-    not_paid: allRows.filter(r => r.paymentStatus === 'not_paid').length,
+    all:          allRows.length,
+    full_payment: allRows.filter(r => r.paymentStatus === 'paid').length,
+    part:         allRows.filter(r => r.paymentStatus === 'part').length,
   }
 
   // ── Total received across visible rows ────────────────────
@@ -576,7 +584,7 @@ export default function AllPayments({ onMenuClick }) {
                 onClick={() => { setFilterStatus(t.id); setActiveTab(t.id); setFilterOpen(false) }}
               >
                 <span className="mi" style={{ fontSize: '1.1rem' }}>
-                  {t.id === 'paid' ? 'check_circle' : t.id === 'part' ? 'pending' : t.id === 'not_paid' ? 'cancel' : 'payments'}
+                  {t.id === 'full_payment' ? 'check_circle' : t.id === 'part' ? 'pending' : 'payments'}
                 </span>
                 {t.label || 'All Statuses'}
                 {filterStatus === t.id && <span className="mi" style={{ fontSize: '1rem', marginLeft: 'auto', color: 'var(--accent)' }}>check</span>}
@@ -597,7 +605,7 @@ export default function AllPayments({ onMenuClick }) {
           >
             {tab.label}
             {counts[tab.id] > 0 && (
-              <span className={`${styles.tabBadge} ${tab.id === 'not_paid' ? styles.badgeRed : ''}`}>
+              <span className={styles.tabBadge}>
                 {counts[tab.id]}
               </span>
             )}
@@ -611,7 +619,7 @@ export default function AllPayments({ onMenuClick }) {
         {filtered.length === 0 && (
           <div className={styles.emptyState}>
             <span className="mi" style={{ fontSize: '2.8rem', opacity: 0.2 }}>
-              {activeTab === 'paid' ? 'check_circle' : activeTab === 'not_paid' ? 'pending' : 'payments'}
+              {activeTab === 'full_payment' ? 'check_circle' : activeTab === 'part' ? 'pending' : 'payments'}
             </span>
             <p>
               {search
