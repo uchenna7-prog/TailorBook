@@ -500,6 +500,29 @@ export default function PaymentsTab({ customerId, orders, showToast, onGenerateR
     }
   }
 
+  // ── FIX: build a receipt snapshot with correct cumulativePaid ──
+  // Each receipt only stores the single installment being receipted,
+  // but we also store cumulativePaid = sum of ALL installments up to
+  // this point so the receipt can show the correct running balance.
+  const handleGenerateReceipt = (payment) => {
+    const allInstallments = payment.installments || []
+    const cumulativePaid  = allInstallments.reduce((s, i) => s + (parseFloat(i.amount) || 0), 0)
+
+    // The latest installment is the one being receipted right now
+    const latestInstallment = allInstallments[allInstallments.length - 1] ?? null
+
+    const receiptPayload = {
+      ...payment,
+      // payments array on the receipt = only the installment being receipted
+      payments: latestInstallment ? [latestInstallment] : allInstallments,
+      // cumulativePaid = running total of everything paid so far (including this one)
+      cumulativePaid,
+    }
+
+    setDetailPay(null)
+    onGenerateReceipt(receiptPayload)
+  }
+
   const handleDeleteConfirm = async () => {
     if (!confirmDel || !user) return
     try {
@@ -598,10 +621,7 @@ export default function PaymentsTab({ customerId, orders, showToast, onGenerateR
           onDelete={() => setConfirmDel(detailPay)}
           onStatusChange={handleStatusChange}
           onAddInstallment={handleAddInstallment}
-          onGenerateReceipt={(payment) => {
-            setDetailPay(null)
-            onGenerateReceipt(payment)
-          }}
+          onGenerateReceipt={handleGenerateReceipt}
         />
       )}
 
