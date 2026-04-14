@@ -29,6 +29,8 @@ function ReceiptCard({ receipt, currency, onTap, isLast }) {
   const isFullPay   = cumulativePaid >= orderTotal && orderTotal > 0
   const statusLabel = isFullPay ? 'Paid in Full' : 'Part Payment'
 
+  const orderImgSrc = receipt.orderItems?.[0]?.imgSrc ?? null
+
   return (
     <div
       className={`${styles.invoiceListItem} ${isLast ? styles.invoiceListItemLast : ''}`}
@@ -36,9 +38,17 @@ function ReceiptCard({ receipt, currency, onTap, isLast }) {
     >
       <div className={styles.invoiceListOuter}>
         <div className={styles.invoiceListInner}>
-          <span className="mi" style={{ fontSize: '1.5rem', color: isFullPay ? '#22c55e' : '#fb923c' }}>
-            receipt
-          </span>
+          {orderImgSrc ? (
+            <img
+              src={orderImgSrc}
+              alt={receipt.orderDesc || 'Order'}
+              className={styles.orderImg}
+            />
+          ) : (
+            <span className="mi" style={{ fontSize: '1.5rem', color: isFullPay ? '#22c55e' : '#fb923c' }}>
+              receipt
+            </span>
+          )}
         </div>
       </div>
 
