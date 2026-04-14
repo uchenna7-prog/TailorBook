@@ -177,3 +177,96 @@
 .remainingBadge { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.3); border-radius: 10px; padding: 10px 14px; font-size: 0.82rem; color: var(--text2); margin-bottom: 18px; }
 .confirmBtn { width: 100%; padding: 16px; border-radius: 14px; border: none; background: var(--accent); color: var(--bg); font-family: 'DM Sans', sans-serif; font-size: 0.88rem; font-weight: 800; cursor: pointer; margin-top: 8px; }
 .confirmBtn:disabled { opacity: 0.3; cursor: not-allowed; }
+/* ══════════════════════════════════════════════════════════════
+   ORDER MOSAIC THUMBNAIL — shared across Invoice / Receipt tabs
+   Same layout as OrdersTab:
+     1 item  → single full image
+     2 items → left half | right half
+     3+ items → large left (full height) | right column stacked
+     4+ items → bottom-right shows "+N" overlay
+   Lives inside invoiceListOuter → invoiceListInner so card
+   size NEVER changes.
+   ══════════════════════════════════════════════════════════════ */
+
+/* Overrides padding on invoiceListInner and sets row layout */
+.mosaicInner {
+  padding: 0 !important;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: stretch !important;
+  overflow: hidden;
+  border-radius: 10px;
+}
+
+/* Large left cell — 60% width, full height */
+.mosaicLeft {
+  flex: 0 0 60%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #fff;
+  height: 100%;
+}
+
+/* Right column — remaining 40%, split into two stacked cells */
+.mosaicRight {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #fff;
+}
+
+/* Each of the two stacked right cells */
+.mosaicRightCell {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+  background: #fff;
+}
+
+/* Thin vertical divider between left and right */
+.mosaicDividerV {
+  width: 1.5px;
+  flex-shrink: 0;
+  background: var(--border);
+  align-self: stretch;
+}
+
+/* Thin horizontal divider between top-right and bottom-right */
+.mosaicDividerH {
+  height: 1.5px;
+  flex-shrink: 0;
+  background: var(--border);
+  width: 100%;
+}
+
+.mosaicImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* "+N" overlay on last mosaic cell */
+.mosaicOverlayWrap {
+  position: relative;
+}
+
+.mosaicOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.52);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  pointer-events: none;
+}
