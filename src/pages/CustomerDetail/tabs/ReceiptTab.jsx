@@ -10,17 +10,107 @@ function fmt(currency = '₦', amount) {
   return `${currency}${n.toLocaleString('en-NG', { minimumFractionDigits: 0 })}`
 }
 
+// ─────────────────────────────────────────────────────────────
+// ORDER MOSAIC THUMBNAIL  (same pattern as OrdersTab)
+// orderItems = order.items[] / receipt.orderItems[] — each has imgSrc
+// Layout:
+//   0 imgs  → icon placeholder
+//   1 img   → single full thumb
+//   2 imgs  → left half | right half
+//   3+ imgs → large left | right column (top + bottom stacked)
+//             4+ shows "+N" overlay on bottom-right
+// ─────────────────────────────────────────────────────────────
+function OrderMosaic({ orderItems, fallbackIcon, fallbackColor }) {
+  const covers = (orderItems || [])
+    .map(item => item.imgSrc ?? null)
+    .filter(Boolean)
+
+  const total = (orderItems || []).length
+
+  if (covers.length === 0) {
+    return (
+      <div className={styles.invoiceListOuter}>
+        <div className={styles.invoiceListInner}>
+          <span className="mi" style={{ fontSize: '1.5rem', color: fallbackColor || 'var(--text3)' }}>
+            {fallbackIcon || 'receipt'}
+          </span>
+        </div>
+      </div>
+    )
+  }
+
+  if (total === 1) {
+    return (
+      <div className={styles.invoiceListOuter}>
+        <div className={styles.invoiceListInner}>
+          <img src={covers[0]} alt="" className={styles.orderImg} />
+        </div>
+      </div>
+    )
+  }
+
+  if (total === 2) {
+    return (
+      <div className={styles.invoiceListOuter}>
+        <div className={`${styles.invoiceListInner} ${styles.mosaicInner}`}>
+          <div className={styles.mosaicLeft}>
+            <img src={covers[0]} alt="" className={styles.mosaicImg} />
+          </div>
+          <div className={styles.mosaicDividerV} />
+          <div className={styles.mosaicRight}>
+            <div className={styles.mosaicRightCell}>
+              {covers[1]
+                ? <img src={covers[1]} alt="" className={styles.mosaicImg} />
+                : <span className="mi" style={{ fontSize: '0.75rem', color: 'var(--text3)' }}>checkroom</span>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // 3+ items → large left + two stacked right
+  const extra = total > 3 ? total - 3 : 0
+
+  return (
+    <div className={styles.invoiceListOuter}>
+      <div className={`${styles.invoiceListInner} ${styles.mosaicInner}`}>
+        <div className={styles.mosaicLeft}>
+          {covers[0]
+            ? <img src={covers[0]} alt="" className={styles.mosaicImg} />
+            : <span className="mi" style={{ fontSize: '0.9rem', color: 'var(--text3)' }}>checkroom</span>
+          }
+        </div>
+        <div className={styles.mosaicDividerV} />
+        <div className={styles.mosaicRight}>
+          <div className={styles.mosaicRightCell}>
+            {covers[1]
+              ? <img src={covers[1]} alt="" className={styles.mosaicImg} />
+              : <span className="mi" style={{ fontSize: '0.75rem', color: 'var(--text3)' }}>checkroom</span>
+            }
+          </div>
+          <div className={styles.mosaicDividerH} />
+          <div className={`${styles.mosaicRightCell} ${extra > 0 ? styles.mosaicOverlayWrap : ''}`}>
+            {covers[2]
+              ? <img src={covers[2]} alt="" className={styles.mosaicImg} />
+              : <span className="mi" style={{ fontSize: '0.75rem', color: 'var(--text3)' }}>checkroom</span>
+            }
+            {extra > 0 && (
+              <div className={styles.mosaicOverlay}>+{extra}</div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── Receipt card (same layout as InvoiceCard) ─────────────────
 
 function ReceiptCard({ receipt, currency, onTap, isLast }) {
-  // FIX 2: The card should show the amount paid in THIS specific receipt,
-  // not the cumulative running total. cumulativePaid is only used to
-  // determine whether the full order has been paid (for the status badge).
-
-  // Amount paid in this receipt only
   const thisPaymentAmount = (receipt.payments || []).reduce((s, p) => s + (parseFloat(p.amount) || 0), 0)
 
-  // Cumulative running total — used only for the full/part status badge
   const cumulativePaid = receipt.cumulativePaid != null
     ? parseFloat(receipt.cumulativePaid)
     : thisPaymentAmount
@@ -29,28 +119,19 @@ function ReceiptCard({ receipt, currency, onTap, isLast }) {
   const isFullPay   = cumulativePaid >= orderTotal && orderTotal > 0
   const statusLabel = isFullPay ? 'Paid in Full' : 'Part Payment'
 
-  const orderImgSrc = receipt.orderItems?.[0]?.imgSrc ?? null
+  // Use orderItems array for mosaic; fall back to single imgSrc on first item
+  const orderItems = receipt.orderItems ?? []
 
   return (
     <div
       className={`${styles.invoiceListItem} ${isLast ? styles.invoiceListItemLast : ''}`}
       onClick={onTap}
     >
-      <div className={styles.invoiceListOuter}>
-        <div className={styles.invoiceListInner}>
-          {orderImgSrc ? (
-            <img
-              src={orderImgSrc}
-              alt={receipt.orderDesc || 'Order'}
-              className={styles.orderImg}
-            />
-          ) : (
-            <span className="mi" style={{ fontSize: '1.5rem', color: isFullPay ? '#22c55e' : '#fb923c' }}>
-              receipt
-            </span>
-          )}
-        </div>
-      </div>
+      <OrderMosaic
+        orderItems={orderItems}
+        fallbackIcon="receipt"
+        fallbackColor={isFullPay ? '#22c55e' : '#fb923c'}
+      />
 
       <div className={styles.invoiceListInfo}>
         <div className={styles.invoiceListDesc}>{receipt.orderDesc || 'Payment'}</div>
@@ -162,4 +243,3 @@ export default function ReceiptTab({
     </>
   )
 }
-
