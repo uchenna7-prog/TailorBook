@@ -497,61 +497,72 @@
 /* ── ORDER MOSAIC THUMBNAIL ── */
 
 /*
-  mosaicOuter is kept for reference but mosaic now lives inside
-  orderListOuter → orderListInner → mosaicInner so it matches
-  the padding/border style of single-image cards exactly.
-*/
-.mosaicOuter {
-  width: 80px;
-  height: 80px;
-  border-radius: 12px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  overflow: hidden;
-  display: flex;
-  flex-direction: row;
-  flex-shrink: 0;
-}
+  All mosaic layouts live inside orderListOuter → orderListInner
+  so the outer card size NEVER changes. Images are just smaller.
 
-/*
-  mosaicInner fills the 58×58 inner white box and arranges
-  sub-cells side by side.
+  Layout reference (Image 1):
+    1 item  → single full image
+    2 items → left half | right half
+    3+items → large left (full height) | right column (top + bottom stacked)
+    4+items → same as 3 but bottom-right shows "+N" overlay
 */
+
+/* Wrapper that overrides the padding:0 on orderListInner and
+   arranges children in a row. Applied alongside orderListInner. */
 .mosaicInner {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: row;
+  padding: 0 !important;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: stretch !important;
   overflow: hidden;
   border-radius: 10px;
 }
 
-/* Half for 2-item layout */
-.mosaicHalf {
-  flex: 1;
+/* Left cell — takes up ~60% of the width, full height */
+.mosaicLeft {
+  flex: 0 0 60%;
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
+  background: #fff;
+  height: 100%;
+}
+
+/* Right column — takes remaining ~40%, split into two stacked cells */
+.mosaicRight {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
   background: #fff;
 }
 
-/* Third for 3-item or 3+overflow layout */
-.mosaicThird {
+/* Each of the two stacked right cells */
+.mosaicRightCell {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  background: #fff;
   position: relative;
+  background: #fff;
 }
 
-/* Thin vertical divider between cells */
-.mosaicDivider {
+/* Thin vertical divider between left and right */
+.mosaicDividerV {
   width: 1.5px;
-  background: var(--border);
   flex-shrink: 0;
+  background: var(--border);
+  align-self: stretch;
+}
+
+/* Thin horizontal divider between top-right and bottom-right */
+.mosaicDividerH {
+  height: 1.5px;
+  flex-shrink: 0;
+  background: var(--border);
+  width: 100%;
 }
 
 .mosaicImg {
@@ -574,7 +585,7 @@
   align-items: center;
   justify-content: center;
   color: #fff;
-  font-size: 0.72rem;
+  font-size: 0.65rem;
   font-weight: 800;
   letter-spacing: 0.3px;
   pointer-events: none;
