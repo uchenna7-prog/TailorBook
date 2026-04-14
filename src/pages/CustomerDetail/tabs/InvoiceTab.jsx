@@ -24,10 +24,106 @@ const STATUS_STYLES = {
 }
 
 // ─────────────────────────────────────────────────────────────
+// ORDER MOSAIC THUMBNAIL  (shared pattern with OrdersTab)
+// items = order.items[] — each has imgSrc
+// Layout:
+//   0 imgs  → icon placeholder
+//   1 img   → single full thumb
+//   2 imgs  → left half | right half
+//   3+ imgs → large left | right column (top + bottom stacked)
+//             4+ shows "+N" overlay on bottom-right
+// ─────────────────────────────────────────────────────────────
+function OrderMosaic({ orderItems, fallbackIcon }) {
+  const covers = (orderItems || [])
+    .map(item => item.imgSrc ?? null)
+    .filter(Boolean)
+
+  const total = (orderItems || []).length
+
+  if (covers.length === 0) {
+    return (
+      <div className={styles.invoiceListOuter}>
+        <div className={styles.invoiceListInner}>
+          <span className="mi" style={{ fontSize: '1.5rem', color: 'var(--text3)' }}>
+            {fallbackIcon || 'receipt_long'}
+          </span>
+        </div>
+      </div>
+    )
+  }
+
+  if (total === 1) {
+    return (
+      <div className={styles.invoiceListOuter}>
+        <div className={styles.invoiceListInner}>
+          <img src={covers[0]} alt="" className={styles.orderImg} />
+        </div>
+      </div>
+    )
+  }
+
+  if (total === 2) {
+    return (
+      <div className={styles.invoiceListOuter}>
+        <div className={`${styles.invoiceListInner} ${styles.mosaicInner}`}>
+          <div className={styles.mosaicLeft}>
+            <img src={covers[0]} alt="" className={styles.mosaicImg} />
+          </div>
+          <div className={styles.mosaicDividerV} />
+          <div className={styles.mosaicRight}>
+            <div className={styles.mosaicRightCell}>
+              {covers[1]
+                ? <img src={covers[1]} alt="" className={styles.mosaicImg} />
+                : <span className="mi" style={{ fontSize: '0.75rem', color: 'var(--text3)' }}>checkroom</span>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // 3+ items → large left + two stacked right
+  const extra = total > 3 ? total - 3 : 0
+
+  return (
+    <div className={styles.invoiceListOuter}>
+      <div className={`${styles.invoiceListInner} ${styles.mosaicInner}`}>
+        <div className={styles.mosaicLeft}>
+          {covers[0]
+            ? <img src={covers[0]} alt="" className={styles.mosaicImg} />
+            : <span className="mi" style={{ fontSize: '0.9rem', color: 'var(--text3)' }}>checkroom</span>
+          }
+        </div>
+        <div className={styles.mosaicDividerV} />
+        <div className={styles.mosaicRight}>
+          <div className={styles.mosaicRightCell}>
+            {covers[1]
+              ? <img src={covers[1]} alt="" className={styles.mosaicImg} />
+              : <span className="mi" style={{ fontSize: '0.75rem', color: 'var(--text3)' }}>checkroom</span>
+            }
+          </div>
+          <div className={styles.mosaicDividerH} />
+          <div className={`${styles.mosaicRightCell} ${extra > 0 ? styles.mosaicOverlayWrap : ''}`}>
+            {covers[2]
+              ? <img src={covers[2]} alt="" className={styles.mosaicImg} />
+              : <span className="mi" style={{ fontSize: '0.75rem', color: 'var(--text3)' }}>checkroom</span>
+            }
+            {extra > 0 && (
+              <div className={styles.mosaicOverlay}>+{extra}</div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────
 // Invoice card
 // ─────────────────────────────────────────────────────────────
 
-function InvoiceCard({ invoice, currency, onTap, isLast, orderImageUrl }) {
+function InvoiceCard({ invoice, currency, onTap, isLast, orderItems }) {
   const total = invoice.items?.length > 0
     ? invoice.items.reduce((sum, item) => sum + (parseFloat(item.price) || 0), 0)
     : (parseFloat(invoice.price) || 0)
@@ -42,20 +138,8 @@ function InvoiceCard({ invoice, currency, onTap, isLast, orderImageUrl }) {
       className={`${styles.invoiceListItem} ${isLast ? styles.invoiceListItemLast : ''}`}
       onClick={onTap}
     >
-      {/* Left: grey outer box with white inner box */}
-      <div className={styles.invoiceListOuter}>
-        <div className={styles.invoiceListInner}>
-          {orderImageUrl ? (
-            <img
-              src={orderImageUrl}
-              alt={invoice.orderDesc || 'Order'}
-              className={styles.orderImg}
-            />
-          ) : (
-            <span className="mi" style={{ fontSize: '1.5rem', color: 'var(--text3)' }}>receipt_long</span>
-          )}
-        </div>
-      </div>
+      {/* Left: mosaic thumbnail */}
+      <OrderMosaic orderItems={orderItems} fallbackIcon="receipt_long" />
 
       {/* Info */}
       <div className={styles.invoiceListInfo}>
@@ -126,12 +210,12 @@ export default function InvoiceTab({
     } catch { return '₦' }
   })()
 
-  // Build order image lookup: orderId → imgSrc
-  const orderImageMap = {}
+  // Build order items lookup: orderId → items[]
+  // We pass the full items array so the mosaic can use all cover images
+  const orderItemsMap = {}
   for (const order of orders) {
-    const imgSrc = order.items?.[0]?.imgSrc
-    if (imgSrc && order.id) {
-      orderImageMap[order.id] = imgSrc
+    if (order.id && order.items?.length > 0) {
+      orderItemsMap[order.id] = order.items
     }
   }
 
@@ -174,7 +258,7 @@ export default function InvoiceTab({
               currency={currency}
               isLast={idx === dateInvoices.length - 1}
               onTap={() => setViewingInvoice(inv)}
-              orderImageUrl={orderImageMap[inv.orderId] ?? null}
+              orderItems={orderItemsMap[inv.orderId] ?? []}
             />
           ))}
         </div>
