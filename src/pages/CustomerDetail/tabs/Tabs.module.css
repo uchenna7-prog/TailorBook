@@ -16,7 +16,7 @@
 .orderGroupDate { font-size: 0.72rem; font-weight: 500; color: var(--text3); padding: 10px 16px 8px; }
 .orderGroupDivider { height: 1px; background: var(--border); width: calc(100% + 32px); margin-left: -16px; }
 
-/* Each row: no border on last item, 97% width divider line otherwise */
+/* Each row */
 .orderListItem { display: flex; align-items: center; gap: 14px; padding: 14px 0; cursor: pointer; transition: background 0.15s; background: var(--bg); position: relative; }
 .orderListItem::after { content: ''; position: absolute; bottom: 0; left: 3.5%; right: 0; height: 1px; background: var(--border); }
 .orderListItemLast::after { display: none; }
@@ -28,7 +28,7 @@
 .orderListInner { width: 58px; height: 58px; border-radius: 10px; background: #fff; display: flex; align-items: center; justify-content: center; overflow: hidden; }
 .orderListThumbImg { width: 100%; height: 100%; object-fit: cover; border-radius: 10px; }
 
-/* Text — small, not bold */
+/* Text */
 .orderListInfo { flex: 1; min-width: 0; }
 .orderListDesc { font-size: 0.95rem; font-weight: 600; color: var(--text); margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .orderListOrdRow { font-size: 0.78rem; font-weight: 400; color: var(--text2); margin-bottom: 4px; }
@@ -37,7 +37,7 @@
 .orderListQty { font-size: 0.78rem; font-weight: 400; color: var(--text2); }
 .orderListDue { font-size: 0.78rem; font-weight: 500; color: var(--danger, #ef4444); }
 
-/* ── STATUS BADGE on order list cards (coloured pill, no icon) ── */
+/* ── STATUS BADGE on order list cards ── */
 .orderListStatusBadge {
   display: inline-block;
   font-size: 0.65rem;
@@ -48,42 +48,13 @@
   padding: 3px 8px;
 }
 
-/* Pending — amber/orange */
-.statusBadge_pending {
-  color: #d97706;
-  background: rgba(251, 146, 60, 0.15);
-  border: 1px solid rgba(251, 146, 60, 0.35);
-}
+.statusBadge_pending { color: #d97706; background: rgba(251, 146, 60, 0.15); border: 1px solid rgba(251, 146, 60, 0.35); }
+.statusBadge_in_progress { color: #2563eb; background: rgba(59, 130, 246, 0.12); border: 1px solid rgba(59, 130, 246, 0.3); }
+.statusBadge_completed { color: #16a34a; background: rgba(34, 197, 94, 0.12); border: 1px solid rgba(34, 197, 94, 0.3); }
+.statusBadge_delivered { color: #0891b2; background: rgba(6, 182, 212, 0.12); border: 1px solid rgba(6, 182, 212, 0.3); }
+.statusBadge_cancelled { color: #dc2626; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.25); }
 
-/* In Progress — blue */
-.statusBadge_in_progress {
-  color: #2563eb;
-  background: rgba(59, 130, 246, 0.12);
-  border: 1px solid rgba(59, 130, 246, 0.3);
-}
-
-/* Completed — green */
-.statusBadge_completed {
-  color: #16a34a;
-  background: rgba(34, 197, 94, 0.12);
-  border: 1px solid rgba(34, 197, 94, 0.3);
-}
-
-/* Delivered — teal/cyan */
-.statusBadge_delivered {
-  color: #0891b2;
-  background: rgba(6, 182, 212, 0.12);
-  border: 1px solid rgba(6, 182, 212, 0.3);
-}
-
-/* Cancelled — red */
-.statusBadge_cancelled {
-  color: #dc2626;
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.25);
-}
-
-/* ── STAGE LINE on order list cards (replaces price/qty) ── */
+/* ── STAGE LINE on order list cards ── */
 .orderListStageLine {
   display: flex;
   align-items: center;
@@ -94,7 +65,6 @@
   margin-bottom: 3px;
 }
 
-/* Legacy badge kept for any other uses */
 .statusBadge { display: inline-block; font-size: 0.58rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; border-radius: 5px; padding: 2px 6px; border: 1px solid; }
 .statusPending { color: var(--warning); border-color: rgba(251,146,60,0.4); background: rgba(251,146,60,0.08); }
 .statusDone { color: var(--success); border-color: rgba(34,197,94,0.4); background: rgba(34,197,94,0.08); }
@@ -129,7 +99,7 @@
 .clothInput { width: 100%; background: transparent; border: none; color: var(--text); font-size: 1.05rem; font-weight: 700; outline: none; border-bottom: 1px solid var(--border2); padding-bottom: 10px; margin-bottom: 20px; font-family: 'DM Sans', sans-serif; }
 .clothInput::placeholder { color: var(--text3); }
 
-/* Design upload */
+/* Design upload — legacy single image (kept for safety) */
 .designUploadArea { width: 100%; height: 100px; border: 1.5px dashed var(--border2); border-radius: 14px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; color: var(--text3); cursor: pointer; position: relative; overflow: hidden; margin-bottom: 20px; transition: border-color 0.2s; }
 .designPreview { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .uploadLabel { font-size: 0.7rem; font-weight: 700; pointer-events: none; }
@@ -255,10 +225,7 @@
   border-bottom: 1px solid var(--border);
 }
 
-.priceInputRow:last-child {
-  border-bottom: none;
-  padding-bottom: 0;
-}
+.priceInputRow:last-child { border-bottom: none; padding-bottom: 0; }
 
 .itemPriceInput {
   width: 100%;
@@ -286,7 +253,6 @@
   color: var(--text2);
 }
 
-/* Ensure the status buttons look clean */
 .statusToggleBtn {
   flex: 1;
   padding: 11px;
@@ -312,7 +278,6 @@
   flex-wrap: wrap;
   gap: 8px;
   justify-content: flex-start;
-  /* ADDED LINE: Force the container itself to only take up needed space */
   align-items: flex-start !important;
   margin-top: 4px;
   margin-bottom: 4px;
@@ -333,16 +298,12 @@
   cursor: pointer;
   transition: all 0.18s;
   white-space: nowrap;
-  
-  /* FIXED: Use !important on width to win the "war" against stretching */
   flex: 0 0 auto !important;
   width: fit-content !important;
   max-width: max-content !important;
 }
 
-.stageChip:active {
-  opacity: 0.7;
-}
+.stageChip:active { opacity: 0.7; }
 
 .stageChipActive {
   background: rgba(99, 102, 241, 0.1);
@@ -350,9 +311,250 @@
   color: var(--accent);
 }
 
-/* ── STAGE TEXT on order list card (kept for backwards compat) ── */
-.orderListStageText {
-  font-size: 0.75rem;
-  font-weight: 600;
+.orderListStageText { font-size: 0.75rem; font-weight: 600; color: var(--accent); }
+
+
+/* ═══════════════════════════════════════════════════════════════
+   NEW STYLES — Multi-image upload, carousel, mosaic, +N badge
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── +N VIEWS BADGE on measurement list cards ── */
+.extraViewsBadge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.62rem;
+  font-weight: 800;
   color: var(--accent);
+  background: rgba(99, 102, 241, 0.1);
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  border-radius: 20px;
+  padding: 2px 7px;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+}
+
+/* ── MULTI-IMAGE UPLOAD WRAPPER ── */
+.multiUploadWrap {
+  margin-bottom: 20px;
+}
+
+/* Upload carousel preview (when images exist) */
+.uploadCarousel {
+  width: 100%;
+  height: 160px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+  position: relative;
+  background: var(--surface2);
+  margin-bottom: 10px;
+}
+
+.uploadPreviewImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Remove current image button */
+.uploadRemoveBtn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.55);
+  border: none;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  transition: background 0.15s;
+}
+.uploadRemoveBtn:active { background: rgba(0, 0, 0, 0.8); }
+
+/* Image counter badge */
+.uploadCounter {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 20px;
+  pointer-events: none;
+}
+
+/* Add more images label-button */
+.addMoreImgBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 10px;
+  border: 1px dashed var(--border2);
+  border-radius: 12px;
+  color: var(--text2);
+  font-size: 0.72rem;
+  font-weight: 800;
+  font-family: 'DM Sans', sans-serif;
+  cursor: pointer;
+  background: transparent;
+  transition: border-color 0.2s, color 0.2s;
+  letter-spacing: 0.3px;
+}
+.addMoreImgBtn:active { border-color: var(--accent); color: var(--accent); }
+
+/* ── GENERIC CAROUSEL (used in MeasureDetail) ── */
+.carousel {
+  width: 100%;
+  height: 220px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+  position: relative;
+  background: var(--surface2);
+  margin-bottom: 20px;
+}
+
+.carouselImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Left/right navigation arrows */
+.carouselArrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.45);
+  border: none;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  transition: background 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.carouselArrow:active { background: rgba(0, 0, 0, 0.75); }
+
+.carouselArrowLeft  { left: 8px;  }
+.carouselArrowRight { right: 8px; }
+
+/* Pagination dots */
+.carouselDots {
+  position: absolute;
+  bottom: 8px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+  pointer-events: none;
+}
+
+.carouselDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  pointer-events: all;
+  transition: background 0.2s, transform 0.2s;
+  flex-shrink: 0;
+}
+
+.carouselDotActive {
+  background: #fff;
+  transform: scale(1.3);
+}
+
+
+/* ── ORDER MOSAIC THUMBNAIL ── */
+
+/*
+  The mosaic outer container matches orderListOuter in size
+  (80×80) but removes the inner white box constraint so we can
+  fill it with sub-cells directly.
+*/
+.mosaicOuter {
+  width: 80px;
+  height: 80px;
+  border-radius: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  display: flex;
+  flex-direction: row;
+  flex-shrink: 0;
+}
+
+/* Half for 2-item layout */
+.mosaicHalf {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #fff;
+}
+
+/* Third for 3-item or 3+overflow layout */
+.mosaicThird {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #fff;
+  position: relative;
+}
+
+/* Thin vertical divider between cells */
+.mosaicDivider {
+  width: 1.5px;
+  background: var(--border);
+  flex-shrink: 0;
+}
+
+.mosaicImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* "+N" overlay on last mosaic cell */
+.mosaicOverlayWrap {
+  position: relative;
+}
+
+.mosaicOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.52);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  pointer-events: none;
 }
