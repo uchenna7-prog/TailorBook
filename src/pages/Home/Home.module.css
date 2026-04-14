@@ -503,6 +503,91 @@
 .listQty   { font-size: 0.65rem; color: var(--text3); margin-top: 2px; }
 
 /* ══════════════════════════════════════════
+   HOME ORDER MOSAIC
+   Lives inside listOuter (68px) → listInner (50px).
+   Prefixed hm- to avoid any collision with Tabs.module.css.
+   ══════════════════════════════════════════ */
+
+/* Overrides listInner's padding/centering so mosaic fills it edge-to-edge */
+.hmMosaicInner {
+  padding: 0 !important;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: stretch !important;
+  overflow: hidden;
+  border-radius: 6px;
+}
+
+/* Left cell — ~60% width, full height */
+.hmMosaicLeft {
+  flex: 0 0 60%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #fff;
+  height: 100%;
+}
+
+/* Right column — remaining ~40%, two stacked cells */
+.hmMosaicRight {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #fff;
+}
+
+.hmMosaicRightCell {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+  background: #fff;
+}
+
+.hmMosaicDividerV {
+  width: 1.5px;
+  flex-shrink: 0;
+  background: var(--border);
+  align-self: stretch;
+}
+
+.hmMosaicDividerH {
+  height: 1.5px;
+  flex-shrink: 0;
+  background: var(--border);
+  width: 100%;
+}
+
+.hmMosaicImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.hmMosaicOverlayWrap {
+  position: relative;
+}
+
+.hmMosaicOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.52);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  pointer-events: none;
+}
+
+/* ══════════════════════════════════════════
    EMPTY STATE
    ══════════════════════════════════════════ */
 .emptyState {
