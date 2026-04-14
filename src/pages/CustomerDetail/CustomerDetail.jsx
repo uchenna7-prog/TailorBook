@@ -41,11 +41,196 @@ const TABS = [
   { id: 'receipts', label: 'Receipts'           },
 ]
 
+// ── Edit Customer Modal ───────────────────────────────────────
+function EditCustomerModal({ customer, onSave, onClose }) {
+  const [form, setForm] = useState({
+    name:     customer.name     || '',
+    phone:    customer.phone    || '',
+    email:    customer.email    || '',
+    address:  customer.address  || '',
+    birthday: customer.birthday || '',
+    sex:      customer.sex      || '',
+    notes:    customer.notes    || '',
+  })
+  const [saving, setSaving] = useState(false)
+
+  const set = (field) => (e) => setForm(prev => ({ ...prev, [field]: e.target.value }))
+
+  const handleSave = async () => {
+    if (!form.name.trim())  { return }
+    if (!form.phone.trim()) { return }
+    setSaving(true)
+    try {
+      await onSave(form)
+      onClose()
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  // Close on backdrop click
+  const handleBackdrop = (e) => {
+    if (e.target === e.currentTarget) onClose()
+  }
+
+  return (
+    <div className={styles.modalOverlay} onClick={handleBackdrop}>
+      <div className={styles.modalSheet}>
+        {/* Header */}
+        <div className={styles.modalHeader}>
+          <button className={styles.modalCloseBtn} onClick={onClose}>
+            <span className="mi">close</span>
+          </button>
+          <span className={styles.modalTitle}>Edit Customer</span>
+          <button
+            className={styles.modalSaveBtn}
+            onClick={handleSave}
+            disabled={saving || !form.name.trim() || !form.phone.trim()}
+          >
+            {saving ? 'Saving…' : 'Save'}
+          </button>
+        </div>
+
+        {/* Body */}
+        <div className={styles.modalBody}>
+          {/* Name */}
+          <div className={styles.modalGroup}>
+            <label className={styles.modalLabel}>Full Name *</label>
+            <input
+              className={styles.modalInput}
+              value={form.name}
+              onChange={set('name')}
+              placeholder="Customer name"
+            />
+          </div>
+
+          {/* Phone */}
+          <div className={styles.modalGroup}>
+            <label className={styles.modalLabel}>Phone Number *</label>
+            <input
+              className={styles.modalInput}
+              value={form.phone}
+              onChange={set('phone')}
+              placeholder="Phone number"
+              type="tel"
+            />
+          </div>
+
+          {/* Sex chips */}
+          <div className={styles.modalGroup}>
+            <label className={styles.modalLabel}>Gender</label>
+            <div className={styles.modalSexRow}>
+              {['Male', 'Female'].map(option => (
+                <button
+                  key={option}
+                  type="button"
+                  className={`${styles.modalSexChip} ${form.sex === option ? styles.modalSexChipActive : ''}`}
+                  onClick={() => setForm(prev => ({ ...prev, sex: prev.sex === option ? '' : option }))}
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Email */}
+          <div className={styles.modalGroup}>
+            <label className={styles.modalLabel}>Email Address</label>
+            <input
+              className={styles.modalInput}
+              value={form.email}
+              onChange={set('email')}
+              placeholder="Email (optional)"
+              type="email"
+            />
+          </div>
+
+          {/* Birthday */}
+          <div className={styles.modalGroup}>
+            <label className={styles.modalLabel}>Birthday</label>
+            <input
+              className={styles.modalInput}
+              value={form.birthday}
+              onChange={set('birthday')}
+              placeholder="MM-DD"
+              maxLength={5}
+            />
+          </div>
+
+          {/* Address */}
+          <div className={styles.modalGroup}>
+            <label className={styles.modalLabel}>Address</label>
+            <input
+              className={styles.modalInput}
+              value={form.address}
+              onChange={set('address')}
+              placeholder="Address (optional)"
+            />
+          </div>
+
+          {/* Notes */}
+          <div className={styles.modalGroup}>
+            <label className={styles.modalLabel}>Notes</label>
+            <textarea
+              className={`${styles.modalInput} ${styles.modalTextarea}`}
+              value={form.notes}
+              onChange={set('notes')}
+              placeholder="Any additional notes…"
+              rows={3}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Delete Confirm Modal ──────────────────────────────────────
+function DeleteConfirmModal({ customer, onConfirm, onCancel }) {
+  if (!customer) return null
+
+  return (
+    <div className={styles.modalOverlay} onClick={(e) => e.target === e.currentTarget && onCancel()}>
+      <div className={styles.deleteSheet}>
+        {/* Icon */}
+        <div className={styles.deleteIconWrap}>
+          <span className="mi" style={{ fontSize: '2rem', color: 'var(--danger)' }}>person_remove</span>
+        </div>
+
+        {/* Heading */}
+        <h4 className={styles.deleteTitle}>Remove This Customer?</h4>
+
+        {/* Message */}
+        <p className={styles.deleteMessage}>
+          You're about to permanently remove{' '}
+          <strong>{customer.name}</strong> from your customer list.
+          This action cannot be undone — all their details will be lost forever.
+        </p>
+
+        <p className={styles.deleteWarning}>
+          ⚠️ Are you absolutely sure you want to continue?
+        </p>
+
+        {/* Actions */}
+        <div className={styles.deleteActions}>
+          <button className={styles.deleteCancelBtn} onClick={onCancel}>
+            No, Keep Customer
+          </button>
+          <button className={styles.deleteConfirmBtn} onClick={onConfirm}>
+            <span className="mi" style={{ fontSize: '1rem', verticalAlign: 'middle', marginRight: 6 }}>delete_forever</span>
+            Yes, Delete Customer
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function CustomerDetail({ onMenuClick }) {
   const { id }       = useParams()
   const navigate     = useNavigate()
   const { user }     = useAuth()
-  const { getCustomer, deleteCustomer } = useCustomers()
+  const { getCustomer, deleteCustomer, updateCustomer } = useCustomers()
   const { isPremium } = usePremium()
   const data          = useCustomerData(id)
   const { getOrders } = useOrders()
@@ -57,10 +242,14 @@ export default function CustomerDetail({ onMenuClick }) {
   const [receipts,      setReceipts]      = useState([])
   const [isScrolled,    setIsScrolled]    = useState(false)
 
+  // ── Modal state ───────────────────────────────────────────────
+  const [editModalOpen,   setEditModalOpen]   = useState(false)
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
+
   const toastTimer     = useRef(null)
   const tabsRef        = useRef(null)
   const topSentinelRef = useRef(null)
-  const healedRef      = useRef(false)  // tracks one-time invoice status heal
+  const healedRef      = useRef(false)
 
   const orders = getOrders(id)
 
@@ -78,9 +267,6 @@ export default function CustomerDetail({ onMenuClick }) {
   }, [data.invoices])
 
   // ── One-time heal: fix invoices stuck as 'unpaid' that have real payments ──
-  // Runs once per customer page load after both invoices and payments are ready.
-  // Corrects any invoice whose Firestore status was never updated by an older
-  // version of the app (before the part_paid fix was deployed).
   useEffect(() => {
     if (!user || !id || healedRef.current) return
     if (!data.invoices || data.invoices.length === 0) return
@@ -89,7 +275,7 @@ export default function CustomerDetail({ onMenuClick }) {
       user.uid, id,
       async (payments) => {
         if (healedRef.current) return
-        healedRef.current = true  // only run once
+        healedRef.current = true
 
         for (const p of payments) {
           if (!p.orderId) continue
@@ -98,13 +284,11 @@ export default function CustomerDetail({ onMenuClick }) {
           )
           if (paidAmount <= 0) continue
 
-          // Find the matching invoice that is still stuck as 'unpaid'
           const inv = data.invoices.find(
             i => String(i.orderId) === String(p.orderId) && i.status === 'unpaid'
           )
           if (!inv) continue
 
-          // Derive correct status from payment
           const correctStatus = p.status === 'paid' ? 'paid' : 'part_paid'
           try {
             await data.updateInvoiceStatus(inv.id, correctStatus)
@@ -119,7 +303,6 @@ export default function CustomerDetail({ onMenuClick }) {
       (err) => console.error('[CustomerDetail] heal payments sub:', err)
     )
 
-    // Unsubscribe immediately after the first snapshot — we only need it once
     return () => unsubPayments()
   }, [user, id, data.invoices])
 
@@ -138,6 +321,29 @@ export default function CustomerDetail({ onMenuClick }) {
     clearTimeout(toastTimer.current)
     toastTimer.current = setTimeout(() => setToastMsg(''), 2400)
   }, [])
+
+  // ── Edit handler ──────────────────────────────────────────────
+  const handleEditSave = useCallback(async (updates) => {
+    try {
+      await updateCustomer(id, updates)
+      showToast('Customer updated ✓')
+    } catch {
+      showToast('Failed to update customer. Try again.')
+      throw new Error('update failed')
+    }
+  }, [id, updateCustomer, showToast])
+
+  // ── Delete handler ────────────────────────────────────────────
+  const handleDeleteConfirm = useCallback(async () => {
+    try {
+      await deleteCustomer(id)
+      setDeleteModalOpen(false)
+      navigate('/customers', { replace: true })
+    } catch {
+      showToast('Failed to delete customer. Try again.')
+      setDeleteModalOpen(false)
+    }
+  }, [id, deleteCustomer, navigate, showToast])
 
   const handleGenerateInvoice = useCallback(async (orderId) => {
     const existing = data.invoices.find(inv => String(inv.orderId) === String(orderId))
@@ -195,9 +401,6 @@ export default function CustomerDetail({ onMenuClick }) {
 
   const handleInvoicePaid = useCallback(async (orderId, invoiceStatus) => {
     const newStatus = invoiceStatus || 'paid'
-    // Always use the live Firestore-synced list (data.invoices) so we have
-    // the real Firestore document ID, not a stale local float ID.
-    // Fall back to invoicesState if data.invoices isn't populated yet.
     const sourceList = (data.invoices && data.invoices.length > 0)
       ? data.invoices
       : invoicesState
@@ -233,7 +436,6 @@ export default function CustomerDetail({ onMenuClick }) {
       return
     }
 
-    // ── Which installments are new (not yet receipted)? ───────────
     const usedInstallmentIds = new Set(
       receipts
         .filter(r => String(r.paymentId) === String(payment.id))
@@ -248,9 +450,6 @@ export default function CustomerDetail({ onMenuClick }) {
       ? newInstallments
       : allInstallments
 
-    // ── previousInstallments: everything paid BEFORE this receipt ─
-    // Snapshotted so the receipt is self-contained and never needs to
-    // re-query the payment document to reconstruct its history.
     const receiptInstallmentIds = new Set(installmentsForReceipt.map(i => String(i.id)))
     const previousInstallments  = allInstallments
       .filter(inst => !receiptInstallmentIds.has(String(inst.id)))
@@ -261,7 +460,6 @@ export default function CustomerDetail({ onMenuClick }) {
         date:   inst.date,
       }))
 
-    // ── Totals ────────────────────────────────────────────────────
     const previousPaid   = previousInstallments.reduce((s, i) => s + (parseFloat(i.amount) || 0), 0)
     const cumulativePaid = allInstallments.reduce((s, i) => s + (parseFloat(i.amount) || 0), 0)
     const orderTotal     = parseFloat(payment.orderPrice) || 0
@@ -282,8 +480,6 @@ export default function CustomerDetail({ onMenuClick }) {
       items:      order?.items || payment.orderItems || [],
       number:     rcptNumber,
       date:       todayStr,
-
-      // payments = only the installment(s) on THIS receipt
       payments: installmentsForReceipt.map(inst => ({
         id:     inst.id,
         amount: inst.amount,
@@ -291,19 +487,12 @@ export default function CustomerDetail({ onMenuClick }) {
         date:   inst.date,
       })),
       installmentIds: installmentsForReceipt.map(inst => String(inst.id)),
-
-      // previousInstallments = snapshot of all payments made before this receipt.
-      // Empty array means this is the very first receipt for this order.
       previousInstallments,
       previousPaid,
-
-      // cumulativePaid = previousPaid + this receipt's payments combined.
-      // Used by ReceiptView to show correct "Amount Paid" and "Balance Remaining".
       cumulativePaid,
       isFullPayment: isFullPay,
       balance,
       notes: payment.notes || '',
-
       brandSnapshot: {
         name:     invoiceBrand?.name    || settingsSnap.brandName      || '',
         tagline:  invoiceBrand?.tagline || settingsSnap.brandTagline   || '',
@@ -391,8 +580,17 @@ export default function CustomerDetail({ onMenuClick }) {
           type="back"
           title={isScrolled ? customer.name : "Customer Details"}
           customActions={[
-            { icon: 'edit',   onClick: () => navigate(`/customers/edit/${id}`), outlined: true },
-            { icon: 'delete', onClick: () => deleteCustomer(id), outlined: true, color: 'var(--danger)' },
+            {
+              icon: 'edit',
+              onClick: () => setEditModalOpen(true),
+              outlined: true,
+            },
+            {
+              icon: 'delete',
+              onClick: () => setDeleteModalOpen(true),
+              outlined: true,
+              color: 'var(--danger)',
+            },
           ]}
         />
       </div>
@@ -535,6 +733,24 @@ export default function CustomerDetail({ onMenuClick }) {
       )}
 
       <Toast message={toastMsg} />
+
+      {/* ── Edit Modal ── */}
+      {editModalOpen && (
+        <EditCustomerModal
+          customer={customer}
+          onSave={handleEditSave}
+          onClose={() => setEditModalOpen(false)}
+        />
+      )}
+
+      {/* ── Delete Confirm Modal ── */}
+      {deleteModalOpen && (
+        <DeleteConfirmModal
+          customer={customer}
+          onConfirm={handleDeleteConfirm}
+          onCancel={() => setDeleteModalOpen(false)}
+        />
+      )}
     </div>
   )
 }
