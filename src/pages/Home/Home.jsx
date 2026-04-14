@@ -419,6 +419,100 @@ function periodLabel(period) {
 }
 
 // ─────────────────────────────────────────────────────────────
+// HOME ORDER MOSAIC THUMBNAIL
+// Same layout logic as OrdersTab's OrderMosaic, adapted to the
+// Home list card size (listOuter 68px / listInner 50px).
+//   0 images  → scissors icon
+//   1 image   → single full image
+//   2 images  → left half | right half
+//   3+ images → large left (full height) | right column
+//               (top + bottom stacked); bottom-right shows "+N"
+//               overlay when total > 3
+// ─────────────────────────────────────────────────────────────
+function HomeMosaic({ items }) {
+  const covers = (items || [])
+    .map(item => item.imgSrc ?? null)
+    .filter(Boolean)
+
+  const total     = items?.length ?? 0
+  const hasImages = covers.length > 0
+
+  if (!hasImages) {
+    return (
+      <div className={styles.listOuter}>
+        <div className={styles.listInner}>
+          <span className="mi" style={{ fontSize: '1.3rem', color: 'var(--text3)' }}>content_cut</span>
+        </div>
+      </div>
+    )
+  }
+
+  if (total === 1) {
+    return (
+      <div className={styles.listOuter}>
+        <div className={styles.listInner}>
+          <img src={covers[0]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '6px' }} />
+        </div>
+      </div>
+    )
+  }
+
+  if (total === 2) {
+    return (
+      <div className={styles.listOuter}>
+        <div className={`${styles.listInner} ${styles.hmMosaicInner}`}>
+          <div className={styles.hmMosaicLeft}>
+            <img src={covers[0]} alt="" className={styles.hmMosaicImg} />
+          </div>
+          <div className={styles.hmMosaicDividerV} />
+          <div className={styles.hmMosaicRight}>
+            <div className={styles.hmMosaicRightCell}>
+              {covers[1]
+                ? <img src={covers[1]} alt="" className={styles.hmMosaicImg} />
+                : <span className="mi" style={{ fontSize: '0.7rem', color: 'var(--text3)' }}>checkroom</span>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  const extra = total > 3 ? total - 3 : 0
+  return (
+    <div className={styles.listOuter}>
+      <div className={`${styles.listInner} ${styles.hmMosaicInner}`}>
+        <div className={styles.hmMosaicLeft}>
+          {covers[0]
+            ? <img src={covers[0]} alt="" className={styles.hmMosaicImg} />
+            : <span className="mi" style={{ fontSize: '0.8rem', color: 'var(--text3)' }}>checkroom</span>
+          }
+        </div>
+        <div className={styles.hmMosaicDividerV} />
+        <div className={styles.hmMosaicRight}>
+          <div className={styles.hmMosaicRightCell}>
+            {covers[1]
+              ? <img src={covers[1]} alt="" className={styles.hmMosaicImg} />
+              : <span className="mi" style={{ fontSize: '0.7rem', color: 'var(--text3)' }}>checkroom</span>
+            }
+          </div>
+          <div className={styles.hmMosaicDividerH} />
+          <div className={`${styles.hmMosaicRightCell} ${extra > 0 ? styles.hmMosaicOverlayWrap : ''}`}>
+            {covers[2]
+              ? <img src={covers[2]} alt="" className={styles.hmMosaicImg} />
+              : <span className="mi" style={{ fontSize: '0.7rem', color: 'var(--text3)' }}>checkroom</span>
+            }
+            {extra > 0 && (
+              <div className={styles.hmMosaicOverlay}>+{extra}</div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────
 // MAIN COMPONENT
 // ─────────────────────────────────────────────────────────────
 function Home({ onMenuClick }) {
@@ -963,18 +1057,11 @@ function Home({ onMenuClick }) {
               {recentOrders.map((order, idx) => {
                 const isLast   = idx === recentOrders.length - 1
                 const priceStr = order.price != null ? `₦${Number(order.price).toLocaleString()}` : '—'
-                const thumb    = order.items?.[0]?.imgSrc
+                const itemsList = order.items || []
                 const stageObj = STAGES.find(s => s.value === order.stage)
                 return (
                   <div key={order.id} className={`${styles.listItem} ${isLast ? styles.listItemLast : ''}`}>
-                    <div className={styles.listOuter}>
-                      <div className={styles.listInner}>
-                        {thumb
-                          ? <img src={thumb} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '9px' }} />
-                          : <span className="mi" style={{ fontSize: '1.3rem', color: 'var(--text3)' }}>content_cut</span>
-                        }
-                      </div>
-                    </div>
+                    <HomeMosaic items={itemsList} />
                     <div className={styles.listInfo}>
                       <div className={styles.listDesc}>{order.desc ?? 'Order'}</div>
                       <div className={styles.listMeta}>
