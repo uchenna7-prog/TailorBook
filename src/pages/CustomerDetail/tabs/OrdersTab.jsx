@@ -21,7 +21,6 @@ const STATUSES = [
   { value: 'cancelled',   label: 'Cancelled'    },
 ]
 
-// Production stages — ordered from start to finish
 const STAGES = [
   { value: 'measurement_taken', label: 'Measurement Taken', icon: 'straighten'     },
   { value: 'fabric_ready',      label: 'Fabric Ready',      icon: 'roll_content'   },
@@ -36,7 +35,6 @@ const STAGES = [
   { value: 'ready',             label: 'Ready',             icon: 'check_circle'   },
 ]
 
-// Auto-status derived from stage selection
 const STAGE_TO_STATUS = {
   measurement_taken: 'pending',
   fabric_ready:      'pending',
@@ -60,12 +58,117 @@ function formatDate(ts) {
   return 'Unknown Date'
 }
 
-// Returns today's date as a readable string e.g. "Apr 12, 2026"
 function todayReadable() {
   return new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
-// ── ORDER FORM MODAL ──────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+// ORDER MOSAIC THUMBNAIL
+// Uses ONLY cover images (imgSrc) from each measurement item.
+// Layout rules:
+//   1 item  → single image
+//   2 items → side by side
+//   3 items → three equal columns
+//   4+      → show first 3 + "+N more" overlay on third
+// ─────────────────────────────────────────────────────────────
+function OrderMosaic({ items }) {
+  // Collect cover images only (imgSrc is the cover, first of imgSrcs)
+  const covers = items
+    .map(item => item.imgSrc ?? null)
+    .filter(Boolean)
+
+  const total     = items.length
+  const hasImages = covers.length > 0
+
+  if (!hasImages) {
+    return (
+      <div className={styles.orderListOuter}>
+        <div className={styles.orderListInner}>
+          <span className="mi" style={{ fontSize: '1.5rem', color: 'var(--text3)' }}>content_cut</span>
+        </div>
+      </div>
+    )
+  }
+
+  // 1 item → standard single thumb
+  if (total === 1) {
+    return (
+      <div className={styles.orderListOuter}>
+        <div className={styles.orderListInner}>
+          <img src={covers[0]} alt="" className={styles.orderListThumbImg} />
+        </div>
+      </div>
+    )
+  }
+
+  // 2 items → two halves
+  if (total === 2) {
+    return (
+      <div className={styles.mosaicOuter}>
+        <div className={styles.mosaicHalf}>
+          <img src={covers[0]} alt="" className={styles.mosaicImg} />
+        </div>
+        <div className={styles.mosaicDivider} />
+        <div className={styles.mosaicHalf}>
+          {covers[1]
+            ? <img src={covers[1]} alt="" className={styles.mosaicImg} />
+            : <span className="mi" style={{ fontSize: '1rem', color: 'var(--text3)' }}>checkroom</span>
+          }
+        </div>
+      </div>
+    )
+  }
+
+  // 3 items → three equal columns
+  if (total === 3) {
+    return (
+      <div className={styles.mosaicOuter}>
+        {[0, 1, 2].map((i) => (
+          <div key={i} style={{ display: 'flex', flexDirection: 'row' }}>
+            {i > 0 && <div className={styles.mosaicDivider} />}
+            <div className={styles.mosaicThird}>
+              {covers[i]
+                ? <img src={covers[i]} alt="" className={styles.mosaicImg} />
+                : <span className="mi" style={{ fontSize: '0.9rem', color: 'var(--text3)' }}>checkroom</span>
+              }
+            </div>
+          </div>
+        ))}
+      </div>
+    )
+  }
+
+  // 4+ items → first 3 + overlay on last slot
+  const extra = total - 3
+  return (
+    <div className={styles.mosaicOuter}>
+      {[0, 1].map((i) => (
+        <div key={i} style={{ display: 'flex', flexDirection: 'row' }}>
+          {i > 0 && <div className={styles.mosaicDivider} />}
+          <div className={styles.mosaicThird}>
+            {covers[i]
+              ? <img src={covers[i]} alt="" className={styles.mosaicImg} />
+              : <span className="mi" style={{ fontSize: '0.9rem', color: 'var(--text3)' }}>checkroom</span>
+            }
+          </div>
+        </div>
+      ))}
+      <div className={styles.mosaicDivider} />
+      <div className={`${styles.mosaicThird} ${styles.mosaicOverlayWrap}`}>
+        {covers[2]
+          ? <img src={covers[2]} alt="" className={styles.mosaicImg} />
+          : <span className="mi" style={{ fontSize: '0.9rem', color: 'var(--text3)' }}>checkroom</span>
+        }
+        <div className={styles.mosaicOverlay}>+{extra}</div>
+      </div>
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────
+// ORDER FORM MODAL
+// imgSrc stored on each item is the cover image of the measurement
+// ─────────────────────────────────────────────────────────────
 function OrderModal({ isOpen, onClose, measurements, onSave }) {
   const [selectedItems, setSelectedItems] = useState([])
   const [pickerQuery,   setPickerQuery]   = useState('')
@@ -82,10 +185,12 @@ function OrderModal({ isOpen, onClose, measurements, onSave }) {
 
   const toggleId = (m) => {
     const idStr = String(m.id)
+    // Use cover image only: first of imgSrcs or legacy imgSrc
+    const coverImg = m.imgSrcs?.[0] ?? m.imgSrc ?? null
     setSelectedItems(prev => {
       const exists = prev.find(item => item.id === idStr)
       if (exists) return prev.filter(item => item.id !== idStr)
-      return [...prev, { id: idStr, price: '', name: m.name, imgSrc: m.imgSrc }]
+      return [...prev, { id: idStr, price: '', name: m.name, imgSrc: coverImg }]
     })
   }
 
@@ -95,8 +200,8 @@ function OrderModal({ isOpen, onClose, measurements, onSave }) {
     ))
   }
 
-  const totalPrice   = selectedItems.reduce((sum, item) => sum + (parseFloat(item.price) || 0), 0)
-  const dynamicQty   = selectedItems.length || 1
+  const totalPrice  = selectedItems.reduce((sum, item) => sum + (parseFloat(item.price) || 0), 0)
+  const dynamicQty  = selectedItems.length || 1
 
   const filteredMeasurements = pickerQuery.trim()
     ? measurements.filter(m => m.name.toLowerCase().includes(pickerQuery.toLowerCase()))
@@ -114,7 +219,12 @@ function OrderModal({ isOpen, onClose, measurements, onSave }) {
     onSave({
       desc:           desc.trim() || (selectedItems.length > 0 ? selectedItems.map(i => i.name).join(', ') : 'New Order'),
       price:          totalPrice,
-      items:          selectedItems.map(i => ({ id: i.id, price: parseFloat(i.price) || 0, name: i.name, imgSrc: i.imgSrc || null })),
+      items:          selectedItems.map(i => ({
+        id:     i.id,
+        price:  parseFloat(i.price) || 0,
+        name:   i.name,
+        imgSrc: i.imgSrc || null,   // cover image only
+      })),
       qty:            dynamicQty,
       due:            dueDisplay,
       dueRaw:         due,
@@ -160,7 +270,8 @@ function OrderModal({ isOpen, onClose, measurements, onSave }) {
 
           <div className={styles.pickerList}>
             {filteredMeasurements.map(m => {
-              const selected = selectedItems.find(i => i.id === String(m.id))
+              const selected  = selectedItems.find(i => i.id === String(m.id))
+              const coverImg  = m.imgSrcs?.[0] ?? m.imgSrc ?? null
               return (
                 <div
                   key={m.id}
@@ -168,8 +279,8 @@ function OrderModal({ isOpen, onClose, measurements, onSave }) {
                   onClick={() => toggleId(m)}
                 >
                   <div className={styles.pickerThumb}>
-                    {m.imgSrc
-                      ? <img src={m.imgSrc} alt={m.name} />
+                    {coverImg
+                      ? <img src={coverImg} alt={m.name} />
                       : <span className="mi" style={{ fontSize: '1.1rem' }}>checkroom</span>}
                   </div>
                   <div className={styles.pickerInfo}>
@@ -256,7 +367,6 @@ function OrderModal({ isOpen, onClose, measurements, onSave }) {
               ))}
             </div>
 
-            {/* ── Stage Selector ── */}
             <label className={styles.labelTiny} style={{ marginTop: 20 }}>Current Stage</label>
             <div className={styles.stageChipRow}>
               {STAGES.map(s => (
@@ -286,7 +396,9 @@ function OrderModal({ isOpen, onClose, measurements, onSave }) {
   )
 }
 
-// ── ORDER DETAIL ──────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+// ORDER DETAIL
+// ─────────────────────────────────────────────────────────────
 function OrderDetail({ order, measurements, onClose, onDelete, onStatusChange, onStageChange, onGenerateInvoice }) {
   if (!order) return null
   const banner   = PRIORITY_BANNER[order.priority] ?? PRIORITY_BANNER.normal
@@ -307,7 +419,7 @@ function OrderDetail({ order, measurements, onClose, onDelete, onStatusChange, o
       <div className={styles.detailBody}>
         <span className={`${styles.priorityBanner} ${banner.cls}`}>{banner.text}</span>
 
-        {/* Meta grid — price, status, stage, due */}
+        {/* Meta grid */}
         <div className={styles.orderMetaGrid}>
           <div className={styles.orderMetaCell}>
             <div className={styles.cellLabel}>Total Price</div>
@@ -338,7 +450,7 @@ function OrderDetail({ order, measurements, onClose, onDelete, onStatusChange, o
           </div>
         </div>
 
-        {/* Garments */}
+        {/* Garments — cover images + prices */}
         {order.items && order.items.length > 0 && (
           <div className={styles.linkedSection}>
             <div className={styles.linkLabel}>Selected Garments & Prices</div>
@@ -422,7 +534,9 @@ function OrderDetail({ order, measurements, onClose, onDelete, onStatusChange, o
   )
 }
 
-// ── MAIN TAB ──────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+// MAIN TAB
+// ─────────────────────────────────────────────────────────────
 export default function OrdersTab({ customerId, orders, measurements, showToast, onGenerateInvoice }) {
   const { addOrder, deleteOrder, updateOrderStatus, updateOrderStage } = useOrders()
   const [modalOpen,   setModalOpen]   = useState(false)
@@ -483,7 +597,7 @@ export default function OrdersTab({ customerId, orders, measurements, showToast,
     }
   }
 
-  // Group by takenAt (human date) or createdAt — most recent date first
+  // Group by takenAt (human date) or createdAt
   const grouped = orders.reduce((acc, o) => {
     const key = o.takenAt || formatDate(o.createdAt) || o.date || 'Unknown Date'
     if (!acc[key]) acc[key] = []
@@ -505,11 +619,9 @@ export default function OrdersTab({ customerId, orders, measurements, showToast,
           <div className={styles.orderGroupDate}>{date}</div>
           <div className={styles.orderGroupDivider} />
           {dateOrders.map((o, idx) => {
-            const priceStr  = o.price ? `₦${Number(o.price).toLocaleString()}` : '₦0'
             const statusObj = STATUSES.find(s => s.value === o.status) ?? STATUSES[0]
             const stageObj  = STAGES.find(s => s.value === o.stage)
             const itemsList = o.items || []
-            const thumb     = itemsList[0]?.imgSrc
 
             return (
               <div
@@ -517,26 +629,18 @@ export default function OrdersTab({ customerId, orders, measurements, showToast,
                 className={`${styles.orderListItem} ${idx === dateOrders.length - 1 ? styles.orderListItemLast : ''}`}
                 onClick={() => setDetailOrder(o)}
               >
-                <div className={styles.orderListOuter}>
-                  <div className={styles.orderListInner}>
-                    {thumb
-                      ? <img src={thumb} alt="" className={styles.orderListThumbImg} />
-                      : <span className="mi" style={{ fontSize: '1.5rem', color: 'var(--text3)' }}>content_cut</span>}
-                  </div>
-                </div>
+                {/* Mosaic thumbnail using cover images only */}
+                <OrderMosaic items={itemsList} />
 
                 <div className={styles.orderListInfo}>
-                  {/* Garment name */}
                   <div className={styles.orderListDesc}>{o.desc}</div>
 
-                  {/* Status badge — coloured pill, no icon */}
                   <div className={styles.orderListStatusRow}>
                     <span className={`${styles.orderListStatusBadge} ${styles[`statusBadge_${(o.status || 'pending').replace('-', '_')}`]}`}>
                       {statusObj.label}
                     </span>
                   </div>
 
-                  {/* Stage — replaces price/qty line */}
                   {stageObj
                     ? (
                       <div className={styles.orderListStageLine}>
@@ -551,7 +655,6 @@ export default function OrdersTab({ customerId, orders, measurements, showToast,
                     )
                   }
 
-                  {/* Due date */}
                   {o.due && <div className={styles.orderListDue}>Due: {o.due}</div>}
                 </div>
               </div>
