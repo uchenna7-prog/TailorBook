@@ -168,9 +168,84 @@ const TABS = [
   { id: 'part',          label: 'Part Payment'  },
 ]
 
+// ── PAYMENT MOSAIC THUMBNAIL ──────────────────────────────────
+// Renders inside iconOuter (72px) → iconInner (52px).
+// Same layout as the Orders page mosaic, sized for these boxes.
+
+function PaymentMosaic({ orderItems, isPending, sm }) {
+  const covers = (orderItems || []).map(i => i.imgSrc ?? null).filter(Boolean)
+  const total  = orderItems?.length ?? 0
+
+  if (!covers.length) {
+    return (
+      <div className={styles.iconInner}>
+        <span className="mi" style={{ fontSize: '1.4rem', color: isPending ? '#94a3b8' : sm.color }}>
+          {isPending ? 'hourglass_empty' : 'payments'}
+        </span>
+      </div>
+    )
+  }
+
+  if (total === 1) {
+    return (
+      <div className={styles.iconInner}>
+        <img src={covers[0]} alt="" className={styles.orderImg} />
+      </div>
+    )
+  }
+
+  if (total === 2) {
+    return (
+      <div className={`${styles.iconInner} ${styles.pmMosaicInner}`}>
+        <div className={styles.pmMosaicLeft}>
+          <img src={covers[0]} alt="" className={styles.pmMosaicImg} />
+        </div>
+        <div className={styles.pmMosaicDividerV} />
+        <div className={styles.pmMosaicRight}>
+          <div className={styles.pmMosaicRightCell}>
+            {covers[1]
+              ? <img src={covers[1]} alt="" className={styles.pmMosaicImg} />
+              : <span className="mi" style={{ fontSize: '0.65rem', color: 'var(--text3)' }}>checkroom</span>
+            }
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  const extra = total > 3 ? total - 3 : 0
+  return (
+    <div className={`${styles.iconInner} ${styles.pmMosaicInner}`}>
+      <div className={styles.pmMosaicLeft}>
+        {covers[0]
+          ? <img src={covers[0]} alt="" className={styles.pmMosaicImg} />
+          : <span className="mi" style={{ fontSize: '0.75rem', color: 'var(--text3)' }}>checkroom</span>
+        }
+      </div>
+      <div className={styles.pmMosaicDividerV} />
+      <div className={styles.pmMosaicRight}>
+        <div className={styles.pmMosaicRightCell}>
+          {covers[1]
+            ? <img src={covers[1]} alt="" className={styles.pmMosaicImg} />
+            : <span className="mi" style={{ fontSize: '0.65rem', color: 'var(--text3)' }}>checkroom</span>
+          }
+        </div>
+        <div className={styles.pmMosaicDividerH} />
+        <div className={`${styles.pmMosaicRightCell} ${extra > 0 ? styles.pmMosaicOverlayWrap : ''}`}>
+          {covers[2]
+            ? <img src={covers[2]} alt="" className={styles.pmMosaicImg} />
+            : <span className="mi" style={{ fontSize: '0.65rem', color: 'var(--text3)' }}>checkroom</span>
+          }
+          {extra > 0 && <div className={styles.pmMosaicOverlay}>+{extra}</div>}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── PAYMENT ROW ───────────────────────────────────────────────
 
-function PaymentRow({ row, isLast, onTap, orderImageUrl }) {
+function PaymentRow({ row, isLast, onTap, orderItems }) {
   const sm        = STATUS_META[row.paymentStatus] ?? STATUS_META.not_paid
   const mIcon     = METHOD_ICONS[row.method] ?? 'payments'
   const mLabel    = METHOD_LABELS[row.method] ?? 'Cash'
@@ -196,19 +271,7 @@ function PaymentRow({ row, isLast, onTap, orderImageUrl }) {
           background:  !isPending ? sm.bg     : undefined,
         }}
       >
-        <div className={styles.iconInner}>
-          {orderImageUrl ? (
-            <img
-              src={orderImageUrl}
-              alt={row.orderDesc || 'Order'}
-              className={styles.orderImg}
-            />
-          ) : (
-            <span className="mi" style={{ fontSize: '1.4rem', color: isPending ? '#94a3b8' : sm.color }}>
-              {isPending ? 'hourglass_empty' : mIcon}
-            </span>
-          )}
-        </div>
+        <PaymentMosaic orderItems={orderItems} isPending={isPending} sm={sm} />
       </div>
 
       {/* ── Info ── */}
@@ -488,12 +551,11 @@ export default function AllPayments({ onMenuClick }) {
     toastTimer.current = setTimeout(() => setToastMsg(''), 2400)
   }, [])
 
-  // ── Build order image lookup: "customerId__orderId" → imgSrc ──
-  const orderImageMap = {}
+  // ── Build order items lookup: "customerId__orderId" → items[] ──
+  const orderItemsMap = {}
   for (const order of allOrders) {
-    const imgSrc = order.items?.[0]?.imgSrc
-    if (imgSrc && order.customerId && order.id) {
-      orderImageMap[`${order.customerId}__${order.id}`] = imgSrc
+    if (order.customerId && order.id && order.items?.length) {
+      orderItemsMap[`${order.customerId}__${order.id}`] = order.items
     }
   }
 
@@ -642,7 +704,7 @@ export default function AllPayments({ onMenuClick }) {
                 row={row}
                 isLast={idx === rows.length - 1}
                 onTap={setDetailRow}
-                orderImageUrl={orderImageMap[`${row.customerId}__${row.orderId}`] ?? null}
+                orderItems={orderItemsMap[`${row.customerId}__${row.orderId}`] ?? []}
               />
             ))}
           </div>
@@ -657,7 +719,7 @@ export default function AllPayments({ onMenuClick }) {
           row={detailRow}
           onClose={() => setDetailRow(null)}
           onNavigateToCustomer={(id) => navigate(`/customers/${id}`)}
-          orderImageUrl={orderImageMap[`${detailRow.customerId}__${detailRow.orderId}`] ?? null}
+          orderImageUrl={(orderItemsMap[`${detailRow.customerId}__${detailRow.orderId}`]?.[0]?.imgSrc) ?? null}
         />
       )}
 
