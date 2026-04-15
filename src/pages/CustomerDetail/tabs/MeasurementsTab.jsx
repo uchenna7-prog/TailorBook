@@ -10,8 +10,6 @@ const UNIT_FULL   = { in: 'Inches (")', cm: 'Centimetres (cm)', yd: 'Yards (yd)'
 
 // ─────────────────────────────────────────────────────────────
 // IMAGE COMPRESSION UTILITY
-// Compresses a File/Blob to a base64 data URL, reducing file
-// size while maintaining reasonable visual quality.
 // ─────────────────────────────────────────────────────────────
 function compressImage(file, maxWidth = 1200, quality = 0.78) {
   return new Promise((resolve, reject) => {
@@ -21,21 +19,16 @@ function compressImage(file, maxWidth = 1200, quality = 0.78) {
       const img = new Image()
       img.onerror = () => reject(new Error('Failed to load image'))
       img.onload = () => {
-        // Calculate new dimensions, preserving aspect ratio
         let { width, height } = img
         if (width > maxWidth) {
           height = Math.round((height * maxWidth) / width)
           width  = maxWidth
         }
-
         const canvas = document.createElement('canvas')
         canvas.width  = width
         canvas.height = height
-
         const ctx = canvas.getContext('2d')
         ctx.drawImage(img, 0, 0, width, height)
-
-        // Use JPEG for photos; fall back to PNG for transparent images
         const mimeType = file.type === 'image/png' ? 'image/png' : 'image/jpeg'
         resolve(canvas.toDataURL(mimeType, quality))
       }
@@ -46,9 +39,103 @@ function compressImage(file, maxWidth = 1200, quality = 0.78) {
 }
 
 // ─────────────────────────────────────────────────────────────
-// IMAGE CAROUSEL (used in detail modal)
+// FULLSCREEN LIGHTBOX
+// Opens when the user taps an image in the detail modal
 // ─────────────────────────────────────────────────────────────
-function ImageCarousel({ images, className }) {
+function ImageLightbox({ images, startIndex = 0, onClose }) {
+  const [current, setCurrent] = useState(startIndex)
+
+  // Keep startIndex in sync if parent passes a different one each open
+  useEffect(() => { setCurrent(startIndex) }, [startIndex])
+
+  // Prevent body scroll while open
+  useEffect(() => {
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = '' }
+  }, [])
+
+  // Swipe support
+  const touchStartX = useRef(null)
+  const handleTouchStart = (e) => { touchStartX.current = e.touches[0].clientX }
+  const handleTouchEnd   = (e) => {
+    if (touchStartX.current === null) return
+    const diff = touchStartX.current - e.changedTouches[0].clientX
+    if (Math.abs(diff) > 40) {
+      diff > 0 ? goNext() : goPrev()
+    }
+    touchStartX.current = null
+  }
+
+  const goPrev = () => setCurrent(i => (i === 0 ? images.length - 1 : i - 1))
+  const goNext = () => setCurrent(i => (i === images.length - 1 ? 0 : i + 1))
+
+  if (!images || images.length === 0) return null
+
+  return (
+    <div
+      className={styles.lightboxOverlay}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+    >
+      {/* Close button */}
+      <button className={styles.lightboxClose} onClick={onClose} type="button">
+        <span className="mi">close</span>
+      </button>
+
+      {/* Counter */}
+      {images.length > 1 && (
+        <div className={styles.lightboxCounter}>{current + 1} / {images.length}</div>
+      )}
+
+      {/* Image */}
+      <div className={styles.lightboxImgWrap}>
+        <img
+          src={images[current]}
+          alt={`Design reference ${current + 1}`}
+          className={styles.lightboxImg}
+        />
+      </div>
+
+      {/* Arrows */}
+      {images.length > 1 && (
+        <>
+          <button
+            className={`${styles.lightboxArrow} ${styles.lightboxArrowLeft}`}
+            onClick={goPrev}
+            type="button"
+          >
+            <span className="mi">chevron_left</span>
+          </button>
+          <button
+            className={`${styles.lightboxArrow} ${styles.lightboxArrowRight}`}
+            onClick={goNext}
+            type="button"
+          >
+            <span className="mi">chevron_right</span>
+          </button>
+
+          {/* Dots */}
+          <div className={styles.lightboxDots}>
+            {images.map((_, i) => (
+              <button
+                key={i}
+                type="button"
+                className={`${styles.lightboxDot} ${i === current ? styles.lightboxDotActive : ''}`}
+                onClick={() => setCurrent(i)}
+              />
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────
+// IMAGE CAROUSEL (used in detail modal)
+// Now tappable — calls onImageClick(index) when image is tapped
+// ─────────────────────────────────────────────────────────────
+function ImageCarousel({ images, className, onImageClick }) {
   const [current, setCurrent] = useState(0)
   if (!images || images.length === 0) return null
 
@@ -66,8 +153,16 @@ function ImageCarousel({ images, className }) {
       <img
         src={images[current]}
         alt={`Design reference ${current + 1}`}
-        className={className || styles.carouselImg}
+        className={`${className || styles.carouselImg} ${onImageClick ? styles.carouselImgTappable : ''}`}
+        onClick={() => onImageClick && onImageClick(current)}
       />
+
+      {/* Expand hint badge */}
+      {onImageClick && (
+        <div className={styles.carouselExpandHint}>
+          <span className="mi" style={{ fontSize: '0.85rem' }}>open_in_full</span>
+        </div>
+      )}
 
       {images.length > 1 && (
         <>
@@ -102,7 +197,6 @@ function MultiImageUpload({ images, onChange, cardId }) {
   const [previewIdx, setPreviewIdx] = useState(0)
   const inputRef = useRef(null)
 
-  // Keep previewIdx in bounds
   useEffect(() => {
     if (previewIdx >= images.length && images.length > 0) {
       setPreviewIdx(images.length - 1)
@@ -113,7 +207,6 @@ function MultiImageUpload({ images, onChange, cardId }) {
     const fileArr = Array.from(files)
     const compressed = await Promise.all(fileArr.map(f => compressImage(f)))
     onChange([...images, ...compressed])
-    // Jump to last newly added
     setPreviewIdx(images.length + compressed.length - 1)
   }
 
@@ -130,7 +223,6 @@ function MultiImageUpload({ images, onChange, cardId }) {
   return (
     <div className={styles.multiUploadWrap}>
       {images.length === 0 ? (
-        /* Empty upload area */
         <label className={styles.designUploadArea} htmlFor={`upload-${cardId}`}>
           <span className="mi" style={{ fontSize: '2rem', color: 'var(--text3)', pointerEvents: 'none' }}>add_a_photo</span>
           <span className={styles.uploadLabel}>Tap to upload design references</span>
@@ -144,7 +236,6 @@ function MultiImageUpload({ images, onChange, cardId }) {
           />
         </label>
       ) : (
-        /* Preview carousel */
         <div className={styles.uploadCarousel}>
           <img
             src={images[previewIdx]}
@@ -152,7 +243,6 @@ function MultiImageUpload({ images, onChange, cardId }) {
             className={styles.uploadPreviewImg}
           />
 
-          {/* Remove current image */}
           <button
             type="button"
             className={styles.uploadRemoveBtn}
@@ -161,7 +251,6 @@ function MultiImageUpload({ images, onChange, cardId }) {
             <span className="mi" style={{ fontSize: '1rem' }}>close</span>
           </button>
 
-          {/* Navigation */}
           {images.length > 1 && (
             <>
               <button
@@ -181,7 +270,6 @@ function MultiImageUpload({ images, onChange, cardId }) {
             </>
           )}
 
-          {/* Dots */}
           <div className={styles.carouselDots}>
             {images.map((_, i) => (
               <button
@@ -193,12 +281,10 @@ function MultiImageUpload({ images, onChange, cardId }) {
             ))}
           </div>
 
-          {/* Counter badge */}
           <div className={styles.uploadCounter}>{previewIdx + 1} / {images.length}</div>
         </div>
       )}
 
-      {/* Add more button (when images already exist) */}
       {images.length > 0 && (
         <label className={styles.addMoreImgBtn} htmlFor={`upload-more-${cardId}`}>
           <span className="mi" style={{ fontSize: '0.9rem' }}>add_photo_alternate</span>
@@ -219,14 +305,13 @@ function MultiImageUpload({ images, onChange, cardId }) {
 
 // ─────────────────────────────────────────────────────────────
 // FRESH CARD FACTORY
-// imgSrcs is now an array instead of a single imgSrc
 // ─────────────────────────────────────────────────────────────
 function freshCard(n) {
   return {
     id:      Date.now() + Math.random(),
     label:   `Cloth Type ${n}`,
     name:    '',
-    imgSrcs: [],          // ← array of base64 strings
+    imgSrcs: [],
     fields:  [{ id: Date.now() + Math.random(), name: '', value: '' }],
   }
 }
@@ -265,14 +350,11 @@ function MeasureModal({ isOpen, onClose, onSave }) {
     cards.forEach(card => {
       if (!card.name.trim()) return
       const fields = card.fields.filter(f => f.name.trim()).map(f => ({ name: f.name, value: f.value }))
-
-      // imgSrcs: array of compressed base64 strings
-      // imgSrc (cover): first image for backwards-compat with orders
       onSave({
         id:      Date.now() + Math.random(),
         name:    card.name.trim(),
         imgSrcs: card.imgSrcs,
-        imgSrc:  card.imgSrcs[0] ?? null,   // cover image
+        imgSrc:  card.imgSrcs[0] ?? null,
         unit,
         fields,
         date: today,
@@ -300,7 +382,6 @@ function MeasureModal({ isOpen, onClose, onSave }) {
         customActions={[{ label: 'Save', onClick: handleSave }]}
       />
 
-      {/* Unit selector */}
       <div className={styles.unitsSection}>
         {['in', 'cm', 'yd'].map(u => (
           <button
@@ -329,7 +410,6 @@ function MeasureModal({ isOpen, onClose, onSave }) {
               )}
             </div>
 
-            {/* Name */}
             <label className={styles.labelTiny}>Name</label>
             <input
               type="text"
@@ -339,7 +419,6 @@ function MeasureModal({ isOpen, onClose, onSave }) {
               onChange={e => updateCard(card.id, 'name', e.target.value)}
             />
 
-            {/* Multi-image upload */}
             <label className={styles.labelTiny}>Design References</label>
             <MultiImageUpload
               images={card.imgSrcs}
@@ -347,7 +426,6 @@ function MeasureModal({ isOpen, onClose, onSave }) {
               onChange={(imgs) => updateCard(card.id, 'imgSrcs', imgs)}
             />
 
-            {/* Measurements */}
             <label className={styles.labelTiny} style={{ marginTop: 20 }}>Measurements</label>
             <div className={styles.fieldList}>
               {card.fields.map(f => (
@@ -399,10 +477,11 @@ function MeasureModal({ isOpen, onClose, onSave }) {
 // MEASURE DETAIL (slides from right)
 // ─────────────────────────────────────────────────────────────
 function MeasureDetail({ measurement, onClose, onDelete }) {
+  const [lightboxIndex, setLightboxIndex] = useState(null)
+
   if (!measurement) return null
   const unitFull = UNIT_FULL[measurement.unit] ?? measurement.unit
 
-  // Support both new imgSrcs[] and legacy imgSrc
   const images = measurement.imgSrcs?.length
     ? measurement.imgSrcs
     : measurement.imgSrc
@@ -410,34 +489,49 @@ function MeasureDetail({ measurement, onClose, onDelete }) {
       : []
 
   return (
-    <div className={`${styles.detailModal} ${styles.detailOpen}`}>
-      <Header
-        type="back"
-        title={measurement.name}
-        onBackClick={onClose}
-        customActions={[
-          { icon: 'delete_outline', onClick: onDelete, color: 'var(--danger)' }
-        ]}
-      />
-      <div className={styles.detailBody}>
-        {/* Carousel of design reference images */}
-        {images.length > 0 && (
-          <ImageCarousel images={images} className={styles.detailDesign} />
-        )}
+    <>
+      <div className={`${styles.detailModal} ${styles.detailOpen}`}>
+        <Header
+          type="back"
+          title={measurement.name}
+          onBackClick={onClose}
+          customActions={[
+            { icon: 'delete_outline', onClick: onDelete, color: 'var(--danger)' }
+          ]}
+        />
+        <div className={styles.detailBody}>
+          {/* Carousel — tap image to open lightbox */}
+          {images.length > 0 && (
+            <ImageCarousel
+              images={images}
+              className={styles.detailDesign}
+              onImageClick={(idx) => setLightboxIndex(idx)}
+            />
+          )}
 
-        <div className={styles.detailUnit}>{unitFull}</div>
-        {measurement.fields.length === 0
-          ? <p style={{ color: 'var(--text3)', fontSize: '0.8rem' }}>No fields recorded.</p>
-          : measurement.fields.map((f, i) => (
-              <div key={i} className={styles.measurementRow}>
-                <span className={styles.measureLabel}>{f.name}</span>
-                <span className={styles.measureValue}>{f.value || '—'}</span>
-              </div>
-            ))
-        }
-        <div className={styles.detailDate}>Saved on {measurement.date}</div>
+          <div className={styles.detailUnit}>{unitFull}</div>
+          {measurement.fields.length === 0
+            ? <p style={{ color: 'var(--text3)', fontSize: '0.8rem' }}>No fields recorded.</p>
+            : measurement.fields.map((f, i) => (
+                <div key={i} className={styles.measurementRow}>
+                  <span className={styles.measureLabel}>{f.name}</span>
+                  <span className={styles.measureValue}>{f.value || '—'}</span>
+                </div>
+              ))
+          }
+          <div className={styles.detailDate}>Saved on {measurement.date}</div>
+        </div>
       </div>
-    </div>
+
+      {/* Fullscreen lightbox — renders on top of detail modal */}
+      {lightboxIndex !== null && (
+        <ImageLightbox
+          images={images}
+          startIndex={lightboxIndex}
+          onClose={() => setLightboxIndex(null)}
+        />
+      )}
+    </>
   )
 }
 
@@ -468,7 +562,6 @@ export default function MeasurementsTab({ measurements, onSave, onDelete, showTo
     setDetailItem(null)
   }
 
-  // Group by date
   const grouped = measurements.reduce((acc, m) => {
     const key = m.date || 'Unknown Date'
     if (!acc[key]) acc[key] = []
@@ -494,11 +587,7 @@ export default function MeasurementsTab({ measurements, onSave, onDelete, showTo
           {dateItems.map((m, idx) => {
             const unitLabel  = UNIT_LABELS[m.unit] ?? m.unit
             const isLast     = idx === dateItems.length - 1
-
-            // Cover image: first of imgSrcs, or legacy imgSrc
             const coverImg   = m.imgSrcs?.[0] ?? m.imgSrc ?? null
-
-            // Extra images count (beyond cover)
             const extraCount = (m.imgSrcs?.length ?? (m.imgSrc ? 1 : 0)) - 1
 
             return (
@@ -507,21 +596,18 @@ export default function MeasurementsTab({ measurements, onSave, onDelete, showTo
                 className={`${styles.orderListItem} ${isLast ? styles.orderListItemLast : ''}`}
                 onClick={() => setDetailItem(m)}
               >
-                {/* Thumbnail area */}
                 <div className={styles.orderListOuter}>
                   <div className={styles.orderListInner} style={{ position: 'relative' }}>
                     {coverImg
                       ? <img src={coverImg} alt={m.name} className={styles.orderListThumbImg} />
                       : <span className="mi" style={{ fontSize: '1.5rem', color: 'var(--text3)' }}>straighten</span>
                     }
-                    {/* +N views overlay on thumbnail */}
                     {extraCount > 0 && coverImg && (
                       <div className={styles.thumbViewsOverlay}>+{extraCount} view{extraCount !== 1 ? 's' : ''}</div>
                     )}
                   </div>
                 </div>
 
-                {/* Info */}
                 <div className={styles.orderListInfo}>
                   <div className={styles.orderListDesc}>{m.name}</div>
                   <div className={styles.orderListOrdRow}>{m.date}</div>
@@ -530,7 +616,6 @@ export default function MeasurementsTab({ measurements, onSave, onDelete, showTo
                   </div>
                 </div>
 
-                {/* Delete + chevron */}
                 <div className={styles.cardActions}>
                   <button
                     className={styles.cardDelete}
