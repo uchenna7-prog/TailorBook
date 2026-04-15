@@ -272,19 +272,20 @@
   color: var(--success);
 }
 
-/* ── STAGE CHIP ROW ── */
+/* ── STAGE CHIP ROW (Orders tab only) ── */
 .stageChipRow {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   justify-content: flex-start;
-  align-items: flex-start !important;
+  align-items: flex-start;
   margin-top: 4px;
   margin-bottom: 4px;
 }
 
+/* FIX: chips must never stretch — they size to their own content only */
 .stageChip {
-  display: inline-flex !important;
+  display: inline-flex;
   align-items: center;
   gap: 5px;
   padding: 8px 12px;
@@ -298,9 +299,12 @@
   cursor: pointer;
   transition: all 0.18s;
   white-space: nowrap;
-  flex: 0 0 auto !important;
-  width: fit-content !important;
-  max-width: max-content !important;
+  /* Prevent any stretching — chip is always as wide as its text */
+  flex: 0 0 auto;
+  width: auto;
+  min-width: 0;
+  max-width: none;
+  align-self: flex-start;
 }
 
 .stageChip:active { opacity: 0.7; }
@@ -593,7 +597,7 @@
 
 
 /* ══════════════════════════════════════════════════════════════
-   LIGHTBOX — fullscreen image viewer (add to end of Tabs.module.css)
+   LIGHTBOX — fullscreen image viewer
    ══════════════════════════════════════════════════════════════ */
 
 /* Fullscreen overlay */
