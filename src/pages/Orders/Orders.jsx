@@ -303,12 +303,99 @@ const STAGES = [
   { value: 'ready',             label: 'Ready',             icon: 'check_circle'  },
 ]
 
+// ── Order Mosaic Thumbnail ────────────────────────────────────
+//   0 images  → status/overdue icon
+//   1 image   → single full image
+//   2 images  → left half | right half
+//   3+ images → large left | right column (top + bottom stacked)
+//               bottom-right shows "+N" overlay when total > 3
+// All layouts live inside orderListOuter → orderListInner so
+// the card size NEVER changes.
+
+function OrderMosaic({ items, overdue }) {
+  const covers = (items || []).map(item => item.imgSrc ?? null).filter(Boolean)
+  const total  = items?.length ?? 0
+
+  if (!covers.length) {
+    return (
+      <div className={styles.orderListOuter}>
+        <div className={styles.orderListInner}>
+          <span className="material-icons" style={{ fontSize: '1.5rem', color: overdue ? '#ef4444' : 'var(--text3)' }}>
+            {overdue ? 'alarm_on' : 'assignment'}
+          </span>
+        </div>
+      </div>
+    )
+  }
+
+  if (total === 1) {
+    return (
+      <div className={styles.orderListOuter}>
+        <div className={styles.orderListInner}>
+          <img src={covers[0]} alt="" className={styles.orderListThumbImg} />
+        </div>
+      </div>
+    )
+  }
+
+  if (total === 2) {
+    return (
+      <div className={styles.orderListOuter}>
+        <div className={`${styles.orderListInner} ${styles.mosaicInner}`}>
+          <div className={styles.mosaicLeft}>
+            <img src={covers[0]} alt="" className={styles.mosaicImg} />
+          </div>
+          <div className={styles.mosaicDividerV} />
+          <div className={styles.mosaicRight}>
+            <div className={styles.mosaicRightCell}>
+              {covers[1]
+                ? <img src={covers[1]} alt="" className={styles.mosaicImg} />
+                : <span className="material-icons" style={{ fontSize: '0.75rem', color: 'var(--text3)' }}>checkroom</span>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  const extra = total > 3 ? total - 3 : 0
+  return (
+    <div className={styles.orderListOuter}>
+      <div className={`${styles.orderListInner} ${styles.mosaicInner}`}>
+        <div className={styles.mosaicLeft}>
+          {covers[0]
+            ? <img src={covers[0]} alt="" className={styles.mosaicImg} />
+            : <span className="material-icons" style={{ fontSize: '0.9rem', color: 'var(--text3)' }}>checkroom</span>
+          }
+        </div>
+        <div className={styles.mosaicDividerV} />
+        <div className={styles.mosaicRight}>
+          <div className={styles.mosaicRightCell}>
+            {covers[1]
+              ? <img src={covers[1]} alt="" className={styles.mosaicImg} />
+              : <span className="material-icons" style={{ fontSize: '0.75rem', color: 'var(--text3)' }}>checkroom</span>
+            }
+          </div>
+          <div className={styles.mosaicDividerH} />
+          <div className={`${styles.mosaicRightCell} ${extra > 0 ? styles.mosaicOverlayWrap : ''}`}>
+            {covers[2]
+              ? <img src={covers[2]} alt="" className={styles.mosaicImg} />
+              : <span className="material-icons" style={{ fontSize: '0.75rem', color: 'var(--text3)' }}>checkroom</span>
+            }
+            {extra > 0 && <div className={styles.mosaicOverlay}>+{extra}</div>}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── Order List Item ───────────────────────────────────────────
 
 function OrderCard({ order, isLast, onTap }) {
   const overdue  = isOverdue(order)
   const due      = daysUntil(order.dueDate)
-  const thumb    = order.items?.[0]?.imgSrc
   const sc       = overdue
     ? { color: '#ef4444', bg: 'rgba(239,68,68,0.1)', border: 'rgba(239,68,68,0.3)' }
     : STATUS_COLORS[order.status] ?? STATUS_COLORS.pending
@@ -319,16 +406,7 @@ function OrderCard({ order, isLast, onTap }) {
       className={`${styles.orderListItem} ${isLast ? styles.orderListItemLast : ''} ${overdue ? styles.orderListItemOverdue : ''}`}
       onClick={onTap}
     >
-      <div className={styles.orderListOuter}>
-        <div className={styles.orderListInner}>
-          {thumb
-            ? <img src={thumb} alt="" className={styles.orderListThumbImg} />
-            : <span className="material-icons" style={{ fontSize: '1.5rem', color: overdue ? '#ef4444' : 'var(--text3)' }}>
-                {overdue ? 'alarm_on' : (STATUS_ICON[order.status] || 'assignment')}
-              </span>
-          }
-        </div>
-      </div>
+      <OrderMosaic items={order.items || []} overdue={overdue} />
 
       <div className={styles.orderListInfo}>
         {/* Garment name */}
