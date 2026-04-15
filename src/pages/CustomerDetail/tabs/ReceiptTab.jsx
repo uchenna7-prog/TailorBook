@@ -108,7 +108,7 @@ function OrderMosaic({ orderItems, fallbackIcon, fallbackColor }) {
 
 // ── Receipt card (same layout as InvoiceCard) ─────────────────
 
-function ReceiptCard({ receipt, currency, onTap, isLast }) {
+function ReceiptCard({ receipt, currency, onTap, isLast, orderItems }) {
   const thisPaymentAmount = (receipt.payments || []).reduce((s, p) => s + (parseFloat(p.amount) || 0), 0)
 
   const cumulativePaid = receipt.cumulativePaid != null
@@ -118,9 +118,6 @@ function ReceiptCard({ receipt, currency, onTap, isLast }) {
   const orderTotal  = parseFloat(receipt.orderPrice) || cumulativePaid
   const isFullPay   = cumulativePaid >= orderTotal && orderTotal > 0
   const statusLabel = isFullPay ? 'Paid in Full' : 'Part Payment'
-
-  // Use orderItems array for mosaic; fall back to single imgSrc on first item
-  const orderItems = receipt.orderItems ?? []
 
   return (
     <div
@@ -175,6 +172,7 @@ function EmptyState() {
 
 export default function ReceiptTab({
   receipts = [],
+  orders = [],
   customer,
   onDelete,
   showToast,
@@ -188,6 +186,15 @@ export default function ReceiptTab({
       return s.invoiceCurrency || '₦'
     } catch { return '₦' }
   })()
+
+  // Primary: look up live order items by orderId (always up to date with images)
+  // Fallback: use receipt.orderItems in case the order was deleted
+  const orderItemsMap = {}
+  for (const order of orders) {
+    if (order.id && order.items?.length > 0) {
+      orderItemsMap[order.id] = order.items
+    }
+  }
 
   const confirmDelete = () => {
     onDelete(deleteTarget)
@@ -211,15 +218,20 @@ export default function ReceiptTab({
         <div key={date} className={styles.invoiceGroup}>
           <div className={styles.invoiceGroupDate}>{date}</div>
           <div className={styles.invoiceGroupDivider} />
-          {dateReceipts.map((r, idx) => (
-            <ReceiptCard
-              key={r.id}
-              receipt={r}
-              currency={currency}
-              isLast={idx === dateReceipts.length - 1}
-              onTap={() => setViewingReceipt(r)}
-            />
-          ))}
+          {dateReceipts.map((r, idx) => {
+            // Prefer live order items → fall back to what was stored on the receipt
+            const orderItems = orderItemsMap[r.orderId] ?? r.orderItems ?? []
+            return (
+              <ReceiptCard
+                key={r.id}
+                receipt={r}
+                currency={currency}
+                isLast={idx === dateReceipts.length - 1}
+                onTap={() => setViewingReceipt(r)}
+                orderItems={orderItems}
+              />
+            )
+          })}
         </div>
       ))}
 
