@@ -469,13 +469,13 @@
 .listItem:active { background: var(--surface); }
 
 .listOuter {
-  width: 68px; height: 68px; border-radius: 8px;
+  width: 80px; height: 80px; border-radius: 12px;
   background: var(--surface); border: 1px solid var(--border);
   display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
 .listInner {
-  width: 50px; height: 50px; border-radius: 6px;
-  background: var(--surface2); display: flex; align-items: center;
+  width: 58px; height: 58px; border-radius: 10px;
+  background: #fff; display: flex; align-items: center;
   justify-content: center; overflow: hidden;
 }
 .listInfo     { flex: 1; min-width: 0; }
@@ -504,7 +504,7 @@
 
 /* ══════════════════════════════════════════
    HOME ORDER MOSAIC
-   Lives inside listOuter (68px) → listInner (50px).
+   Lives inside listOuter (80px) → listInner (58px).
    Prefixed hm- to avoid any collision with Tabs.module.css.
    ══════════════════════════════════════════ */
 
@@ -515,7 +515,7 @@
   flex-direction: row !important;
   align-items: stretch !important;
   overflow: hidden;
-  border-radius: 6px;
+  border-radius: 10px;
 }
 
 /* Left cell — ~60% width, full height */
