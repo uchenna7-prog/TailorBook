@@ -625,3 +625,83 @@
 }
 
 .viewCustomerBtn:active { opacity: 0.7; }
+
+/* ══════════════════════════════════════════
+   PAYMENT MOSAIC THUMBNAIL
+   Lives inside iconOuter (72px) → iconInner (52px).
+   Prefixed pm- to stay isolated.
+   ══════════════════════════════════════════ */
+
+.pmMosaicInner {
+  padding: 0 !important;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: stretch !important;
+  overflow: hidden;
+  border-radius: 10px;
+}
+
+.pmMosaicLeft {
+  flex: 0 0 60%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #fff;
+  height: 100%;
+}
+
+.pmMosaicRight {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #fff;
+}
+
+.pmMosaicRightCell {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+  background: #fff;
+}
+
+.pmMosaicDividerV {
+  width: 1.5px;
+  flex-shrink: 0;
+  background: var(--border);
+  align-self: stretch;
+}
+
+.pmMosaicDividerH {
+  height: 1.5px;
+  flex-shrink: 0;
+  background: var(--border);
+  width: 100%;
+}
+
+.pmMosaicImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.pmMosaicOverlayWrap { position: relative; }
+
+.pmMosaicOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.52);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  pointer-events: none;
+}
