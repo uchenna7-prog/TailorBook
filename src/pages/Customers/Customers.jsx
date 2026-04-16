@@ -255,47 +255,56 @@ function buildPhoneNumber(localNumber, countryDialCode) {
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
 const DAYS = Array.from({ length: 31 }, (_, i) => i + 1)
 
+// ── Male measurements ordered top → middle → lower body ──────
 const MALE_MEASUREMENTS = [
+  // ── Upper body (neck down to wrist) ──
   'Neck', 'Shoulder Width', 'Half Shoulder', 'Chest', 'Cross Back',
-  'Waist', 'Hip', 'Seat', 'Shirt Length', 'Sleeve Length', 'Arm Length',
-  'Arm Hole', 'Biceps', 'Wrist', 'Thighs', 'Crotch', 'Crotch To Knee',
-  'Above Knee', 'Below Knee', 'Knee To Calf', 'Calf', 'Calf To Ankle',
-  'Ankle', 'Waist To Ankle', 'Inseam', 'Pants Length', 'Shorts Length',
-  'Fly', 'Jacket Length', 'Coat Sleeve', 'Coat Waist'
+  'Arm Hole', 'Biceps', 'Arm Length', 'Sleeve Length', 'Coat Sleeve', 'Wrist',
+  'Shirt Length', 'Jacket Length',
+  // ── Mid body (waist, core, outerwear waist) ──
+  'Waist', 'Hip', 'Seat', 'Coat Waist',
+  'Crotch', 'Fly', 'Inseam',
+  // ── Lower body (legs to feet) ──
+  'Thighs', 'Crotch To Knee', 'Above Knee', 'Below Knee',
+  'Knee To Calf', 'Calf', 'Calf To Ankle', 'Ankle',
+  'Waist To Ankle', 'Pants Length', 'Shorts Length',
 ]
 
 const MALE_MEASUREMENT_IMAGES = {
-  'Neck':            neckMaleImg,
-  'Shoulder Width':  shoulderWidthMaleImg,
-  'Half Shoulder':   halfShoulderMaleImg,
-  'Chest':           chestMaleImg,
-  'Cross Back':      crossBackMaleImg,
-  'Waist':           waistMaleImg,
-  'Hip':             hipMaleImg,
-  'Seat':            seatMaleImg,
-  'Shirt Length':    shirtLengthMaleImg,
-  'Sleeve Length':   sleeveLengthMaleImg,
-  'Arm Length':      armLengthMaleImg,
-  'Arm Hole':        armHoleMaleImg,
-  'Biceps':          bicepsMaleImg,
-  'Wrist':           wristMaleImg,
-  'Thighs':          thighsMaleImg,
-  'Crotch':          crotchMaleImg,
-  'Crotch To Knee':  crotchToKneeMaleImg,
-  'Above Knee':      aboveKneeMaleImg,
-  'Below Knee':      belowKneeMaleImg,
-  'Knee To Calf':    kneeToCalfMaleImg,
-  'Calf':            calfMaleImg,
-  'Calf To Ankle':   calfToAnkleMaleImg,
-  'Ankle':           ankleMaleImg,
-  'Waist To Ankle':  waistToAnkleMaleImg,
-  'Inseam':          inseamMaleImg,
-  'Pants Length':    pantsLengthMaleImg,
-  'Shorts Length':   shortsLengthMaleImg,
-  'Fly':             flyMaleImg,
-  'Jacket Length':   jacketLengthMaleImg,
-  'Coat Sleeve':     sleeveLengthForSuitMaleImg,
-  'Coat Waist':      coatWaistMaleImg,
+  // ── Upper body ──
+  'Neck':           neckMaleImg,
+  'Shoulder Width': shoulderWidthMaleImg,
+  'Half Shoulder':  halfShoulderMaleImg,
+  'Chest':          chestMaleImg,
+  'Cross Back':     crossBackMaleImg,
+  'Arm Hole':       armHoleMaleImg,
+  'Biceps':         bicepsMaleImg,
+  'Arm Length':     armLengthMaleImg,
+  'Sleeve Length':  sleeveLengthMaleImg,
+  'Coat Sleeve':    sleeveLengthForSuitMaleImg,
+  'Wrist':          wristMaleImg,
+  'Shirt Length':   shirtLengthMaleImg,
+  'Jacket Length':  jacketLengthMaleImg,
+  // ── Mid body ──
+  'Waist':          waistMaleImg,
+  'Hip':            hipMaleImg,
+  'Seat':           seatMaleImg,
+  'Coat Waist':     coatWaistMaleImg,
+  'Crotch':         crotchMaleImg,
+  'Fly':            flyMaleImg,
+  'Inseam':         inseamMaleImg,
+  // ── Lower body ──
+  'Thighs':         thighsMaleImg,
+  'Crotch To Knee': crotchToKneeMaleImg,
+  'Above Knee':     aboveKneeMaleImg,
+  'Below Knee':     belowKneeMaleImg,
+  'Knee To Calf':   kneeToCalfMaleImg,
+  'Calf':           calfMaleImg,
+  'Calf To Ankle':  calfToAnkleMaleImg,
+  'Ankle':          ankleMaleImg,
+  'Waist To Ankle': waistToAnkleMaleImg,
+  'Pants Length':   pantsLengthMaleImg,
+  'Shorts Length':  shortsLengthMaleImg,
 }
 
 const FEMALE_MEASUREMENTS = [
