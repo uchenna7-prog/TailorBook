@@ -515,7 +515,7 @@
 
 .addCustomFieldBtn:active { border-color: var(--accent); }
 
-/* ── MEASUREMENT ROWS WITH IMAGES (Male) ── */
+/* ── MEASUREMENT ROWS WITH IMAGES ── */
 .measureImgRow {
   display: flex;
   align-items: center;
@@ -528,9 +528,10 @@
   border-bottom: none;
 }
 
+/* ↑ UPDATED: was 100px × 100px */
 .measureImg {
-  width: 100px;
-  height: 100px;
+  width: 130px;
+  height: 130px;
   object-fit: cover;
   flex-shrink: 0;
   border-radius: 8px;
