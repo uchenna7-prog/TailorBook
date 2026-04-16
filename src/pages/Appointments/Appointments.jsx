@@ -8,6 +8,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { useAuth }      from '../../contexts/AuthContext'
 import { useCustomers } from '../../contexts/CustomerContext'
+import { useOrders }    from '../../contexts/OrdersContext'
 import { subscribeToOrders }       from '../../services/orderService'
 import {
   subscribeToAppointments,
@@ -369,23 +370,20 @@ function AddAppointmentModal({ isOpen, onClose, onSave, customers }) {
   )
 }
 
-// ── Appointment Card ──────────────────────────────────────────
+// ── Appointment Thumbnail Mosaic ──────────────────────────────
+// Shows the linked order's images in mosaic layout when an order
+// is linked to the appointment. Falls back to the appointment
+// type icon when no order is linked or the order has no images.
 
-function AppointmentCard({ appt, onOpen, onStatusChange, isLast }) {
-  const overdue = isOverdue(appt) && appt.status === 'upcoming'
-  const sc      = STATUS_CONFIG[appt.status] ?? STATUS_CONFIG.upcoming
-  const icon    = TYPE_ICONS[appt.type] || 'calendar_today'
-  const until   = timeUntil(appt.date, appt.time)
+function ApptMosaic({ appt, orderItemsMap, overdue, effectiveSc, icon }) {
+  const covers = appt.orderId
+    ? (orderItemsMap[appt.orderId] || []).map(i => i.imgSrc ?? null).filter(Boolean)
+    : []
+  const total = appt.orderId ? (orderItemsMap[appt.orderId]?.length ?? 0) : 0
 
-  const effectiveStatus = overdue ? 'missed' : appt.status
-  const effectiveSc     = STATUS_CONFIG[effectiveStatus] ?? sc
-
-  return (
-    <div
-      className={`${styles.apptListItem} ${isLast ? styles.apptListItemLast : ''}`}
-      onClick={onOpen}
-    >
-      {/* Icon box */}
+  // ── No linked order images → type icon ──
+  if (!covers.length) {
+    return (
       <div
         className={styles.apptListOuter}
         style={{
@@ -399,6 +397,99 @@ function AppointmentCard({ appt, onOpen, onStatusChange, isLast }) {
           </span>
         </div>
       </div>
+    )
+  }
+
+  // ── 1 image ──
+  if (total === 1) {
+    return (
+      <div className={styles.apptListOuter}>
+        <div className={styles.apptListInner}>
+          <img src={covers[0]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '10px' }} />
+        </div>
+      </div>
+    )
+  }
+
+  // ── 2 images ──
+  if (total === 2) {
+    return (
+      <div className={styles.apptListOuter}>
+        <div className={`${styles.apptListInner} ${styles.amMosaicInner}`}>
+          <div className={styles.amMosaicLeft}>
+            <img src={covers[0]} alt="" className={styles.amMosaicImg} />
+          </div>
+          <div className={styles.amMosaicDividerV} />
+          <div className={styles.amMosaicRight}>
+            <div className={styles.amMosaicRightCell}>
+              {covers[1]
+                ? <img src={covers[1]} alt="" className={styles.amMosaicImg} />
+                : <span className="mi" style={{ fontSize: '0.75rem', color: 'var(--text3)' }}>checkroom</span>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // ── 3+ images ──
+  const extra = total > 3 ? total - 3 : 0
+  return (
+    <div className={styles.apptListOuter}>
+      <div className={`${styles.apptListInner} ${styles.amMosaicInner}`}>
+        <div className={styles.amMosaicLeft}>
+          {covers[0]
+            ? <img src={covers[0]} alt="" className={styles.amMosaicImg} />
+            : <span className="mi" style={{ fontSize: '0.9rem', color: 'var(--text3)' }}>checkroom</span>
+          }
+        </div>
+        <div className={styles.amMosaicDividerV} />
+        <div className={styles.amMosaicRight}>
+          <div className={styles.amMosaicRightCell}>
+            {covers[1]
+              ? <img src={covers[1]} alt="" className={styles.amMosaicImg} />
+              : <span className="mi" style={{ fontSize: '0.75rem', color: 'var(--text3)' }}>checkroom</span>
+            }
+          </div>
+          <div className={styles.amMosaicDividerH} />
+          <div className={`${styles.amMosaicRightCell} ${extra > 0 ? styles.amMosaicOverlayWrap : ''}`}>
+            {covers[2]
+              ? <img src={covers[2]} alt="" className={styles.amMosaicImg} />
+              : <span className="mi" style={{ fontSize: '0.75rem', color: 'var(--text3)' }}>checkroom</span>
+            }
+            {extra > 0 && <div className={styles.amMosaicOverlay}>+{extra}</div>}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Appointment Card ──────────────────────────────────────────
+
+function AppointmentCard({ appt, onOpen, onStatusChange, isLast, orderItemsMap }) {
+  const overdue = isOverdue(appt) && appt.status === 'upcoming'
+  const sc      = STATUS_CONFIG[appt.status] ?? STATUS_CONFIG.upcoming
+  const icon    = TYPE_ICONS[appt.type] || 'calendar_today'
+  const until   = timeUntil(appt.date, appt.time)
+
+  const effectiveStatus = overdue ? 'missed' : appt.status
+  const effectiveSc     = STATUS_CONFIG[effectiveStatus] ?? sc
+
+  return (
+    <div
+      className={`${styles.apptListItem} ${isLast ? styles.apptListItemLast : ''}`}
+      onClick={onOpen}
+    >
+      {/* Thumbnail: order mosaic if linked, else type icon */}
+      <ApptMosaic
+        appt={appt}
+        orderItemsMap={orderItemsMap}
+        overdue={overdue}
+        effectiveSc={effectiveSc}
+        icon={icon}
+      />
 
       {/* Info */}
       <div className={styles.apptListInfo}>
@@ -563,6 +654,15 @@ function AppointmentDetail({ appt, onClose, onStatusChange, onDelete }) {
 export default function Appointments({ onMenuClick }) {
   const { user }       = useAuth()
   const { customers }  = useCustomers()
+  const { allOrders }  = useOrders()
+
+  // Build orderId → items[] lookup for mosaic thumbnails
+  const orderItemsMap = {}
+  for (const order of allOrders) {
+    if (order.id && order.items?.length) {
+      orderItemsMap[String(order.id)] = order.items
+    }
+  }
 
   const [appointments,  setAppointments]  = useState([])
   const [activeTab,     setActiveTab]     = useState('all')
@@ -766,6 +866,7 @@ export default function Appointments({ onMenuClick }) {
                 isLast={idx === groupAppts.length - 1}
                 onOpen={() => setDetailAppt(appt)}
                 onStatusChange={handleStatusChange}
+                orderItemsMap={orderItemsMap}
               />
             ))}
           </div>
