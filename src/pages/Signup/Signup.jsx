@@ -6,9 +6,10 @@ import { DEFAULTS } from '../../contexts/SettingsContext'
 import styles from './Signup.module.css'
 
 const STEPS = [
-  { id: 'account',  label: 'Account',  icon: 'lock'      },
-  { id: 'personal', label: 'Personal', icon: 'person'     },
-  { id: 'brand',    label: 'Brand',    icon: 'storefront' },
+  { id: 'account',  label: 'Account',  icon: 'lock'         },
+  { id: 'personal', label: 'Personal', icon: 'person'        },
+  { id: 'brand',    label: 'Brand',    icon: 'storefront'    },
+  { id: 'payment',  label: 'Payment',  icon: 'account_balance' },
 ]
 
 function Field({ label, hint, error, children }) {
@@ -277,7 +278,7 @@ function StepPersonal({ data, onChange, errors, phoneLocal, onPhoneLocal, phoneC
   )
 }
 
-// ── Step 3 — Full brand (matches Profile BrandModal) ──────────
+// ── Step 3 — Full brand ───────────────────────────────────────
 
 function StepBrand({ data, onChange, errors, brandPhoneLocal, onBrandPhoneLocal, brandPhoneCountry, onBrandPhoneCountry }) {
   const logoInputRef = useRef(null)
@@ -372,6 +373,53 @@ function StepBrand({ data, onChange, errors, brandPhoneLocal, onBrandPhoneLocal,
   )
 }
 
+// ── Step 4 — Account / Payment Details (optional) ─────────────
+
+function StepPayment({ data, onChange }) {
+  return (
+    <div className={styles.stepContent}>
+      <div className={styles.stepIntro}>
+        <div className={styles.stepIntroTitle}>Account details</div>
+        <div className={styles.stepIntroSub}>
+          Your bank info printed on invoices so clients know where to pay.
+          All fields are optional — you can add them later from your Profile.
+        </div>
+      </div>
+
+      <div className={styles.paymentOptionalBadge}>
+        <span className="mi" style={{ fontSize: '0.8rem' }}>info</span>
+        Optional — tap "Create Account" to skip
+      </div>
+
+      <Field label="Bank Name" hint="e.g. GTBank, Access, OPay">
+        <TextInput
+          value={data.accountBank}
+          onChange={v => onChange('accountBank', v)}
+          placeholder="e.g. GTBank"
+          icon="account_balance"
+        />
+      </Field>
+      <Field label="Account Number">
+        <TextInput
+          value={data.accountNumber}
+          onChange={v => onChange('accountNumber', v)}
+          placeholder="e.g. 0123456789"
+          type="tel"
+          icon="tag"
+        />
+      </Field>
+      <Field label="Account Name" hint="Name on the bank account">
+        <TextInput
+          value={data.accountName}
+          onChange={v => onChange('accountName', v)}
+          placeholder="e.g. Amara Okonkwo"
+          icon="badge"
+        />
+      </Field>
+    </div>
+  )
+}
+
 // ── Progress & dots ───────────────────────────────────────────
 
 function ProgressBar({ current, total }) {
@@ -419,7 +467,7 @@ function validateStep(stepId, data, phoneLocal, brandPhoneLocal) {
       if (!valid) errors.phone = 'Enter a valid 10-digit number (or 11 starting with 0)'
     }
   }
-  // Brand — all optional, no required fields
+  // Brand and payment — all optional, no required fields
   return errors
 }
 
@@ -429,6 +477,8 @@ const INITIAL = {
   brandName: '', brandTagline: '', brandColour: '#D4AF37',
   brandLogo: null, brandPhone: '', brandEmail: '',
   brandAddress: '', brandWebsite: '', invoiceCurrency: '₦',
+  // Account / payment details
+  accountBank: '', accountNumber: '', accountName: '',
 }
 
 // ── Main ──────────────────────────────────────────────────────
@@ -444,10 +494,10 @@ export default function Signup() {
   const [loading,   setLoading]   = useState(false)
 
   // ── Separate local phone state for both phone fields ──────
-  const [phoneLocal,       setPhoneLocal]       = useState('')
-  const [phoneCountry,     setPhoneCountry]     = useState(DEFAULT_COUNTRY)
-  const [brandPhoneLocal,  setBrandPhoneLocal]  = useState('')
-  const [brandPhoneCountry,setBrandPhoneCountry]= useState(DEFAULT_COUNTRY)
+  const [phoneLocal,        setPhoneLocal]        = useState('')
+  const [phoneCountry,      setPhoneCountry]      = useState(DEFAULT_COUNTRY)
+  const [brandPhoneLocal,   setBrandPhoneLocal]   = useState('')
+  const [brandPhoneCountry, setBrandPhoneCountry] = useState(DEFAULT_COUNTRY)
 
   const currentStep = STEPS[step]
 
@@ -456,53 +506,45 @@ export default function Signup() {
     setErrors(prev => { const e = { ...prev }; delete e[key]; return e })
   }, [])
 
-  const handleNext = async () => {
-    const errs = validateStep(currentStep.id, data, phoneLocal, brandPhoneLocal)
-    if (Object.keys(errs).length > 0) { setErrors(errs); return }
-    setErrors({})
-
-    if (step < STEPS.length - 1) { setStep(s => s + 1); return }
-
-    // Build final phone strings before submitting
-    const builtPhone      = buildPhoneNumber(phoneLocal, phoneCountry.dial_code) || phoneLocal
-    const builtBrandPhone = brandPhoneLocal.trim()
-      ? (buildPhoneNumber(brandPhoneLocal, brandPhoneCountry.dial_code) || brandPhoneLocal)
-      : ''
-
+  const submit = async (finalData, builtPhone, builtBrandPhone) => {
     setLoading(true)
     setAuthError('')
     try {
-      const cred = await signup(data.email.trim(), data.password)
-      await updateProfile(cred.user, { displayName: data.fullName.trim() })
+      const cred = await signup(finalData.email.trim(), finalData.password)
+      await updateProfile(cred.user, { displayName: finalData.fullName.trim() })
 
       // Save personal info to localStorage
       try {
         localStorage.setItem('tailorbook_personal', JSON.stringify({
-          fullName: data.fullName.trim(),
-          email:    data.email.trim(),
+          fullName: finalData.fullName.trim(),
+          email:    finalData.email.trim(),
           phone:    builtPhone,
-          city:     data.city.trim(),
-          country:  data.country.trim(),
+          city:     finalData.city.trim(),
+          country:  finalData.country.trim(),
         }))
       } catch { /* ignore */ }
 
-      // Save brand settings to localStorage — SettingsContext reads this on mount
+      // Save brand + account settings to localStorage — SettingsContext reads this on mount
       try {
         const existingRaw = localStorage.getItem('tailorbook_settings')
         const existing    = existingRaw ? JSON.parse(existingRaw) : { ...DEFAULTS }
         localStorage.setItem('tailorbook_settings', JSON.stringify({
           ...existing,
-          brandName:       data.brandName.trim(),
-          brandTagline:    data.brandTagline.trim(),
-          brandColour:     data.brandColour || '#D4AF37',
+          brandName:       finalData.brandName.trim(),
+          brandTagline:    finalData.brandTagline.trim(),
+          brandColour:     finalData.brandColour || '#D4AF37',
           brandPhone:      builtBrandPhone,
-          brandEmail:      data.brandEmail.trim(),
-          brandAddress:    data.brandAddress.trim(),
-          brandWebsite:    data.brandWebsite.trim(),
-          invoiceCurrency: data.invoiceCurrency,
+          brandEmail:      finalData.brandEmail.trim(),
+          brandAddress:    finalData.brandAddress.trim(),
+          brandWebsite:    finalData.brandWebsite.trim(),
+          invoiceCurrency: finalData.invoiceCurrency,
+          // Account / payment details
+          accountBank:     finalData.accountBank.trim(),
+          accountNumber:   finalData.accountNumber.trim(),
+          accountName:     finalData.accountName.trim(),
         }))
-        if (data.brandLogo) {
-          localStorage.setItem('tailorbook_brand_logo', data.brandLogo)
+        if (finalData.brandLogo) {
+          localStorage.setItem('tailorbook_brand_logo', finalData.brandLogo)
         }
       } catch { /* ignore quota errors */ }
 
@@ -514,8 +556,35 @@ export default function Signup() {
     }
   }
 
+  const handleNext = async () => {
+    const errs = validateStep(currentStep.id, data, phoneLocal, brandPhoneLocal)
+    if (Object.keys(errs).length > 0) { setErrors(errs); return }
+    setErrors({})
+
+    if (step < STEPS.length - 1) { setStep(s => s + 1); return }
+
+    // Last step — build phone strings and submit
+    const builtPhone      = buildPhoneNumber(phoneLocal, phoneCountry.dial_code) || phoneLocal
+    const builtBrandPhone = brandPhoneLocal.trim()
+      ? (buildPhoneNumber(brandPhoneLocal, brandPhoneCountry.dial_code) || brandPhoneLocal)
+      : ''
+
+    await submit(data, builtPhone, builtBrandPhone)
+  }
+
+  // "Skip" only shown on the payment step — jumps straight to submit with empty payment fields
+  const handleSkip = async () => {
+    const builtPhone      = buildPhoneNumber(phoneLocal, phoneCountry.dial_code) || phoneLocal
+    const builtBrandPhone = brandPhoneLocal.trim()
+      ? (buildPhoneNumber(brandPhoneLocal, brandPhoneCountry.dial_code) || brandPhoneLocal)
+      : ''
+
+    await submit(data, builtPhone, builtBrandPhone)
+  }
+
   const handleBack = () => { setErrors({}); setStep(s => s - 1) }
   const isLast = step === STEPS.length - 1
+  const isPaymentStep = currentStep.id === 'payment'
 
   return (
     <div className={styles.page}>
@@ -530,7 +599,13 @@ export default function Signup() {
           <span className="mi" style={{ fontSize: '1.3rem', color: 'var(--accent)' }}>content_cut</span>
           <span className={styles.topLogoText}>TailorFlow</span>
         </div>
-        <div className={styles.topBack} />
+        {/* Skip button visible only on payment step */}
+        {isPaymentStep
+          ? <button className={styles.skipBtn} onClick={handleSkip} type="button" disabled={loading}>
+              Skip
+            </button>
+          : <div className={styles.topBack} />
+        }
       </div>
 
       <ProgressBar current={step} total={STEPS.length} />
@@ -563,6 +638,9 @@ export default function Signup() {
             brandPhoneCountry={brandPhoneCountry}
             onBrandPhoneCountry={setBrandPhoneCountry}
           />
+        )}
+        {currentStep.id === 'payment' && (
+          <StepPayment data={data} onChange={handleChange} />
         )}
 
         {authError && (
