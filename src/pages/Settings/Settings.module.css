@@ -6,8 +6,8 @@
 .sectionLabel { font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text3); }
 
 /* ── GROUP HEADER (template picker) ── */
-.groupHeader { display: flex; align-items: center; gap: 8px; padding: 18px 4px 6px; }
-.groupLabel { font-size: 0.72rem; font-weight: 800; color: var(--text2); letter-spacing: 0.03em; }
+.groupHeader { display: flex; align-items: center; justify-content: center; padding: 36px 4px 10px; }
+.groupLabel { font-size: 1.05rem; font-weight: 900; color: var(--text); letter-spacing: 0.06em; text-transform: uppercase; text-align: center; }
 
 /* ── PREMIUM BADGE ── */
 .premiumBadge { display:inline-flex;align-items:center;gap:3px;background:linear-gradient(135deg,var(--accent),#b8942a);color:var(--bg);font-size:0.55rem;font-weight:900;letter-spacing:0.06em;padding:2px 7px 2px 5px;border-radius:20px;margin-left:2px; }
@@ -44,7 +44,7 @@
 .radio { width:20px;height:20px;border-radius:50%;border:2px solid var(--border);flex-shrink:0; }
 .radioActive { background:var(--accent);border-color:var(--accent);position:relative; }
 .radioActive::after { content:'';position:absolute;inset:5px;background:var(--bg);border-radius:50%; }
-.templateLabel { font-weight:700;color:var(--text);font-size:0.9rem; }
+.templateLabel { font-weight: 400; color: var(--text3); font-size: 0.78rem; }
 
 /* ── FORMS ── */
 .fieldGroup { background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden; }
@@ -278,12 +278,9 @@
 
 /* ══════════════════════════════════════════════════════════
    TEMPLATE 10 — Pink Full-Width Diagonal
-   The pink band covers the entire width.  The diagonal cut
-   runs from the left edge (full height) to the right edge
-   (shorter height), exactly as in the reference image.
-   Brand/logo lives in the white area at the top-right, floated
-   over the diagonal banner.
-   Authorised Sign is anchored at the BOTTOM-RIGHT via flexbox.
+   Header zone: pink diagonal left, white brand area top-right.
+   The diagonal cut runs from top-left full height down to a
+   shorter height at top-right, exactly matching the reference.
 ══════════════════════════════════════════════════════════ */
 .t10Base {
   background: #fff;
@@ -298,18 +295,25 @@
   overflow: hidden;
 }
 
-/* Full-width pink band. The diagonal is achieved by cutting the
-   bottom-right corner of the pink shape with clip-path.
-   Left side is tall (~65px), right side tapers to ~30px.   */
-.t10FullBanner {
-  background: #ff5c8a;
-  /* polygon: TL → TR → right-bottom-taper → left-bottom */
-  clip-path: polygon(0 0, 100% 0, 100% 30px, 0 65px);
-  min-height: 65px;
+/* Wrapper that holds both the pink band and the white brand area side by side */
+.t10HeaderZone {
   position: relative;
+  width: 100%;
+  height: 70px;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+/* Pink diagonal band: full-width, bottom edge is diagonal (tall left, short right) */
+.t10FullBanner {
+  position: absolute;
+  inset: 0;
+  background: #ff5c8a;
+  /* TL → TR (full top) → short height on right → diagonal back to tall on left */
+  clip-path: polygon(0 0, 100% 0, 100% 28px, 0 100%);
   display: flex;
   align-items: flex-start;
-  padding: 12px 16px 0;
+  padding: 10px 16px 0;
 }
 .t10BannerTitle {
   color: #fff;
@@ -319,18 +323,14 @@
   padding-top: 2px;
 }
 
-/* Brand floated to the right, inside the banner wrapper.
-   Positioned so it appears on the white-ish area created
-   by the diagonal taper.                                   */
+/* Brand block sits in the white top-right area (above the diagonal pink) */
 .t10BrandInBanner {
+  position: absolute;
+  top: 6px;
+  right: 12px;
   display: flex;
   align-items: center;
   gap: 6px;
-  margin-left: auto;
-  padding-top: 4px;
-  /* Push it down slightly to sit in the white part */
-  align-self: center;
-  margin-top: -6px;
 }
 .t10BrandName { font-size: 9.5px; font-weight: 700; color: #1a1a1a; }
 .t10BrandSub { font-size: 5.5px; color: #888; letter-spacing: 0.06em; }
@@ -426,9 +426,10 @@
 
 /* ══════════════════════════════════════════════════════════
    TEMPLATE 12 — Black Geometric Bold
-   Top-left: true trapezoid (wider at top, diagonal right edge).
-   Top-right: white area with contact icon rows + thin vertical lines.
-   Bottom-right: two overlapping angular black triangles.
+   Top-left: true wide trapezoid (black, diagonal right edge).
+   Top-right: thin corner bracket lines (square L-shape).
+   Bottom-left: thin corner bracket lines.
+   Bottom-right: two overlapping angular black trapezoid shapes.
 ══════════════════════════════════════════════════════════ */
 .t12Base {
   background: #fff;
@@ -447,20 +448,20 @@
 .t12Header {
   display: flex;
   align-items: stretch;
-  min-height: 50px;
+  min-height: 52px;
   background: #fff;
   position: relative;
 }
 
-/* Black trapezoid.  Wider at top, tapers to bottom-right. */
+/* Black trapezoid. Wide at top-left, tapers diagonally to narrow at bottom-right.
+   Matches reference: large dominant black shape covering ~55% width at top. */
 .t12LogoTrap {
   background: #1a1a1a;
-  /* TL → slightly past half-width at top → diagonal down to ~40% at bottom → BL */
-  clip-path: polygon(0 0, 68% 0, 52% 100%, 0 100%);
+  clip-path: polygon(0 0, 75% 0, 55% 100%, 0 100%);
   display: flex;
   align-items: center;
-  padding: 0 40px 0 12px;
-  min-width: 120px;
+  padding: 0 50px 0 14px;
+  min-width: 140px;
   flex-shrink: 0;
 }
 .t12LogoText {
@@ -477,7 +478,7 @@
   flex-direction: column;
   justify-content: center;
   gap: 4px;
-  padding: 8px 50px 8px 20px;
+  padding: 8px 36px 8px 20px;
 }
 .t12ContactItem {
   display: flex;
@@ -487,20 +488,29 @@
   color: #444;
 }
 
-/* Two thin vertical deco lines at far right of header */
-.t12DecoLines {
+/* Top-right corner bracket: two thin lines forming an L at top-right of header */
+.t12CornerBracketTR {
   position: absolute;
-  right: 8px;
-  top: 0;
-  bottom: 0;
-  display: flex;
-  gap: 5px;
-  align-items: stretch;
+  top: 4px;
+  right: 6px;
+  width: 22px;
+  height: 22px;
+  border-top: 1.5px solid #888;
+  border-right: 1.5px solid #888;
+  pointer-events: none;
 }
-.t12DecoLine {
-  width: 1.5px;
-  background: #888;
-  opacity: 0.35;
+
+/* Bottom-left corner bracket: two thin lines forming an L at bottom-left */
+.t12CornerBracketBL {
+  position: absolute;
+  bottom: 6px;
+  left: 6px;
+  width: 22px;
+  height: 22px;
+  border-bottom: 1.5px solid #888;
+  border-left: 1.5px solid #888;
+  pointer-events: none;
+  z-index: 2;
 }
 
 /* ── Title ── */
@@ -530,7 +540,7 @@
 .t12FootRow {
   display: flex;
   justify-content: space-between;
-  padding: 7px 14px 55px;   /* extra bottom padding for corner shapes */
+  padding: 7px 14px 55px;
   font-size: 6.5px;
   line-height: 1.5;
   margin-top: auto;
@@ -543,25 +553,25 @@
 .t12SignLine { width:68px;height:1px;background:#aaa;margin:0 auto 2px; }
 .t12SignLabel { font-size:6px;color:#666;text-align:center; }
 
-/* ── Bottom-right angular black shapes ──
-   Outer: larger solid black triangle.
-   Inner: slightly smaller, lighter, offset to create layered look.  */
+/* ── Bottom-right two overlapping angular trapezoid shapes (matching reference) ──
+   Outer: large solid black trapezoid pointing bottom-right.
+   Inner: medium grey trapezoid offset to create layered chevron look. */
 .t12CornerOuter {
   position: absolute;
   bottom: 0;
   right: 0;
-  width: 80px;
-  height: 52px;
+  width: 90px;
+  height: 58px;
   background: #1a1a1a;
-  clip-path: polygon(100% 0, 100% 100%, 0 100%);
+  clip-path: polygon(40% 0, 100% 0, 100% 100%, 0 100%);
 }
 .t12CornerInner {
   position: absolute;
   bottom: 0;
-  right: 52px;
-  width: 52px;
-  height: 36px;
-  background: #555;
-  clip-path: polygon(100% 0, 100% 100%, 0 100%);
-  opacity: 0.45;
+  right: 60px;
+  width: 65px;
+  height: 58px;
+  background: #666;
+  clip-path: polygon(40% 0, 100% 0, 100% 100%, 0 100%);
+  opacity: 0.5;
 }
