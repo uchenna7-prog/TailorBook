@@ -339,3 +339,28 @@
   padding-left: 2px;
   transition: color 0.2s;
 }
+/* ── ADD THESE TO YOUR EXISTING Signup.module.css ── */
+
+/* Skip button in top bar (payment step) */
+.skipBtn {
+  width: 40px; height: 40px;
+  display: flex; align-items: center; justify-content: center;
+  background: none; border: none;
+  color: var(--text3); font-family: inherit;
+  font-size: 0.82rem; font-weight: 700;
+  cursor: pointer; border-radius: 10px;
+  flex-shrink: 0; white-space: nowrap;
+  padding: 0 8px; width: auto;
+}
+.skipBtn:active { background: var(--surface2); }
+.skipBtn:disabled { opacity: 0.5; pointer-events: none; }
+
+/* "Optional" info badge on payment step */
+.paymentOptionalBadge {
+  display: flex; align-items: center; gap: 6px;
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);
+  border-radius: 10px; padding: 10px 14px;
+  font-size: 0.78rem; font-weight: 700;
+  color: var(--accent);
+}
