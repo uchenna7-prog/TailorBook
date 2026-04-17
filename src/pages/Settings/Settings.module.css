@@ -7,11 +7,16 @@
 
 /* ── GROUP HEADER (template picker) ── */
 .groupHeader {
-  padding: 56px 0 20px; /* Changed 16px to 0 so the line can touch the edges */
+  padding: 56px 0 20px;
   text-align: center;
   display: flex;
   flex-direction: column;
-  align-items: center; /* Centers the inner content */
+  align-items: center;
+}
+
+/* First group doesn't need the giant top gap — nothing is above it */
+.groupHeaderFirst {
+  padding-top: 8px;
 }
 
 .groupHeaderInner {
@@ -22,14 +27,13 @@
   border-radius: 0;
   padding: 0 0 12px;
   margin: 0;
-  /* UPDATED PROPERTIES BELOW */
-  width: 98%; /* This sets your preferred width */
-  border-bottom: 6px solid var(--accent); /* Increased thickness for better visibility */
+  width: 98%;
+  border-bottom: 6px solid var(--accent);
 }
 
 .groupLabel {
-  font-size: 1.1rem; /* Bigger font size */
-  font-weight: 900; /* Bolder text */
+  font-size: 1.1rem;
+  font-weight: 900;
   color: var(--text);
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -74,8 +78,8 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  margin-top: 40px;    /* Added this: Spacing after the thick line */
-  margin-bottom: 24px; 
+  margin-top: 40px;
+  margin-bottom: 24px;
 }
 
 .fullPreviewContainer { width:100%;background:#fff;border-radius:8px;border:2px solid transparent;box-shadow:0 4px 12px rgba(0,0,0,0.1);overflow:hidden;transition:0.2s; }
@@ -320,7 +324,7 @@
 .t9CornerDeco { position:absolute;bottom:0;right:0;width:48px;height:48px;background:linear-gradient(135deg,transparent 50%,#00b4c8 50%);opacity:0.35; }
 
 /* ══════════════════════════════════════════════════════════
-   TEMPLATE 10 — Pink Full-Width Diagonal
+   TEMPLATE 10 — Full-Width Diagonal
 ══════════════════════════════════════════════════════════ */
 .t10Base { background: #fff; color: #1a1a1a; font-family: 'Inter', sans-serif; font-size: 7px; min-height: 500px; display: flex; flex-direction: column; padding: 0; position: relative; overflow: hidden; }
 .t10HeaderZone { position: relative; width: 100%; height: 70px; flex-shrink: 0; overflow: hidden; }
@@ -385,39 +389,3 @@
 .t11PayBox { flex:1;background:#dbeeff;padding:5px 7px;font-size:6px;line-height:1.5; }
 .t11PayBoxTitle { font-weight:700;font-size:7px;margin-bottom:2px; }
 .t11ThankYou { text-align:right;font-size:9.5px;font-weight:700;color:#5da0d0;padding:3px 14px 9px;margin-top:auto;letter-spacing:0.05em; }
-
-/* ══════════════════════════════════════════════════════════
-   TEMPLATE 12 — Black Trapezoid Bold
-══════════════════════════════════════════════════════════ */
-.t12Base { background: #fff; color: #1a1a1a; font-family: 'Inter', sans-serif; font-size: 7px; min-height: 500px; display: flex; flex-direction: column; padding: 0; position: relative; overflow: hidden; }
-.t12Header { display: flex; align-items: stretch; min-height: 56px; background: #fff; position: relative; }
-.t12LogoTrap { background: #1a1a1a; clip-path: polygon(0 0, 78% 0, 58% 100%, 0 100%); display: flex; align-items: center; padding: 0 52px 0 14px; min-width: 150px; flex-shrink: 0; position: relative; z-index: 1; }
-.t12LogoText { color: #fff; font-size: 12px; font-weight: 900; letter-spacing: 0.12em; }
-.t12HeaderContacts { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 4px; padding: 8px 38px 8px 18px; }
-.t12ContactItem { display: flex; align-items: center; gap: 4px; font-size: 6px; color: #444; }
-.t12CornerBracketTR { position: absolute; top: 5px; right: 7px; width: 22px; height: 22px; border-top: 1.5px solid #999; border-right: 1.5px solid #999; pointer-events: none; }
-.t12CornerBracketBL { position: absolute; bottom: 7px; left: 7px; width: 22px; height: 22px; border-bottom: 1.5px solid #999; border-left: 1.5px solid #999; pointer-events: none; z-index: 2; }
-.t12TitleRow { display:flex;justify-content:center;padding:9px 14px 4px; }
-.t12InvoiceTitle { font-size:22px;font-weight:900;letter-spacing:0.18em;border-bottom:2px solid #1a1a1a;padding-bottom:2px; }
-.t12ClientRow { display:flex;justify-content:space-between;padding:5px 14px;font-size:6.5px;line-height:1.6; }
-.t12ClientName { font-size:9px;font-weight:700;margin-bottom:2px; }
-.t12ClientInfo { color:#444; }
-.t12BalLabel { font-size:6.5px;color:#666;font-weight:600; }
-.t12BalAmt { font-size:16px;font-weight:900; }
-.t12BalDate { font-size:6px;color:#666; }
-.t12TableHead { display:flex;background:#1a1a1a;color:#fff;padding:5px 14px;font-size:6.5px;font-weight:700;gap:4px; }
-.t12TableHead span,.t12TableRow span { flex:1;text-align:right; }
-.t12TableHead span:first-child,.t12TableRow span:first-child { flex:3;text-align:left; }
-.t12TableRow { display:flex;padding:5px 14px;border-bottom:1px solid #eee;font-size:6.5px;gap:4px;align-items:flex-start; }
-.t12ItemName { font-weight:700;font-size:7px; }
-.t12ItemDesc { color:#999;font-size:5.5px;margin-top:1px; }
-.t12DueBar { display:flex;justify-content:space-between;background:#1a1a1a;color:#fff;padding:5px 14px;font-size:7px;font-weight:700;margin-top:2px; }
-.t12FootRow { display: flex; justify-content: space-between; padding: 8px 14px 60px; font-size: 6.5px; line-height: 1.5; margin-top: auto; gap: 10px; }
-.t12FootRow>div:first-child { flex:1; }
-.t12FootLabel { font-weight:700;font-size:7px;margin-bottom:2px; }
-.t12FootInfo { color:#444;margin-bottom:1px; }
-.t12SignScribble { font-size:9px;font-style:italic;color:#333;margin-bottom:4px; }
-.t12SignLine { width:70px;height:1px;background:#bbb;margin:0 0 3px; }
-.t12SignLabel { font-size:6px;color:#666; }
-.t12CornerOuter { position: absolute; bottom: 0; right: 0; width: 100px; height: 65px; background: #1a1a1a; clip-path: polygon(38% 0, 100% 0, 100% 100%, 0 100%); }
-.t12CornerInner { position: absolute; bottom: 0; right: 68px; width: 72px; height: 65px; background: #5a5a5a; clip-path: polygon(38% 0, 100% 0, 100% 100%, 0 100%); }
