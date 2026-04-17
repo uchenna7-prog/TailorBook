@@ -26,7 +26,8 @@
   text-transform: uppercase;
 }
 .groupDesc {
-  font-size: 0.63rem;
+  font-size: 2.5rem;
+  text-align:center;
   font-weight: 500;
   color: var(--bg);
   opacity: 0.65;
@@ -34,7 +35,7 @@
 }
 
 /* ── PREMIUM BADGE ── */
-.premiumBadge { display:inline-flex;align-items:center;gap:3px;background:linear-gradient(135deg,var(--accent),#b8942a);color:var(--bg);font-size:0.55rem;font-weight:900;letter-spacing:0.06em;padding:2px 7px 2px 5px;border-radius:20px;margin-left:2px; }
+.premiumBadge { display:inline-flex;align-items:center;gap:3px;color:var(--bg);font-size:0.55rem;font-weight:900;letter-spacing:0.06em;padding:2px 7px 2px 5px;border-radius:20px;margin-left:2px; }
 
 /* ── ROW ── */
 .row { display:flex;align-items:center;gap:16px;padding:16px;border-bottom:1px solid var(--border);background:var(--bg); }
