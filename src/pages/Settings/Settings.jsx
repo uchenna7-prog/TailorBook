@@ -28,7 +28,6 @@ function EditableTemplate() {
         <div className={styles.pBrandName}>Adeola Couture House</div>
         <div className={styles.pBrandSub}>14 Bode Thomas St, Surulere, Lagos</div>
       </div>
-      {/* INVOICE word centred between two horizontal rules */}
       <div className={styles.pInvoiceCentred}>
         <div className={styles.pInvoiceLine} />
         <div className={styles.pInvoiceWordCentre}>INVOICE</div>
@@ -126,13 +125,12 @@ function FreeTemplate() {
 }
 
 // ══════════════════════════════════════════════════════════════
-// GROUP B — Logo + No Signature
+// GROUP B — Logo Placeholder + No Signature
 // ══════════════════════════════════════════════════════════════
 
 function CustomTemplate() {
   return (
     <div className={styles.pBase} style={{ padding: 0 }}>
-      {/* Lavender/purple header matching reference: logo dashed left, INVOICE right */}
       <div className={styles.pPurpleBanner}>
         <div className={styles.pLogoBoxWhite}>Place logo here</div>
         <div style={{ textAlign: 'right' }}>
@@ -140,7 +138,6 @@ function CustomTemplate() {
           <div className={styles.pWhiteNo}>0000003</div>
         </div>
       </div>
-      {/* 4-column info row */}
       <div style={{ display: 'flex', gap: 8, padding: '10px 14px 6px', fontSize: '7px' }}>
         <div style={{ flex: 1 }}>
           <div className={styles.pSmallCap}>BILL FROM:</div>
@@ -174,7 +171,6 @@ function CustomTemplate() {
           <div className={`${styles.pSumRow} ${styles.pBold}`}><span>Total Due</span><span>₦56,200</span></div>
         </div>
       </div>
-      {/* Purple footer matching reference */}
       <div className={styles.pPurpleBottom}>
         <div className={styles.pPurpleFootRow}>
           <div className={styles.pFootSectionWhite}>
@@ -189,57 +185,100 @@ function CustomTemplate() {
   )
 }
 
+// ──────────────────────────────────────────────────────────────
+// Template 4 — Printable Clothing Store Style
+// Clean layout: INVOICE title top-left, date/invoice# top-right,
+// Bill From / Bill To side by side, line-item table, totals,
+// payment terms + notes at bottom. Matches invoicequick reference.
+// ──────────────────────────────────────────────────────────────
 function PrintableTemplate() {
+  const items = [
+    { desc: 'Custom Agbada Sewing',    price: '₦8,500',  qty: 1, total: '₦8,500'  },
+    { desc: 'Senator Suit Stitching',  price: '₦6,200',  qty: 2, total: '₦12,400' },
+    { desc: 'Ankara Dress Alteration', price: '₦2,500',  qty: 3, total: '₦7,500'  },
+    { desc: 'Bridal Gown Fitting',     price: '₦15,000', qty: 1, total: '₦15,000' },
+    { desc: 'Trouser Hemming',         price: '₦1,200',  qty: 4, total: '₦4,800'  },
+    { desc: 'Kaftan Embroidery',       price: '₦4,000',  qty: 2, total: '₦8,000'  },
+  ]
   return (
-    <div className={styles.pBase}>
-      {/* Thin gold/tan bar full-width at top */}
-      <div className={styles.pGoldBarFull} />
-      {/* Company name centred */}
-      <div className={styles.pBrandCenter} style={{ marginBottom: 6 }}>
-        <div className={styles.pBrandName}>Adeola Couture House</div>
-        <div className={styles.pBrandSub}>14 Bode Thomas St, Surulere, Lagos · City, State, Zip Code</div>
-      </div>
-      {/* INVOICE centred between two lines — exact reference match */}
-      <div className={styles.pInvoiceCentred}>
-        <div className={styles.pInvoiceLineTan} />
-        <div className={styles.pInvoiceWordCentre}>INVOICE</div>
-        <div className={styles.pInvoiceLineTan} />
-      </div>
-      <div className={styles.pBody}>
-        <div className={styles.pMetaRow}>
-          <div>
-            <div className={styles.pSmallCap}>BILL TO:</div>
-            <strong>Dr. Tunde Adeleke</strong><br />
-            Block 7, GRA Phase 2<br />Port Harcourt, Rivers
+    <div className={styles.p4Base}>
+      {/* Top bar: tan/gold accent line */}
+      <div className={styles.p4GoldBar} />
+
+      {/* Header: INVOICE word + meta */}
+      <div className={styles.p4Header}>
+        <div className={styles.p4InvoiceWord}>INVOICE</div>
+        <div className={styles.p4HeaderRight}>
+          <div className={styles.p4MetaRow}>
+            <span className={styles.p4MetaKey}>ISSUE DATE</span>
+            <span className={styles.p4MetaVal}>Date Field</span>
           </div>
-          <div style={{ textAlign: 'right', fontSize: '7px' }}>
-            Invoice #: <strong>0000004</strong><br />
-            Issue Date: <strong>05 Apr 2025</strong><br />
-            Due Date: <strong>12 Apr 2025</strong>
+          <div className={styles.p4MetaRow}>
+            <span className={styles.p4MetaKey}>DUE DATE</span>
+            <span className={styles.p4MetaVal}>Date Field</span>
+          </div>
+          <div className={styles.p4MetaRow}>
+            <span className={styles.p4MetaKey}>INVOICE #</span>
+            <span className={styles.p4MetaVal}>0000004</span>
           </div>
         </div>
-        <div className={styles.pTHead2}>
-          <span style={{ flex: 3 }}>Description</span><span>Price</span><span>Qty</span><span>Total</span>
+      </div>
+
+      {/* Bill From / Bill To */}
+      <div className={styles.p4BillRow}>
+        <div className={styles.p4BillBlock}>
+          <div className={styles.p4BillLabel}>BILL FROM</div>
+          <div className={styles.p4BillName}>Adeola Couture House</div>
+          <div className={styles.p4BillInfo}>14 Bode Thomas Street</div>
+          <div className={styles.p4BillInfo}>Surulere, Lagos</div>
+          <div className={styles.p4BillInfo}>+234 801 234 5678</div>
         </div>
-        {TAILOR_ROWS.map(([d, p, q, t]) => (
-          <div key={d} className={styles.pTRow2}>
-            <span style={{ flex: 3 }}>{d}</span><span>{p}</span><span>{q}</span><span>{t}</span>
-          </div>
-        ))}
-        <div className={styles.pSummarySide}>
-          <div className={styles.pSumRow}><span>Subtotal</span><span>₦56,200</span></div>
-          <div className={styles.pSumRow}><span>Tax</span><span>₦0</span></div>
-          <div className={`${styles.pSumRow} ${styles.pTotalBox}`}><span>Total Due</span><span>₦56,200</span></div>
+        <div className={styles.p4BillBlock} style={{ textAlign: 'right' }}>
+          <div className={styles.p4BillLabel}>BILL TO</div>
+          <div className={styles.p4BillName}>Dr. Tunde Adeleke</div>
+          <div className={styles.p4BillInfo}>Block 7, GRA Phase 2</div>
+          <div className={styles.p4BillInfo}>Port Harcourt, Rivers</div>
         </div>
       </div>
-      <div className={styles.pFooter}>
-        <div className={styles.pFootSection}>
-          <strong>Payment Terms:</strong><br />
-          GT Bank — Adeola Couture House<br />Account: 0123456789<br />Routing #: 058152522<br />Account #: 1234567890
+
+      {/* Divider */}
+      <div className={styles.p4Divider} />
+
+      {/* Table */}
+      <div className={styles.p4TableHead}>
+        <span style={{ flex: 3 }}>Description</span>
+        <span>Price</span>
+        <span>QTY</span>
+        <span>Total</span>
+      </div>
+      {items.map((it, i) => (
+        <div key={i} className={styles.p4TableRow}>
+          <span style={{ flex: 3 }}>{it.desc}</span>
+          <span>{it.price}</span>
+          <span>{it.qty}</span>
+          <span>{it.total}</span>
         </div>
-        <div className={styles.pFootSection}>
-          <strong>Notes:</strong><br />
-          Add any additional notes here.
+      ))}
+
+      {/* Totals */}
+      <div className={styles.p4TotalsArea}>
+        <div className={styles.p4TotRow}><span>Subtotal</span><span>₦56,200</span></div>
+        <div className={styles.p4TotRow}><span>Tax</span><span>₦0.00</span></div>
+        <div className={styles.p4TotDivider} />
+        <div className={styles.p4TotBold}><span>Total Due</span><span>₦56,200</span></div>
+      </div>
+
+      {/* Footer: Payment Terms + Notes */}
+      <div className={styles.p4Footer}>
+        <div className={styles.p4FootBlock}>
+          <div className={styles.p4FootLabel}>Payment Terms:</div>
+          <div className={styles.p4FootInfo}>GT Bank — Adeola Couture House</div>
+          <div className={styles.p4FootInfo}>Account No: 0123456789</div>
+          <div className={styles.p4FootInfo}>Routing #: 058152522</div>
+        </div>
+        <div className={styles.p4FootBlock}>
+          <div className={styles.p4FootLabel}>Notes:</div>
+          <div className={styles.p4FootInfo}>Add any additional notes here.</div>
         </div>
       </div>
     </div>
@@ -568,26 +607,16 @@ function TealGeometricTemplate() {
 }
 
 // ══════════════════════════════════════════════════════════════
-// GROUP G — Diagonal / Angular Shapes
+// GROUP G — Angular / Diagonal Shapes
 // ══════════════════════════════════════════════════════════════
 
-/**
- * Template 10 — Pink Full-Width Diagonal
- * The pink fills the ENTIRE top portion of the card. The diagonal is the
- * bottom edge of that pink band (runs top-left → top-right → slanted down-right).
- * Brand/logo appears on the white area at the bottom-right of the header zone.
- * Authorised Sign is at the very BOTTOM-RIGHT.
- */
 function PinkDiagonalTemplate() {
   return (
     <div className={styles.t10Base}>
-      {/* Header zone: pink diagonal left, white brand area right */}
       <div className={styles.t10HeaderZone}>
-        {/* Pink diagonal band — covers left + most of width, diagonal bottom-right */}
         <div className={styles.t10FullBanner}>
           <span className={styles.t10BannerTitle}>INVOICE</span>
         </div>
-        {/* Brand sits in white top-right area above the diagonal */}
         <div className={styles.t10BrandInBanner}>
           <span className="mi" style={{ fontSize:14,color:'#333' }}>checkroom</span>
           <div>
@@ -596,8 +625,6 @@ function PinkDiagonalTemplate() {
           </div>
         </div>
       </div>
-
-      {/* Invoice to + meta */}
       <div className={styles.t10MetaRow}>
         <div>
           <div className={styles.t10MetaLabel}>Invoice to:</div>
@@ -609,8 +636,6 @@ function PinkDiagonalTemplate() {
           <div><span className={styles.t10MetaKey}>Date</span> <strong>08 / 04 / 2025</strong></div>
         </div>
       </div>
-
-      {/* Table */}
       <div className={styles.t10TableHead}>
         <span>SL.</span>
         <span style={{ flex:3 }}>Description</span>
@@ -624,8 +649,6 @@ function PinkDiagonalTemplate() {
         </div>
       ))}
       <div className={styles.t10Divider} />
-
-      {/* Bottom section: info left, totals+sign right */}
       <div className={styles.t10Bottom}>
         <div style={{ flex:1 }}>
           <div className={styles.t10ThankYou}>Thank you for your business</div>
@@ -638,8 +661,6 @@ function PinkDiagonalTemplate() {
           <div className={styles.t10TCLabel}>Terms &amp; Conditions</div>
           <div className={styles.t10TCText}>Garments not collected within 30 days become property of the studio.</div>
         </div>
-
-        {/* Right column: totals stacked above sign */}
         <div className={styles.t10RightCol}>
           <div className={styles.t10TotalsWrap}>
             <div className={styles.t10TotRow}><span>Sub Total:</span><span>₦56,200</span></div>
@@ -653,25 +674,23 @@ function PinkDiagonalTemplate() {
           </div>
         </div>
       </div>
-
-      {/* Pink bottom-right triangle */}
       <div className={styles.t10CornerPink} />
     </div>
   )
 }
 
-/**
- * Template 12 — Black Geometric Bold
- * Top-left: BLACK angular trapezoid (LOGO inside white text on black).
- * Top-right: white area with 3 contact rows (icons + text) + thin vertical deco lines.
- * Bottom-right: two overlapping black angular triangles (outer large, inner smaller lighter).
- */
+// ──────────────────────────────────────────────────────────────
+// Template 12 — Black Trapezoid (Angular Header & Corner Shapes)
+// Improved trapezoid shapes to match reference image more closely.
+// Top-left: wide black trapezoid with diagonal right edge.
+// Bottom-right: two overlapping angular black trapezoids.
+// ──────────────────────────────────────────────────────────────
 function BlackGeometricTemplate() {
   return (
     <div className={styles.t12Base}>
       {/* ── Header ── */}
       <div className={styles.t12Header}>
-        {/* Black trapezoid logo block */}
+        {/* Black trapezoid logo block — wider, more dominant diagonal */}
         <div className={styles.t12LogoTrap}>
           <span className="mi" style={{ fontSize:11,color:'#fff',marginRight:3 }}>checkroom</span>
           <span className={styles.t12LogoText}>LOGO</span>
@@ -764,7 +783,7 @@ function BlackGeometricTemplate() {
         </div>
       </div>
 
-      {/* ── Bottom-right angular black shapes (trapezoids like reference) ── */}
+      {/* ── Bottom-right angular black shapes — improved trapezoids ── */}
       <div className={styles.t12CornerOuter} />
       <div className={styles.t12CornerInner} />
     </div>
@@ -943,63 +962,71 @@ function FullModal({ title, onBack, onSave, children }) {
 
 const TEMPLATE_GROUPS = [
   {
-    groupLabel: 'Group A — Clean & Minimal  (No Logo · No Signature)',
+    groupLabel: 'Clean & Minimal',
+    groupDesc: 'No logo, no signature',
     groupIcon: 'article',
     templates: [
-      { id:'editable', label:'#1 — Centred Line Invoice  (Bill To · Payment Terms · Notes)', Component:EditableTemplate },
-      { id:'free',     label:'#2 — Three-Column Info Bar  (Logo Placeholder · Grey Footer)', Component:FreeTemplate },
+      { id:'editable', label:'1. Centred Line Invoice', desc:'Bill To, payment terms and notes', Component:EditableTemplate },
+      { id:'free',     label:'2. Three-Column Info Bar', desc:'Logo placeholder with grey footer', Component:FreeTemplate },
     ],
   },
   {
-    groupLabel: 'Group B — Logo Placeholder + No Signature',
+    groupLabel: 'Logo Placeholder',
+    groupDesc: 'No signature',
     groupIcon: 'badge',
     templates: [
-      { id:'custom',    label:'#3 — Purple Banner  (Dashed Logo Box · Purple Header & Footer)', Component:CustomTemplate },
-      { id:'printable', label:'#4 — Gold-Bar Minimal  (Gold Top Stripe · Centred INVOICE Title)', Component:PrintableTemplate },
+      { id:'custom',    label:'3. Purple Banner', desc:'Dashed logo box, purple header and footer', Component:CustomTemplate },
+      { id:'printable', label:'4. Printable Classic', desc:'Bill From/To side by side, clean totals', Component:PrintableTemplate },
     ],
   },
   {
-    groupLabel: 'Group C — Warm Minimal  (Payment Info · No Logo)',
+    groupLabel: 'Warm Minimal',
+    groupDesc: 'Payment info, no logo',
     groupIcon: 'receipt',
     templates: [
-      { id:'canva', label:'#5 — Warm Beige Classic  (Bold Title · Sender Info Footer)', Component:CanvaTemplate },
+      { id:'canva', label:'5. Warm Beige Classic', desc:'Bold title with sender info footer', Component:CanvaTemplate },
     ],
   },
   {
-    groupLabel: 'Group D — Dark Header Corporate  (Logo · Multi-Column Header)',
+    groupLabel: 'Dark Header Corporate',
+    groupDesc: 'Logo with multi-column header',
     groupIcon: 'business',
     templates: [
-      { id:'darkheader', label:'#6 — Black Header Corporate  (Logo · Ship To · Bill To · Payment)', Component:DarkHeaderTemplate },
+      { id:'darkheader', label:'6. Black Header Corporate', desc:'Logo, Ship To, Bill To and payment columns', Component:DarkHeaderTemplate },
     ],
   },
   {
-    groupLabel: 'Group E — Bold From/To  (Numbered Items · Red Accent)',
+    groupLabel: 'Bold From / To',
+    groupDesc: 'Numbered items with red accent',
     groupIcon: 'format_list_numbered',
     templates: [
-      { id:'redbold', label:'#7 — Red Bold From/To  (Numbered Rows · Red Total)', Component:RedBoldTemplate },
+      { id:'redbold', label:'7. Red Bold From/To', desc:'Numbered rows with red total bar', Component:RedBoldTemplate },
     ],
   },
   {
-    groupLabel: 'Group F — Brand Colour Box  (Logo · Colour Panel · Signature)',
+    groupLabel: 'Brand Colour Box',
+    groupDesc: 'Logo, colour panel and signature',
     groupIcon: 'palette',
     templates: [
-      { id:'greenaccent',   label:'#8 — Green Accent  (Teal Invoice Box · Green Info Panel · Sign)', Component:GreenAccentTemplate },
-      { id:'tealgeometric', label:'#9 — Teal Geometric  (Teal Table Header · Dark Total Bar · Sign)', Component:TealGeometricTemplate },
+      { id:'greenaccent',   label:'8. Green Accent', desc:'Teal invoice box with green info panel', Component:GreenAccentTemplate },
+      { id:'tealgeometric', label:'9. Teal Geometric', desc:'Teal table header with dark total bar', Component:TealGeometricTemplate },
     ],
   },
   {
-    groupLabel: 'Group G — Angular / Diagonal Shapes  (Full-Width Colour Bands)',
+    groupLabel: 'Angular & Diagonal',
+    groupDesc: 'Full-width colour bands',
     groupIcon: 'style',
     templates: [
-      { id:'pinkdiagonal',   label:'#10 — Pink Full Diagonal  (Top Pink Band · Sign Bottom-Right)', Component:PinkDiagonalTemplate },
-      { id:'blackgeometric', label:'#12 — Black Trapezoid  (Angular Header & Corner Shapes · Sign)', Component:BlackGeometricTemplate },
+      { id:'pinkdiagonal',   label:'10. Pink Full Diagonal', desc:'Top pink band with sign bottom-right', Component:PinkDiagonalTemplate },
+      { id:'blackgeometric', label:'12. Black Trapezoid', desc:'Angular header and corner shapes with sign', Component:BlackGeometricTemplate },
     ],
   },
   {
-    groupLabel: 'Group H — Blue Professional  (Logo · Amount · Payment Boxes)',
+    groupLabel: 'Blue Professional',
+    groupDesc: 'Logo, amount and payment boxes',
     groupIcon: 'corporate_fare',
     templates: [
-      { id:'blueclean', label:'#11 — Blue Clean  (Hex Logo · Blue Info Bar · 3 Payment Boxes)', Component:BlueCleanTemplate },
+      { id:'blueclean', label:'11. Blue Clean', desc:'Hex logo, blue info bar and 3 payment boxes', Component:BlueCleanTemplate },
     ],
   },
 ]
@@ -1014,7 +1041,10 @@ function TemplateModal({ isOpen, currentTemplate, onClose, onSelect }) {
         {TEMPLATE_GROUPS.map(group=>(
           <div key={group.groupLabel}>
             <div className={styles.groupHeader}>
-              <span className={styles.groupLabel}>{group.groupLabel}</span>
+              <div className={styles.groupHeaderInner}>
+                <span className={styles.groupLabel}>{group.groupLabel}</span>
+                {group.groupDesc && <span className={styles.groupDesc}>{group.groupDesc}</span>}
+              </div>
             </div>
             {group.templates.map(t=>(
               <div key={t.id} className={styles.templateWrapper} onClick={()=>setSelected(t.id)}>
@@ -1023,7 +1053,10 @@ function TemplateModal({ isOpen, currentTemplate, onClose, onSelect }) {
                 </div>
                 <div className={styles.templateInfo}>
                   <div className={`${styles.radio} ${selected===t.id?styles.radioActive:''}`} />
-                  <span className={styles.templateLabel}>{t.label}</span>
+                  <div className={styles.templateLabelGroup}>
+                    <span className={styles.templateLabel}>{t.label}</span>
+                    {t.desc && <span className={styles.templateDesc}>{t.desc}</span>}
+                  </div>
                 </div>
               </div>
             ))}
