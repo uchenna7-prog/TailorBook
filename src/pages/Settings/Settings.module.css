@@ -109,12 +109,10 @@
 .pBody { flex: 1; margin: 20px 0; }
 .pMetaRow { display: flex; justify-content: space-between; margin-bottom: 20px; }
 .pTableModern { width: 100%; border-collapse: collapse; }
-.pTHead { display: flex; font-weight: 800; border-bottom: 2px solid #1a1a1a; padding-bottom: 5px; margin-bottom: 8px; gap: 10px; }
-.pTHead span:nth-child(1), .pTRow span:nth-child(1) { flex: 3; text-align: left; }
-.pTHead span:not(:nth-child(1)), .pTRow span:not(:nth-child(1)) { flex: 1; text-align: right; }
-
-.pTRow { display: flex; border-bottom: 1px solid #eee; padding: 6px 0; gap: 10px; align-items: center; }
-
+.pTHead { display: flex; justify-content: space-between; font-weight: 800; border-bottom: 2px solid #1a1a1a; padding-bottom: 5px; margin-bottom: 8px; }
+.pTRow { display: flex; justify-content: space-between; border-bottom: 1px solid #eee; padding: 6px 0; }
+.pTRow span:nth-child(1) { flex: 2; }
+.pTRow span:not(:nth-child(1)) { flex: 1; text-align: right; }
 .pSummary, .pSummarySide { margin-left: auto; width: 40%; margin-top: 15px; }
 .pSumRow { display: flex; justify-content: space-between; padding: 3px 0; }
 .pBold { font-weight: 900; font-size: 11px; border-top: 1px solid #1a1a1a; margin-top: 5px; }
@@ -126,7 +124,7 @@
 .pMetaRight { text-align: right; font-size: 8px; line-height: 1.5; }
 .pTotalBox { background: #f8fafc; padding: 8px; font-weight: 900; border-left: 3px solid #1a1a1a; }
 .pPurpleBanner { background: #7c3aed; color: #fff; padding: 25px 20px; display: flex; justify-content: space-between; align-items: center; }
-.pLogoBoxWhite { border: 1px dashed rgba(255,255,255,0.4); padding: 8px; font-size: 16px; display: flex; align-items: center; justify-content: center; }
+.pLogoBoxWhite { border: 1px dashed rgba(255,255,255,0.4); padding: 8px; font-size: 7px; }
 .pLargeTitleWhite { font-size: 20px; font-weight: 900; }
 .pWhiteNo { font-size: 11px; font-weight: 700; }
 .pPurpleBottom { background: #7c3aed; padding: 15px 20px; margin-top: auto; color: #fff; opacity: 0.9; }
@@ -134,7 +132,7 @@
 .pHeaderFree { display: flex; justify-content: space-between; align-items: center; }
 .pTitleBlock { display: flex; flex-direction: column; }
 .pSubNo { font-size: 9px; color: #666; }
-.pLogoPlaceholderBig { background: #f3f4f6; border: 1px solid #e5e7eb; padding: 15px; font-weight: 800; color: #9ca3af; display: flex; align-items: center; gap: 5px; }
+.pLogoPlaceholderBig { background: #f3f4f6; border: 1px solid #e5e7eb; padding: 15px; font-weight: 800; color: #9ca3af; }
 .pFreeGrid { display: flex; gap: 10px; margin: 15px 0; }
 .pFreeBox { flex: 1; border: 1px solid #eee; padding: 8px; font-size: 7px; }
 .pFooterGray { background: #f9fafb; padding: 10px; text-align: center; font-weight: 700; margin-top: auto; }
@@ -142,7 +140,7 @@
 .pFootSection { flex: 1; font-size: 7px; line-height: 1.5; }
 
 /* ══════════════════════════════════════════════════════════
-   TEMPLATE 5 — Minimalist Classic
+   TEMPLATE 5 — Canva Minimal Warm Beige
 ══════════════════════════════════════════════════════════ */
 .t5Base {
   padding: 20px;
@@ -188,21 +186,25 @@
 }
 .t5TableHead {
   display: flex;
+  justify-content: space-between;
   font-weight: 700;
   font-size: 7px;
   padding: 3px 0;
   border-bottom: 1px solid #c8bfa8;
-  gap: 10px;
 }
-.t5TableHead span:nth-child(1), .t5TableRow span:nth-child(1) { flex: 3; text-align: left; }
-.t5TableHead span:not(:nth-child(1)), .t5TableRow span:not(:nth-child(1)) { flex: 1; text-align: right; }
-
+.t5TableHead span, .t5TableRow span {
+  flex: 1;
+  text-align: right;
+}
+.t5TableHead span:first-child, .t5TableRow span:first-child {
+  text-align: left;
+}
 .t5TableRow {
   display: flex;
+  justify-content: space-between;
   font-size: 7.5px;
   padding: 4px 0;
   border-bottom: 1px solid #e8e0d0;
-  gap: 10px;
 }
 .t5Totals {
   margin-left: auto;
@@ -235,7 +237,7 @@
 }
 
 /* ══════════════════════════════════════════════════════════
-   TEMPLATE 6 — Modern Corporate (With Bank Details)
+   TEMPLATE 6 — Dark Header Corporate
 ══════════════════════════════════════════════════════════ */
 .t6Base {
   background: #fff;
@@ -269,7 +271,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
+  font-size: 6px;
+  font-weight: 900;
   flex-shrink: 0;
 }
 .t6CompanyName {
@@ -339,17 +342,21 @@
   padding: 5px 16px;
   font-weight: 700;
   font-size: 7px;
-  gap: 10px;
+  gap: 4px;
 }
-.t6TableHead span:nth-child(1), .t6TableRow span:nth-child(1) { flex: 3; text-align: left; }
-.t6TableHead span:not(:nth-child(1)), .t6TableRow span:not(:nth-child(1)) { flex: 1; text-align: right; }
-
+.t6TableHead span, .t6TableRow span {
+  flex: 1;
+  text-align: right;
+}
+.t6TableHead span:first-child, .t6TableRow span:first-child {
+  text-align: left;
+}
 .t6TableRow {
   display: flex;
   padding: 5px 16px;
   font-size: 7px;
   border-bottom: 1px dashed #eee;
-  gap: 10px;
+  gap: 4px;
 }
 .t6TotalsArea {
   margin-left: auto;
@@ -382,7 +389,7 @@
 }
 
 /* ══════════════════════════════════════════════════════════
-   TEMPLATE 7 — Bold Contrast
+   TEMPLATE 7 — Red Bold (Wrench logo style)
 ══════════════════════════════════════════════════════════ */
 .t7Base {
   background: #fff;
@@ -409,7 +416,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 16px;
+  font-size: 12px;
+  font-weight: 900;
   flex-shrink: 0;
 }
 .t7TitleGroup {
@@ -457,7 +465,12 @@
   font-size: 7px;
   line-height: 1.5;
 }
-.t7FromLabel, .t7ToLabel {
+.t7FromLabel {
+  font-size: 13px;
+  font-weight: 900;
+  margin-bottom: 4px;
+}
+.t7ToLabel {
   font-size: 13px;
   font-weight: 900;
   margin-bottom: 4px;
@@ -495,7 +508,7 @@
   padding: 4px 16px;
   font-size: 7px;
   font-weight: 700;
-  gap: 10px;
+  gap: 4px;
 }
 .t7TableRow {
   display: flex;
@@ -503,13 +516,24 @@
   padding: 4px 16px;
   border-bottom: 1px solid #eee;
   font-size: 7px;
-  gap: 10px;
+  gap: 4px;
 }
-.t7TableHead span:nth-child(1), .t7TableRow span:nth-child(1) { width: 18px; color: #aaa; text-align: left; }
-.t7TableHead span:nth-child(2), .t7TableRow span:nth-child(2) { flex: 3; text-align: left; }
-.t7TableHead span:not(:nth-child(1)):not(:nth-child(2)), .t7TableRow span:not(:nth-child(1)):not(:nth-child(2)) { flex: 1; text-align: right; }
-
+.t7TableRow span:not(:first-child):not([style]) {
+  flex: 1;
+  text-align: right;
+}
+.t7TableHead span:not(.t7NumCol):not([style]) {
+  flex: 1;
+  text-align: right;
+}
+.t7NumCol {
+  width: 18px;
+  flex-shrink: 0;
+  color: #aaa;
+}
 .t7RedPrice {
+  flex: 1;
+  text-align: right;
   font-weight: 900;
   color: #cc0000;
 }
@@ -531,7 +555,7 @@
 }
 
 /* ══════════════════════════════════════════════════════════
-   TEMPLATE 8 — Green Accents
+   TEMPLATE 8 — Green Accent Brand
 ══════════════════════════════════════════════════════════ */
 .t8Base {
   background: #fff;
@@ -555,7 +579,7 @@
   gap: 6px;
 }
 .t8LogoIcon {
-  font-size: 20px;
+  font-size: 14px;
   color: #333;
 }
 .t8BrandName {
@@ -593,19 +617,27 @@
   padding: 5px 16px;
   font-size: 7px;
   font-weight: 700;
-  gap: 10px;
+  gap: 4px;
   color: #444;
 }
-.t8TableHead span:nth-child(1), .t8TableRow span:nth-child(1) { width: 18px; text-align: left; }
-.t8TableHead span:nth-child(2), .t8TableRow span:nth-child(2) { flex: 3; text-align: left; }
-.t8TableHead span:not(:nth-child(1)):not(:nth-child(2)), .t8TableRow span:not(:nth-child(1)):not(:nth-child(2)) { flex: 1; text-align: right; }
-
+.t8TableHead span, .t8TableRow span {
+  flex: 1;
+  text-align: right;
+}
+.t8TableHead span:nth-child(2), .t8TableRow span:nth-child(2) {
+  flex: 3;
+  text-align: left;
+}
+.t8TableHead span:first-child, .t8TableRow span:first-child {
+  text-align: left;
+  flex: 0.5;
+}
 .t8TableRow {
   display: flex;
   padding: 5px 16px;
   border-bottom: 1px solid #f0f0f0;
   font-size: 7.5px;
-  gap: 10px;
+  gap: 4px;
 }
 .t8Divider {
   height: 1px;
@@ -694,7 +726,7 @@
 }
 
 /* ══════════════════════════════════════════════════════════
-   TEMPLATE 9 — Geometric Teal
+   TEMPLATE 9 — Teal Geometric
 ══════════════════════════════════════════════════════════ */
 .t9Base {
   background: #fff;
@@ -720,7 +752,7 @@
   gap: 5px;
 }
 .t9LogoIcon {
-  font-size: 16px;
+  font-size: 12px;
   color: #333;
 }
 .t9CompanyName {
@@ -777,18 +809,26 @@
   padding: 5px 16px;
   font-size: 7px;
   font-weight: 700;
-  gap: 10px;
+  gap: 4px;
 }
-.t9TableHead span:nth-child(1), .t9TableRow span:nth-child(1) { width: 25px; text-align: left; }
-.t9TableHead span:nth-child(2), .t9TableRow span:nth-child(2) { flex: 3; text-align: left; }
-.t9TableHead span:not(:nth-child(1)):not(:nth-child(2)), .t9TableRow span:not(:nth-child(1)):not(:nth-child(2)) { flex: 1; text-align: right; }
-
+.t9TableHead span, .t9TableRow span {
+  flex: 1;
+  text-align: right;
+}
+.t9TableHead span:nth-child(2), .t9TableRow span:nth-child(2) {
+  flex: 3;
+  text-align: left;
+}
+.t9TableHead span:first-child, .t9TableRow span:first-child {
+  flex: 0.5;
+  text-align: left;
+}
 .t9TableRow {
   display: flex;
   padding: 5px 16px;
   border-bottom: 1px solid #f0f0f0;
   font-size: 7.5px;
-  gap: 10px;
+  gap: 4px;
 }
 .t9SubArea {
   display: flex;
@@ -855,7 +895,7 @@
 }
 
 /* ══════════════════════════════════════════════════════════
-   TEMPLATE 10 — Pink Diagonal (FIXED)
+   TEMPLATE 10 — Pink Diagonal
 ══════════════════════════════════════════════════════════ */
 .t10Base {
   background: #fff;
@@ -876,15 +916,15 @@
 }
 .t10PinkBanner {
   background: #ff5c8a;
-  clip-path: polygon(0 0, 100% 0, 75% 100%, 0 100%);
-  min-width: 140px;
+  clip-path: polygon(0 0, 85% 0, 60% 100%, 0 100%);
+  min-width: 120px;
   display: flex;
   align-items: center;
-  padding: 10px 40px 10px 16px;
+  padding: 10px 30px 10px 16px;
 }
 .t10BannerTitle {
   color: #fff;
-  font-size: 22px;
+  font-size: 18px;
   font-weight: 900;
   letter-spacing: 0.04em;
 }
@@ -896,7 +936,7 @@
   padding-right: 16px;
 }
 .t10BrandIcon {
-  font-size: 18px;
+  font-size: 14px;
   color: #333;
 }
 .t10BrandName {
@@ -906,18 +946,25 @@
 .t10BrandSub {
   font-size: 6px;
   color: #999;
+  letter-spacing: 0.06em;
 }
 .t10MetaRow {
   display: flex;
   justify-content: space-between;
-  padding: 12px 16px 8px;
+  padding: 8px 16px 6px;
   font-size: 7px;
   line-height: 1.5;
 }
 .t10MetaLabel {
   font-weight: 700;
   font-size: 8px;
-  margin-bottom: 2px;
+  margin-bottom: 1px;
+}
+.t10MetaName {
+  font-weight: 700;
+}
+.t10MetaAddr {
+  color: #555;
 }
 .t10MetaKey {
   color: #888;
@@ -925,23 +972,31 @@
 .t10TableHead {
   display: flex;
   border: 1.5px solid #1a1a1a;
-  padding: 5px 16px;
+  padding: 4px 16px;
   font-size: 7px;
   font-weight: 700;
-  gap: 10px;
+  gap: 4px;
   margin: 0 16px;
 }
-.t10TableHead span:nth-child(1), .t10TableRow span:nth-child(1) { width: 20px; text-align: left; }
-.t10TableHead span:nth-child(2), .t10TableRow span:nth-child(2) { flex: 3; text-align: left; }
-.t10TableHead span:not(:nth-child(1)):not(:nth-child(2)), .t10TableRow span:not(:nth-child(1)):not(:nth-child(2)) { flex: 1; text-align: right; }
-
+.t10TableHead span, .t10TableRow span {
+  flex: 1;
+  text-align: right;
+}
+.t10TableHead span:nth-child(2), .t10TableRow span:nth-child(2) {
+  flex: 3;
+  text-align: left;
+}
+.t10TableHead span:first-child, .t10TableRow span:first-child {
+  flex: 0.5;
+  text-align: left;
+}
 .t10TableRow {
   display: flex;
-  padding: 5px 16px;
+  padding: 4px 16px;
   border-bottom: 1px solid #f0f0f0;
   margin: 0 16px;
   font-size: 7.5px;
-  gap: 10px;
+  gap: 4px;
 }
 .t10Divider {
   height: 1px;
@@ -956,33 +1011,73 @@
   line-height: 1.6;
   flex: 1;
 }
+.t10ThankYou {
+  font-weight: 700;
+  font-size: 7.5px;
+  margin-bottom: 4px;
+}
+.t10PayLabel {
+  font-weight: 700;
+  margin-top: 4px;
+  margin-bottom: 1px;
+}
+.t10PayInfo {
+  color: #444;
+  line-height: 1.6;
+}
+.t10TCLabel {
+  font-weight: 700;
+  margin-top: 6px;
+  margin-bottom: 1px;
+}
+.t10TCText {
+  color: #666;
+}
 .t10TotalsWrap {
-  min-width: 90px;
+  min-width: 80px;
   font-size: 7.5px;
 }
 .t10TotRow {
   display: flex;
   justify-content: space-between;
+  gap: 8px;
   padding: 2px 0;
 }
-.t10TotBold {
+.t10TotDivider {
+  height: 1px;
+  background: #1a1a1a;
+  margin: 3px 0;
+}
+.t10TotTotal {
+  display: flex;
+  justify-content: space-between;
   font-weight: 900;
-  font-size: 10px;
-  border-top: 1px solid #1a1a1a;
-  padding-top: 4px;
+  font-size: 9px;
+  gap: 8px;
+}
+.t10SignLine {
+  height: 1px;
+  background: #aaa;
+  margin-top: 14px;
+  margin-bottom: 2px;
+}
+.t10SignLabel {
+  font-size: 6.5px;
+  color: #666;
+  text-align: center;
 }
 .t10CornerPink {
   position: absolute;
   bottom: 0;
   right: 0;
   width: 60px;
-  height: 60px;
+  height: 50px;
   background: #ff5c8a;
   clip-path: polygon(100% 0, 100% 100%, 0 100%);
 }
 
 /* ══════════════════════════════════════════════════════════
-   TEMPLATE 11 — Clean Blue
+   TEMPLATE 11 — Blue Clean Corporate
 ══════════════════════════════════════════════════════════ */
 .t11Base {
   background: #fff;
@@ -1001,6 +1096,11 @@
   padding: 10px 16px;
   border-bottom: 1px solid #f0f0f0;
 }
+.t11LogoArea {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
 .t11LogoHex {
   width: 24px;
   height: 24px;
@@ -1010,7 +1110,29 @@
   align-items: center;
   justify-content: center;
   color: #fff;
-  font-size: 14px;
+  font-size: 5px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.t11CompanyName {
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+}
+.t11CompanySub {
+  font-size: 6px;
+  color: #888;
+}
+.t11CompanyInfo {
+  font-size: 6.5px;
+  line-height: 1.6;
+  color: #444;
+}
+.t11InvoiceTitle {
+  font-size: 22px;
+  font-weight: 400;
+  padding: 8px 16px 4px;
+  color: #1a1a1a;
 }
 .t11BlueBar {
   background: #dbeeff;
@@ -1024,41 +1146,114 @@
 .t11IssuedRow {
   display: flex;
   justify-content: space-between;
-  padding: 12px 16px;
+  padding: 8px 16px 4px;
+  font-size: 7px;
+  line-height: 1.6;
+}
+.t11IssuedLabel {
+  font-size: 7.5px;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+.t11AmountLabel {
+  font-size: 7px;
+  color: #5da0d0;
+  font-weight: 700;
+  text-align: right;
 }
 .t11AmountVal {
   font-size: 20px;
   font-weight: 300;
   color: #5da0d0;
+  text-align: right;
+}
+.t11ProjectName {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 16px 2px;
 }
 .t11TableHead {
   display: flex;
   background: #1a1a1a;
   color: #fff;
-  padding: 5px 16px;
+  padding: 4px 16px;
   font-size: 7px;
   font-weight: 700;
-  gap: 10px;
+  gap: 4px;
 }
-.t11TableHead span:nth-child(1), .t11TableRow span:nth-child(1) { flex: 3; text-align: left; }
-.t11TableHead span:not(:nth-child(1)), .t11TableRow span:not(:nth-child(1)) { flex: 1; text-align: right; }
-
+.t11TableHead span, .t11TableRow span {
+  flex: 1;
+  text-align: right;
+}
+.t11TableHead span:first-child, .t11TableRow span:first-child {
+  flex: 3;
+  text-align: left;
+}
 .t11TableRow {
   display: flex;
-  padding: 5px 16px;
+  padding: 4px 16px;
   border-bottom: 1px solid #f0f0f0;
   font-size: 7px;
-  gap: 10px;
+  gap: 4px;
+  color: #555;
+}
+.t11TotArea {
+  margin-left: auto;
+  width: 45%;
+  padding: 4px 16px 0 0;
+  border-top: 1px solid #eee;
+  margin-top: 2px;
+}
+.t11TotRow {
+  display: flex;
+  justify-content: space-between;
+  padding: 2px 0;
+  font-size: 7.5px;
+  color: #555;
+}
+.t11TotBold {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 900;
+  font-size: 8px;
+  border-top: 1px solid #aaa;
+  padding-top: 3px;
+  margin-top: 2px;
+}
+.t11PayTitle {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 8px 16px 4px;
+}
+.t11PayBoxRow {
+  display: flex;
+  gap: 6px;
+  padding: 0 16px 8px;
 }
 .t11PayBox {
   flex: 1;
   background: #dbeeff;
   padding: 6px 8px;
   font-size: 6.5px;
+  line-height: 1.5;
+}
+.t11PayBoxTitle {
+  font-weight: 700;
+  font-size: 7.5px;
+  margin-bottom: 3px;
+}
+.t11ThankYou {
+  text-align: right;
+  font-size: 10px;
+  font-weight: 700;
+  color: #5da0d0;
+  padding: 4px 16px 10px;
+  margin-top: auto;
+  letter-spacing: 0.05em;
 }
 
 /* ══════════════════════════════════════════════════════════
-   TEMPLATE 12 — Geometric Black (FIXED)
+   TEMPLATE 12 — Black Geometric Bold
 ══════════════════════════════════════════════════════════ */
 .t12Base {
   background: #fff;
@@ -1077,56 +1272,174 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 16px;
+  padding: 10px 16px;
+  position: relative;
+}
+/* Angular black shape via clip-path on the left block */
+.t12HeaderLeft {
+  position: relative;
 }
 .t12LogoBox {
   background: #333;
   color: #fff;
-  font-size: 12px;
+  font-size: 9px;
   font-weight: 900;
-  padding: 8px 25px 8px 14px;
-  clip-path: polygon(0 0, 100% 0, 85% 100%, 0 100%);
+  padding: 6px 14px;
+  letter-spacing: 0.08em;
+  clip-path: polygon(0 0, 100% 0, 88% 100%, 0 100%);
+  padding-right: 20px;
+}
+.t12HeaderRight {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+.t12HeaderContact {
+  font-size: 6.5px;
+  color: #ccc;
+}
+/* Top-right decorative lines */
+.t12Header::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 20px;
+  height: 100%;
+  border-left: 2px solid #555;
+  border-right: 2px solid #555;
+  opacity: 0.4;
+}
+.t12TitleRow {
+  display: flex;
+  justify-content: center;
+  padding: 10px 16px 4px;
 }
 .t12InvoiceTitle {
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 900;
   letter-spacing: 0.15em;
   border-bottom: 2px solid #1a1a1a;
-  margin: 15px auto;
+  padding-bottom: 2px;
+}
+.t12ClientRow {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 16px;
+  font-size: 7px;
+  line-height: 1.6;
+}
+.t12ClientName {
+  font-size: 9px;
+  font-weight: 700;
+  margin-bottom: 1px;
+}
+.t12ClientInfo {
+  color: #444;
+}
+.t12BalLabel {
+  font-size: 7px;
+  color: #666;
+  font-weight: 600;
+}
+.t12BalAmt {
+  font-size: 16px;
+  font-weight: 900;
+}
+.t12BalDate {
+  font-size: 6.5px;
+  color: #666;
 }
 .t12TableHead {
   display: flex;
   background: #1a1a1a;
   color: #fff;
-  padding: 6px 16px;
+  padding: 5px 16px;
   font-size: 7px;
   font-weight: 700;
-  gap: 10px;
+  gap: 4px;
 }
-.t12TableHead span:nth-child(1), .t12TableRow span:nth-child(1) { flex: 3; text-align: left; }
-.t12TableHead span:not(:nth-child(1)), .t12TableRow span:not(:nth-child(1)) { flex: 1; text-align: right; }
-
+.t12TableHead span, .t12TableRow span {
+  flex: 1;
+  text-align: right;
+}
+.t12TableHead span:first-child, .t12TableRow span:first-child {
+  flex: 3;
+  text-align: left;
+}
 .t12TableRow {
   display: flex;
-  padding: 6px 16px;
+  padding: 5px 16px;
   border-bottom: 1px solid #eee;
-  gap: 10px;
+  font-size: 7px;
+  gap: 4px;
+  align-items: flex-start;
+}
+.t12ItemName {
+  font-weight: 700;
+  font-size: 7.5px;
+}
+.t12ItemDesc {
+  color: #888;
+  font-size: 6px;
+  margin-top: 1px;
 }
 .t12DueBar {
   display: flex;
   justify-content: space-between;
   background: #1a1a1a;
   color: #fff;
-  padding: 8px 16px;
+  padding: 5px 16px;
+  font-size: 7.5px;
   font-weight: 700;
-  margin-top: 5px;
+  margin-top: 2px;
 }
+.t12FootRow {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 16px 40px;
+  font-size: 7px;
+  line-height: 1.5;
+  margin-top: auto;
+  gap: 12px;
+}
+.t12FootRow > div:first-child {
+  flex: 1;
+}
+.t12FootLabel {
+  font-weight: 700;
+  font-size: 7.5px;
+  margin-bottom: 2px;
+}
+.t12FootInfo {
+  color: #444;
+  margin-bottom: 1px;
+}
+.t12SignScribble {
+  font-size: 9px;
+  font-style: italic;
+  color: #333;
+  margin-bottom: 2px;
+}
+.t12SignLine {
+  width: 70px;
+  height: 1px;
+  background: #aaa;
+  margin: 0 auto 2px;
+}
+.t12SignLabel {
+  font-size: 6.5px;
+  color: #666;
+  text-align: center;
+}
+/* Black corner decorations */
 .t12BottomDeco {
   position: absolute;
   bottom: 0;
   right: 0;
-  width: 80px;
-  height: 50px;
+  width: 70px;
+  height: 45px;
   background: #1a1a1a;
   clip-path: polygon(100% 0, 100% 100%, 0 100%);
 }
@@ -1134,10 +1447,10 @@
   content: '';
   position: absolute;
   bottom: 0;
-  right: 50px;
-  width: 50px;
-  height: 35px;
+  right: 40px;
+  width: 40px;
+  height: 30px;
   background: #555;
   clip-path: polygon(100% 0, 100% 100%, 0 100%);
-  opacity: 0.3;
+  opacity: 0.4;
 }
