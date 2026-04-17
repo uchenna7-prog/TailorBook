@@ -387,14 +387,20 @@ function LogoOrName({ brand, darkBg = false }) {
 
 // ── TEMPLATES ─────────────────────────────────────────────────
 
+// ── 1. Centred Line Receipt (editable) ────────────────────────
 function EditableTemplate({ receipt, customer, brand }) {
+  const lineColor = brand.colour || '#c8a96e'
   return (
     <div className={styles.tplBase}>
       <div className={styles.editHeader}>
         <LogoOrName brand={brand} />
         {brand.tagline && <div className={styles.editTagline}>{brand.tagline}</div>}
         {brand.address && <div className={styles.editAddr}>{brand.address}</div>}
-        <div className={styles.editTitle}>RECEIPT</div>
+        <div className={styles.editTitleRow}>
+          <div className={styles.editTitleLine} style={{ background: lineColor }} />
+          <div className={styles.editTitle}>RECEIPT</div>
+          <div className={styles.editTitleLine} style={{ background: lineColor }} />
+        </div>
       </div>
       <div className={styles.metaRow}>
         <div>
@@ -410,22 +416,113 @@ function EditableTemplate({ receipt, customer, brand }) {
       </div>
       <ReceiptItemsTable receipt={receipt} brand={brand} />
       <div className={styles.tplFooterPush} />
-      {(brand.phone || brand.email || brand.footer) && (
+      {(brand.accountBank || brand.phone || brand.email || brand.footer) && (
         <div className={styles.editFooter}>
-          <div className={styles.footSection}>
-            <strong>Payment / Contact</strong><br />
-            {brand.phone && <span>{brand.phone}<br /></span>}
-            {brand.email && <span>{brand.email}<br /></span>}
-            {brand.footer && <span>{brand.footer}</span>}
-          </div>
+          {brand.accountBank && (
+            <div className={styles.footSection}>
+              <strong>Payment Terms:</strong><br />
+              {brand.accountBank}{brand.accountName ? ` — ${brand.accountName}` : ''}<br />
+              {brand.accountNumber && `Account: ${brand.accountNumber}`}
+            </div>
+          )}
+          {(brand.phone || brand.email || brand.footer) && (
+            <div className={styles.footSection}>
+              <strong>Notes:</strong><br />
+              {brand.phone   && <span>{brand.phone}<br /></span>}
+              {brand.email   && <span>{brand.email}<br /></span>}
+              {brand.footer  && <span>{brand.footer}</span>}
+            </div>
+          )}
         </div>
       )}
     </div>
   )
 }
 
+// ── 2. Three-Column Info Bar (free) ───────────────────────────
+function FreeTemplate({ receipt, customer, brand }) {
+  return (
+    <div className={styles.tplBase}>
+      <div className={styles.freeHeader}>
+        <div>
+          <div className={styles.printTitle}>RECEIPT</div>
+          <div className={styles.freeNum}>{receipt.number}</div>
+        </div>
+        <div className={styles.freeLogoBox}><LogoOrName brand={brand} /></div>
+      </div>
+      <div className={styles.freeGrid}>
+        <div className={styles.freeBox}>
+          <strong>FROM</strong><br />
+          {brand.name}<br />
+          {brand.address && <span>{brand.address}<br /></span>}
+          {brand.phone}
+        </div>
+        <div className={styles.freeBox}><strong>RECEIVED FROM</strong><br />{customer.name}<br />{customer.phone}</div>
+        <div className={styles.freeBox}><strong>DATE</strong><br />{receipt.date}</div>
+      </div>
+      <ReceiptItemsTable receipt={receipt} brand={brand} />
+      <div className={styles.tplFooterPush} />
+      {brand.accountBank && (
+        <div className={styles.freePayInfo}>
+          <strong>Payment Information:</strong>{' '}
+          {brand.accountBank}{brand.accountName ? ` — ${brand.accountName}` : ''}{brand.accountNumber ? `, Account: ${brand.accountNumber}` : ''}
+        </div>
+      )}
+      <div className={styles.freeFooterCentered}>{brand.footer || 'Thank you!'}</div>
+    </div>
+  )
+}
+
+// ── 3. Full-Bleed Banner (custom) ─────────────────────────────
+function CustomTemplate({ receipt, customer, brand }) {
+  const bannerBg = brand.colour || '#7c3aed'
+  return (
+    <div className={styles.tplBase} style={{ padding: 0 }}>
+      <div className={styles.customBanner} style={{ background: bannerBg }}>
+        <div className={styles.customBannerLogo}><LogoOrName brand={brand} darkBg /></div>
+        <div className={styles.customBannerRight}>
+          <div className={styles.customBannerTitle}>RECEIPT</div>
+          <div className={styles.customBannerNum}>{receipt.number}</div>
+        </div>
+      </div>
+      <div className={styles.customBody}>
+        <div className={styles.metaRow} style={{ marginBottom: 16 }}>
+          <div>
+            <div className={styles.metaLabel}>FROM</div>
+            <div className={styles.metaVal}>{brand.name}</div>
+            {brand.address && <div className={styles.metaSub}>{brand.address}</div>}
+            {brand.phone   && <div className={styles.metaSub}>{brand.phone}</div>}
+          </div>
+          <div>
+            <div className={styles.metaLabel}>RECEIVED FROM</div>
+            <div className={styles.metaVal}>{customer.name}</div>
+            {customer.phone && <div className={styles.metaSub}>{customer.phone}</div>}
+          </div>
+          <div style={{ textAlign: 'right' }}>
+            <div className={styles.metaLabel}>DATE</div>
+            <div className={styles.metaSub}>{receipt.date}</div>
+          </div>
+        </div>
+        <ReceiptItemsTable receipt={receipt} brand={brand} />
+        {brand.accountBank && (
+          <div className={styles.customPayRow}>
+            <strong>Payment Terms:</strong>{' '}
+            {brand.accountBank}{brand.accountName ? ` — ${brand.accountName}` : ''}{brand.accountNumber ? `, Account: ${brand.accountNumber}` : ''}
+          </div>
+        )}
+      </div>
+      <div className={styles.customFooter}>
+        <div className={styles.customFooterText} style={{ color: bannerBg }}>
+          {brand.footer || 'Thank you for your payment'}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── 4. Side-by-Side Classic (printable) ───────────────────────
 function PrintableTemplate({ receipt, customer, brand }) {
-  const barColor = brand.colour || '#eab308'
+  const barColor = brand.colour || '#c8a96e'
   return (
     <div className={styles.tplBase}>
       <div className={styles.printBar} style={{ background: barColor }} />
@@ -451,78 +548,524 @@ function PrintableTemplate({ receipt, customer, brand }) {
       </div>
       <ReceiptItemsTable receipt={receipt} brand={brand} />
       <div className={styles.tplFooterPush} />
-      <div className={styles.printFooterCentered}>
-        {brand.footer && <div className={styles.footSection}>{brand.footer}</div>}
-      </div>
+      {brand.accountBank && (
+        <div className={styles.p4FooterWrap}>
+          <div className={styles.footSection}>
+            <strong>Payment Terms:</strong><br />
+            {brand.accountBank}{brand.accountName ? ` — ${brand.accountName}` : ''}<br />
+            {brand.accountNumber && `Account No: ${brand.accountNumber}`}
+          </div>
+          {brand.footer && (
+            <div className={styles.footSection}>
+              <strong>Notes:</strong><br />{brand.footer}
+            </div>
+          )}
+        </div>
+      )}
+      {!brand.accountBank && (
+        <div className={styles.printFooterCentered}>
+          {brand.footer && <div className={styles.footSection}>{brand.footer}</div>}
+        </div>
+      )}
     </div>
   )
 }
 
-function CustomTemplate({ receipt, customer, brand }) {
-  const bannerBg = brand.colour || '#7c3aed'
+// ── 5. Soft Divider Layout (canva) ────────────────────────────
+function CanvaTemplate({ receipt, customer, brand }) {
   return (
-    <div className={styles.tplBase} style={{ padding: 0 }}>
-      <div className={styles.customBanner} style={{ background: bannerBg }}>
-        <div className={styles.customBannerLogo}><LogoOrName brand={brand} darkBg /></div>
-        <div className={styles.customBannerRight}>
-          <div className={styles.customBannerTitle}>RECEIPT</div>
-          <div className={styles.customBannerNum}>{receipt.number}</div>
+    <div className={styles.t5Wrap}>
+      <div className={styles.t5Top}>
+        <div className={styles.t5Title}>Receipt</div>
+        <div className={styles.t5TopRight}>
+          <div>{receipt.date}</div>
+          <div><strong>Receipt No. {receipt.number}</strong></div>
         </div>
       </div>
-      <div className={styles.customBody}>
-        <div className={styles.metaRow} style={{ marginBottom: 16 }}>
+      <div className={styles.t5Divider} />
+      <div className={styles.t5BilledTo}>
+        <div className={styles.t5BilledLabel}>Received from:</div>
+        <div><strong>{customer.name}</strong></div>
+        {customer.phone   && <div>{customer.phone}</div>}
+        {customer.address && <div>{customer.address}</div>}
+      </div>
+      <div className={styles.t5Divider} />
+      <ReceiptItemsTable receipt={receipt} brand={brand} />
+      <div className={styles.t5Divider} />
+      <div className={styles.t5Footer}>
+        {brand.accountBank ? (
           <div>
-            <div className={styles.metaLabel}>FROM</div>
-            <div className={styles.metaVal}>{brand.name}</div>
-            {brand.phone && <div className={styles.metaSub}>{brand.phone}</div>}
+            <div className={styles.t5FootLabel}>Payment Information</div>
+            <div>{brand.name || brand.ownerName}</div>
+            {brand.accountBank   && <div>Bank: {brand.accountBank}</div>}
+            {brand.accountNumber && <div>Account No: {brand.accountNumber}</div>}
+            {brand.accountName   && <div>Name: {brand.accountName}</div>}
           </div>
-          <div>
-            <div className={styles.metaLabel}>RECEIVED FROM</div>
-            <div className={styles.metaVal}>{customer.name}</div>
-          </div>
-          <div style={{ textAlign: 'right' }}>
-            <div className={styles.metaLabel}>DATE</div>
-            <div className={styles.metaSub}>{receipt.date}</div>
-          </div>
-        </div>
-        <ReceiptItemsTable receipt={receipt} brand={brand} />
-      </div>
-      <div className={styles.customFooter}>
-        <div className={styles.customFooterText} style={{ color: bannerBg }}>
-          {brand.footer || 'Thank you for your payment'}
+        ) : <div />}
+        <div style={{ textAlign: 'right' }}>
+          <div><strong>{brand.name || brand.ownerName}</strong></div>
+          {brand.address && <div>{brand.address}</div>}
+          {brand.phone   && <div>{brand.phone}</div>}
+          {brand.email   && <div>{brand.email}</div>}
         </div>
       </div>
+      {brand.footer && <div className={styles.t5FootNote}>{brand.footer}</div>}
     </div>
   )
 }
 
-function FreeTemplate({ receipt, customer, brand }) {
+// ── 6. Heavy Header Bar (darkheader) ─────────────────────────
+function DarkHeaderTemplate({ receipt, customer, brand }) {
   return (
-    <div className={styles.tplBase}>
-      <div className={styles.freeHeader}>
+    <div className={styles.t6Wrap}>
+      <div className={styles.t6Header}>
+        <div className={styles.t6LogoArea}>
+          <div className={styles.t6LogoCircle}>
+            {brand.logo
+              ? <img src={brand.logo} alt="" style={{ width: 20, height: 20, objectFit: 'contain' }} />
+              : <span className="mi" style={{ fontSize: 13, color: '#1a1a1a' }}>checkroom</span>
+            }
+          </div>
+          <div>
+            <div className={styles.t6CompanyName}>{(brand.name || brand.ownerName || 'YOUR BRAND').toUpperCase()}</div>
+            {brand.tagline && <div className={styles.t6CompanySub}>{brand.tagline.toUpperCase()}</div>}
+          </div>
+        </div>
+        <div className={styles.t6HeaderRight}>
+          {brand.address && <div>{brand.address}</div>}
+        </div>
+        <div className={styles.t6HeaderRight}>
+          {brand.phone   && <div>{brand.phone}</div>}
+          {brand.email   && <div>{brand.email}</div>}
+          {brand.website && <div>{brand.website}</div>}
+        </div>
+      </div>
+      <div className={styles.t6InvoiceRow}>
+        <div className={styles.t6InvoiceLeft}>
+          <span className={styles.t6InvoiceWord}>RECEIPT </span>
+          <span className={styles.t6InvoiceNum}>#{receipt.number}</span>
+        </div>
+        <div className={styles.t6InvoiceRight}>
+          <div><span className={styles.t6Label}>DATE:</span> {receipt.date}</div>
+        </div>
+      </div>
+      <div className={styles.t6InfoRow}>
+        {brand.accountBank && (
+          <div>
+            <div className={styles.t6InfoLabel}>PAYMENT:</div>
+            <strong>{brand.accountBank}</strong><br />
+            {brand.accountName   && <span>{brand.accountName}<br /></span>}
+            {brand.accountNumber && <span>Acct: {brand.accountNumber}</span>}
+          </div>
+        )}
         <div>
-          <div className={styles.printTitle}>RECEIPT</div>
-          <div className={styles.freeNum}>{receipt.number}</div>
+          <div className={styles.t6InfoLabel}>FROM:</div>
+          {brand.name || brand.ownerName}<br />
+          {brand.address}
         </div>
-        <div className={styles.freeLogoBox}><LogoOrName brand={brand} /></div>
-      </div>
-      <div className={styles.freeGrid}>
-        <div className={styles.freeBox}><strong>FROM</strong><br />{brand.name}<br />{brand.phone}</div>
-        <div className={styles.freeBox}><strong>RECEIVED FROM</strong><br />{customer.name}<br />{customer.phone}</div>
-        <div className={styles.freeBox}><strong>DATE</strong><br />{receipt.date}</div>
+        <div>
+          <div className={styles.t6InfoLabel}>RECEIVED FROM:</div>
+          {customer.name}<br />
+          {customer.phone}<br />
+          {customer.address}
+        </div>
       </div>
       <ReceiptItemsTable receipt={receipt} brand={brand} />
-      <div className={styles.tplFooterPush} />
-      <div className={styles.freeFooterCentered}>{brand.footer || 'Thank you!'}</div>
+      <div className={styles.t6ThankYou}>{brand.footer || 'THANK YOU FOR YOUR PAYMENT'}</div>
     </div>
   )
 }
 
+// ── 7. Field-Labelled From / To (redbold) ─────────────────────
+function RedBoldTemplate({ receipt, customer, brand }) {
+  const accentColor = brand.colour || '#cc0000'
+  return (
+    <div className={styles.t7Wrap}>
+      <div className={styles.t7Header}>
+        <div className={styles.t7LogoCircle} style={{ borderColor: accentColor }}>
+          {brand.logo
+            ? <img src={brand.logo} alt="" style={{ width: 16, height: 16, objectFit: 'contain', borderRadius: '50%' }} />
+            : <span className="mi" style={{ fontSize: 13, color: accentColor }}>checkroom</span>
+          }
+        </div>
+        <div className={styles.t7TitleGroup}>
+          <span className={styles.t7InvoiceWord}>RECEIPT</span>
+          <span className={styles.t7InvoiceNum}>#{receipt.number}</span>
+        </div>
+        <div className={styles.t7DateBlock}>
+          <div className={styles.t7DateLabel}>DATE:</div>
+          <div className={styles.t7DateVal} style={{ color: accentColor }}>{receipt.date}</div>
+        </div>
+      </div>
+      <div className={styles.t7Divider} />
+      <div className={styles.t7FromTo}>
+        <div className={styles.t7FromToBlock}>
+          <div className={styles.t7FromLabel}>FROM:</div>
+          <div className={styles.t7FromDivider} />
+          {[
+            ['NAME:', brand.ownerName || brand.name],
+            ['COMPANY:', (brand.name || '').toUpperCase()],
+            ['ADDRESS:', (brand.address || '').toUpperCase()],
+            ['PHONE:', (brand.phone || '').toUpperCase()],
+          ].filter(([,v]) => v).map(([l, v]) => (
+            <div key={l} className={styles.t7InfoRow}>
+              <span className={styles.t7InfoKey}>{l}</span>
+              <span className={styles.t7InfoVal}>{v}</span>
+            </div>
+          ))}
+        </div>
+        <div className={styles.t7FromToBlock}>
+          <div className={styles.t7ToLabel}>TO:</div>
+          <div className={styles.t7FromDivider} />
+          {[
+            ['NAME:', (customer.name || '').toUpperCase()],
+            ['PHONE:', (customer.phone || '').toUpperCase()],
+            ['ADDRESS:', (customer.address || '').toUpperCase()],
+          ].filter(([,v]) => v).map(([l, v]) => (
+            <div key={l} className={styles.t7InfoRow}>
+              <span className={styles.t7InfoKey}>{l}</span>
+              <span className={styles.t7InfoVal}>{v}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className={styles.t7Divider} />
+      <div className={styles.t7ForLabel}>FOR:</div>
+      <ReceiptItemsTable receipt={receipt} brand={brand} />
+      {brand.accountBank && (
+        <div className={styles.t7PayRow}>
+          <span className={styles.t7InfoKey}>BANK:</span>
+          <span className={styles.t7InfoVal}>{brand.accountBank}</span>
+          {brand.accountName   && <><span className={styles.t7InfoKey} style={{ marginLeft: 8 }}>ACCT NAME:</span><span className={styles.t7InfoVal}>{brand.accountName}</span></>}
+          {brand.accountNumber && <><span className={styles.t7InfoKey} style={{ marginLeft: 8 }}>ACCT #:</span><span className={styles.t7InfoVal}>{brand.accountNumber}</span></>}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── 8. Side Panel with Invoice Box (greenaccent) ──────────────
+function GreenAccentTemplate({ receipt, customer, brand }) {
+  const accentColor = brand.colour || '#00c896'
+  const cumulativePaid   = resolveCumulativePaid(receipt)
+  const orderTotal       = receipt.orderPrice ? parseFloat(receipt.orderPrice)
+    : receipt.items?.reduce((s, i) => s + (parseFloat(i.price) || 0), 0) ?? 0
+  const thisPaymentTotal = (receipt.payments || []).reduce((s, p) => s + (parseFloat(p.amount) || 0), 0)
+  const { currency } = brand
+
+  return (
+    <div className={styles.t8Wrap}>
+      <div className={styles.t8Header}>
+        <div className={styles.t8LogoArea}>
+          {brand.logo
+            ? <img src={brand.logo} alt="" style={{ width: 22, height: 22, objectFit: 'contain' }} />
+            : <span className="mi" style={{ fontSize: 20, color: '#333' }}>checkroom</span>
+          }
+          <div>
+            <div className={styles.t8BrandName}>{brand.name || brand.ownerName}</div>
+            {brand.tagline && <div className={styles.t8BrandSub}>{brand.tagline.toUpperCase()}</div>}
+          </div>
+        </div>
+        <div className={styles.t8InvoiceBox} style={{ background: accentColor }}>
+          <div className={styles.t8InvoiceTitle}>RECEIPT</div>
+          <div className={styles.t8InvoiceMeta}>
+            <span>Receipt#</span><span>{receipt.number}</span>
+            <span>Date</span><span>{receipt.date}</span>
+          </div>
+        </div>
+      </div>
+      <ReceiptItemsTable receipt={receipt} brand={brand} />
+      <div className={styles.t8Divider} />
+      <div className={styles.t8Bottom}>
+        <div className={styles.t8GreenBox} style={{ background: accentColor }}>
+          <div className={styles.t8GreenBoxTitle}>Received from:</div>
+          <div className={styles.t8GreenBoxName}>{customer.name}</div>
+          {customer.phone   && <div className={styles.t8GreenBoxAddr}>{customer.phone}</div>}
+          {customer.address && <div className={styles.t8GreenBoxAddr}>{customer.address}</div>}
+          <div className={styles.t8GreenDivider} />
+          <div className={styles.t8GreenBoxTitle}>Terms</div>
+          <div className={styles.t8GreenBoxAddr}>{brand.footer || 'Thank you for your payment.'}</div>
+        </div>
+        {brand.accountBank && (
+          <div className={styles.t8PaymentInfo}>
+            <div className={styles.t8PayLabel}>Payment Info:</div>
+            {brand.accountNumber && <div>Account #: {brand.accountNumber}</div>}
+            {brand.accountName   && <div>A/C Name: {brand.accountName}</div>}
+            {brand.accountBank   && <div>Bank: {brand.accountBank}</div>}
+          </div>
+        )}
+        <div className={styles.t8Totals}>
+          <div className={styles.t8TotRow}><span>Order Value:</span><span>{fmt(currency, orderTotal)}</span></div>
+          <div className={styles.t8TotDivider} />
+          <div className={styles.t8TotTotal}><span>Paid:</span><span>{fmt(currency, thisPaymentTotal)}</span></div>
+          <div className={styles.t8SignLine}>Authorised Sign</div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── 9. Accent Table Header (tealgeometric) ────────────────────
+function TealGeometricTemplate({ receipt, customer, brand }) {
+  const accentColor = brand.colour || '#00b4c8'
+  const darkBar     = '#1a1a2e'
+  const cumulativePaid   = resolveCumulativePaid(receipt)
+  const orderTotal       = receipt.orderPrice ? parseFloat(receipt.orderPrice)
+    : receipt.items?.reduce((s, i) => s + (parseFloat(i.price) || 0), 0) ?? 0
+  const thisPaymentTotal = (receipt.payments || []).reduce((s, p) => s + (parseFloat(p.amount) || 0), 0)
+  const { currency } = brand
+
+  return (
+    <div className={styles.t9Wrap}>
+      <div className={styles.t9Header}>
+        <div>
+          <div className={styles.t9LogoRow}>
+            {brand.logo
+              ? <img src={brand.logo} alt="" style={{ width: 14, height: 14, objectFit: 'contain' }} />
+              : <span className="mi" style={{ fontSize: 14, color: '#333' }}>checkroom</span>
+            }
+            <span className={styles.t9CompanyName}>{(brand.name || brand.ownerName || '').toUpperCase()}</span>
+          </div>
+          {brand.tagline && <div className={styles.t9CompanySub}>{brand.tagline.toUpperCase()}</div>}
+          {brand.address && <div className={styles.t9CompanyAddr}>{brand.address}</div>}
+        </div>
+        <div className={styles.t9InvoiceTitle} style={{ color: accentColor }}>RECEIPT</div>
+      </div>
+      <div className={styles.t9NumBar} style={{ background: darkBar }}>
+        <span>RECEIPT # {receipt.number}</span><span>|</span>
+        <span>DATE: {receipt.date}</span>
+      </div>
+      <div className={styles.t9BillShip}>
+        <div>
+          <span className={styles.t9BillLabel}>Received from:</span>
+          <div><strong>{customer.name}</strong></div>
+          {customer.phone   && <div>{customer.phone}</div>}
+          {customer.address && <div>{customer.address}</div>}
+        </div>
+        <div>
+          <span className={styles.t9BillLabel}>From:</span>
+          <div><strong>{brand.name || brand.ownerName}</strong></div>
+          {brand.phone && <div>{brand.phone}</div>}
+          {brand.email && <div>{brand.email}</div>}
+        </div>
+      </div>
+      <ReceiptItemsTable receipt={receipt} brand={brand} />
+      <div className={styles.t9TotalBar} style={{ background: darkBar }}>
+        <span>AMOUNT RECEIVED</span><span>{fmt(currency, thisPaymentTotal)}</span>
+      </div>
+      <div className={styles.t9Footer}>
+        <div>
+          {brand.accountBank && (
+            <>
+              <div className={styles.t9ThankYou}>PAYMENT INFORMATION</div>
+              <div className={styles.t9PayNote}>
+                {brand.accountBank}{brand.accountName ? ` — ${brand.accountName}` : ''}
+                {brand.accountNumber ? ` | Acct: ${brand.accountNumber}` : ''}
+              </div>
+            </>
+          )}
+          {!brand.accountBank && <div className={styles.t9ThankYou}>THANK YOU FOR YOUR PAYMENT</div>}
+          {brand.footer && <div className={styles.t9PayNote}>{brand.footer}</div>}
+        </div>
+        <div className={styles.t9SignArea}>
+          <div className={styles.t9SignLine} />
+          <div className={styles.t9SignLabel}>Signature</div>
+        </div>
+      </div>
+      <div className={styles.t9CornerDeco} style={{ background: `linear-gradient(135deg, transparent 50%, ${accentColor} 50%)` }} />
+    </div>
+  )
+}
+
+// ── 10. Diagonal Header (pinkdiagonal) ────────────────────────
+function PinkDiagonalTemplate({ receipt, customer, brand }) {
+  const accentColor = brand.colour || '#ff5c8a'
+  const cumulativePaid   = resolveCumulativePaid(receipt)
+  const orderTotal       = receipt.orderPrice ? parseFloat(receipt.orderPrice)
+    : receipt.items?.reduce((s, i) => s + (parseFloat(i.price) || 0), 0) ?? 0
+  const thisPaymentTotal = (receipt.payments || []).reduce((s, p) => s + (parseFloat(p.amount) || 0), 0)
+  const balanceRemaining = Math.max(0, orderTotal - cumulativePaid)
+  const { currency } = brand
+
+  return (
+    <div className={styles.t10Wrap}>
+      <div className={styles.t10HeaderZone}>
+        <div className={styles.t10FullBanner} style={{ background: accentColor }}>
+          <span className={styles.t10BannerTitle}>RECEIPT</span>
+        </div>
+        <div className={styles.t10BrandInBanner}>
+          {brand.logo
+            ? <img src={brand.logo} alt="" style={{ width: 14, height: 14, objectFit: 'contain' }} />
+            : <span className="mi" style={{ fontSize: 14, color: '#333' }}>checkroom</span>
+          }
+          <div>
+            <div className={styles.t10BrandName}>{brand.name || brand.ownerName}</div>
+            {brand.tagline && <div className={styles.t10BrandSub}>{brand.tagline.toUpperCase()}</div>}
+          </div>
+        </div>
+      </div>
+      <div className={styles.t10MetaRow}>
+        <div>
+          <div className={styles.t10MetaLabel}>Received from:</div>
+          <div className={styles.t10MetaName}>{customer.name}</div>
+          {customer.phone   && <div className={styles.t10MetaAddr}>{customer.phone}</div>}
+          {customer.address && <div className={styles.t10MetaAddr}>{customer.address}</div>}
+        </div>
+        <div style={{ textAlign: 'right' }}>
+          <div><span className={styles.t10MetaKey}>Receipt#</span> <strong>{receipt.number}</strong></div>
+          <div><span className={styles.t10MetaKey}>Date</span> <strong>{receipt.date}</strong></div>
+        </div>
+      </div>
+      <ReceiptItemsTable receipt={receipt} brand={brand} />
+      <div className={styles.t10Divider} />
+      <div className={styles.t10Bottom}>
+        <div style={{ flex: 1 }}>
+          <div className={styles.t10ThankYou}>{brand.footer || 'Thank you for your payment'}</div>
+          {brand.accountBank && (
+            <>
+              <div className={styles.t10PayLabel}>Payment Info:</div>
+              <div className={styles.t10PayInfo}>
+                {brand.accountNumber && <span>Account #: {brand.accountNumber}<br /></span>}
+                {brand.accountName   && <span>A/C Name: {brand.accountName}<br /></span>}
+                {brand.accountBank   && <span>Bank: {brand.accountBank}</span>}
+              </div>
+            </>
+          )}
+          {(brand.phone || brand.email) && (
+            <>
+              <div className={styles.t10TCLabel}>Contact</div>
+              <div className={styles.t10TCText}>
+                {brand.phone && <span>{brand.phone}<br /></span>}
+                {brand.email && <span>{brand.email}</span>}
+              </div>
+            </>
+          )}
+        </div>
+        <div className={styles.t10RightCol}>
+          <div className={styles.t10TotalsWrap}>
+            <div className={styles.t10TotRow}><span>Order Value:</span><span>{fmt(currency, orderTotal)}</span></div>
+            <div className={styles.t10TotDivider} />
+            <div className={styles.t10TotTotal}><span>Paid:</span><span>{fmt(currency, thisPaymentTotal)}</span></div>
+            {balanceRemaining > 0 && (
+              <div className={styles.t10TotRow} style={{ color: '#ef4444' }}><span>Balance:</span><span>{fmt(currency, balanceRemaining)}</span></div>
+            )}
+          </div>
+          <div className={styles.t10SignBlock}>
+            <div className={styles.t10SignLine} />
+            <div className={styles.t10SignLabel}>Authorised Sign</div>
+          </div>
+        </div>
+      </div>
+      <div className={styles.t10CornerAccent} style={{ background: accentColor }} />
+    </div>
+  )
+}
+
+// ── 11. Info Bar with Payment Tiles (blueclean) ───────────────
+function BlueCleanTemplate({ receipt, customer, brand }) {
+  const accentColor = brand.colour || '#5da0d0'
+  const barBg       = '#dbeeff'
+  const cumulativePaid   = resolveCumulativePaid(receipt)
+  const orderTotal       = receipt.orderPrice ? parseFloat(receipt.orderPrice)
+    : receipt.items?.reduce((s, i) => s + (parseFloat(i.price) || 0), 0) ?? 0
+  const thisPaymentTotal = (receipt.payments || []).reduce((s, p) => s + (parseFloat(p.amount) || 0), 0)
+  const { currency } = brand
+
+  return (
+    <div className={styles.t11Wrap}>
+      <div className={styles.t11TopBar}>
+        <div className={styles.t11LogoArea}>
+          <div className={styles.t11LogoHex}>
+            {brand.logo
+              ? <img src={brand.logo} alt="" style={{ width: 14, height: 14, objectFit: 'contain', borderRadius: 2 }} />
+              : <span className="mi" style={{ fontSize: 11, color: '#fff' }}>checkroom</span>
+            }
+          </div>
+          <div>
+            <div className={styles.t11CompanyName}>{(brand.name || brand.ownerName || '').toUpperCase()}</div>
+            {brand.tagline && <div className={styles.t11CompanySub}>{brand.tagline}</div>}
+          </div>
+        </div>
+        {brand.address && <div className={styles.t11CompanyInfo}>{brand.address}</div>}
+        <div className={styles.t11CompanyInfo} style={{ textAlign: 'right' }}>
+          {brand.website && <div>{brand.website}</div>}
+          {brand.email   && <div>{brand.email}</div>}
+          {brand.phone   && <div>{brand.phone}</div>}
+        </div>
+      </div>
+      <div className={styles.t11InvoiceTitle}>Receipt</div>
+      <div className={styles.t11BlueBar} style={{ background: barBg, color: accentColor }}>
+        <span>RECEIPT: #{receipt.number}</span>
+        <span>DATE: {receipt.date}</span>
+        <span>AMOUNT: {fmt(currency, thisPaymentTotal)}</span>
+      </div>
+      <div className={styles.t11IssuedRow}>
+        <div>
+          <div className={styles.t11IssuedLabel}>RECEIVED FROM</div>
+          <div>{customer.name}</div>
+          {customer.phone   && <div>{customer.phone}</div>}
+          {customer.address && <div>{customer.address}</div>}
+        </div>
+        <div style={{ textAlign: 'right' }}>
+          <div className={styles.t11AmountLabel} style={{ color: accentColor }}>AMOUNT PAID</div>
+          <div className={styles.t11AmountVal} style={{ color: accentColor }}>{fmt(currency, thisPaymentTotal)}</div>
+        </div>
+      </div>
+      {receipt.orderDesc && <div className={styles.t11ProjectName}>{receipt.orderDesc}</div>}
+      <ReceiptItemsTable receipt={receipt} brand={brand} />
+      {(brand.accountBank || brand.phone) && (
+        <>
+          <div className={styles.t11PayTitle}>Payment Information</div>
+          <div className={styles.t11PayBoxRow}>
+            {brand.accountBank && (
+              <div className={styles.t11PayBox} style={{ background: barBg }}>
+                <div className={styles.t11PayBoxTitle}>Bank Transfer</div>
+                <div>
+                  {brand.accountBank}<br />
+                  {brand.accountName   && <span>{brand.accountName}<br /></span>}
+                  {brand.accountNumber && <span>Acct: {brand.accountNumber}</span>}
+                </div>
+              </div>
+            )}
+            {brand.phone && (
+              <div className={styles.t11PayBox} style={{ background: barBg }}>
+                <div className={styles.t11PayBoxTitle}>Contact</div>
+                <div>
+                  {brand.phone}<br />
+                  {brand.email && <span>{brand.email}</span>}
+                </div>
+              </div>
+            )}
+            {brand.address && (
+              <div className={styles.t11PayBox} style={{ background: barBg }}>
+                <div className={styles.t11PayBoxTitle}>Visit Us</div>
+                <div>{brand.address}</div>
+              </div>
+            )}
+          </div>
+        </>
+      )}
+      <div className={styles.t11ThankYou} style={{ color: accentColor }}>{brand.footer || 'THANK YOU!'}</div>
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────
+// Template map
+// ─────────────────────────────────────────────────────────────
+
 const TEMPLATE_MAP = {
-  editable:  EditableTemplate,
-  printable: PrintableTemplate,
-  custom:    CustomTemplate,
-  free:      FreeTemplate,
+  editable:      EditableTemplate,
+  free:          FreeTemplate,
+  custom:        CustomTemplate,
+  printable:     PrintableTemplate,
+  canva:         CanvaTemplate,
+  darkheader:    DarkHeaderTemplate,
+  redbold:       RedBoldTemplate,
+  greenaccent:   GreenAccentTemplate,
+  tealgeometric: TealGeometricTemplate,
+  pinkdiagonal:  PinkDiagonalTemplate,
+  blueclean:     BlueCleanTemplate,
 }
 
 // ── Main component ────────────────────────────────────────────
