@@ -54,6 +54,10 @@ export function BrandProvider({ children }) {
     taxRate:    settings.invoiceTaxRate  || 0,
     footer:     settings.invoiceFooter   || 'Thank you for your patronage 🙏',
     template:   settings.invoiceTemplate || 'editable',
+    // Account / payment details (shown on invoice payment section)
+    accountBank:   settings.accountBank   || '',
+    accountNumber: settings.accountNumber || '',
+    accountName:   settings.accountName   || '',
     // From personal info (fallback for solo tailors without a brand name)
     ownerName:  personal.fullName  || '',
     ownerEmail: personal.email     || '',
