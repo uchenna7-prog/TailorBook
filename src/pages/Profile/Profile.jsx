@@ -302,6 +302,61 @@ function BrandModal({ onBack, showToast }) {
   )
 }
 
+// ─────────────────────────────────────────────────────────────
+// MODAL: Account / Payment Details
+// ─────────────────────────────────────────────────────────────
+
+function AccountDetailsModal({ onBack, showToast }) {
+  const { settings, updateMany } = useSettings()
+
+  const [local, setLocal] = useState({
+    accountBank:   settings.accountBank   || '',
+    accountNumber: settings.accountNumber || '',
+    accountName:   settings.accountName   || '',
+  })
+
+  const set = key => val => setLocal(p => ({ ...p, [key]: val }))
+
+  const save = () => {
+    updateMany(local)
+    showToast('Account details saved')
+    onBack()
+  }
+
+  return (
+    <FullModal title="Account Details" onBack={onBack} onSave={save}>
+      <FieldGroup>
+        <Field label="Bank Name" hint="e.g. GTBank, Access, OPay">
+          <TextInput
+            value={local.accountBank}
+            onChange={set('accountBank')}
+            placeholder="e.g. GTBank"
+          />
+        </Field>
+        <Field label="Account Number">
+          <TextInput
+            value={local.accountNumber}
+            onChange={set('accountNumber')}
+            placeholder="e.g. 0123456789"
+            type="tel"
+          />
+        </Field>
+        <Field label="Account Name" hint="Name registered on the bank account">
+          <TextInput
+            value={local.accountName}
+            onChange={set('accountName')}
+            placeholder="e.g. Amara Okonkwo"
+          />
+        </Field>
+      </FieldGroup>
+    </FullModal>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────
+// Misc components
+// ─────────────────────────────────────────────────────────────
+
 function PlanBadge({ isPremium }) {
   return (
     <span className={isPremium ? styles.badgePro : styles.badgeFree}>
@@ -345,6 +400,10 @@ function getOrSetJoinDate() {
   return today
 }
 
+// ─────────────────────────────────────────────────────────────
+// Page
+// ─────────────────────────────────────────────────────────────
+
 export default function Profile({ onMenuClick, isPremium = false, onUpgrade = () => {} }) {
   const { settings } = useSettings()
   const { user, logout } = useAuth()
@@ -371,6 +430,7 @@ export default function Profile({ onMenuClick, isPremium = false, onUpgrade = ()
   }
 
   const hasBrand = !!(settings.brandName || settings.brandLogo)
+  const hasAccountDetails = !!(settings.accountBank || settings.accountNumber)
 
   return (
     <div className={styles.page}>
@@ -412,6 +472,7 @@ export default function Profile({ onMenuClick, isPremium = false, onUpgrade = ()
           </div>
         </div>
 
+        {/* ── Personal Info ── */}
         <SectionHeader icon="person" label="Personal Info" />
         <InfoRow icon="badge"  label="Full Name" value={personal.fullName}  placeholder="Not set" />
         <InfoRow icon="mail"   label="Email"     value={personal.email || user?.email} placeholder="Not set" />
@@ -424,6 +485,7 @@ export default function Profile({ onMenuClick, isPremium = false, onUpgrade = ()
           divider={false}
         />
 
+        {/* ── Brand Identity ── */}
         <SectionHeader icon="storefront" label="Brand Identity" />
         {hasBrand ? (
           <div className={`${styles.row} ${styles.brandPreview}`}>
@@ -456,6 +518,29 @@ export default function Profile({ onMenuClick, isPremium = false, onUpgrade = ()
           divider={false}
         />
 
+        {/* ── Account / Payment Details ── */}
+        <SectionHeader icon="account_balance" label="Account Details" />
+        {hasAccountDetails ? (
+          <>
+            <InfoRow icon="account_balance" label="Bank"           value={settings.accountBank}   placeholder="Not set" />
+            <InfoRow icon="tag"             label="Account Number" value={settings.accountNumber} placeholder="Not set" />
+            <InfoRow icon="badge"           label="Account Name"   value={settings.accountName}   placeholder="Not set" />
+          </>
+        ) : (
+          <div className={`${styles.row} ${styles.brandEmpty}`}>
+            <span className="mi" style={{ fontSize: '1.5rem', color: 'var(--text3)' }}>account_balance</span>
+            <span className={styles.brandEmptyText}>No account details yet</span>
+          </div>
+        )}
+        <TappableRow
+          icon="edit"
+          label="Edit Account Details"
+          sub="Bank info printed on invoices for client payments"
+          onClick={() => setActiveModal('accountDetails')}
+          divider={false}
+        />
+
+        {/* ── Plan ── */}
         <SectionHeader icon="workspace_premium" label="My Plan" />
         <div className={styles.row}>
           <div className={styles.planLeft}>
@@ -468,7 +553,7 @@ export default function Profile({ onMenuClick, isPremium = false, onUpgrade = ()
           </div>
           <PlanBadge isPremium={isPremium} />
         </div>
-        
+
         {!isPremium && (
           <div className={`${styles.row} ${styles.upgradeStrip}`} onClick={onUpgrade}>
             <div className={styles.upgradeStripGlow} />
@@ -481,6 +566,7 @@ export default function Profile({ onMenuClick, isPremium = false, onUpgrade = ()
           </div>
         )}
 
+        {/* ── Account ── */}
         <SectionHeader icon="manage_accounts" label="Account" />
         <TappableRow
           icon="logout"
@@ -494,6 +580,7 @@ export default function Profile({ onMenuClick, isPremium = false, onUpgrade = ()
         <div style={{ height: 40 }} />
       </div>
 
+      {/* ── Modals ── */}
       {activeModal === 'personal' && (
         <PersonalModal
           personal={personal}
@@ -504,6 +591,9 @@ export default function Profile({ onMenuClick, isPremium = false, onUpgrade = ()
       )}
       {activeModal === 'brand' && (
         <BrandModal onBack={() => setActiveModal(null)} showToast={showToast} />
+      )}
+      {activeModal === 'accountDetails' && (
+        <AccountDetailsModal onBack={() => setActiveModal(null)} showToast={showToast} />
       )}
 
       <ConfirmSheet
