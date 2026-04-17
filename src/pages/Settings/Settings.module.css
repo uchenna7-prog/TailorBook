@@ -1,5 +1,5 @@
 .page { background: var(--bg); min-height: 100dvh; display: flex; flex-direction: column; }
-.scrollArea { flex: 1; overflow-y: auto; padding: 8px 0 40px; } /* Removed horizontal padding to let lines bleed to edges */
+.scrollArea { flex: 1; overflow-y: auto; padding: 8px 0 40px; }
 
 /* ── SECTION HEADER ── */
 .sectionHeader { display: flex; align-items: center; gap: 7px; padding: 28px 16px 12px; }
@@ -82,7 +82,7 @@
 .radioActive::after { content: ''; position: absolute; inset: 5px; background: var(--bg); border-radius: 50%; }
 .templateLabel { font-weight: 700; color: var(--text); font-size: 0.9rem; }
 
-/* ── FORMS (Still using groups for spacing in modals) ── */
+/* ── FORMS ── */
 .fieldGroup { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
 .field { padding: 14px 16px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 6px; }
 .field:last-child { border-bottom: none; }
@@ -100,7 +100,9 @@
 .segBtn { flex: 1; border: none; background: none; border-radius: 8px; padding: 8px 4px; font-size: 0.73rem; font-weight: 700; color: var(--text3); cursor: pointer; transition: all 0.15s; font-family: inherit; }
 .segActive { background: var(--surface); color: var(--text); box-shadow: 0 1px 4px rgba(0,0,0,0.12); }
 
-/* ── PREVIEW TEMPLATE STYLES ── */
+/* ══════════════════════════════════════════════════════════
+   ORIGINAL TEMPLATE PREVIEW STYLES (Templates 1–4)
+══════════════════════════════════════════════════════════ */
 .pBase { padding: 20px; color: #1a1a1a; font-family: 'Inter', sans-serif; font-size: 9px; min-height: 400px; display: flex; flex-direction: column; }
 .pLargeTitle { font-size: 22px; font-weight: 900; }
 .pLargeTitleCenter { font-size: 20px; font-weight: 900; text-align: center; margin: 15px 0; border-top: 1px solid #eee; border-bottom: 1px solid #eee; padding: 5px 0; }
@@ -136,3 +138,1319 @@
 .pFooterGray { background: #f9fafb; padding: 10px; text-align: center; font-weight: 700; margin-top: auto; }
 .pFooter { display: flex; gap: 10px; margin-top: auto; padding-top: 10px; border-top: 1px solid #eee; }
 .pFootSection { flex: 1; font-size: 7px; line-height: 1.5; }
+
+/* ══════════════════════════════════════════════════════════
+   TEMPLATE 5 — Canva Minimal Warm Beige
+══════════════════════════════════════════════════════════ */
+.t5Base {
+  padding: 20px;
+  background: #f5f0e8;
+  color: #1a1a1a;
+  font-family: 'Inter', sans-serif;
+  font-size: 8px;
+  min-height: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.t5Top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+.t5Title {
+  font-size: 32px;
+  font-weight: 900;
+  letter-spacing: -1px;
+  line-height: 1;
+}
+.t5TopRight {
+  text-align: right;
+  font-size: 7.5px;
+  line-height: 1.6;
+}
+.t5Divider {
+  height: 1px;
+  background: #c8bfa8;
+  margin: 2px 0;
+}
+.t5BilledTo {
+  font-size: 7.5px;
+  line-height: 1.5;
+}
+.t5BilledLabel {
+  font-weight: 700;
+  font-size: 7px;
+  text-transform: none;
+  margin-bottom: 2px;
+}
+.t5TableHead {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 700;
+  font-size: 7px;
+  padding: 3px 0;
+  border-bottom: 1px solid #c8bfa8;
+}
+.t5TableHead span, .t5TableRow span {
+  flex: 1;
+  text-align: right;
+}
+.t5TableHead span:first-child, .t5TableRow span:first-child {
+  text-align: left;
+}
+.t5TableRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 7.5px;
+  padding: 4px 0;
+  border-bottom: 1px solid #e8e0d0;
+}
+.t5Totals {
+  margin-left: auto;
+  width: 38%;
+}
+.t5TotRow {
+  display: flex;
+  justify-content: space-between;
+  padding: 2px 0;
+  font-size: 7.5px;
+}
+.t5TotBold {
+  font-weight: 900;
+  font-size: 9px;
+  border-top: 1px solid #c8bfa8;
+  padding-top: 3px;
+  margin-top: 2px;
+}
+.t5Footer {
+  display: flex;
+  justify-content: space-between;
+  font-size: 7px;
+  line-height: 1.5;
+  margin-top: auto;
+  padding-top: 4px;
+}
+.t5FootLabel {
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+/* ══════════════════════════════════════════════════════════
+   TEMPLATE 6 — Dark Header Corporate
+══════════════════════════════════════════════════════════ */
+.t6Base {
+  background: #fff;
+  color: #1a1a1a;
+  font-family: 'Inter', sans-serif;
+  font-size: 7.5px;
+  min-height: 480px;
+  display: flex;
+  flex-direction: column;
+}
+.t6Header {
+  background: #1a1a1a;
+  color: #fff;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.t6LogoArea {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+.t6LogoCircle {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #fff;
+  color: #1a1a1a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 6px;
+  font-weight: 900;
+  flex-shrink: 0;
+}
+.t6CompanyName {
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+}
+.t6CompanySub {
+  font-size: 6px;
+  opacity: 0.6;
+  letter-spacing: 0.08em;
+}
+.t6HeaderRight {
+  font-size: 6.5px;
+  line-height: 1.6;
+  opacity: 0.85;
+}
+.t6InvoiceRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+  border-bottom: 1px solid #eee;
+}
+.t6InvoiceLeft {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+.t6InvoiceWord {
+  font-size: 11px;
+  font-weight: 400;
+  color: #555;
+}
+.t6InvoiceNum {
+  font-size: 18px;
+  font-weight: 900;
+}
+.t6InvoiceRight {
+  text-align: right;
+  font-size: 7px;
+  line-height: 1.7;
+}
+.t6Label {
+  font-weight: 700;
+}
+.t6InfoRow {
+  display: flex;
+  gap: 20px;
+  padding: 8px 16px 10px;
+  border-bottom: 1px solid #eee;
+}
+.t6InfoRow > div {
+  flex: 1;
+  font-size: 7px;
+  line-height: 1.6;
+}
+.t6InfoLabel {
+  font-weight: 700;
+  font-size: 7.5px;
+  margin-bottom: 3px;
+}
+.t6TableHead {
+  display: flex;
+  background: #1a1a1a;
+  color: #fff;
+  padding: 5px 16px;
+  font-weight: 700;
+  font-size: 7px;
+  gap: 4px;
+}
+.t6TableHead span, .t6TableRow span {
+  flex: 1;
+  text-align: right;
+}
+.t6TableHead span:first-child, .t6TableRow span:first-child {
+  text-align: left;
+}
+.t6TableRow {
+  display: flex;
+  padding: 5px 16px;
+  font-size: 7px;
+  border-bottom: 1px dashed #eee;
+  gap: 4px;
+}
+.t6TotalsArea {
+  margin-left: auto;
+  width: 45%;
+  padding: 6px 16px 0 0;
+}
+.t6TotRow {
+  display: flex;
+  justify-content: space-between;
+  padding: 2px 0;
+  font-size: 7.5px;
+}
+.t6TotTotal {
+  display: flex;
+  justify-content: space-between;
+  background: #1a1a1a;
+  color: #fff;
+  padding: 5px 8px;
+  font-weight: 900;
+  font-size: 9px;
+  margin-top: 3px;
+}
+.t6ThankYou {
+  text-align: right;
+  font-style: italic;
+  font-size: 8px;
+  padding: 8px 16px;
+  color: #555;
+  margin-top: auto;
+}
+
+/* ══════════════════════════════════════════════════════════
+   TEMPLATE 7 — Red Bold (Wrench logo style)
+══════════════════════════════════════════════════════════ */
+.t7Base {
+  background: #fff;
+  color: #1a1a1a;
+  font-family: 'Arial', sans-serif;
+  font-size: 7.5px;
+  min-height: 480px;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+}
+.t7Header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px 8px;
+}
+.t7LogoCircle {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid #cc0000;
+  color: #cc0000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 900;
+  flex-shrink: 0;
+}
+.t7TitleGroup {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  flex: 1;
+}
+.t7InvoiceWord {
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+}
+.t7InvoiceNum {
+  font-size: 14px;
+  font-weight: 900;
+  color: #888;
+}
+.t7DateBlock {
+  text-align: right;
+  font-size: 7px;
+}
+.t7DateLabel {
+  font-size: 6px;
+  color: #888;
+  text-transform: uppercase;
+}
+.t7DateVal {
+  font-weight: 700;
+  color: #cc0000;
+  font-size: 7.5px;
+}
+.t7Divider {
+  height: 2px;
+  background: #1a1a1a;
+  margin: 0 16px;
+}
+.t7FromTo {
+  display: flex;
+  gap: 0;
+  padding: 8px 16px;
+}
+.t7FromToBlock {
+  flex: 1;
+  font-size: 7px;
+  line-height: 1.5;
+}
+.t7FromLabel {
+  font-size: 13px;
+  font-weight: 900;
+  margin-bottom: 4px;
+}
+.t7ToLabel {
+  font-size: 13px;
+  font-weight: 900;
+  margin-bottom: 4px;
+}
+.t7FromDivider {
+  height: 1px;
+  background: #1a1a1a;
+  margin-bottom: 4px;
+}
+.t7InfoRow {
+  display: flex;
+  gap: 4px;
+}
+.t7InfoKey {
+  color: #aaa;
+  font-size: 6px;
+  text-transform: uppercase;
+  width: 52px;
+  flex-shrink: 0;
+}
+.t7InfoVal {
+  font-weight: 700;
+  font-size: 7px;
+}
+.t7ForLabel {
+  font-size: 13px;
+  font-weight: 900;
+  padding: 4px 16px;
+}
+.t7TableHead {
+  display: flex;
+  align-items: center;
+  background: #1a1a1a;
+  color: #fff;
+  padding: 4px 16px;
+  font-size: 7px;
+  font-weight: 700;
+  gap: 4px;
+}
+.t7TableRow {
+  display: flex;
+  align-items: center;
+  padding: 4px 16px;
+  border-bottom: 1px solid #eee;
+  font-size: 7px;
+  gap: 4px;
+}
+.t7TableRow span:not(:first-child):not([style]) {
+  flex: 1;
+  text-align: right;
+}
+.t7TableHead span:not(.t7NumCol):not([style]) {
+  flex: 1;
+  text-align: right;
+}
+.t7NumCol {
+  width: 18px;
+  flex-shrink: 0;
+  color: #aaa;
+}
+.t7RedPrice {
+  flex: 1;
+  text-align: right;
+  font-weight: 900;
+  color: #cc0000;
+}
+.t7TotalBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  background: #f0f0f0;
+  padding: 6px 16px;
+  margin-top: auto;
+  font-weight: 900;
+  font-size: 11px;
+  border-top: 2px solid #1a1a1a;
+}
+.t7TotalAmt {
+  font-size: 18px;
+  font-weight: 900;
+  color: #cc0000;
+}
+
+/* ══════════════════════════════════════════════════════════
+   TEMPLATE 8 — Green Accent Brand
+══════════════════════════════════════════════════════════ */
+.t8Base {
+  background: #fff;
+  color: #1a1a1a;
+  font-family: 'Inter', sans-serif;
+  font-size: 7.5px;
+  min-height: 480px;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+}
+.t8Header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px 10px;
+}
+.t8LogoArea {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.t8LogoIcon {
+  font-size: 14px;
+  color: #333;
+}
+.t8BrandName {
+  font-size: 10px;
+  font-weight: 700;
+}
+.t8BrandSub {
+  font-size: 6px;
+  color: #999;
+  letter-spacing: 0.06em;
+}
+.t8InvoiceBox {
+  background: #00c896;
+  color: #fff;
+  padding: 8px 14px;
+  border-radius: 2px;
+  text-align: right;
+  min-width: 80px;
+}
+.t8InvoiceTitle {
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+}
+.t8InvoiceMeta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 6px;
+  font-size: 6.5px;
+  margin-top: 3px;
+}
+.t8TableHead {
+  display: flex;
+  background: #f5f5f5;
+  padding: 5px 16px;
+  font-size: 7px;
+  font-weight: 700;
+  gap: 4px;
+  color: #444;
+}
+.t8TableHead span, .t8TableRow span {
+  flex: 1;
+  text-align: right;
+}
+.t8TableHead span:nth-child(2), .t8TableRow span:nth-child(2) {
+  flex: 3;
+  text-align: left;
+}
+.t8TableHead span:first-child, .t8TableRow span:first-child {
+  text-align: left;
+  flex: 0.5;
+}
+.t8TableRow {
+  display: flex;
+  padding: 5px 16px;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 7.5px;
+  gap: 4px;
+}
+.t8Divider {
+  height: 1px;
+  background: #eee;
+  margin: 4px 16px;
+}
+.t8Bottom {
+  display: flex;
+  gap: 8px;
+  padding: 8px 16px 14px;
+  margin-top: auto;
+}
+.t8GreenBox {
+  background: #00c896;
+  color: #fff;
+  padding: 8px 10px;
+  border-radius: 2px;
+  width: 110px;
+  flex-shrink: 0;
+  font-size: 6.5px;
+  line-height: 1.5;
+}
+.t8GreenBoxTitle {
+  font-weight: 700;
+  font-size: 7.5px;
+  margin-bottom: 2px;
+}
+.t8GreenBoxName {
+  font-weight: 700;
+  font-size: 8px;
+}
+.t8GreenBoxAddr {
+  opacity: 0.85;
+  font-size: 6px;
+  margin-top: 1px;
+}
+.t8GreenDivider {
+  height: 1px;
+  background: rgba(255,255,255,0.4);
+  margin: 5px 0;
+}
+.t8PaymentInfo {
+  flex: 1;
+  font-size: 7px;
+  line-height: 1.6;
+}
+.t8PayLabel {
+  font-weight: 700;
+  font-size: 7.5px;
+  margin-bottom: 2px;
+}
+.t8ThankYou {
+  margin-top: 8px;
+  font-weight: 700;
+  font-size: 7px;
+}
+.t8Totals {
+  min-width: 80px;
+  font-size: 7.5px;
+}
+.t8TotRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 2px 0;
+}
+.t8TotDivider {
+  height: 1px;
+  background: #1a1a1a;
+  margin: 3px 0;
+}
+.t8TotTotal {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 900;
+  font-size: 9px;
+  gap: 8px;
+}
+.t8SignLine {
+  font-size: 6px;
+  color: #999;
+  border-top: 1px solid #aaa;
+  padding-top: 2px;
+  margin-top: 10px;
+  text-align: center;
+}
+
+/* ══════════════════════════════════════════════════════════
+   TEMPLATE 9 — Teal Geometric
+══════════════════════════════════════════════════════════ */
+.t9Base {
+  background: #fff;
+  color: #1a1a1a;
+  font-family: 'Inter', sans-serif;
+  font-size: 7.5px;
+  min-height: 480px;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  position: relative;
+  overflow: hidden;
+}
+.t9Header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 14px 16px 6px;
+}
+.t9LogoRow {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.t9LogoIcon {
+  font-size: 12px;
+  color: #333;
+}
+.t9CompanyName {
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+}
+.t9CompanySub {
+  font-size: 6px;
+  color: #888;
+  letter-spacing: 0.06em;
+  margin-top: 1px;
+}
+.t9CompanyAddr {
+  font-size: 6.5px;
+  color: #555;
+  line-height: 1.5;
+  margin-top: 3px;
+}
+.t9InvoiceTitle {
+  font-size: 28px;
+  font-weight: 300;
+  color: #00b4c8;
+  letter-spacing: 0.1em;
+  align-self: center;
+}
+.t9NumBar {
+  background: #1a1a2e;
+  color: #fff;
+  display: flex;
+  gap: 12px;
+  padding: 4px 16px;
+  font-size: 7px;
+  font-weight: 600;
+}
+.t9BillShip {
+  display: flex;
+  gap: 20px;
+  padding: 8px 16px;
+  font-size: 7px;
+  line-height: 1.5;
+}
+.t9BillShip > div {
+  flex: 1;
+}
+.t9BillLabel {
+  font-weight: 700;
+  font-size: 7.5px;
+}
+.t9TableHead {
+  display: flex;
+  background: #00b4c8;
+  color: #fff;
+  padding: 5px 16px;
+  font-size: 7px;
+  font-weight: 700;
+  gap: 4px;
+}
+.t9TableHead span, .t9TableRow span {
+  flex: 1;
+  text-align: right;
+}
+.t9TableHead span:nth-child(2), .t9TableRow span:nth-child(2) {
+  flex: 3;
+  text-align: left;
+}
+.t9TableHead span:first-child, .t9TableRow span:first-child {
+  flex: 0.5;
+  text-align: left;
+}
+.t9TableRow {
+  display: flex;
+  padding: 5px 16px;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 7.5px;
+  gap: 4px;
+}
+.t9SubArea {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  padding: 4px 16px 0;
+  font-size: 7.5px;
+}
+.t9SubRow {
+  display: flex;
+  gap: 20px;
+  justify-content: flex-end;
+  padding: 2px 0;
+}
+.t9TotalBar {
+  display: flex;
+  justify-content: space-between;
+  background: #1a1a2e;
+  color: #fff;
+  padding: 6px 16px;
+  font-weight: 900;
+  font-size: 9px;
+  margin-top: 4px;
+}
+.t9Footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding: 8px 16px;
+  font-size: 7px;
+  margin-top: auto;
+}
+.t9ThankYou {
+  font-weight: 700;
+  font-size: 7.5px;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+.t9PayNote {
+  color: #666;
+  font-size: 6.5px;
+}
+.t9SignArea {
+  text-align: center;
+}
+.t9SignLine {
+  width: 60px;
+  height: 1px;
+  background: #aaa;
+  margin: 0 auto 2px;
+}
+.t9SignLabel {
+  font-size: 6.5px;
+  color: #666;
+}
+.t9CornerDeco {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 50px;
+  height: 50px;
+  background: linear-gradient(135deg, transparent 50%, #00b4c8 50%);
+  opacity: 0.4;
+}
+
+/* ══════════════════════════════════════════════════════════
+   TEMPLATE 10 — Pink Diagonal
+══════════════════════════════════════════════════════════ */
+.t10Base {
+  background: #fff;
+  color: #1a1a1a;
+  font-family: 'Inter', sans-serif;
+  font-size: 7.5px;
+  min-height: 480px;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  position: relative;
+  overflow: hidden;
+}
+.t10BannerWrap {
+  display: flex;
+  align-items: stretch;
+  min-height: 60px;
+}
+.t10PinkBanner {
+  background: #ff5c8a;
+  clip-path: polygon(0 0, 85% 0, 60% 100%, 0 100%);
+  min-width: 120px;
+  display: flex;
+  align-items: center;
+  padding: 10px 30px 10px 16px;
+}
+.t10BannerTitle {
+  color: #fff;
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+}
+.t10BrandArea {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  padding-right: 16px;
+}
+.t10BrandIcon {
+  font-size: 14px;
+  color: #333;
+}
+.t10BrandName {
+  font-size: 10px;
+  font-weight: 700;
+}
+.t10BrandSub {
+  font-size: 6px;
+  color: #999;
+  letter-spacing: 0.06em;
+}
+.t10MetaRow {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 16px 6px;
+  font-size: 7px;
+  line-height: 1.5;
+}
+.t10MetaLabel {
+  font-weight: 700;
+  font-size: 8px;
+  margin-bottom: 1px;
+}
+.t10MetaName {
+  font-weight: 700;
+}
+.t10MetaAddr {
+  color: #555;
+}
+.t10MetaKey {
+  color: #888;
+}
+.t10TableHead {
+  display: flex;
+  border: 1.5px solid #1a1a1a;
+  padding: 4px 16px;
+  font-size: 7px;
+  font-weight: 700;
+  gap: 4px;
+  margin: 0 16px;
+}
+.t10TableHead span, .t10TableRow span {
+  flex: 1;
+  text-align: right;
+}
+.t10TableHead span:nth-child(2), .t10TableRow span:nth-child(2) {
+  flex: 3;
+  text-align: left;
+}
+.t10TableHead span:first-child, .t10TableRow span:first-child {
+  flex: 0.5;
+  text-align: left;
+}
+.t10TableRow {
+  display: flex;
+  padding: 4px 16px;
+  border-bottom: 1px solid #f0f0f0;
+  margin: 0 16px;
+  font-size: 7.5px;
+  gap: 4px;
+}
+.t10Divider {
+  height: 1px;
+  background: #eee;
+  margin: 6px 16px;
+}
+.t10Bottom {
+  display: flex;
+  gap: 12px;
+  padding: 4px 16px 50px;
+  font-size: 7px;
+  line-height: 1.6;
+  flex: 1;
+}
+.t10ThankYou {
+  font-weight: 700;
+  font-size: 7.5px;
+  margin-bottom: 4px;
+}
+.t10PayLabel {
+  font-weight: 700;
+  margin-top: 4px;
+  margin-bottom: 1px;
+}
+.t10PayInfo {
+  color: #444;
+  line-height: 1.6;
+}
+.t10TCLabel {
+  font-weight: 700;
+  margin-top: 6px;
+  margin-bottom: 1px;
+}
+.t10TCText {
+  color: #666;
+}
+.t10TotalsWrap {
+  min-width: 80px;
+  font-size: 7.5px;
+}
+.t10TotRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 2px 0;
+}
+.t10TotDivider {
+  height: 1px;
+  background: #1a1a1a;
+  margin: 3px 0;
+}
+.t10TotTotal {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 900;
+  font-size: 9px;
+  gap: 8px;
+}
+.t10SignLine {
+  height: 1px;
+  background: #aaa;
+  margin-top: 14px;
+  margin-bottom: 2px;
+}
+.t10SignLabel {
+  font-size: 6.5px;
+  color: #666;
+  text-align: center;
+}
+.t10CornerPink {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 60px;
+  height: 50px;
+  background: #ff5c8a;
+  clip-path: polygon(100% 0, 100% 100%, 0 100%);
+}
+
+/* ══════════════════════════════════════════════════════════
+   TEMPLATE 11 — Blue Clean Corporate
+══════════════════════════════════════════════════════════ */
+.t11Base {
+  background: #fff;
+  color: #1a1a1a;
+  font-family: 'Inter', sans-serif;
+  font-size: 7.5px;
+  min-height: 500px;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+}
+.t11TopBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+.t11LogoArea {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.t11LogoHex {
+  width: 24px;
+  height: 24px;
+  background: #1a1a1a;
+  clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 5px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.t11CompanyName {
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+}
+.t11CompanySub {
+  font-size: 6px;
+  color: #888;
+}
+.t11CompanyInfo {
+  font-size: 6.5px;
+  line-height: 1.6;
+  color: #444;
+}
+.t11InvoiceTitle {
+  font-size: 22px;
+  font-weight: 400;
+  padding: 8px 16px 4px;
+  color: #1a1a1a;
+}
+.t11BlueBar {
+  background: #dbeeff;
+  display: flex;
+  justify-content: space-between;
+  padding: 5px 16px;
+  font-size: 7px;
+  font-weight: 600;
+  color: #1a5a9a;
+}
+.t11IssuedRow {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 16px 4px;
+  font-size: 7px;
+  line-height: 1.6;
+}
+.t11IssuedLabel {
+  font-size: 7.5px;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+.t11AmountLabel {
+  font-size: 7px;
+  color: #5da0d0;
+  font-weight: 700;
+  text-align: right;
+}
+.t11AmountVal {
+  font-size: 20px;
+  font-weight: 300;
+  color: #5da0d0;
+  text-align: right;
+}
+.t11ProjectName {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 16px 2px;
+}
+.t11TableHead {
+  display: flex;
+  background: #1a1a1a;
+  color: #fff;
+  padding: 4px 16px;
+  font-size: 7px;
+  font-weight: 700;
+  gap: 4px;
+}
+.t11TableHead span, .t11TableRow span {
+  flex: 1;
+  text-align: right;
+}
+.t11TableHead span:first-child, .t11TableRow span:first-child {
+  flex: 3;
+  text-align: left;
+}
+.t11TableRow {
+  display: flex;
+  padding: 4px 16px;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 7px;
+  gap: 4px;
+  color: #555;
+}
+.t11TotArea {
+  margin-left: auto;
+  width: 45%;
+  padding: 4px 16px 0 0;
+  border-top: 1px solid #eee;
+  margin-top: 2px;
+}
+.t11TotRow {
+  display: flex;
+  justify-content: space-between;
+  padding: 2px 0;
+  font-size: 7.5px;
+  color: #555;
+}
+.t11TotBold {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 900;
+  font-size: 8px;
+  border-top: 1px solid #aaa;
+  padding-top: 3px;
+  margin-top: 2px;
+}
+.t11PayTitle {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 8px 16px 4px;
+}
+.t11PayBoxRow {
+  display: flex;
+  gap: 6px;
+  padding: 0 16px 8px;
+}
+.t11PayBox {
+  flex: 1;
+  background: #dbeeff;
+  padding: 6px 8px;
+  font-size: 6.5px;
+  line-height: 1.5;
+}
+.t11PayBoxTitle {
+  font-weight: 700;
+  font-size: 7.5px;
+  margin-bottom: 3px;
+}
+.t11ThankYou {
+  text-align: right;
+  font-size: 10px;
+  font-weight: 700;
+  color: #5da0d0;
+  padding: 4px 16px 10px;
+  margin-top: auto;
+  letter-spacing: 0.05em;
+}
+
+/* ══════════════════════════════════════════════════════════
+   TEMPLATE 12 — Black Geometric Bold
+══════════════════════════════════════════════════════════ */
+.t12Base {
+  background: #fff;
+  color: #1a1a1a;
+  font-family: 'Inter', sans-serif;
+  font-size: 7.5px;
+  min-height: 500px;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  position: relative;
+  overflow: hidden;
+}
+.t12Header {
+  background: #1a1a1a;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+  position: relative;
+}
+/* Angular black shape via clip-path on the left block */
+.t12HeaderLeft {
+  position: relative;
+}
+.t12LogoBox {
+  background: #333;
+  color: #fff;
+  font-size: 9px;
+  font-weight: 900;
+  padding: 6px 14px;
+  letter-spacing: 0.08em;
+  clip-path: polygon(0 0, 100% 0, 88% 100%, 0 100%);
+  padding-right: 20px;
+}
+.t12HeaderRight {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+.t12HeaderContact {
+  font-size: 6.5px;
+  color: #ccc;
+}
+/* Top-right decorative lines */
+.t12Header::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 20px;
+  height: 100%;
+  border-left: 2px solid #555;
+  border-right: 2px solid #555;
+  opacity: 0.4;
+}
+.t12TitleRow {
+  display: flex;
+  justify-content: center;
+  padding: 10px 16px 4px;
+}
+.t12InvoiceTitle {
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: 0.15em;
+  border-bottom: 2px solid #1a1a1a;
+  padding-bottom: 2px;
+}
+.t12ClientRow {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 16px;
+  font-size: 7px;
+  line-height: 1.6;
+}
+.t12ClientName {
+  font-size: 9px;
+  font-weight: 700;
+  margin-bottom: 1px;
+}
+.t12ClientInfo {
+  color: #444;
+}
+.t12BalLabel {
+  font-size: 7px;
+  color: #666;
+  font-weight: 600;
+}
+.t12BalAmt {
+  font-size: 16px;
+  font-weight: 900;
+}
+.t12BalDate {
+  font-size: 6.5px;
+  color: #666;
+}
+.t12TableHead {
+  display: flex;
+  background: #1a1a1a;
+  color: #fff;
+  padding: 5px 16px;
+  font-size: 7px;
+  font-weight: 700;
+  gap: 4px;
+}
+.t12TableHead span, .t12TableRow span {
+  flex: 1;
+  text-align: right;
+}
+.t12TableHead span:first-child, .t12TableRow span:first-child {
+  flex: 3;
+  text-align: left;
+}
+.t12TableRow {
+  display: flex;
+  padding: 5px 16px;
+  border-bottom: 1px solid #eee;
+  font-size: 7px;
+  gap: 4px;
+  align-items: flex-start;
+}
+.t12ItemName {
+  font-weight: 700;
+  font-size: 7.5px;
+}
+.t12ItemDesc {
+  color: #888;
+  font-size: 6px;
+  margin-top: 1px;
+}
+.t12DueBar {
+  display: flex;
+  justify-content: space-between;
+  background: #1a1a1a;
+  color: #fff;
+  padding: 5px 16px;
+  font-size: 7.5px;
+  font-weight: 700;
+  margin-top: 2px;
+}
+.t12FootRow {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 16px 40px;
+  font-size: 7px;
+  line-height: 1.5;
+  margin-top: auto;
+  gap: 12px;
+}
+.t12FootRow > div:first-child {
+  flex: 1;
+}
+.t12FootLabel {
+  font-weight: 700;
+  font-size: 7.5px;
+  margin-bottom: 2px;
+}
+.t12FootInfo {
+  color: #444;
+  margin-bottom: 1px;
+}
+.t12SignScribble {
+  font-size: 9px;
+  font-style: italic;
+  color: #333;
+  margin-bottom: 2px;
+}
+.t12SignLine {
+  width: 70px;
+  height: 1px;
+  background: #aaa;
+  margin: 0 auto 2px;
+}
+.t12SignLabel {
+  font-size: 6.5px;
+  color: #666;
+  text-align: center;
+}
+/* Black corner decorations */
+.t12BottomDeco {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 70px;
+  height: 45px;
+  background: #1a1a1a;
+  clip-path: polygon(100% 0, 100% 100%, 0 100%);
+}
+.t12Base::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  right: 40px;
+  width: 40px;
+  height: 30px;
+  background: #555;
+  clip-path: polygon(100% 0, 100% 100%, 0 100%);
+  opacity: 0.4;
+}
