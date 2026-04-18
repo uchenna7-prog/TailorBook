@@ -1,5 +1,5 @@
 /* src/pages/Portfolio/Portfolio.module.css */
-/* Editorial luxury — strict black & white, Georgia serif display, cinematic sections */
+/* Editorial luxury — strict black & white UI, full-colour portfolio images */
 
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500;600&display=swap');
 
@@ -160,6 +160,7 @@
   height: 100%;
   object-fit: cover;
   object-position: center top;
+  /* Hero background stays desaturated for editorial feel */
   filter: grayscale(100%) contrast(1.1);
 }
 
@@ -199,11 +200,11 @@
 }
 
 .heroEyebrow {
-  font-family: 'DM Sans', sans-serif;
-  font-size: 0.62rem;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 0.72rem;
   font-weight: 400;
+  font-style: italic;
   letter-spacing: 4px;
-  text-transform: uppercase;
   color: #888;
   margin-bottom: 16px;
 }
@@ -362,12 +363,24 @@
 
 .aboutLeft {}
 
+/* Brand name as the primary heading — large and personal */
 .aboutHeading {
   font-family: 'Cormorant Garamond', Georgia, serif;
   font-size: clamp(2.4rem, 9vw, 4rem);
   font-weight: 300;
   line-height: 1.05;
   color: #fff;
+  margin: 0 0 12px;
+}
+
+/* Tagline shown under the name on the left side */
+.aboutHeadingTagline {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-style: italic;
+  font-size: 1rem;
+  font-weight: 300;
+  color: #555;
+  line-height: 1.5;
   margin: 0;
 }
 
@@ -388,6 +401,7 @@
   height: 72px;
   object-fit: contain;
   border-radius: 4px;
+  /* Logo stays greyscale to maintain the editorial black & white UI */
   filter: grayscale(100%);
 }
 
@@ -420,8 +434,48 @@
   font-style: italic;
   font-size: 0.95rem;
   color: #666;
-  margin-bottom: 24px;
+  margin-bottom: 16px;
   line-height: 1.5;
+}
+
+/* Bio paragraph */
+.aboutBio {
+  font-size: 0.85rem;
+  color: #777;
+  line-height: 1.7;
+  margin: 0 0 20px;
+  font-family: 'DM Sans', sans-serif;
+}
+
+/* Specialties pills inside the about card */
+.aboutSpecialties {
+  margin-bottom: 20px;
+}
+
+.aboutSpecialtiesLabel {
+  font-size: 0.58rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #444;
+  margin-bottom: 10px;
+}
+
+.aboutSpecialtiesList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.aboutSpecialtyPill {
+  background: #161616;
+  border: 1px solid #252525;
+  color: #888;
+  font-size: 0.62rem;
+  font-weight: 500;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 5px 12px;
+  font-family: 'DM Sans', sans-serif;
 }
 
 .aboutMeta {
@@ -584,17 +638,20 @@
   aspect-ratio: 4/3;
 }
 
+/* ── KEY CHANGE: Photos shown in full colour ── */
 .photoImg {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
-  filter: grayscale(100%);
-  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), filter 0.4s ease;
+  /* No grayscale — show the actual colours of the garments */
+  filter: none;
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .photoCard:hover .photoImg {
   transform: scale(1.04);
-  filter: grayscale(60%);
+  /* Stays in colour on hover */
+  filter: none;
 }
 
 .photoOverlay {
@@ -751,6 +808,7 @@
   height: 100%;
   object-fit: cover;
   object-position: center;
+  /* Book bg stays desaturated — dark editorial feel */
   filter: grayscale(100%) contrast(1.05);
 }
 
@@ -1108,11 +1166,13 @@
   z-index: 1;
 }
 
+/* ── KEY CHANGE: Lightbox shows full colour ── */
 .lbImg {
   max-width: 100%;
   max-height: 90dvh;
   object-fit: contain;
-  filter: grayscale(100%);
+  /* No grayscale — show garments in their true colours */
+  filter: none;
 }
 
 .lbNav {
