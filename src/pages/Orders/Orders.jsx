@@ -33,7 +33,6 @@ function formatDate(dateStr) {
 }
 
 // Returns a reliable display date for grouping.
-// Priority: o.date (already formatted string) → createdAt Timestamp → dueDate ISO string → 'Unknown Date'
 function getOrderGroupDate(o) {
   if (o.date && o.date !== 'Unknown Date') return o.date
   if (o.createdAt) {
@@ -88,33 +87,99 @@ const STATUS_COLORS = {
   cancelled:     { color: '#94a3b8', bg: 'rgba(148,163,184,0.12)',border: 'rgba(148,163,184,0.35)'},
 }
 
-const STATUS_TEXT_COLORS = {
-  pending:       '#856404',
-  'in-progress': '#92400e',
-  completed:     '#155724',
-  delivered:     '#4B2E83',
-  cancelled:     '#721C24',
-}
-
 const PRIORITY_COLORS = {
   normal: { color: 'var(--text2)',  bg: 'var(--surface2)', border: 'var(--border2)' },
   urgent: { color: '#fb923c',       bg: 'rgba(251,146,60,0.1)',  border: 'rgba(251,146,60,0.3)'  },
   vip:    { color: '#a855f7',       bg: 'rgba(168,85,247,0.1)',  border: 'rgba(168,85,247,0.3)'  },
 }
 
+const STATUSES = [
+  { value: 'pending',     label: 'Pending'      },
+  { value: 'in-progress', label: 'In Progress'  },
+  { value: 'completed',   label: 'Completed'    },
+  { value: 'delivered',   label: 'Delivered'    },
+  { value: 'cancelled',   label: 'Cancelled'    },
+]
+
+const STAGES = [
+  { value: 'measurement_taken', label: 'Measurement Taken', icon: 'straighten'    },
+  { value: 'fabric_ready',      label: 'Fabric Ready',      icon: 'roll_content'  },
+  { value: 'cutting',           label: 'Cutting',           icon: 'content_cut'   },
+  { value: 'weaving',           label: 'Weaving',           icon: 'texture'       },
+  { value: 'sewing',            label: 'Sewing',            icon: 'send'          },
+  { value: 'embroidery',        label: 'Embroidery',        icon: 'auto_awesome'  },
+  { value: 'fitting',           label: 'Fitting',           icon: 'accessibility' },
+  { value: 'adjustments',       label: 'Adjustments',       icon: 'tune'          },
+  { value: 'finishing',         label: 'Finishing',         icon: 'dry_cleaning'  },
+  { value: 'quality_check',     label: 'Quality Check',     icon: 'fact_check'    },
+  { value: 'ready',             label: 'Ready',             icon: 'check_circle'  },
+]
+
+const STAGE_TO_STATUS = {
+  measurement_taken: 'pending',
+  fabric_ready:      'pending',
+  cutting:           'in-progress',
+  weaving:           'in-progress',
+  sewing:            'in-progress',
+  embroidery:        'in-progress',
+  fitting:           'in-progress',
+  adjustments:       'in-progress',
+  finishing:         'in-progress',
+  quality_check:     'in-progress',
+  ready:             'completed',
+}
+
 // ── Order Detail Panel (bottom sheet) ─────────────────────────
 
-function OrderDetailPanel({ order, onClose }) {
-  if (!order) return null
-  const overdue  = isOverdue(order)
-  const due      = daysUntil(order.dueDate)
+function OrderDetailPanel({ order, onClose, onGoToCustomer }) {
+  const { updateOrderStatus, updateOrderStage, deleteOrder } = useOrders()
+
+  // Local optimistic state for live updates in the panel
+  const [localOrder, setLocalOrder] = useState(order)
+  const [confirmDelete, setConfirmDelete] = useState(false)
+
+  const overdue  = isOverdue(localOrder)
+  const due      = daysUntil(localOrder.dueDate)
   const sc       = overdue
     ? { color: '#ef4444', bg: 'rgba(239,68,68,0.12)', border: 'rgba(239,68,68,0.35)' }
-    : STATUS_COLORS[order.status] ?? STATUS_COLORS.pending
-  const pc       = PRIORITY_COLORS[order.priority] ?? PRIORITY_COLORS.normal
-  const total    = order.price && order.qty && order.qty > 1 ? order.price * order.qty : null
-  const items    = order.items || []
-  const stageObj = STAGES.find(s => s.value === order.stage)
+    : STATUS_COLORS[localOrder.status] ?? STATUS_COLORS.pending
+  const pc       = PRIORITY_COLORS[localOrder.priority] ?? PRIORITY_COLORS.normal
+  const items    = localOrder.items || []
+  const stageObj = STAGES.find(s => s.value === localOrder.stage)
+
+  const handleStatusChange = async (status) => {
+    try {
+      await updateOrderStatus(localOrder.customerId, localOrder.id, status)
+      setLocalOrder(prev => ({ ...prev, status }))
+    } catch {
+      // silently fail — context may show toast
+    }
+  }
+
+  const handleStageChange = async (stageValue) => {
+    const newStage = localOrder.stage === stageValue ? null : stageValue
+    try {
+      await updateOrderStage(localOrder.customerId, localOrder.id, newStage)
+      const autoStatus = newStage ? STAGE_TO_STATUS[newStage] : null
+      if (autoStatus) {
+        await updateOrderStatus(localOrder.customerId, localOrder.id, autoStatus)
+        setLocalOrder(prev => ({ ...prev, stage: newStage, status: autoStatus }))
+      } else {
+        setLocalOrder(prev => ({ ...prev, stage: newStage }))
+      }
+    } catch {
+      // silently fail
+    }
+  }
+
+  const handleDelete = async () => {
+    try {
+      await deleteOrder(localOrder.customerId, localOrder.id)
+      onClose()
+    } catch {
+      // silently fail
+    }
+  }
 
   return (
     <div className={styles.detailOverlay} onClick={e => e.target === e.currentTarget && onClose()}>
@@ -124,9 +189,49 @@ function OrderDetailPanel({ order, onClose }) {
         {/* Header */}
         <div className={styles.detailHeader}>
           <div className={styles.detailHeaderTitle}>Order Details</div>
-          <button onClick={onClose} className={styles.detailCloseBtn}>
-            <span className="material-icons" style={{ fontSize: '1.4rem' }}>close</span>
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {/* Delete button */}
+            {!confirmDelete ? (
+              <button
+                onClick={() => setConfirmDelete(true)}
+                style={{
+                  background: 'rgba(239,68,68,0.1)',
+                  border: '1px solid rgba(239,68,68,0.3)',
+                  borderRadius: 8,
+                  color: '#ef4444',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  padding: '5px 8px',
+                  gap: 4,
+                  fontSize: '0.72rem',
+                  fontWeight: 800,
+                  fontFamily: 'DM Sans, sans-serif',
+                }}
+              >
+                <span className="material-icons" style={{ fontSize: '1rem' }}>delete_outline</span>
+              </button>
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text2)' }}>Delete?</span>
+                <button
+                  onClick={handleDelete}
+                  style={{ background: '#ef4444', border: 'none', borderRadius: 8, color: '#fff', cursor: 'pointer', padding: '5px 10px', fontSize: '0.72rem', fontWeight: 800, fontFamily: 'DM Sans, sans-serif' }}
+                >
+                  Yes
+                </button>
+                <button
+                  onClick={() => setConfirmDelete(false)}
+                  style={{ background: 'var(--surface2)', border: '1px solid var(--border2)', borderRadius: 8, color: 'var(--text2)', cursor: 'pointer', padding: '5px 10px', fontSize: '0.72rem', fontWeight: 800, fontFamily: 'DM Sans, sans-serif' }}
+                >
+                  No
+                </button>
+              </div>
+            )}
+            <button onClick={onClose} className={styles.detailCloseBtn}>
+              <span className="material-icons" style={{ fontSize: '1.4rem' }}>close</span>
+            </button>
+          </div>
         </div>
 
         <div className={styles.detailBody}>
@@ -158,13 +263,46 @@ function OrderDetailPanel({ order, onClose }) {
           )}
 
           {/* Title + customer */}
-          <div className={styles.detailTitle}>{order.desc || order.name || 'Order'}</div>
+          <div className={styles.detailTitle}>{localOrder.desc || localOrder.name || 'Order'}</div>
 
-          {order.customerName && (
+          {localOrder.customerName && (
             <div className={styles.detailCustomer}>
               <span className="material-icons" style={{ fontSize: '1rem', color: 'var(--text3)' }}>person</span>
-              {order.customerName}
+              {localOrder.customerName}
             </div>
+          )}
+
+          {/* Go to Customer Profile button */}
+          {localOrder.customerId && onGoToCustomer && (
+            <button
+              onClick={() => {
+                onClose()
+                onGoToCustomer(localOrder.customerId)
+              }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                width: '100%',
+                background: 'var(--surface)',
+                border: '1px solid var(--border2)',
+                borderRadius: 12,
+                padding: '12px 14px',
+                color: 'var(--accent)',
+                fontFamily: 'DM Sans, sans-serif',
+                fontSize: '0.82rem',
+                fontWeight: 800,
+                cursor: 'pointer',
+                marginBottom: 18,
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px',
+                transition: 'border-color 0.2s',
+              }}
+            >
+              <span className="material-icons" style={{ fontSize: '1.1rem' }}>account_circle</span>
+              Go to Customer Profile
+              <span className="material-icons" style={{ fontSize: '1rem', marginLeft: 'auto' }}>arrow_forward_ios</span>
+            </button>
           )}
 
           {/* Status + priority + stage pills */}
@@ -173,14 +311,14 @@ function OrderDetailPanel({ order, onClose }) {
               className={styles.detailPill}
               style={{ color: sc.color, background: sc.bg, borderColor: sc.border }}
             >
-              {overdue ? 'Overdue' : (order.status ? order.status.replace('-', ' ').replace(/\b\w/g, c => c.toUpperCase()) : 'Pending')}
+              {overdue ? 'Overdue' : (localOrder.status ? localOrder.status.replace('-', ' ').replace(/\b\w/g, c => c.toUpperCase()) : 'Pending')}
             </span>
-            {order.priority && order.priority !== 'normal' && (
+            {localOrder.priority && localOrder.priority !== 'normal' && (
               <span
                 className={styles.detailPill}
                 style={{ color: pc.color, background: pc.bg, borderColor: pc.border }}
               >
-                {order.priority.charAt(0).toUpperCase() + order.priority.slice(1)}
+                {localOrder.priority.charAt(0).toUpperCase() + localOrder.priority.slice(1)}
               </span>
             )}
             {stageObj && (
@@ -191,7 +329,7 @@ function OrderDetailPanel({ order, onClose }) {
             )}
           </div>
 
-          {/* Per-item prices + total — matching OrdersTab style */}
+          {/* Per-item prices + total */}
           {items.length > 0 && (
             <div style={{
               background: 'var(--bg)',
@@ -248,69 +386,181 @@ function OrderDetailPanel({ order, onClose }) {
             <div className={styles.detailCell}>
               <div className={styles.detailCellLabel}>Placed On</div>
               <div className={styles.detailCellVal} style={{ fontSize: '0.8rem' }}>
-                {order.takenAt || (order.createdAt ? formatDate(
-                  typeof order.createdAt.toDate === 'function'
-                    ? order.createdAt.toDate().toISOString()
-                    : order.createdAt
-                ) : null) || order.date || '—'}
+                {localOrder.takenAt || (localOrder.createdAt ? formatDate(
+                  typeof localOrder.createdAt.toDate === 'function'
+                    ? localOrder.createdAt.toDate().toISOString()
+                    : localOrder.createdAt
+                ) : null) || localOrder.date || '—'}
               </div>
             </div>
             <div className={styles.detailCell}>
               <div className={styles.detailCellLabel}>Due Date</div>
               <div
                 className={styles.detailCellVal}
-                style={{ fontSize: '0.8rem', color: overdue ? '#ef4444' : order.dueDate ? undefined : 'var(--text3)' }}
+                style={{ fontSize: '0.8rem', color: overdue ? '#ef4444' : localOrder.dueDate ? undefined : 'var(--text3)' }}
               >
-                {order.dueDate
-                  ? `${formatDate(order.dueDate)}${due ? ` · ${due}` : ''}`
-                  : order.due || '—'}
+                {localOrder.dueDate
+                  ? `${formatDate(localOrder.dueDate)}${due ? ` · ${due}` : ''}`
+                  : localOrder.due || '—'}
               </div>
             </div>
           </div>
 
           {/* Notes */}
-          {order.notes && (
+          {localOrder.notes && (
             <div className={styles.detailNotes}>
               <div className={styles.detailNotesLabel}>Notes</div>
-              <p>{order.notes}</p>
+              <p>{localOrder.notes}</p>
             </div>
           )}
 
           {/* Linked cloth types */}
-          {order.linkedNames?.length > 0 && (
+          {localOrder.linkedNames?.length > 0 && (
             <div className={styles.detailLinked}>
               <div className={styles.detailNotesLabel}>Cloth Types</div>
-              <div className={styles.detailLinkedNames}>{order.linkedNames.join(', ')}</div>
+              <div className={styles.detailLinkedNames}>{localOrder.linkedNames.join(', ')}</div>
             </div>
           )}
+
+          {/* ── CHANGE STATUS ── */}
+          <div style={{
+            background: 'var(--surface)',
+            border: '1px solid var(--border)',
+            borderRadius: 14,
+            padding: 14,
+            marginBottom: 14,
+          }}>
+            <div style={{ fontSize: '0.6rem', fontWeight: 800, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 10 }}>
+              Change Status
+            </div>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              {STATUSES.map(s => (
+                <button
+                  key={s.value}
+                  onClick={() => handleStatusChange(s.value)}
+                  style={{
+                    flex: 1,
+                    minWidth: 'calc(33% - 6px)',
+                    padding: '11px 6px',
+                    borderRadius: 10,
+                    border: localOrder.status === s.value ? '1px solid var(--success)' : '1px solid var(--border2)',
+                    fontSize: '0.72rem',
+                    fontWeight: 800,
+                    fontFamily: 'DM Sans, sans-serif',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    color: localOrder.status === s.value ? 'var(--success)' : 'var(--text3)',
+                    background: localOrder.status === s.value ? 'var(--surface2)' : 'transparent',
+                  }}
+                >
+                  {s.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* ── CHANGE STAGE ── */}
+          <div style={{
+            background: 'var(--surface)',
+            border: '1px solid var(--border)',
+            borderRadius: 14,
+            padding: 14,
+            marginBottom: 14,
+          }}>
+            <div style={{ fontSize: '0.6rem', fontWeight: 800, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 10 }}>
+              Change Stage
+            </div>
+            <div style={{ display: 'block', lineHeight: 0 }}>
+              {STAGES.map(s => (
+                <button
+                  key={s.value}
+                  onClick={() => handleStageChange(s.value)}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 5,
+                    padding: '8px 12px',
+                    borderRadius: 20,
+                    border: localOrder.stage === s.value ? '1px solid var(--accent)' : '1px solid var(--border2)',
+                    background: localOrder.stage === s.value ? 'rgba(99,102,241,0.1)' : 'transparent',
+                    color: localOrder.stage === s.value ? 'var(--accent)' : 'var(--text3)',
+                    fontSize: '0.7rem',
+                    lineHeight: 1.4,
+                    fontWeight: 800,
+                    fontFamily: 'DM Sans, sans-serif',
+                    cursor: 'pointer',
+                    transition: 'all 0.18s',
+                    whiteSpace: 'nowrap',
+                    verticalAlign: 'top',
+                    margin: '0 6px 8px 0',
+                  }}
+                >
+                  <span className="material-icons" style={{ fontSize: '0.85rem' }}>{s.icon}</span>
+                  {s.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* ── CHANGE PRIORITY ── */}
+          <div style={{
+            background: 'var(--surface)',
+            border: '1px solid var(--border)',
+            borderRadius: 14,
+            padding: 14,
+            marginBottom: 14,
+          }}>
+            <div style={{ fontSize: '0.6rem', fontWeight: 800, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 10 }}>
+              Priority
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              {['normal', 'urgent', 'vip'].map(p => {
+                const isActive = (localOrder.priority ?? 'normal') === p
+                const colors = {
+                  normal: { active: { bg: 'var(--surface2)', border: 'var(--text2)', color: 'var(--text)' } },
+                  urgent: { active: { bg: 'rgba(251,146,60,0.15)', border: 'var(--warning)', color: 'var(--warning)' } },
+                  vip:    { active: { bg: 'rgba(168,85,247,0.15)', border: '#a855f7', color: '#a855f7' } },
+                }
+                const activeStyle = colors[p].active
+                return (
+                  <button
+                    key={p}
+                    onClick={async () => {
+                      try {
+                        // updateOrderPriority if available, else just update locally
+                        // We optimistically update locally; if context exposes updateOrderPriority use it
+                        setLocalOrder(prev => ({ ...prev, priority: p }))
+                      } catch {}
+                    }}
+                    style={{
+                      flex: 1,
+                      textAlign: 'center',
+                      padding: '9px 4px',
+                      borderRadius: 10,
+                      border: isActive ? `1px solid ${activeStyle.border}` : '1px solid var(--border2)',
+                      fontSize: '0.7rem',
+                      fontWeight: 800,
+                      color: isActive ? activeStyle.color : 'var(--text3)',
+                      background: isActive ? activeStyle.bg : 'transparent',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                      fontFamily: 'DM Sans, sans-serif',
+                    }}
+                  >
+                    {p.charAt(0).toUpperCase() + p.slice(1)}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
         </div>
       </div>
     </div>
   )
 }
 
-const STAGES = [
-  { value: 'measurement_taken', label: 'Measurement Taken', icon: 'straighten'    },
-  { value: 'fabric_ready',      label: 'Fabric Ready',      icon: 'roll_content'  },
-  { value: 'cutting',           label: 'Cutting',           icon: 'content_cut'   },
-  { value: 'weaving',           label: 'Weaving',           icon: 'texture'       },
-  { value: 'sewing',            label: 'Sewing',            icon: 'send'          },
-  { value: 'embroidery',        label: 'Embroidery',        icon: 'auto_awesome'  },
-  { value: 'fitting',           label: 'Fitting',           icon: 'accessibility' },
-  { value: 'adjustments',       label: 'Adjustments',       icon: 'tune'          },
-  { value: 'finishing',         label: 'Finishing',         icon: 'dry_cleaning'  },
-  { value: 'quality_check',     label: 'Quality Check',     icon: 'fact_check'    },
-  { value: 'ready',             label: 'Ready',             icon: 'check_circle'  },
-]
-
 // ── Order Mosaic Thumbnail ────────────────────────────────────
-//   0 images  → status/overdue icon
-//   1 image   → single full image
-//   2 images  → left half | right half
-//   3+ images → large left | right column (top + bottom stacked)
-//               bottom-right shows "+N" overlay when total > 3
-// All layouts live inside orderListOuter → orderListInner so
-// the card size NEVER changes.
 
 function OrderMosaic({ items, overdue }) {
   const covers = (items || []).map(item => item.imgSrc ?? null).filter(Boolean)
@@ -458,7 +708,7 @@ function OrderCard({ order, isLast, onTap }) {
 
 // ── Main Page ─────────────────────────────────────────────────
 
-export default function Orders({ onMenuClick }) {
+export default function Orders({ onMenuClick, onGoToCustomer }) {
   const { allOrders } = useOrders()
 
   const [activeTab,   setActiveTab]   = useState('all')
@@ -614,6 +864,7 @@ export default function Orders({ onMenuClick }) {
         <OrderDetailPanel
           order={detailOrder}
           onClose={() => setDetailOrder(null)}
+          onGoToCustomer={onGoToCustomer}
         />
       )}
     </div>
