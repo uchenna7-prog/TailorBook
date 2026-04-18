@@ -77,7 +77,7 @@ function BookingSheet({ isOpen, onClose, brandName, brandEmail, brandPhone }) {
               </div>
               <div className={styles.fieldGroup}>
                 <label className={styles.fieldLabel}>Garment Type</label>
-                <input className={styles.fieldInput} placeholder="e.g. Agbada, Senator, Gown…" value={garment} onChange={e => setGarment(e.target.value)} />
+                <input className={styles.fieldInput} placeholder="e.g. Suit, Dress, Agbada, Co-ord…" value={garment} onChange={e => setGarment(e.target.value)} />
               </div>
               <div className={styles.fieldGroup}>
                 <label className={styles.fieldLabel}>Additional Details</label>
@@ -117,6 +117,7 @@ function Lightbox({ photo, photos, onClose }) {
         <button className={styles.lbClose} onClick={onClose}>
           <span className="mi">close</span>
         </button>
+        {/* No grayscale — show the actual colours */}
         <img src={current.src || current.storageUrl} alt={current.caption} className={styles.lbImg} />
         {photos.length > 1 && (
           <>
@@ -220,6 +221,7 @@ export default function Portfolio() {
 
   const brandName       = brand.brandName    || 'The Tailor'
   const tagline         = brand.brandTagline || ''
+  const brandBio        = brand.brandBio     || ''
   const completedPhotos = photos.filter(p => p.category === 'completed_works')
   const filteredPhotos  = activeTab ? completedPhotos.filter(p => p.clothingType === activeTab) : completedPhotos
   const heroPhoto       = completedPhotos[0]
@@ -256,7 +258,8 @@ export default function Portfolio() {
           <div className={styles.heroBgFallback} />
         )}
         <div className={styles.heroContent}>
-          <p className={styles.heroEyebrow}>— Bespoke Tailoring —</p>
+          {/* Personal identity line — shows the brand name as the eyebrow identity marker */}
+          <p className={styles.heroEyebrow}>— {brandName} —</p>
           <h1 className={styles.heroName}>{brandName}</h1>
           {tagline && <p className={styles.heroTagline}>{tagline}</p>}
           <div className={styles.heroCtas}>
@@ -298,9 +301,13 @@ export default function Portfolio() {
         <div className={styles.aboutInner}>
           <div className={styles.aboutLeft}>
             <p className={styles.sectionEyebrow}>01 — About</p>
+            {/* Heading is now personalised to the brand */}
             <h2 className={styles.aboutHeading}>
-              Craft that<br />speaks for<br />itself.
+              {brandName}
             </h2>
+            {tagline && (
+              <p className={styles.aboutHeadingTagline}>"{tagline}"</p>
+            )}
           </div>
           <div className={styles.aboutRight}>
             <div className={styles.aboutCard}>
@@ -312,6 +319,24 @@ export default function Portfolio() {
               </div>
               <p className={styles.aboutName}>{brandName}</p>
               {tagline && <p className={styles.aboutTagline}>"{tagline}"</p>}
+
+              {/* Bio / description — shown if the tailor has filled it in */}
+              {brandBio && (
+                <p className={styles.aboutBio}>{brandBio}</p>
+              )}
+
+              {/* Specialties pill list in the about card */}
+              {dressTypes.length > 0 && (
+                <div className={styles.aboutSpecialties}>
+                  <p className={styles.aboutSpecialtiesLabel}>Specialises in</p>
+                  <div className={styles.aboutSpecialtiesList}>
+                    {dressTypes.map(t => (
+                      <span key={t.id} className={styles.aboutSpecialtyPill}>{t.label}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div className={styles.aboutMeta}>
                 {brand.brandAddress && (
                   <div className={styles.aboutMetaRow}>
@@ -407,6 +432,7 @@ export default function Portfolio() {
                 style={{ animationDelay: `${i * 0.05}s` }}
                 onClick={() => setLightbox(photo)}
               >
+                {/* Images shown in full colour — no grayscale filter */}
                 <img
                   src={photo.src || photo.storageUrl}
                   alt={photo.caption || 'Completed work'}
@@ -431,10 +457,10 @@ export default function Portfolio() {
           <h2 className={styles.processTitle}>From Idea<br />to Outfit</h2>
           <div className={styles.processSteps}>
             {[
-              { num: '01', icon: 'forum',        title: 'Consultation', desc: 'Share your vision, occasion, and preferences. We listen carefully.' },
-              { num: '02', icon: 'straighten',   title: 'Measurements', desc: 'Precise measurements taken for a flawless custom fit.' },
-              { num: '03', icon: 'content_cut',  title: 'Crafting',     desc: 'Every stitch placed with intention, skill, and care.' },
-              { num: '04', icon: 'local_shipping',title: 'Delivery',    desc: 'Your bespoke garment, delivered to perfection.' },
+              { num: '01', icon: 'forum',         title: 'Consultation', desc: 'Share your vision, occasion, and preferences. We listen carefully.' },
+              { num: '02', icon: 'straighten',    title: 'Measurements', desc: 'Precise measurements taken for a flawless custom fit.' },
+              { num: '03', icon: 'content_cut',   title: 'Crafting',     desc: 'Every stitch placed with intention, skill, and care.' },
+              { num: '04', icon: 'local_shipping', title: 'Delivery',    desc: 'Your bespoke garment, delivered to perfection.' },
             ].map(step => (
               <div key={step.num} className={styles.processStep}>
                 <div className={styles.processNumWrap}>
