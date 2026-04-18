@@ -4,9 +4,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useParams } from 'react-router-dom'
-import {
-  collection, query, orderBy, onSnapshot, doc
-} from 'firebase/firestore'
+import { collection, query, orderBy, onSnapshot, doc } from 'firebase/firestore'
 import { db } from '../../firebase'
 import { getBrandFromFirestore } from '../../services/brandService'
 import styles from './Portfolio.module.css'
@@ -15,9 +13,11 @@ function initials(name = '') {
   return name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
 }
 
+// ── Booking Sheet ─────────────────────────────────────────────
 function BookingSheet({ isOpen, onClose, brandName, brandEmail, brandPhone }) {
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
+  const [garment, setGarment] = useState('')
   const [message, setMessage] = useState('')
   const [sent, setSent] = useState(false)
   const [visible, setVisible] = useState(false)
@@ -31,46 +31,57 @@ function BookingSheet({ isOpen, onClose, brandName, brandEmail, brandPhone }) {
 
   const handleSubmit = () => {
     if (!name.trim() || !phone.trim()) return
-    const msg = `Hi ${brandName}, I'd like to book an order.%0AName: ${name}%0APhone: ${phone}%0AMessage: ${message}`
+    const msg = `Hello ${brandName},%0A%0AI'd like to place an order.%0A%0AName: ${name}%0APhone: ${phone}%0AGarment: ${garment}%0ADetails: ${message}`
     if (brandPhone) {
       const clean = brandPhone.replace(/\D/g, '')
       window.open(`https://wa.me/${clean}?text=${msg}`, '_blank', 'noopener,noreferrer')
     } else if (brandEmail) {
-      window.open(`mailto:${brandEmail}?subject=Order Booking&body=${decodeURIComponent(msg.replace(/%0A/g, '\n'))}`)
+      window.open(`mailto:${brandEmail}?subject=Order Enquiry&body=${decodeURIComponent(msg.replace(/%0A/g, '\n').replace(/%0A%0A/g, '\n\n'))}`)
     }
     setSent(true)
-    setTimeout(() => { setSent(false); onClose(); setName(''); setPhone(''); setMessage('') }, 2200)
+    setTimeout(() => { setSent(false); onClose(); setName(''); setPhone(''); setGarment(''); setMessage('') }, 2500)
   }
 
   return (
-    <div
-      className={`${styles.sheetOverlay} ${visible ? styles.sheetOverlayVisible : ''}`}
-      onClick={e => { if (e.target === e.currentTarget) onClose() }}
-    >
-      <div className={`${styles.bookingSheet} ${visible ? styles.bookingSheetVisible : ''}`}>
-        <div className={styles.sheetHandle} />
+    <div className={`${styles.bookingOverlay} ${visible ? styles.bookingOverlayVisible : ''}`}
+      onClick={e => { if (e.target === e.currentTarget) onClose() }}>
+      <div className={`${styles.bookingDrawer} ${visible ? styles.bookingDrawerVisible : ''}`}>
+        <div className={styles.drawerHandle} />
         {sent ? (
           <div className={styles.sentState}>
-            <div className={styles.sentIcon}>✓</div>
-            <p className={styles.sentTitle}>Request Sent!</p>
-            <p className={styles.sentSub}>We'll be in touch shortly</p>
+            <div className={styles.sentCheck}>✓</div>
+            <p className={styles.sentTitle}>Request Received</p>
+            <p className={styles.sentSub}>{brandName} will be in touch shortly.</p>
           </div>
         ) : (
           <>
-            <div className={styles.sheetHead}>
-              <p className={styles.sheetTitle}>Book an Order</p>
-              <button className={styles.sheetClose} onClick={onClose}>✕</button>
+            <div className={styles.drawerHead}>
+              <div>
+                <p className={styles.drawerLabel}>PLACE AN ORDER</p>
+                <p className={styles.drawerTitle}>Book {brandName}</p>
+              </div>
+              <button className={styles.drawerClose} onClick={onClose}>✕</button>
             </div>
-            <div className={styles.sheetBody}>
-              <label className={styles.fieldLabel}>Your Name *</label>
-              <input className={styles.fieldInput} placeholder="e.g. Amaka Johnson" value={name} onChange={e => setName(e.target.value)} />
-              <label className={styles.fieldLabel}>Phone Number *</label>
-              <input className={styles.fieldInput} placeholder="e.g. 0812 345 6789" value={phone} onChange={e => setPhone(e.target.value)} type="tel" />
-              <label className={styles.fieldLabel}>What do you need?</label>
-              <textarea className={styles.fieldTextarea} placeholder="Describe what you want sewn, your style preferences, occasion…" value={message} onChange={e => setMessage(e.target.value)} rows={4} />
+            <div className={styles.drawerBody}>
+              <div className={styles.fieldGroup}>
+                <label className={styles.fieldLabel}>Full Name *</label>
+                <input className={styles.fieldInput} placeholder="Your name" value={name} onChange={e => setName(e.target.value)} />
+              </div>
+              <div className={styles.fieldGroup}>
+                <label className={styles.fieldLabel}>Phone Number *</label>
+                <input className={styles.fieldInput} placeholder="e.g. 0812 345 6789" value={phone} onChange={e => setPhone(e.target.value)} type="tel" />
+              </div>
+              <div className={styles.fieldGroup}>
+                <label className={styles.fieldLabel}>Garment Type</label>
+                <input className={styles.fieldInput} placeholder="e.g. Agbada, Senator, Gown…" value={garment} onChange={e => setGarment(e.target.value)} />
+              </div>
+              <div className={styles.fieldGroup}>
+                <label className={styles.fieldLabel}>Additional Details</label>
+                <textarea className={styles.fieldTextarea} placeholder="Occasion, fabric preferences, measurements, deadline…" value={message} onChange={e => setMessage(e.target.value)} rows={4} />
+              </div>
             </div>
-            <div className={styles.sheetFooter}>
-              <button className={styles.bookBtn} onClick={handleSubmit} disabled={!name.trim() || !phone.trim()}>
+            <div className={styles.drawerFooter}>
+              <button className={styles.sendBtn} onClick={handleSubmit} disabled={!name.trim() || !phone.trim()}>
                 Send Booking Request
               </button>
             </div>
@@ -81,15 +92,16 @@ function BookingSheet({ isOpen, onClose, brandName, brandEmail, brandPhone }) {
   )
 }
 
+// ── Lightbox ──────────────────────────────────────────────────
 function Lightbox({ photo, photos, onClose }) {
   const [idx, setIdx] = useState(() => photos.findIndex(p => p.id === photo.id))
   const current = photos[idx] || photo
 
   useEffect(() => {
-    const handler = (e) => {
+    const handler = e => {
       if (e.key === 'Escape') onClose()
       if (e.key === 'ArrowRight') setIdx(i => Math.min(i + 1, photos.length - 1))
-      if (e.key === 'ArrowLeft') setIdx(i => Math.max(i - 1, 0))
+      if (e.key === 'ArrowLeft')  setIdx(i => Math.max(i - 1, 0))
     }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
@@ -102,16 +114,22 @@ function Lightbox({ photo, photos, onClose }) {
         <img src={current.src || current.storageUrl} alt={current.caption} className={styles.lbImg} />
         {photos.length > 1 && (
           <>
-            {idx > 0 && <button className={`${styles.lbNav} ${styles.lbNavLeft}`} onClick={() => setIdx(i => i - 1)}>‹</button>}
-            {idx < photos.length - 1 && <button className={`${styles.lbNav} ${styles.lbNavRight}`} onClick={() => setIdx(i => i + 1)}>›</button>}
+            {idx > 0 && <button className={`${styles.lbNav} ${styles.lbLeft}`} onClick={e => { e.stopPropagation(); setIdx(i => i - 1) }}>‹</button>}
+            {idx < photos.length - 1 && <button className={`${styles.lbNav} ${styles.lbRight}`} onClick={e => { e.stopPropagation(); setIdx(i => i + 1) }}>›</button>}
           </>
         )}
-        {current.caption && <p className={styles.lbCaption}>{current.caption}</p>}
+        {current.caption && (
+          <div className={styles.lbMeta}>
+            <p className={styles.lbCaption}>{current.caption}</p>
+            {current.clothingTypeLabel && <span className={styles.lbType}>{current.clothingTypeLabel}</span>}
+          </div>
+        )}
       </div>
     </div>
   )
 }
 
+// ── Main Component ────────────────────────────────────────────
 export default function Portfolio() {
   const { uid } = useParams()
   const [brand, setBrand] = useState(null)
@@ -122,20 +140,16 @@ export default function Portfolio() {
   const [activeTab, setActiveTab] = useState(null)
   const [lightbox, setLightbox] = useState(null)
   const [bookingOpen, setBookingOpen] = useState(false)
-  const [headerScrolled, setHeaderScrolled] = useState(false)
+  const [navScrolled, setNavScrolled] = useState(false)
+  const [navOpen, setNavOpen] = useState(false)
+  const worksRef = useRef(null)
+  const aboutRef = useRef(null)
+  const bookRef  = useRef(null)
 
   useEffect(() => {
     if (!uid) { setNotFound(true); setLoading(false); return }
     getBrandFromFirestore(uid)
-      .then(data => {
-        // Only show "not found" if the Firestore doc truly doesn't exist.
-        // If the doc exists but some fields are empty, still show the portfolio.
-        if (!data) {
-          setNotFound(true)
-        } else {
-          setBrand(data)
-        }
-      })
+      .then(data => { if (!data) setNotFound(true); else setBrand(data) })
       .catch(() => setNotFound(true))
       .finally(() => setLoading(false))
   }, [uid])
@@ -143,9 +157,7 @@ export default function Portfolio() {
   useEffect(() => {
     if (!uid) return
     const q = query(collection(db, 'users', uid, 'galleryPhotos'), orderBy('createdAt', 'desc'))
-    return onSnapshot(q, snap => {
-      setPhotos(snap.docs.map(d => ({ id: d.id, ...d.data() })))
-    }, () => {})
+    return onSnapshot(q, snap => setPhotos(snap.docs.map(d => ({ id: d.id, ...d.data() }))), () => {})
   }, [uid])
 
   useEffect(() => {
@@ -155,190 +167,327 @@ export default function Portfolio() {
       snap => {
         const types = snap.exists() ? (snap.data().types ?? []) : []
         setDressTypes(types)
-        setActiveTab(prev => prev || types[0]?.id || null)
-      },
-      () => {}
+      }, () => {}
     )
   }, [uid])
 
   useEffect(() => {
-    const handler = () => setHeaderScrolled(window.scrollY > 60)
+    const handler = () => setNavScrolled(window.scrollY > 60)
     window.addEventListener('scroll', handler, { passive: true })
     return () => window.removeEventListener('scroll', handler)
   }, [])
 
+  const scrollTo = (ref) => {
+    setNavOpen(false)
+    ref?.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
   if (loading) {
     return (
-      <div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0a0a0a' }}>
-        <div style={{ width: 32, height: 32, border: '3px solid #333', borderTopColor: '#D4AF37', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
-        <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
+      <div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#080808' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' }}>
+          <div style={{ width: 1, height: 60, background: 'linear-gradient(to bottom, transparent, #fff)', animation: 'grow 1.2s ease infinite' }} />
+          <style>{`@keyframes grow { 0%,100%{opacity:0.2;transform:scaleY(0.3)} 50%{opacity:1;transform:scaleY(1)} }`}</style>
+          <p style={{ color: '#555', fontSize: '0.65rem', letterSpacing: '3px', textTransform: 'uppercase', fontFamily: 'Georgia, serif' }}>Loading</p>
+        </div>
       </div>
     )
   }
 
   if (notFound) {
     return (
-      <div className={styles.notFound}>
-        <p className={styles.nfEmoji}>🧵</p>
-        <h2 className={styles.nfTitle}>Portfolio not found</h2>
-        <p className={styles.nfSub}>This tailor hasn't set up their portfolio yet.</p>
+      <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#080808', gap: '16px' }}>
+        <p style={{ fontSize: '2.5rem' }}>🧵</p>
+        <p style={{ color: '#fff', fontFamily: 'Georgia, serif', fontSize: '1.2rem', letterSpacing: '1px' }}>Portfolio not found</p>
+        <p style={{ color: '#555', fontSize: '0.8rem', letterSpacing: '1px' }}>This tailor hasn't set up their portfolio yet.</p>
       </div>
     )
   }
 
-  const accentColor = brand.brandColour || '#D4AF37'
-  const brandName = brand.brandName || 'Tailor'
+  const brandName       = brand.brandName    || 'The Tailor'
+  const tagline         = brand.brandTagline || ''
   const completedPhotos = photos.filter(p => p.category === 'completed_works')
-  const filteredPhotos = activeTab
-    ? completedPhotos.filter(p => p.clothingType === activeTab)
-    : completedPhotos
+  const filteredPhotos  = activeTab ? completedPhotos.filter(p => p.clothingType === activeTab) : completedPhotos
+  const heroPhoto       = completedPhotos[0]
 
   return (
-    <div className={styles.page} style={{ '--brand-accent': accentColor }}>
-      <nav className={`${styles.nav} ${headerScrolled ? styles.navScrolled : ''}`}>
+    <div className={styles.page}>
+
+      {/* ── NAV ── */}
+      <nav className={`${styles.nav} ${navScrolled ? styles.navScrolled : ''}`}>
         <div className={styles.navInner}>
-          {brand.brandLogo
-            ? <img src={brand.brandLogo} alt={brandName} className={styles.navLogo} />
-            : <span className={styles.navName}>{brandName}</span>
-          }
-          <button className={styles.navBookBtn} onClick={() => setBookingOpen(true)}>Book Now</button>
+          <span className={styles.navBrand}>{brandName}</span>
+          <div className={`${styles.navLinks} ${navOpen ? styles.navLinksOpen : ''}`}>
+            <button onClick={() => { setNavOpen(false); window.scrollTo({ top: 0, behavior: 'smooth' }) }} className={styles.navLink}>Home</button>
+            <button onClick={() => scrollTo(aboutRef)} className={styles.navLink}>About</button>
+            <button onClick={() => scrollTo(worksRef)} className={styles.navLink}>Works</button>
+            <button onClick={() => scrollTo(bookRef)}  className={styles.navLink}>Book</button>
+            <button onClick={() => { setNavOpen(false); setBookingOpen(true) }} className={styles.navCta}>Order Now</button>
+          </div>
+          <button className={styles.navHamburger} onClick={() => setNavOpen(o => !o)} aria-label="Menu">
+            <span className={navOpen ? styles.hamLineOpen1 : styles.hamLine} />
+            <span className={navOpen ? styles.hamLineOpen2 : styles.hamLine} />
+          </button>
         </div>
       </nav>
 
+      {/* ── HERO ── */}
       <section className={styles.hero}>
-        <div className={styles.heroBg} style={{ background: `linear-gradient(135deg, ${accentColor}22 0%, ${accentColor}05 100%)` }} />
+        {heroPhoto ? (
+          <div className={styles.heroBgWrap}>
+            <img src={heroPhoto.src || heroPhoto.storageUrl} alt="" className={styles.heroBgImg} />
+            <div className={styles.heroBgOverlay} />
+          </div>
+        ) : (
+          <div className={styles.heroBgFallback} />
+        )}
         <div className={styles.heroContent}>
-          {brand.brandLogo
-            ? <img src={brand.brandLogo} alt={brandName} className={styles.heroLogo} />
-            : <div className={styles.heroAvatar} style={{ background: accentColor + '22', color: accentColor }}>{initials(brandName)}</div>
-          }
+          <p className={styles.heroEyebrow}>— Bespoke Tailoring —</p>
           <h1 className={styles.heroName}>{brandName}</h1>
-          {brand.brandTagline && <p className={styles.heroTagline}>{brand.brandTagline}</p>}
-          <div className={styles.heroMeta}>
-            {brand.brandAddress && (
-              <span className={styles.metaChip}>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-                {brand.brandAddress}
+          {tagline && <p className={styles.heroTagline}>{tagline}</p>}
+          <div className={styles.heroCtas}>
+            <button className={styles.heroPrimary} onClick={() => setBookingOpen(true)}>
+              Place an Order
+            </button>
+            <button className={styles.heroSecondary} onClick={() => scrollTo(worksRef)}>
+              View Works ↓
+            </button>
+          </div>
+        </div>
+        <div className={styles.heroScroll}>
+          <span className={styles.heroScrollLine} />
+          <span className={styles.heroScrollText}>Scroll</span>
+        </div>
+      </section>
+
+      {/* ── STATS STRIP ── */}
+      <div className={styles.statsStrip}>
+        <div className={styles.statItem}>
+          <span className={styles.statNum}>{completedPhotos.length || '—'}</span>
+          <span className={styles.statLabel}>Completed Works</span>
+        </div>
+        <div className={styles.statDivider} />
+        <div className={styles.statItem}>
+          <span className={styles.statNum}>{dressTypes.length || '—'}</span>
+          <span className={styles.statLabel}>Specialties</span>
+        </div>
+        <div className={styles.statDivider} />
+        <div className={styles.statItem}>
+          <span className={styles.statNum}>✦</span>
+          <span className={styles.statLabel}>Bespoke Only</span>
+        </div>
+      </div>
+
+      {/* ── ABOUT ── */}
+      <section className={styles.about} ref={aboutRef}>
+        <div className={styles.aboutInner}>
+          <div className={styles.aboutLeft}>
+            <p className={styles.sectionEyebrow}>01 — About</p>
+            <h2 className={styles.aboutHeading}>
+              Craft that<br />speaks for<br />itself.
+            </h2>
+          </div>
+          <div className={styles.aboutRight}>
+            <div className={styles.aboutCard}>
+              <div className={styles.aboutLogo}>
+                {brand.brandLogo
+                  ? <img src={brand.brandLogo} alt={brandName} className={styles.aboutLogoImg} />
+                  : <div className={styles.aboutInitials}>{initials(brandName)}</div>
+                }
+              </div>
+              <p className={styles.aboutName}>{brandName}</p>
+              {tagline && <p className={styles.aboutTagline}>"{tagline}"</p>}
+              <div className={styles.aboutMeta}>
+                {brand.brandAddress && (
+                  <div className={styles.aboutMetaRow}>
+                    <span>📍</span><span>{brand.brandAddress}</span>
+                  </div>
+                )}
+                {brand.brandPhone && (
+                  <a href={`tel:${brand.brandPhone}`} className={styles.aboutMetaRow}>
+                    <span>📞</span><span>{brand.brandPhone}</span>
+                  </a>
+                )}
+                {brand.brandEmail && (
+                  <a href={`mailto:${brand.brandEmail}`} className={styles.aboutMetaRow}>
+                    <span>✉️</span><span>{brand.brandEmail}</span>
+                  </a>
+                )}
+                {brand.brandWebsite && (
+                  <a href={brand.brandWebsite} target="_blank" rel="noopener noreferrer" className={styles.aboutMetaRow}>
+                    <span>🌐</span><span>{brand.brandWebsite}</span>
+                  </a>
+                )}
+              </div>
+              {brand.brandPhone && (
+                <a
+                  href={`https://wa.me/${brand.brandPhone.replace(/\D/g,'')}`}
+                  className={styles.whatsappBtn}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                  Chat on WhatsApp
+                </a>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── SPECIALTIES MARQUEE ── */}
+      {dressTypes.length > 0 && (
+        <div className={styles.marqueeWrap}>
+          <div className={styles.marqueeTrack}>
+            {[...dressTypes, ...dressTypes, ...dressTypes, ...dressTypes].map((t, i) => (
+              <span key={i} className={styles.marqueeItem}>
+                {t.label} <span className={styles.marqueeDot}>✦</span>
               </span>
-            )}
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── COMPLETED WORKS ── */}
+      <section className={styles.works} ref={worksRef}>
+        <div className={styles.worksHead}>
+          <p className={styles.sectionEyebrow}>02 — Portfolio</p>
+          <h2 className={styles.worksTitle}>Completed Works</h2>
+          <p className={styles.worksSub}>Every piece is a testament to precision and craft.</p>
+        </div>
+
+        {dressTypes.length > 0 && (
+          <div className={styles.filterBar}>
+            <div className={styles.filterScroll}>
+              <button
+                className={`${styles.filterPill} ${!activeTab ? styles.filterPillActive : ''}`}
+                onClick={() => setActiveTab(null)}
+              >All</button>
+              {dressTypes.map(t => (
+                <button
+                  key={t.id}
+                  className={`${styles.filterPill} ${activeTab === t.id ? styles.filterPillActive : ''}`}
+                  onClick={() => setActiveTab(t.id)}
+                >{t.label}</button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {filteredPhotos.length === 0 ? (
+          <div className={styles.emptyWorks}>
+            <p>No works in this category yet.</p>
+          </div>
+        ) : (
+          <div className={styles.photoGrid}>
+            {filteredPhotos.map((photo, i) => (
+              <div
+                key={photo.id}
+                className={`${styles.photoCard} ${i === 0 ? styles.photoCardFeatured : ''}`}
+                style={{ animationDelay: `${i * 0.05}s` }}
+                onClick={() => setLightbox(photo)}
+              >
+                <img
+                  src={photo.src || photo.storageUrl}
+                  alt={photo.caption || 'Completed work'}
+                  className={styles.photoImg}
+                  loading="lazy"
+                />
+                <div className={styles.photoOverlay}>
+                  <span className={styles.photoZoom}>↗</span>
+                  {photo.caption && <p className={styles.photoCaption}>{photo.caption}</p>}
+                  {photo.clothingTypeLabel && <span className={styles.photoType}>{photo.clothingTypeLabel}</span>}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* ── PROCESS ── */}
+      <section className={styles.process}>
+        <div className={styles.processInner}>
+          <p className={styles.sectionEyebrow}>03 — Process</p>
+          <h2 className={styles.processTitle}>From Idea<br />to Outfit</h2>
+          <div className={styles.processSteps}>
+            {[
+              { num: '01', title: 'Consultation', desc: 'Share your vision, occasion, and preferences. We listen carefully.' },
+              { num: '02', title: 'Measurements', desc: 'Precise measurements taken for a flawless custom fit.' },
+              { num: '03', title: 'Crafting',     desc: 'Every stitch placed with intention, skill, and care.' },
+              { num: '04', title: 'Delivery',     desc: 'Your bespoke garment, delivered to perfection.' },
+            ].map(step => (
+              <div key={step.num} className={styles.processStep}>
+                <span className={styles.processNum}>{step.num}</span>
+                <div className={styles.processLine} />
+                <p className={styles.processStepTitle}>{step.title}</p>
+                <p className={styles.processStepDesc}>{step.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── BOOK CTA ── */}
+      <section className={styles.bookSection} ref={bookRef}>
+        {completedPhotos[1] ? (
+          <div className={styles.bookBgWrap}>
+            <img src={completedPhotos[1].src || completedPhotos[1].storageUrl} alt="" className={styles.bookBgImg} />
+            <div className={styles.bookBgOverlay} />
+          </div>
+        ) : (
+          <div className={styles.bookBgFallback} />
+        )}
+        <div className={styles.bookContent}>
+          <p className={styles.sectionEyebrow} style={{ color: '#888' }}>04 — Book</p>
+          <h2 className={styles.bookTitle}>Ready for<br />something<br />extraordinary?</h2>
+          <p className={styles.bookSub}>
+            Every garment is made to order.<br />Let's create yours.
+          </p>
+          <button className={styles.bookCta} onClick={() => setBookingOpen(true)}>
+            Place Your Order
+          </button>
+          <div className={styles.bookContacts}>
             {brand.brandPhone && (
-              <a href={`tel:${brand.brandPhone}`} className={styles.metaChip}>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
-                {brand.brandPhone}
+              <a href={`tel:${brand.brandPhone}`} className={styles.bookContact}>
+                📞 {brand.brandPhone}
               </a>
             )}
             {brand.brandEmail && (
-              <a href={`mailto:${brand.brandEmail}`} className={styles.metaChip}>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
-                {brand.brandEmail}
-              </a>
-            )}
-          </div>
-          <div className={styles.heroCtas}>
-            <button className={styles.ctaPrimary} style={{ background: accentColor }} onClick={() => setBookingOpen(true)}>
-              Book an Order
-            </button>
-            {brand.brandPhone && (
-              <a href={`https://wa.me/${brand.brandPhone.replace(/\D/g,'')}`} className={styles.ctaSecondary} target="_blank" rel="noopener noreferrer">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-                WhatsApp
+              <a href={`mailto:${brand.brandEmail}`} className={styles.bookContact}>
+                ✉️ {brand.brandEmail}
               </a>
             )}
           </div>
         </div>
       </section>
 
-      {completedPhotos.length > 0 && (
-        <section className={styles.statsStrip}>
-          <div className={styles.statItem}>
-            <span className={styles.statNum}>{completedPhotos.length}+</span>
-            <span className={styles.statLabel}>Completed Works</span>
-          </div>
-          <div className={styles.statDivider} />
-          <div className={styles.statItem}>
-            <span className={styles.statNum}>{dressTypes.length}</span>
-            <span className={styles.statLabel}>Specialties</span>
-          </div>
-          {brand.brandAddress && (
-            <>
-              <div className={styles.statDivider} />
-              <div className={styles.statItem}>
-                <span className={styles.statNum}>📍</span>
-                <span className={styles.statLabel}>{brand.brandAddress.split(',')[0]}</span>
-              </div>
-            </>
-          )}
-        </section>
-      )}
-
-      {completedPhotos.length > 0 && (
-        <section className={styles.worksSection}>
-          <div className={styles.sectionHead}>
-            <h2 className={styles.sectionTitle}>Completed Works</h2>
-            <p className={styles.sectionSub}>Browse {brandName}'s craftsmanship</p>
-          </div>
-          {dressTypes.length > 0 && (
-            <div className={styles.filterBar}>
-              <div className={styles.filterScroll}>
-                <button
-                  className={`${styles.filterPill} ${!activeTab ? styles.filterPillActive : ''}`}
-                  style={!activeTab ? { background: accentColor, borderColor: accentColor } : {}}
-                  onClick={() => setActiveTab(null)}
-                >All</button>
-                {dressTypes.map(t => (
-                  <button
-                    key={t.id}
-                    className={`${styles.filterPill} ${activeTab === t.id ? styles.filterPillActive : ''}`}
-                    style={activeTab === t.id ? { background: accentColor, borderColor: accentColor } : {}}
-                    onClick={() => setActiveTab(t.id)}
-                  >{t.label}</button>
-                ))}
-              </div>
-            </div>
-          )}
-          {filteredPhotos.length === 0 ? (
-            <div className={styles.emptyWorks}><p>No photos in this category yet.</p></div>
-          ) : (
-            <div className={styles.photoGrid}>
-              {filteredPhotos.map((photo, i) => (
-                <div key={photo.id} className={styles.photoCard} style={{ animationDelay: `${i * 0.04}s` }} onClick={() => setLightbox(photo)}>
-                  <img src={photo.src || photo.storageUrl} alt={photo.caption || 'Completed work'} className={styles.photoImg} loading="lazy" />
-                  {photo.caption && (
-                    <div className={styles.photoOverlay}>
-                      <span className={styles.photoCaption}>{photo.caption}</span>
-                      {photo.clothingTypeLabel && <span className={styles.photoType}>{photo.clothingTypeLabel}</span>}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
-      )}
-
-      <section className={styles.ctaSection}>
-        <div className={styles.ctaCard}>
-          <div className={styles.ctaGlow} style={{ background: accentColor + '33' }} />
-          <h2 className={styles.ctaTitle}>Ready to place an order?</h2>
-          <p className={styles.ctaSub}>Get in touch with {brandName} today and let's create something beautiful for you.</p>
-          <button className={styles.ctaBigBtn} style={{ background: accentColor }} onClick={() => setBookingOpen(true)}>
-            Book Your Order Now
-          </button>
-          <div className={styles.ctaContacts}>
-            {brand.brandPhone && <a href={`tel:${brand.brandPhone}`} className={styles.ctaContact}>📞 {brand.brandPhone}</a>}
-            {brand.brandEmail && <a href={`mailto:${brand.brandEmail}`} className={styles.ctaContact}>✉️ {brand.brandEmail}</a>}
-          </div>
-        </div>
-      </section>
-
+      {/* ── FOOTER ── */}
       <footer className={styles.footer}>
-        <p className={styles.footerBrand}>{brandName}</p>
-        {brand.brandTagline && <p className={styles.footerTagline}>{brand.brandTagline}</p>}
-        <p className={styles.footerPowered}>Powered by TailorBook</p>
+        <div className={styles.footerTop}>
+          <p className={styles.footerBrand}>{brandName}</p>
+          {tagline && <p className={styles.footerTagline}>{tagline}</p>}
+        </div>
+        <div className={styles.footerDivider} />
+        <div className={styles.footerBottom}>
+          <p className={styles.footerPowered}>Powered by TailorFlow</p>
+          <div className={styles.footerLinks}>
+            {brand.brandPhone && <a href={`tel:${brand.brandPhone}`} className={styles.footerLink}>Call</a>}
+            {brand.brandEmail && <a href={`mailto:${brand.brandEmail}`} className={styles.footerLink}>Email</a>}
+            {brand.brandPhone && (
+              <a href={`https://wa.me/${brand.brandPhone.replace(/\D/g,'')}`} target="_blank" rel="noopener noreferrer" className={styles.footerLink}>WhatsApp</a>
+            )}
+          </div>
+        </div>
       </footer>
 
       {lightbox && <Lightbox photo={lightbox} photos={filteredPhotos} onClose={() => setLightbox(null)} />}
-      <BookingSheet isOpen={bookingOpen} onClose={() => setBookingOpen(false)} brandName={brandName} brandEmail={brand.brandEmail} brandPhone={brand.brandPhone} />
+      <BookingSheet
+        isOpen={bookingOpen}
+        onClose={() => setBookingOpen(false)}
+        brandName={brandName}
+        brandEmail={brand.brandEmail}
+        brandPhone={brand.brandPhone}
+      />
     </div>
   )
 }
