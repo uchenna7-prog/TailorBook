@@ -1,10 +1,16 @@
 // src/components/SharePortfolioModal/SharePortfolioModal.jsx
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import {
   savePortfolioSettings,
   subscribeToPortfolioSettings,
 } from '../../services/portfolioSettingsService'
+import {
+  toSlug,
+  isSlugAvailable,
+  claimSlug,
+  getCurrentSlug,
+} from '../../services/slugService'
 import styles from './SharePortfolioModal.module.css'
 
 const SHARE_OPTIONS = [
@@ -72,7 +78,7 @@ const SHARE_OPTIONS = [
   },
 ]
 
-// ── IMAGE DROPDOWN ──────────────────────────────────────────────
+// ── Image Dropdown ──────────────────────────────────────────────
 
 function ImageDropdown({ label, photos, value, onChange, required, hasError }) {
   const [query,  setQuery]  = useState('')
@@ -89,17 +95,8 @@ function ImageDropdown({ label, photos, value, onChange, required, hasError }) {
 
   const selected = photos.find(p => p.id === value) || null
 
-  const handleSelect = (photo) => {
-    onChange(photo.id)
-    setIsOpen(false)
-    setQuery('')
-  }
-
-  const handleClear = (e) => {
-    e.stopPropagation()
-    onChange(null)
-    setQuery('')
-  }
+  const handleSelect = (photo) => { onChange(photo.id); setIsOpen(false); setQuery('') }
+  const handleClear  = (e)     => { e.stopPropagation(); onChange(null); setQuery('') }
 
   return (
     <div className={styles.imgDropWrap}>
@@ -115,11 +112,7 @@ function ImageDropdown({ label, photos, value, onChange, required, hasError }) {
       >
         {selected ? (
           <div className={styles.imgDropSelected}>
-            <img
-              src={selected.src || selected.storageUrl}
-              alt={selected.caption}
-              className={styles.imgDropThumb}
-            />
+            <img src={selected.src || selected.storageUrl} alt={selected.caption} className={styles.imgDropThumb} />
             <span className={styles.imgDropSelectedName}>{selected.caption || 'Untitled'}</span>
             <button type="button" className={styles.imgDropClear} onClick={handleClear}>
               <span className="mi" style={{ fontSize: '1rem' }}>close</span>
@@ -131,9 +124,7 @@ function ImageDropdown({ label, photos, value, onChange, required, hasError }) {
             Choose an image…
           </span>
         )}
-        <span className={`mi ${styles.imgDropChevron} ${isOpen ? styles.imgDropChevronOpen : ''}`}>
-          expand_more
-        </span>
+        <span className={`mi ${styles.imgDropChevron} ${isOpen ? styles.imgDropChevronOpen : ''}`}>expand_more</span>
       </button>
 
       {hasError && (
@@ -161,7 +152,6 @@ function ImageDropdown({ label, photos, value, onChange, required, hasError }) {
               </button>
             )}
           </div>
-
           <div className={styles.imgDropList}>
             {filtered.length === 0 ? (
               <div className={styles.imgDropEmpty}>No images found</div>
@@ -172,11 +162,7 @@ function ImageDropdown({ label, photos, value, onChange, required, hasError }) {
                 className={`${styles.imgDropOption} ${value === photo.id ? styles.imgDropOptionActive : ''}`}
                 onClick={() => handleSelect(photo)}
               >
-                <img
-                  src={photo.src || photo.storageUrl}
-                  alt={photo.caption}
-                  className={styles.imgDropOptionThumb}
-                />
+                <img src={photo.src || photo.storageUrl} alt={photo.caption} className={styles.imgDropOptionThumb} />
                 <div className={styles.imgDropOptionInfo}>
                   <span className={styles.imgDropOptionName}>{photo.caption || 'Untitled'}</span>
                   {photo.clothingTypeLabel && (
@@ -184,9 +170,7 @@ function ImageDropdown({ label, photos, value, onChange, required, hasError }) {
                   )}
                 </div>
                 {value === photo.id && (
-                  <span className="mi" style={{ fontSize: '1.1rem', color: 'var(--accent)', flexShrink: 0 }}>
-                    check_circle
-                  </span>
+                  <span className="mi" style={{ fontSize: '1.1rem', color: 'var(--accent)', flexShrink: 0 }}>check_circle</span>
                 )}
               </button>
             ))}
@@ -197,10 +181,146 @@ function ImageDropdown({ label, photos, value, onChange, required, hasError }) {
   )
 }
 
-// ── MAIN MODAL ──────────────────────────────────────────────────
+// ── Slug Editor ─────────────────────────────────────────────────
+
+function SlugEditor({ uid, currentSlug, onSlugSaved }) {
+  const [editing,     setEditing]     = useState(false)
+  const [inputVal,    setInputVal]    = useState(currentSlug || '')
+  const [checking,    setChecking]    = useState(false)
+  const [available,   setAvailable]   = useState(null)  // null | true | false
+  const [saving,      setSaving]      = useState(false)
+  const [saveError,   setSaveError]   = useState('')
+  const debounceRef = useRef(null)
+
+  // Keep input in sync if currentSlug changes (e.g. on open)
+  useEffect(() => {
+    if (!editing) setInputVal(currentSlug || '')
+  }, [currentSlug, editing])
+
+  const preview = toSlug(inputVal)
+
+  const handleChange = (val) => {
+    setInputVal(val)
+    setAvailable(null)
+    clearTimeout(debounceRef.current)
+    const slug = toSlug(val)
+    if (!slug || slug.length < 3) return
+    setChecking(true)
+    debounceRef.current = setTimeout(async () => {
+      try {
+        const ok = await isSlugAvailable(slug, uid)
+        setAvailable(ok)
+      } catch {
+        setAvailable(null)
+      } finally {
+        setChecking(false)
+      }
+    }, 600)
+  }
+
+  const handleSave = async () => {
+    const slug = toSlug(inputVal)
+    if (!slug || slug.length < 3) return
+    if (available === false) return
+    setSaving(true)
+    setSaveError('')
+    try {
+      await claimSlug(uid, slug, currentSlug)
+      onSlugSaved(slug)
+      setEditing(false)
+    } catch (err) {
+      setSaveError(err.message === 'slug_taken' ? 'That name is already taken.' : 'Failed to save. Try again.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleCancel = () => {
+    setEditing(false)
+    setInputVal(currentSlug || '')
+    setAvailable(null)
+    setSaveError('')
+  }
+
+  if (!editing) {
+    return (
+      <div className={styles.slugDisplay}>
+        {currentSlug ? (
+          <span className={styles.slugCurrent}>/{currentSlug}</span>
+        ) : (
+          <span className={styles.slugNone}>No custom URL yet</span>
+        )}
+        <button className={styles.slugEditBtn} onClick={() => setEditing(true)}>
+          <span className="mi" style={{ fontSize: '0.9rem' }}>edit</span>
+          {currentSlug ? 'Edit' : 'Set one'}
+        </button>
+      </div>
+    )
+  }
+
+  const slugOk  = preview.length >= 3
+  const canSave = slugOk && available === true && !saving
+
+  return (
+    <div className={styles.slugEditorWrap}>
+      <div className={`${styles.slugInputRow} ${available === false ? styles.slugInputRowError : available === true ? styles.slugInputRowOk : ''}`}>
+        <span className={styles.slugPrefix}>tailorflow.app/portfolio/</span>
+        <input
+          className={styles.slugInput}
+          value={inputVal}
+          onChange={e => handleChange(e.target.value)}
+          placeholder="your-brand-name"
+          maxLength={44}
+          autoFocus
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
+        />
+        {checking && <span className="mi" style={{ fontSize: '1rem', color: 'var(--text3)', animation: 'spin 0.8s linear infinite' }}>refresh</span>}
+        {!checking && available === true  && <span className="mi" style={{ fontSize: '1rem', color: '#22c55e' }}>check_circle</span>}
+        {!checking && available === false && <span className="mi" style={{ fontSize: '1rem', color: '#ef4444' }}>cancel</span>}
+      </div>
+
+      {preview && preview !== inputVal.trim().toLowerCase() && (
+        <p className={styles.slugPreviewNote}>Will be saved as: <strong>{preview}</strong></p>
+      )}
+
+      {available === false && (
+        <p className={styles.slugHint} style={{ color: '#ef4444' }}>
+          <span className="mi" style={{ fontSize: '0.8rem' }}>error_outline</span>
+          That name is taken. Try adding your city or specialty.
+        </p>
+      )}
+      {available === true && (
+        <p className={styles.slugHint} style={{ color: '#22c55e' }}>
+          <span className="mi" style={{ fontSize: '0.8rem' }}>check_circle</span>
+          Available!
+        </p>
+      )}
+      {!slugOk && inputVal.length > 0 && (
+        <p className={styles.slugHint}>Minimum 3 characters.</p>
+      )}
+      {saveError && (
+        <p className={styles.slugHint} style={{ color: '#ef4444' }}>{saveError}</p>
+      )}
+
+      <div className={styles.slugActions}>
+        <button className={styles.slugCancelBtn} onClick={handleCancel} disabled={saving}>Cancel</button>
+        <button className={styles.slugSaveBtn} onClick={handleSave} disabled={!canSave}>
+          {saving ? (
+            <><span className="mi" style={{ fontSize: '0.9rem', animation: 'spin 0.8s linear infinite' }}>refresh</span> Saving…</>
+          ) : 'Save URL'}
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// ── Main Modal ──────────────────────────────────────────────────
 
 export default function SharePortfolioModal({ isOpen, onClose, brandName, completedWorksPhotos = [] }) {
   const { user } = useAuth()
+
   const [copied,          setCopied]          = useState(false)
   const [instagramCopied, setInstagramCopied] = useState(false)
   const [visible,         setVisible]         = useState(false)
@@ -211,14 +331,30 @@ export default function SharePortfolioModal({ isOpen, onClose, brandName, comple
   const [saved,           setSaved]           = useState(false)
   const [saveError,       setSaveError]       = useState(false)
   const [showErrors,      setShowErrors]      = useState(false)
+  // Slug state
+  const [currentSlug,     setCurrentSlug]     = useState(null)
+  const [slugLoading,     setSlugLoading]     = useState(false)
 
   const hasPhotos   = completedWorksPhotos.length > 0
   const heroError   = hasPhotos && showErrors && !heroImageId
   const footerError = hasPhotos && showErrors && !footerImageId
 
-  const portfolioLink = user
-    ? `${window.location.origin}/portfolio/${user.uid}`
-    : ''
+  // Build the portfolio link — prefer slug, fall back to uid
+  const portfolioLink = useMemo(() => {
+    if (!user) return ''
+    const handle = currentSlug || user.uid
+    return `${window.location.origin}/portfolio/${handle}`
+  }, [user, currentSlug])
+
+  // Load slug when modal opens
+  useEffect(() => {
+    if (!isOpen || !user) return
+    setSlugLoading(true)
+    getCurrentSlug(user.uid)
+      .then(slug => setCurrentSlug(slug))
+      .catch(() => {})
+      .finally(() => setSlugLoading(false))
+  }, [isOpen, user])
 
   useEffect(() => {
     if (isOpen) {
@@ -245,21 +381,18 @@ export default function SharePortfolioModal({ isOpen, onClose, brandName, comple
 
   if (!isOpen) return null
 
-  // ── Save with 8s timeout so it never hangs on slow mobile ───
+  // ── Save images ──────────────────────────────────────────────
   const handleSaveImages = async () => {
     if (hasPhotos && (!heroImageId || !footerImageId)) {
       setShowErrors(true)
       return
     }
     if (!user) return
-
     setSaving(true)
     setSaveError(false)
-
     const timeout = new Promise((_, reject) =>
       setTimeout(() => reject(new Error('timeout')), 8000)
     )
-
     try {
       await Promise.race([
         savePortfolioSettings(user.uid, { heroImageId, footerImageId }),
@@ -276,15 +409,8 @@ export default function SharePortfolioModal({ isOpen, onClose, brandName, comple
     }
   }
 
-  const handleHeroChange = (id) => {
-    setHeroImageId(id)
-    if (id && footerImageId) setShowErrors(false)
-  }
-
-  const handleFooterChange = (id) => {
-    setFooterImageId(id)
-    if (heroImageId && id) setShowErrors(false)
-  }
+  const handleHeroChange  = (id) => { setHeroImageId(id);   if (id && footerImageId) setShowErrors(false) }
+  const handleFooterChange = (id) => { setFooterImageId(id); if (heroImageId && id)   setShowErrors(false) }
 
   const handleCopy = async () => {
     try {
@@ -313,9 +439,7 @@ export default function SharePortfolioModal({ isOpen, onClose, brandName, comple
     if (url) window.open(url, '_blank', 'noopener,noreferrer')
   }
 
-  const handleOverlayClick = (e) => {
-    if (e.target === e.currentTarget) onClose()
-  }
+  const handleOverlayClick = (e) => { if (e.target === e.currentTarget) onClose() }
 
   const saveBtnClass = [
     styles.saveImagesBtn,
@@ -333,9 +457,7 @@ export default function SharePortfolioModal({ isOpen, onClose, brandName, comple
 
         <div className={styles.header}>
           <div className={styles.headerLeft}>
-            <span className={styles.headerIcon}>
-              <span className="mi">link</span>
-            </span>
+            <span className={styles.headerIcon}><span className="mi">link</span></span>
             <div>
               <p className={styles.headerTitle}>Share Portfolio</p>
               <p className={styles.headerSub}>Send your tailor page to clients</p>
@@ -346,9 +468,36 @@ export default function SharePortfolioModal({ isOpen, onClose, brandName, comple
           </button>
         </div>
 
-        {/* Link row */}
+        {/* ── URL / Slug section ── */}
         <div className={styles.linkSection}>
-          <p className={styles.linkLabel}>Your portfolio link</p>
+          <div className={styles.linkLabelRow}>
+            <p className={styles.linkLabel}>Your portfolio link</p>
+          </div>
+
+          {/* Slug editor */}
+          <div className={styles.slugSection}>
+            <p className={styles.slugSectionLabel}>
+              <span className="mi" style={{ fontSize: '0.85rem' }}>alternate_email</span>
+              Custom URL
+            </p>
+            {slugLoading ? (
+              <p className={styles.slugLoading}>Loading…</p>
+            ) : (
+              <SlugEditor
+                uid={user?.uid}
+                currentSlug={currentSlug}
+                onSlugSaved={(slug) => setCurrentSlug(slug)}
+              />
+            )}
+            {!currentSlug && !slugLoading && (
+              <p className={styles.slugAutoHint}>
+                <span className="mi" style={{ fontSize: '0.8rem' }}>info</span>
+                Set a custom URL so clients can find you easily — e.g. <strong>/stitched-by-amara</strong>
+              </p>
+            )}
+          </div>
+
+          {/* Copy row */}
           <div className={styles.linkRow}>
             <div className={styles.linkBox}>
               <span className="mi" style={{ fontSize: '0.9rem', color: 'var(--text3)', flexShrink: 0 }}>language</span>
@@ -358,9 +507,7 @@ export default function SharePortfolioModal({ isOpen, onClose, brandName, comple
               className={`${styles.copyBtn} ${copied ? styles.copyBtnDone : ''}`}
               onClick={handleCopy}
             >
-              <span className="mi" style={{ fontSize: '1rem' }}>
-                {copied ? 'check' : 'content_copy'}
-              </span>
+              <span className="mi" style={{ fontSize: '1rem' }}>{copied ? 'check' : 'content_copy'}</span>
               <span>{copied ? 'Copied!' : 'Copy'}</span>
             </button>
           </div>
@@ -370,9 +517,7 @@ export default function SharePortfolioModal({ isOpen, onClose, brandName, comple
         <div className={styles.imageSection}>
           <div className={styles.imageSectionHead}>
             <p className={styles.imageLabel}>Portfolio images</p>
-            {hasPhotos && (
-              <p className={styles.imageRequired}>Both images required</p>
-            )}
+            {hasPhotos && <p className={styles.imageRequired}>Both images required</p>}
           </div>
 
           {!hasPhotos ? (
@@ -388,55 +533,20 @@ export default function SharePortfolioModal({ isOpen, onClose, brandName, comple
                   Select both a hero and footer image to save.
                 </div>
               )}
-
-              <ImageDropdown
-                label="Hero Image"
-                photos={completedWorksPhotos}
-                value={heroImageId}
-                onChange={handleHeroChange}
-                required
-                hasError={heroError}
-              />
-              <ImageDropdown
-                label="Footer Image"
-                photos={completedWorksPhotos}
-                value={footerImageId}
-                onChange={handleFooterChange}
-                required
-                hasError={footerError}
-              />
-
-              <button
-                className={saveBtnClass}
-                onClick={handleSaveImages}
-                disabled={saving}
-              >
+              <ImageDropdown label="Hero Image"   photos={completedWorksPhotos} value={heroImageId}   onChange={handleHeroChange}   required hasError={heroError}   />
+              <ImageDropdown label="Footer Image" photos={completedWorksPhotos} value={footerImageId} onChange={handleFooterChange} required hasError={footerError} />
+              <button className={saveBtnClass} onClick={handleSaveImages} disabled={saving}>
                 {saving ? (
-                  <>
-                    <span className="mi" style={{ fontSize: '1rem', animation: 'spin 0.8s linear infinite' }}>refresh</span>
-                    Saving…
-                  </>
+                  <><span className="mi" style={{ fontSize: '1rem', animation: 'spin 0.8s linear infinite' }}>refresh</span>Saving…</>
                 ) : saved ? (
-                  <>
-                    <span className="mi" style={{ fontSize: '1rem' }}>check</span>
-                    Saved to portfolio!
-                  </>
+                  <><span className="mi" style={{ fontSize: '1rem' }}>check</span>Saved to portfolio!</>
                 ) : saveError ? (
-                  <>
-                    <span className="mi" style={{ fontSize: '1rem' }}>wifi_off</span>
-                    Failed — check connection
-                  </>
+                  <><span className="mi" style={{ fontSize: '1rem' }}>wifi_off</span>Failed — check connection</>
                 ) : (
-                  <>
-                    <span className="mi" style={{ fontSize: '1rem' }}>save</span>
-                    Save images to portfolio
-                  </>
+                  <><span className="mi" style={{ fontSize: '1rem' }}>save</span>Save images to portfolio</>
                 )}
               </button>
-
-              {!settingsLoaded && (
-                <p className={styles.settingsLoading}>Loading saved selections…</p>
-              )}
+              {!settingsLoaded && <p className={styles.settingsLoading}>Loading saved selections…</p>}
             </>
           )}
         </div>
@@ -446,11 +556,7 @@ export default function SharePortfolioModal({ isOpen, onClose, brandName, comple
           <p className={styles.shareLabel}>Share via</p>
           <div className={styles.shareGrid}>
             {SHARE_OPTIONS.map(opt => (
-              <button
-                key={opt.id}
-                className={styles.shareOption}
-                onClick={() => handleShare(opt)}
-              >
+              <button key={opt.id} className={styles.shareOption} onClick={() => handleShare(opt)}>
                 <div className={styles.shareIconWrap} style={{ background: opt.color + '18', color: opt.color }}>
                   {opt.icon}
                 </div>
