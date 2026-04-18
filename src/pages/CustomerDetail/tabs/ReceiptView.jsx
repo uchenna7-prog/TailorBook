@@ -5,7 +5,9 @@ import { useBrand } from '../../../contexts/BrandContext'
 import Header from '../../../components/Header/Header'
 import styles from './InvoiceView.module.css'
 
-// ── Helpers ───────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+// Helpers
+// ─────────────────────────────────────────────────────────────
 
 function fmt(currency, amount) {
   const n = parseFloat(amount) || 0
@@ -17,9 +19,13 @@ function calcTax(subtotal, taxRate, showTax) {
   return subtotal * (taxRate / 100)
 }
 
-function resolveCumulativePaid(receipt) {
-  if (receipt.cumulativePaid != null) return parseFloat(receipt.cumulativePaid)
-  return (receipt.payments || []).reduce((s, p) => s + (parseFloat(p.amount) || 0), 0)
+function getDueDate(invoice, dueDays) {
+  if (invoice.due) return invoice.due
+  try {
+    const d = new Date(invoice.date)
+    d.setDate(d.getDate() + (dueDays || 7))
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+  } catch { return '—' }
 }
 
 function sanitizePhone(raw) {
@@ -27,56 +33,48 @@ function sanitizePhone(raw) {
   return raw.replace(/\D/g, '').replace(/^0/, '')
 }
 
-// ── Build WhatsApp message for a receipt ─────────────────────
+// ─────────────────────────────────────────────────────────────
+// Build WhatsApp message for an invoice
+// ─────────────────────────────────────────────────────────────
 
-function buildReceiptWhatsAppMessage(receipt, customer, brand) {
-  const currency       = brand?.currency || '₦'
-  const firstName      = customer.name?.split(' ')[0] || customer.name
-  const thisPayment    = (receipt.payments || []).reduce((s, p) => s + (parseFloat(p.amount) || 0), 0)
-  const cumulativePaid = resolveCumulativePaid(receipt)
-  const orderTotal     = receipt.orderPrice ? parseFloat(receipt.orderPrice)
-    : receipt.items?.reduce((s, i) => s + (parseFloat(i.price) || 0), 0) ?? 0
-  const balanceLeft    = Math.max(0, orderTotal - cumulativePaid)
-  const isFullPay      = balanceLeft <= 0
+function buildInvoiceWhatsAppMessage(invoice, customer, brand) {
+  const currency   = brand?.currency || '₦'
+  const subtotal   = invoice.items?.reduce((s, i) => s + (parseFloat(i.price) || 0), 0) ?? 0
+  const tax        = calcTax(subtotal, brand?.taxRate, brand?.showTax)
+  const total      = subtotal + tax
+
+  const firstName = customer.name?.split(' ')[0] || customer.name
+
+  const statusMap = { paid: 'Fully Paid ✅', part_paid: 'Part Payment', unpaid: 'Unpaid', overdue: 'Overdue ⚠️' }
+  const statusLine = statusMap[invoice.status] || invoice.status
 
   let lines = []
   lines.push(`Hi ${firstName},`)
   lines.push('')
-  lines.push(`Here is your payment receipt from *${brand?.name || 'us'}*. 🧾`)
+  lines.push(`Here is your invoice from *${brand?.name || 'us'}*. 🧾`)
   lines.push('')
-  lines.push(`*Receipt Details*`)
-  lines.push(`Receipt No: *${receipt.number}*`)
-  lines.push(`Date: ${receipt.date}`)
+  lines.push(`*Invoice Details*`)
+  lines.push(`Invoice No: *${invoice.number}*`)
+  lines.push(`Date: ${invoice.date}`)
+  if (invoice.due) lines.push(`Due Date: ${invoice.due}`)
+  lines.push(`Status: ${statusLine}`)
   lines.push('')
 
-  if (receipt.items?.length > 0) {
-    lines.push(`*Order Breakdown*`)
-    receipt.items.forEach(item => {
+  if (invoice.items?.length > 0) {
+    lines.push(`*Breakdown*`)
+    invoice.items.forEach(item => {
       lines.push(`• ${item.name} — ${fmt(currency, item.price)}`)
     })
-    lines.push(`Order Total: ${fmt(currency, orderTotal)}`)
     lines.push('')
   }
 
-  if ((receipt.payments || []).length > 0) {
-    lines.push(`*Payment${receipt.payments.length > 1 ? 's' : ''} Received*`)
-    receipt.payments.forEach((p, idx) => {
-      const label = receipt.payments.length > 1 ? `Payment ${idx + 1}` : 'Amount Paid'
-      const method = p.method ? ` (${p.method.charAt(0).toUpperCase() + p.method.slice(1)})` : ''
-      lines.push(`${label}${method}: *${fmt(currency, p.amount)}*`)
-    })
-    lines.push('')
+  if (brand?.showTax && brand?.taxRate > 0) {
+    lines.push(`Subtotal: ${fmt(currency, subtotal)}`)
+    lines.push(`Tax (${brand.taxRate}%): ${fmt(currency, tax)}`)
   }
-
-  if (isFullPay) {
-    lines.push(`✅ *Your order is fully paid. Thank you!*`)
-  } else {
-    lines.push(`Balance Remaining: *${fmt(currency, balanceLeft)}*`)
-    lines.push(`Please note there is an outstanding balance on your order.`)
-  }
-
+  lines.push(`*Total: ${fmt(currency, total)}*`)
   lines.push('')
-  lines.push(`📎 The PDF copy of this receipt has been downloaded to your device. Please find and attach it to this message before sending.`)
+  lines.push(`📎 The PDF copy of this invoice has been downloaded to your device. Please find and attach it to this message before sending.`)
   lines.push('')
   if (brand?.phone) lines.push(`For any questions, reach us at ${brand.phone}.`)
   lines.push(`Thank you! 🙏`)
@@ -84,11 +82,22 @@ function buildReceiptWhatsAppMessage(receipt, customer, brand) {
   return lines.join('\n')
 }
 
-// ── PDF generator ─────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+// PDF generator — constrained to 96% of screen width
+// ─────────────────────────────────────────────────────────────
 
 async function downloadPDF(paperEl, filename) {
-  // Force a fixed document width for capture so PDF is never full phone-screen width.
-  // We temporarily override the element width, capture, then restore.
+  const blob = await generatePDFBlob(paperEl)
+  const url  = URL.createObjectURL(blob)
+  const a    = document.createElement('a')
+  a.href     = url
+  a.download = filename
+  a.click()
+  setTimeout(() => URL.revokeObjectURL(url), 10000)
+}
+
+// Returns a PDF Blob without triggering a download — used for direct sharing
+async function generatePDFBlob(paperEl) {
   const PDF_W = 380
   const prevWidth  = paperEl.style.width
   const prevMaxW   = paperEl.style.maxWidth
@@ -96,7 +105,6 @@ async function downloadPDF(paperEl, filename) {
   paperEl.style.width    = `${PDF_W}px`
   paperEl.style.maxWidth = 'none'
 
-  // Let the browser reflow before measuring height
   await new Promise(r => setTimeout(r, 60))
   const elH = paperEl.scrollHeight
 
@@ -111,22 +119,21 @@ async function downloadPDF(paperEl, filename) {
     windowHeight: elH,
   })
 
-  // Restore original styles
   paperEl.style.width    = prevWidth
   paperEl.style.maxWidth = prevMaxW
 
   const imgData = canvas.toDataURL('image/png')
-  const pdf = new jsPDF({ orientation: 'portrait', unit: 'px', format: [PDF_W, elH] })
+  const pdf     = new jsPDF({ orientation: 'portrait', unit: 'px', format: [PDF_W, elH] })
   pdf.addImage(imgData, 'PNG', 0, 0, PDF_W, elH)
-  pdf.save(filename)
+  return pdf.output('blob')
 }
 
-// ── Share Sheet ───────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+// Share Sheet
+// ─────────────────────────────────────────────────────────────
 
-function ShareSheet({ open, onClose, onDownload, docNumber, customer, brand, docType, buildMessage }) {
-  const [copied,      setCopied]      = useState(false)
-  const [sharing,     setSharing]     = useState(false)
-  const [showPdfHint, setShowPdfHint] = useState(false)
+function ShareSheet({ open, onClose, paperRef, filename, docNumber, customer, brand, docType, buildMessage }) {
+  const [status, setStatus] = useState('idle') // idle | generating | done | error
 
   if (!open) return null
 
@@ -134,58 +141,98 @@ function ShareSheet({ open, onClose, onDownload, docNumber, customer, brand, doc
   const phoneClean = sanitizePhone(phoneRaw)
   const hasPhone   = phoneClean.length >= 7
   const message    = buildMessage()
-  const shareText  = `${docType} ${docNumber} for ${customer?.name}`
 
-  const handleMessagingApp = async (openUrl) => {
-    setSharing(true)
-    setShowPdfHint(false)
+  const canShareFiles = typeof navigator.share === 'function' &&
+    typeof navigator.canShare === 'function' &&
+    navigator.canShare({ files: [new File([''], 'test.pdf', { type: 'application/pdf' })] })
+
+  // ── Generate blob then call a callback ──────────────────────
+  const withBlob = async (cb) => {
+    if (!paperRef?.current) return
+    setStatus('generating')
     try {
-      await onDownload()
-      setShowPdfHint(true)
-    } catch {
-      // PDF failed — still open the app
-    } finally {
-      setSharing(false)
+      const blob = await generatePDFBlob(paperRef.current)
+      const file = new File([blob], filename, { type: 'application/pdf' })
+      await cb(blob, file)
+      setStatus('done')
+    } catch (err) {
+      console.error(err)
+      setStatus('error')
     }
-    window.open(openUrl, '_blank', 'noopener')
   }
 
-  const handleWhatsApp = () => {
-    const url = hasPhone
-      ? `https://wa.me/${phoneClean}?text=${encodeURIComponent(message)}`
-      : `https://wa.me/?text=${encodeURIComponent(message)}`
-    handleMessagingApp(url)
-  }
+  // ── WhatsApp: share PDF file directly via Web Share API ─────
+  const handleWhatsApp = () => withBlob(async (blob, file) => {
+    if (canShareFiles) {
+      // Native share sheet opens → user picks WhatsApp → picks contact
+      await navigator.share({ files: [file], text: message })
+    } else {
+      // Fallback: download PDF + open wa.me link
+      const url = URL.createObjectURL(blob)
+      const a   = document.createElement('a')
+      a.href = url; a.download = filename; a.click()
+      setTimeout(() => URL.revokeObjectURL(url), 10000)
+      const waUrl = hasPhone
+        ? `https://wa.me/${phoneClean}?text=${encodeURIComponent(message)}`
+        : `https://wa.me/?text=${encodeURIComponent(message)}`
+      window.open(waUrl, '_blank', 'noopener')
+    }
+  })
 
-  const handleTelegram = () =>
-    handleMessagingApp(`https://t.me/share/url?url=${encodeURIComponent(shareText)}&text=${encodeURIComponent(message)}`)
+  // ── Other apps: download PDF then open app link ──────────────
+  const handleWithDownload = (appUrl) => withBlob(async (blob) => {
+    const url = URL.createObjectURL(blob)
+    const a   = document.createElement('a')
+    a.href = url; a.download = filename; a.click()
+    setTimeout(() => URL.revokeObjectURL(url), 10000)
+    window.open(appUrl, '_blank', 'noopener')
+  })
+
+  const handleTelegram = () => {
+    const shareText = `${docType} ${docNumber} for ${customer?.name}`
+    handleWithDownload(`https://t.me/share/url?url=${encodeURIComponent(shareText)}&text=${encodeURIComponent(message)}`)
+  }
 
   const handleSMS = () =>
-    handleMessagingApp(`sms:${phoneRaw}?body=${encodeURIComponent(message)}`)
+    handleWithDownload(`sms:${phoneRaw}?body=${encodeURIComponent(message)}`)
 
   const handleEmail = () => {
     const subject = `${docType} ${docNumber} — ${customer?.name}`
     const body    = `${message}\n\n(PDF attached separately)`
-    handleMessagingApp(`mailto:${customer?.email || ''}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`)
+    handleWithDownload(`mailto:${customer?.email || ''}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`)
   }
 
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(message)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
+      setStatus('done')
+      setTimeout(() => setStatus('idle'), 2000)
     } catch { /* silent */ }
   }
 
-  const handleNative = async () => {
-    if (navigator.share) {
-      try { await navigator.share({ title: shareText, text: message }) } catch { /* cancelled */ }
-    }
-  }
+  // ── Native share (PDF file if supported, else text) ─────────
+  const handleNativeShare = () => withBlob(async (blob, file) => {
+    const shareData = canShareFiles
+      ? { files: [file], text: message }
+      : { title: `${docType} ${docNumber}`, text: message }
+    await navigator.share(shareData)
+  })
+
+  // ── Download only ────────────────────────────────────────────
+  const handleDownloadOnly = () => withBlob(async (blob) => {
+    const url = URL.createObjectURL(blob)
+    const a   = document.createElement('a')
+    a.href = url; a.download = filename; a.click()
+    setTimeout(() => URL.revokeObjectURL(url), 10000)
+  })
+
+  const isGenerating = status === 'generating'
 
   const APPS = [
     {
-      id: 'whatsapp', label: 'WhatsApp', onClick: handleWhatsApp,
+      id: 'whatsapp',
+      label: isGenerating ? 'Preparing…' : canShareFiles ? 'WhatsApp' : 'WhatsApp',
+      onClick: handleWhatsApp,
       icon: (
         <svg viewBox="0 0 32 32" width="30" height="30">
           <circle cx="16" cy="16" r="16" fill="#25D366"/>
@@ -224,7 +271,7 @@ function ShareSheet({ open, onClose, onDownload, docNumber, customer, brand, doc
       ),
     },
     {
-      id: 'copy', label: copied ? 'Copied!' : 'Copy Text', onClick: handleCopy,
+      id: 'copy', label: status === 'done' ? 'Copied!' : 'Copy Text', onClick: handleCopy,
       icon: (
         <svg viewBox="0 0 32 32" width="30" height="30">
           <circle cx="16" cy="16" r="16" fill="#6366f1"/>
@@ -233,7 +280,7 @@ function ShareSheet({ open, onClose, onDownload, docNumber, customer, brand, doc
       ),
     },
     {
-      id: 'native', label: 'More', onClick: handleNative,
+      id: 'native', label: 'More', onClick: handleNativeShare,
       icon: (
         <svg viewBox="0 0 32 32" width="30" height="30">
           <circle cx="16" cy="16" r="16" fill="#8e8e93"/>
@@ -252,10 +299,24 @@ function ShareSheet({ open, onClose, onDownload, docNumber, customer, brand, doc
         <div className={styles.sheetTitle}>Share {docType}</div>
         <div className={styles.sheetSub}>{docNumber} · {customer?.name}</div>
 
-        {showPdfHint && (
+        {isGenerating && (
           <div className={styles.pdfHint}>
-            <span className="mi" style={{ fontSize: '1rem', flexShrink: 0 }}>info</span>
-            <span>PDF downloaded to your device. Open your Files app, find the PDF and attach it to this conversation.</span>
+            <span className="mi" style={{ fontSize: '1rem', flexShrink: 0 }}>hourglass_top</span>
+            <span>Generating PDF — this takes a moment…</span>
+          </div>
+        )}
+
+        {status === 'error' && (
+          <div className={styles.pdfHint} style={{ borderColor: '#ef4444', color: '#ef4444' }}>
+            <span className="mi" style={{ fontSize: '1rem', flexShrink: 0 }}>error</span>
+            <span>PDF generation failed. Please try again.</span>
+          </div>
+        )}
+
+        {canShareFiles && status === 'idle' && (
+          <div className={styles.pdfHint} style={{ background: 'color-mix(in srgb, #25D366 10%, transparent)', borderColor: 'color-mix(in srgb, #25D366 35%, transparent)', color: '#166534' }}>
+            <span className="mi" style={{ fontSize: '1rem', flexShrink: 0 }}>share</span>
+            <span>Tap WhatsApp to send the PDF directly — pick your contact inside WhatsApp.</span>
           </div>
         )}
 
@@ -265,10 +326,10 @@ function ShareSheet({ open, onClose, onDownload, docNumber, customer, brand, doc
               key={app.id}
               className={styles.shareItem}
               onClick={app.onClick}
-              disabled={sharing}
+              disabled={isGenerating}
             >
               <div className={styles.shareIconWrap}>
-                {sharing && ['whatsapp','telegram','sms','email'].includes(app.id)
+                {isGenerating && ['whatsapp','telegram','sms','email','native'].includes(app.id)
                   ? <span className="mi" style={{ fontSize: 26, color: 'var(--text3)' }}>hourglass_top</span>
                   : app.icon
                 }
@@ -280,11 +341,11 @@ function ShareSheet({ open, onClose, onDownload, docNumber, customer, brand, doc
 
         <button
           className={styles.sheetDownloadBtn}
-          onClick={async () => { await onDownload(); onClose() }}
-          disabled={sharing}
+          onClick={handleDownloadOnly}
+          disabled={isGenerating}
         >
           <span className="mi" style={{ fontSize: '1.1rem' }}>download</span>
-          Download PDF
+          {isGenerating ? 'Generating…' : 'Download PDF'}
         </button>
 
         <button className={styles.sheetCancelBtn} onClick={onClose}>
@@ -296,7 +357,7 @@ function ShareSheet({ open, onClose, onDownload, docNumber, customer, brand, doc
 }
 
 // ─────────────────────────────────────────────────────────────
-// Logo helper
+// Shared inner pieces
 // ─────────────────────────────────────────────────────────────
 
 function LogoOrName({ brand, darkBg = false }) {
@@ -308,132 +369,56 @@ function LogoOrName({ brand, darkBg = false }) {
   )
 }
 
-// ─────────────────────────────────────────────────────────────
-// Shared receipt payment summary block
-// Used by templates 1, 2, 3 (standard layout)
-// ─────────────────────────────────────────────────────────────
-
-function ReceiptPaymentSummary({ receipt, brand }) {
+// Generic shared items table — used by templates 1, 2, 3, 4, 5, 6
+function ItemsTable({ invoice, brand }) {
   const { currency, showTax, taxRate } = brand
-
-  const orderTotal = receipt.items?.length > 0
-    ? receipt.items.reduce((sum, item) => sum + (parseFloat(item.price) || 0), 0)
-    : (parseFloat(receipt.orderPrice) || 0)
-
-  const tax            = calcTax(orderTotal, taxRate, showTax)
-  const cumulativePaid = resolveCumulativePaid(receipt)
-  const previousPaid   = parseFloat(receipt.previousPaid) || 0
-  const hasPrevious    = (receipt.previousInstallments?.length > 0) || previousPaid > 0
-
-  const thisPaymentTotal = (receipt.payments || []).reduce((s, p) => s + (parseFloat(p.amount) || 0), 0)
-  const balanceRemaining = Math.max(0, orderTotal - cumulativePaid)
-  const isFullPayment    = balanceRemaining <= 0
+  const subtotal = invoice.items?.length > 0
+    ? invoice.items.reduce((sum, item) => sum + (parseFloat(item.price) || 0), 0)
+    : 0
+  const tax   = calcTax(subtotal, taxRate, showTax)
+  const total = subtotal + tax
 
   return (
     <div className={styles.tableWrapper}>
-      <div style={{ fontWeight: 900, fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 5, color: '#444' }}>Order Details</div>
       <div className={styles.tHead}>
-        <span style={{ width: 18, flexShrink: 0, fontVariantNumeric: 'tabular-nums' }}>S/N</span>
         <span className={styles.tColDesc}>Description</span>
-        <span className={styles.tColNum}>Amount</span>
+        <span className={styles.tColNum}>Price</span>
       </div>
-      {receipt.items?.length > 0 ? (
-        receipt.items.map((item, idx) => (
-          <div key={idx} className={styles.tRowSub} style={{ padding: '5px 0', fontSize: 10, color: '#1a1a1a', borderBottom: '1px solid #f0f0f0' }}>
-            <span style={{ width: 18, flexShrink: 0, color: '#888' }}>{idx + 1}</span>
-            <span className={styles.tColDesc}>{item.name}</span>
-            <span className={styles.tColNum}>{fmt(currency, item.price)}</span>
-          </div>
-        ))
-      ) : (
-        <div className={styles.tRowMain}>
-          <div style={{ width: 18, flexShrink: 0, color: '#888', fontSize: 10 }}>1</div>
-          <div className={styles.tColDesc}>{receipt.orderDesc || 'Garment Order'}</div>
-          <div className={styles.tColNum}>{fmt(currency, orderTotal)}</div>
-        </div>
-      )}
-      <div className={styles.summary} style={{ width: '100%', marginLeft: 0 }}>
-        <div className={styles.sumRow}><span>Order Value</span><span>{fmt(currency, orderTotal)}</span></div>
+      <div className={styles.tRowMain}>
+        <div className={styles.tColDesc}>{invoice.orderDesc || 'Garment Order'}</div>
+        <div className={styles.tColNum}>{fmt(currency, subtotal)}</div>
       </div>
-      {/* Payment History — before totals */}
-      {(receipt.payments || []).length > 0 && (
-        <div style={{ marginTop: 14 }}>
-          <div style={{ fontWeight: 900, fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 6, color: '#444', borderTop: '1px solid #eee', paddingTop: 10 }}>
-            Payment History
-          </div>
-          <div className={styles.tHead}>
-            <span style={{ width: 18, flexShrink: 0 }}>S/N</span>
-            <span className={styles.tColDesc}>Payment Date</span>
-            <span className={styles.tColNum}>Amount</span>
-          </div>
-          {hasPrevious && (receipt.previousInstallments || []).map((p, idx) => (
-            <div key={`prev-${idx}`} className={styles.tRowSub}>
-              <span style={{ width: 18, flexShrink: 0, color: '#888' }}>{idx + 1}</span>
-              <span className={styles.tColDesc} style={{ color: '#6b7280' }}>
-                {p.date}{p.method ? ` · ${p.method.charAt(0).toUpperCase() + p.method.slice(1)}` : ''}
-              </span>
-              <span className={styles.tColNum} style={{ color: '#6b7280', fontWeight: 600 }}>{fmt(currency, p.amount)}</span>
+      {invoice.items?.length > 0 && (
+        <div className={styles.itemizedSection}>
+          <div className={styles.itemizedLabel}>Garments Included:</div>
+          {invoice.items.map((item, idx) => (
+            <div key={idx} className={styles.tRowSub}>
+              <span className={styles.tColDesc}>• {item.name}</span>
+              <span className={styles.tColNum}>{fmt(currency, item.price)}</span>
             </div>
           ))}
-          {hasPrevious && !receipt.previousInstallments?.length && previousPaid > 0 && (
-            <div className={styles.tRowSub}>
-              <span style={{ width: 18, flexShrink: 0, color: '#888' }}>1</span>
-              <span className={styles.tColDesc} style={{ color: '#6b7280' }}>Prior payments</span>
-              <span className={styles.tColNum} style={{ color: '#6b7280', fontWeight: 600 }}>{fmt(currency, previousPaid)}</span>
-            </div>
-          )}
-          {(receipt.payments || []).map((p, idx) => {
-            const offset = hasPrevious ? ((receipt.previousInstallments?.length || 0) || (previousPaid > 0 ? 1 : 0)) : 0
-            return (
-              <div key={`pay-${idx}`} className={styles.tRowSub}>
-                <span style={{ width: 18, flexShrink: 0, color: '#16a34a', fontWeight: 700 }}>{offset + idx + 1}</span>
-                <span className={styles.tColDesc} style={{ color: '#16a34a', fontWeight: 700 }}>
-                  {p.date}
-                  {p.method ? ` · ${p.method.charAt(0).toUpperCase() + p.method.slice(1)}` : ''}
-                </span>
-                <span className={styles.tColNum} style={{ color: '#16a34a', fontWeight: 700 }}>{fmt(currency, p.amount)}</span>
-              </div>
-            )
-          })}
-          <div className={styles.summary} style={{ width: '100%', marginLeft: 0, marginTop: 10 }}>
-            {showTax && taxRate > 0 && (
-              <div className={styles.sumRow}><span>Tax ({taxRate}%)</span><span>{fmt(currency, tax)}</span></div>
-            )}
-            <div className={styles.sumRow}><span>Total Paid</span><span style={{ color: '#16a34a', fontWeight: 700 }}>{fmt(currency, thisPaymentTotal)}</span></div>
-            {!isFullPayment && (
-              <div className={styles.sumRow}><span>Balance Remaining</span><span style={{ color: '#ef4444', fontWeight: 700 }}>{fmt(currency, balanceRemaining)}</span></div>
-            )}
-            <div className={`${styles.sumRow} ${styles.sumTotal}`}>
-              <span>{isFullPayment ? 'PAID IN FULL' : 'AMOUNT RECEIVED'}</span>
-              <span style={{ color: isFullPayment ? '#16a34a' : '#1a1a1a' }}>{fmt(currency, thisPaymentTotal)}</span>
-            </div>
-          </div>
         </div>
       )}
-      {!(receipt.payments || []).length && (
-        <div className={styles.summary} style={{ width: '100%', marginLeft: 0, marginTop: 10 }}>
-          {showTax && taxRate > 0 && (
-            <div className={styles.sumRow}><span>Tax ({taxRate}%)</span><span>{fmt(currency, tax)}</span></div>
-          )}
-          {!isFullPayment && (
-            <div className={styles.sumRow}><span>Balance Remaining</span><span style={{ color: '#ef4444', fontWeight: 700 }}>{fmt(currency, balanceRemaining)}</span></div>
-          )}
-          <div className={`${styles.sumRow} ${styles.sumTotal}`}>
-            <span>{isFullPayment ? 'PAID IN FULL' : 'AMOUNT RECEIVED'}</span>
-            <span style={{ color: isFullPayment ? '#16a34a' : '#1a1a1a' }}>{fmt(currency, thisPaymentTotal)}</span>
-          </div>
+      <div className={styles.summary}>
+        <div className={styles.sumRow}><span>Subtotal</span><span>{fmt(currency, subtotal)}</span></div>
+        {showTax && taxRate > 0 && (
+          <div className={styles.sumRow}><span>Tax ({taxRate}%)</span><span>{fmt(currency, tax)}</span></div>
+        )}
+        <div className={`${styles.sumRow} ${styles.sumTotal}`}>
+          <span>Total Due</span><span>{fmt(currency, total)}</span>
         </div>
-      )}
+      </div>
     </div>
   )
 }
 
 // ─────────────────────────────────────────────────────────────
-// RECEIPT TEMPLATES
+// TEMPLATES
 // ─────────────────────────────────────────────────────────────
 
-// ── 1. Centred Line Receipt (editable) ────────────────────────
-function EditableTemplate({ receipt, customer, brand }) {
+// ── 1. Centred Line Invoice (editable) ────────────────────────
+function EditableTemplate({ invoice, customer, brand }) {
+  const dueDate   = getDueDate(invoice, brand.dueDays)
   const lineColor = brand.colour || '#c8a96e'
   return (
     <div className={styles.tplBase}>
@@ -443,26 +428,35 @@ function EditableTemplate({ receipt, customer, brand }) {
         {brand.address && <div className={styles.editAddr}>{brand.address}</div>}
         <div className={styles.editTitleRow}>
           <div className={styles.editTitleLine} style={{ background: lineColor }} />
-          <div className={styles.editTitle}>RECEIPT</div>
+          <div className={styles.editTitle}>INVOICE</div>
           <div className={styles.editTitleLine} style={{ background: lineColor }} />
         </div>
       </div>
       <div className={styles.metaRow}>
         <div>
-          <div className={styles.metaLabel}>RECEIVED FROM</div>
+          <div className={styles.metaLabel}>BILL TO</div>
           <div className={styles.metaVal}>{customer.name}</div>
-          {customer.phone && <div className={styles.metaSub}>{customer.phone}</div>}
+          {customer.phone   && <div className={styles.metaSub}>{customer.phone}</div>}
+          {customer.address && <div className={styles.metaSub}>{customer.address}</div>}
         </div>
         <div style={{ textAlign: 'right' }}>
-          <div className={styles.metaLabel}>RECEIPT #</div>
-          <div className={styles.metaVal}>{receipt.number}</div>
-          <div className={styles.metaSub}>{receipt.date}</div>
+          <div className={styles.metaLabel}>INVOICE #</div>
+          <div className={styles.metaVal}>{invoice.number}</div>
+          <div className={styles.metaSub}>Issue: {invoice.date}</div>
+          <div className={styles.metaSub}>Due: {dueDate}</div>
         </div>
       </div>
-      <ReceiptPaymentSummary receipt={receipt} brand={brand} />
+      <ItemsTable invoice={invoice} brand={brand} />
       <div className={styles.tplFooterPush} />
-      {(brand.phone || brand.email || brand.footer) && (
+      {(brand.accountBank || brand.phone || brand.email || brand.footer) && (
         <div className={styles.editFooter}>
+          {brand.accountBank && (
+            <div className={styles.footSection}>
+              <strong>Payment Terms:</strong><br />
+              {brand.accountBank}{brand.accountName ? ` — ${brand.accountName}` : ''}<br />
+              {brand.accountNumber && `Account: ${brand.accountNumber}`}
+            </div>
+          )}
           {(brand.phone || brand.email || brand.footer) && (
             <div className={styles.footSection}>
               <strong>Notes:</strong><br />
@@ -478,179 +472,160 @@ function EditableTemplate({ receipt, customer, brand }) {
 }
 
 // ── 2. Three-Column Info Bar (free) ───────────────────────────
-function FreeTemplate({ receipt, customer, brand }) {
+function FreeTemplate({ invoice, customer, brand }) {
+  const dueDate = getDueDate(invoice, brand.dueDays)
   return (
     <div className={styles.tplBase}>
       <div className={styles.freeHeader}>
-        <div>
-          <div className={styles.printTitle}>RECEIPT</div>
-          <div className={styles.freeNum}>{receipt.number}</div>
-        </div>
+        <div><div className={styles.printTitle}>INVOICE</div><div className={styles.freeNum}>{invoice.number}</div></div>
         <div className={styles.freeLogoBox}><LogoOrName brand={brand} /></div>
       </div>
       <div className={styles.freeGrid}>
         <div className={styles.freeBox}>
-          <strong>FROM</strong><br />
+          <strong>BILL FROM</strong><br />
           {brand.name}<br />
           {brand.address && <span>{brand.address}<br /></span>}
           {brand.phone}
         </div>
-        <div className={styles.freeBox}><strong>RECEIVED FROM</strong><br />{customer.name}<br />{customer.phone}</div>
-        <div className={styles.freeBox}><strong>DATE</strong><br />{receipt.date}</div>
+        <div className={styles.freeBox}><strong>BILL TO</strong><br />{customer.name}<br />{customer.phone}</div>
+        <div className={styles.freeBox}><strong>DETAILS</strong><br />Date: {invoice.date}<br />Due: {dueDate}</div>
       </div>
-      <ReceiptPaymentSummary receipt={receipt} brand={brand} />
+      <ItemsTable invoice={invoice} brand={brand} />
       <div className={styles.tplFooterPush} />
+      {brand.accountBank && (
+        <div className={styles.freePayInfo}>
+          <strong>Payment Information:</strong>{' '}
+          {brand.accountBank}{brand.accountName ? ` — ${brand.accountName}` : ''}{brand.accountNumber ? `, Account: ${brand.accountNumber}` : ''}
+        </div>
+      )}
       <div className={styles.freeFooterCentered}>{brand.footer || 'Thank you!'}</div>
     </div>
   )
 }
 
 // ── 3. Full-Bleed Banner (custom) ─────────────────────────────
-function CustomTemplate({ receipt, customer, brand }) {
+function CustomTemplate({ invoice, customer, brand }) {
   const bannerBg = brand.colour || '#7c3aed'
+  const dueDate  = getDueDate(invoice, brand.dueDays)
   return (
     <div className={styles.tplBase} style={{ padding: 0 }}>
       <div className={styles.customBanner} style={{ background: bannerBg }}>
         <div className={styles.customBannerLogo}><LogoOrName brand={brand} darkBg /></div>
         <div className={styles.customBannerRight}>
-          <div className={styles.customBannerTitle}>RECEIPT</div>
-          <div className={styles.customBannerNum}>{receipt.number}</div>
+          <div className={styles.customBannerTitle}>INVOICE</div>
+          <div className={styles.customBannerNum}>{invoice.number}</div>
         </div>
       </div>
       <div className={styles.customBody}>
         <div className={styles.metaRow} style={{ marginBottom: 16 }}>
           <div>
-            <div className={styles.metaLabel}>FROM</div>
+            <div className={styles.metaLabel}>BILL FROM</div>
             <div className={styles.metaVal}>{brand.name}</div>
             {brand.address && <div className={styles.metaSub}>{brand.address}</div>}
             {brand.phone   && <div className={styles.metaSub}>{brand.phone}</div>}
           </div>
           <div>
-            <div className={styles.metaLabel}>RECEIVED FROM</div>
+            <div className={styles.metaLabel}>BILL TO</div>
             <div className={styles.metaVal}>{customer.name}</div>
             {customer.phone && <div className={styles.metaSub}>{customer.phone}</div>}
           </div>
           <div style={{ textAlign: 'right' }}>
             <div className={styles.metaLabel}>DATE</div>
-            <div className={styles.metaSub}>{receipt.date}</div>
+            <div className={styles.metaSub}>{invoice.date}</div>
+            <div className={styles.metaLabel} style={{ marginTop: 4 }}>DUE</div>
+            <div className={styles.metaSub}>{dueDate}</div>
           </div>
         </div>
-        <ReceiptPaymentSummary receipt={receipt} brand={brand} />
+        <ItemsTable invoice={invoice} brand={brand} />
+        {brand.accountBank && (
+          <div className={styles.customPayRow}>
+            <strong>Payment Terms:</strong>{' '}
+            {brand.accountBank}{brand.accountName ? ` — ${brand.accountName}` : ''}{brand.accountNumber ? `, Account: ${brand.accountNumber}` : ''}
+          </div>
+        )}
       </div>
       <div className={styles.customFooter}>
-        <div className={styles.customFooterText} style={{ color: bannerBg }}>
-          {brand.footer || 'Thank you for your payment'}
-        </div>
+        <div className={styles.customFooterText} style={{ color: bannerBg }}>{brand.footer || 'Thank you for your patronage'}</div>
       </div>
     </div>
   )
 }
 
 // ── 4. Side-by-Side Classic (printable) ───────────────────────
-function PrintableTemplate({ receipt, customer, brand }) {
+function PrintableTemplate({ invoice, customer, brand }) {
+  const dueDate  = getDueDate(invoice, brand.dueDays)
   const barColor = brand.colour || '#c8a96e'
-  const { currency } = brand
-  const orderTotal       = receipt.items?.reduce((s, i) => s + (parseFloat(i.price) || 0), 0) ?? (parseFloat(receipt.orderPrice) || 0)
-  const cumulativePaid   = resolveCumulativePaid(receipt)
-  const thisPaymentTotal = (receipt.payments || []).reduce((s, p) => s + (parseFloat(p.amount) || 0), 0)
-  const balanceRemaining = Math.max(0, orderTotal - cumulativePaid)
-  const isFullPayment    = balanceRemaining <= 0
+  const { currency, showTax, taxRate } = brand
+  const subtotal = invoice.items?.reduce((s, i) => s + (parseFloat(i.price) || 0), 0) ?? 0
+  const tax      = calcTax(subtotal, taxRate, showTax)
+  const total    = subtotal + tax
 
   return (
     <div className={styles.tplBase}>
       <div className={styles.printBar} style={{ background: barColor }} />
       <div className={styles.printHeaderSplit}>
-        <div className={styles.printTitle}>RECEIPT</div>
+        <div className={styles.printTitle}>INVOICE</div>
         <div style={{ textAlign: 'right', fontSize: 9 }}>
-          <div>DATE: <strong>{receipt.date}</strong></div>
-          <div>RECEIPT #: <strong>{receipt.number}</strong></div>
+          <div>ISSUE DATE: <strong>{invoice.date}</strong></div>
+          <div>DUE DATE: <strong>{dueDate}</strong></div>
+          <div>INVOICE #: <strong>{invoice.number}</strong></div>
         </div>
       </div>
-      <div className={styles.metaRow} style={{ borderBottom: '1px solid #eee', paddingBottom: 10, marginBottom: 16 }}>
+      <div className={styles.metaRow}>
         <div>
-          <div className={styles.metaLabel}>FROM</div>
-          <div className={styles.metaVal}>{brand.name || brand.ownerName}</div>
+          <div className={styles.metaLabel}>BILL FROM</div>
+          <div className={styles.metaVal}>{brand.name}</div>
           {brand.address && <div className={styles.metaSub}>{brand.address}</div>}
           {brand.phone   && <div className={styles.metaSub}>{brand.phone}</div>}
         </div>
         <div style={{ textAlign: 'right' }}>
-          <div className={styles.metaLabel}>RECEIVED FROM</div>
+          <div className={styles.metaLabel}>BILL TO</div>
           <div className={styles.metaVal}>{customer.name}</div>
-          {customer.phone && <div className={styles.metaSub}>{customer.phone}</div>}
+          {customer.phone   && <div className={styles.metaSub}>{customer.phone}</div>}
+          {customer.address && <div className={styles.metaSub}>{customer.address}</div>}
         </div>
       </div>
-      {/* Template 4 unique table with divider-separated rows */}
+      {/* Template 4 unique table: divider-separated rows with gold divider bar */}
       <div className={styles.p4TableArea}>
-        <div style={{ fontWeight: 800, fontSize: 8, textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 4px', color: '#555' }}>Order Details</div>
         <div className={styles.p4TableHead} style={{ borderColor: barColor }}>
-          <span style={{ flex: 0.5 }}>S/N</span>
           <span style={{ flex: 3 }}>Description</span>
-          <span>Amount</span>
+          <span>Price</span>
+          <span>QTY</span>
+          <span>Total</span>
         </div>
-        {receipt.items?.map((item, i) => (
+        {invoice.items?.map((item, i) => (
           <div key={i} className={styles.p4TableRow}>
-            <span style={{ flex: 0.5 }}>{i + 1}</span>
             <span style={{ flex: 3 }}>{item.name}</span>
+            <span>{fmt(currency, item.price)}</span>
+            <span>1</span>
             <span>{fmt(currency, item.price)}</span>
           </div>
         ))}
-        {!receipt.items?.length && (
-          <div className={styles.p4TableRow}>
-            <span style={{ flex: 0.5 }}>1</span>
-            <span style={{ flex: 3 }}>{receipt.orderDesc || 'Garment Order'}</span>
-            <span>{fmt(currency, orderTotal)}</span>
-          </div>
-        )}
         <div className={styles.p4TotalsArea}>
-          <div className={styles.p4TotRow}><span>Order Value</span><span>{fmt(currency, orderTotal)}</span></div>
+          <div className={styles.p4TotRow}><span>Subtotal</span><span>{fmt(currency, subtotal)}</span></div>
+          {showTax && taxRate > 0 && <div className={styles.p4TotRow}><span>Tax ({taxRate}%)</span><span>{fmt(currency, tax)}</span></div>}
+          <div className={styles.p4TotDivider} style={{ background: barColor }} />
+          <div className={styles.p4TotBold}><span>Total Due</span><span>{fmt(currency, total)}</span></div>
         </div>
       </div>
-      {/* Payment History — before totals, styled with template 4's border style */}
-      {(receipt.payments || []).length > 0 && (
-        <div style={{ marginTop: 12 }}>
-          <div style={{ fontWeight: 800, fontSize: 8, textTransform: 'uppercase', letterSpacing: '0.06em', margin: '6px 0 4px', color: '#555' }}>Payment History</div>
-          <div className={styles.p4TableHead} style={{ borderColor: barColor }}>
-            <span style={{ flex: 0.5 }}>S/N</span>
-            <span style={{ flex: 3 }}>Payment Date</span>
-            <span>Amount</span>
-          </div>
-          {(receipt.payments || []).map((p, idx) => (
-            <div key={`pay-${idx}`} className={styles.p4TableRow} style={{ color: '#16a34a' }}>
-              <span style={{ flex: 0.5 }}>{idx + 1}</span>
-              <span style={{ flex: 3 }}>
-                {p.date}
-                {p.method ? ` · ${p.method.charAt(0).toUpperCase() + p.method.slice(1)}` : ''}
-              </span>
-              <span style={{ fontWeight: 700 }}>{fmt(currency, p.amount)}</span>
-            </div>
-          ))}
-          <div className={styles.p4TotalsArea}>
-            <div className={styles.p4TotRow}><span>Total Paid</span><span style={{ color: '#16a34a', fontWeight: 700 }}>{fmt(currency, thisPaymentTotal)}</span></div>
-            {!isFullPayment && <div className={styles.p4TotRow} style={{ color: '#ef4444' }}><span>Balance Remaining</span><span style={{ fontWeight: 700 }}>{fmt(currency, balanceRemaining)}</span></div>}
-            <div className={styles.p4TotDivider} style={{ background: barColor }} />
-            <div className={styles.p4TotBold}>
-              <span>{isFullPayment ? 'PAID IN FULL' : 'AMOUNT RECEIVED'}</span>
-              <span style={{ color: isFullPayment ? '#16a34a' : '#1a1a1a' }}>{fmt(currency, thisPaymentTotal)}</span>
-            </div>
-          </div>
-        </div>
-      )}
-      {!(receipt.payments || []).length && (
-        <div className={styles.p4TableArea}>
-          <div className={styles.p4TotalsArea}>
-            {!isFullPayment && <div className={styles.p4TotRow} style={{ color: '#ef4444' }}><span>Balance Remaining</span><span style={{ fontWeight: 700 }}>{fmt(currency, balanceRemaining)}</span></div>}
-            <div className={styles.p4TotDivider} style={{ background: barColor }} />
-            <div className={styles.p4TotBold}>
-              <span>{isFullPayment ? 'PAID IN FULL' : 'AMOUNT RECEIVED'}</span>
-              <span style={{ color: isFullPayment ? '#16a34a' : '#1a1a1a' }}>{fmt(currency, thisPaymentTotal)}</span>
-            </div>
-          </div>
-        </div>
-      )}
       <div className={styles.tplFooterPush} />
-      {brand.footer && (
+      {brand.accountBank && (
+        <div className={styles.p4FooterWrap}>
+          <div className={styles.footSection}>
+            <strong>Payment Terms:</strong><br />
+            {brand.accountBank}{brand.accountName ? ` — ${brand.accountName}` : ''}<br />
+            {brand.accountNumber && `Account No: ${brand.accountNumber}`}
+          </div>
+          {brand.footer && (
+            <div className={styles.footSection}>
+              <strong>Notes:</strong><br />{brand.footer}
+            </div>
+          )}
+        </div>
+      )}
+      {!brand.accountBank && (
         <div className={styles.printFooterCentered}>
-          <div className={styles.footSection}>{brand.footer}</div>
+          {brand.footer && <div className={styles.footSection}>{brand.footer}</div>}
         </div>
       )}
     </div>
@@ -658,99 +633,59 @@ function PrintableTemplate({ receipt, customer, brand }) {
 }
 
 // ── 5. Soft Divider Layout (canva) ────────────────────────────
-function CanvaTemplate({ receipt, customer, brand }) {
-  const { currency } = brand
-  const orderTotal       = receipt.items?.reduce((s, i) => s + (parseFloat(i.price) || 0), 0) ?? (parseFloat(receipt.orderPrice) || 0)
-  const cumulativePaid   = resolveCumulativePaid(receipt)
-  const thisPaymentTotal = (receipt.payments || []).reduce((s, p) => s + (parseFloat(p.amount) || 0), 0)
-  const balanceRemaining = Math.max(0, orderTotal - cumulativePaid)
-  const isFullPayment    = balanceRemaining <= 0
+function CanvaTemplate({ invoice, customer, brand }) {
+  const dueDate = getDueDate(invoice, brand.dueDays)
+  const { currency, showTax, taxRate } = brand
+  const subtotal = invoice.items?.reduce((s, i) => s + (parseFloat(i.price) || 0), 0) ?? 0
+  const tax      = calcTax(subtotal, taxRate, showTax)
+  const total    = subtotal + tax
 
   return (
     <div className={styles.t5Wrap}>
       <div className={styles.t5Top}>
-        <div className={styles.t5Title}>Receipt</div>
+        <div className={styles.t5Title}>Invoice</div>
         <div className={styles.t5TopRight}>
-          <div>{receipt.date}</div>
-          <div><strong>Receipt No. {receipt.number}</strong></div>
+          <div>{invoice.date}</div>
+          <div><strong>Invoice No. {invoice.number}</strong></div>
         </div>
       </div>
       <div className={styles.t5Divider} />
       <div className={styles.t5BilledTo}>
-        <div className={styles.t5BilledLabel}>Received from:</div>
+        <div className={styles.t5BilledLabel}>Billed to:</div>
         <div><strong>{customer.name}</strong></div>
         {customer.phone   && <div>{customer.phone}</div>}
         {customer.address && <div>{customer.address}</div>}
       </div>
       <div className={styles.t5Divider} />
-      {/* Template 5 unique table: divider-separated rows on beige */}
-      <div style={{ fontWeight: 800, fontSize: 8, textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 3px', color: '#5a4f3c' }}>Order Details</div>
+      {/* Template 5 unique table: divider-separated rows on beige bg */}
       <div className={styles.t5TableHead}>
-        <span style={{ flex: 0.5 }}>S/N</span>
-        <span style={{ flex: 3 }}>Description</span><span>Amount</span>
+        <span style={{ flex: 3 }}>Description</span><span>Price</span><span>Qty</span><span>Total</span>
       </div>
-      {receipt.items?.map((item, i) => (
+      {invoice.items?.map((item, i) => (
         <div key={i} className={styles.t5TableRow}>
-          <span style={{ flex: 0.5 }}>{i + 1}</span>
           <span style={{ flex: 3 }}>{item.name}</span>
+          <span>{fmt(currency, item.price)}</span>
+          <span>1</span>
           <span>{fmt(currency, item.price)}</span>
         </div>
       ))}
-      {!receipt.items?.length && (
-        <div className={styles.t5TableRow}>
-          <span style={{ flex: 0.5 }}>1</span>
-          <span style={{ flex: 3 }}>{receipt.orderDesc || 'Garment Order'}</span>
-          <span>{fmt(currency, orderTotal)}</span>
-        </div>
-      )}
       <div className={styles.t5Divider} />
       <div className={styles.t5TotalsSection}>
-        <div className={styles.t5TotRow}><span>Order Value</span><span>{fmt(currency, orderTotal)}</span></div>
+        <div className={styles.t5TotRow}><span>Subtotal</span><span>{fmt(currency, subtotal)}</span></div>
+        {showTax && taxRate > 0 && <div className={styles.t5TotRow}><span>Tax ({taxRate}%)</span><span>{fmt(currency, tax)}</span></div>}
+        <div className={`${styles.t5TotRow} ${styles.t5TotBold}`}><span>Total</span><span>{fmt(currency, total)}</span></div>
       </div>
-      {/* Payment History — before totals, styled with template 5's divider style */}
-      {(receipt.payments || []).length > 0 && (
-        <>
-          <div className={styles.t5Divider} />
-          <div style={{ fontWeight: 800, fontSize: 8, textTransform: 'uppercase', letterSpacing: '0.06em', margin: '4px 0', color: '#5a4f3c' }}>Payment History</div>
-          <div className={styles.t5TableHead}>
-            <span style={{ flex: 0.5 }}>S/N</span>
-            <span style={{ flex: 3 }}>Payment Date</span><span>Amount</span>
-          </div>
-          {(receipt.payments || []).map((p, idx) => (
-            <div key={`pay-${idx}`} className={styles.t5TableRow} style={{ color: '#16a34a', fontWeight: 600 }}>
-              <span style={{ flex: 0.5 }}>{idx + 1}</span>
-              <span style={{ flex: 3 }}>
-                {p.date}
-                {p.method ? ` · ${p.method.charAt(0).toUpperCase() + p.method.slice(1)}` : ''}
-              </span>
-              <span>{fmt(currency, p.amount)}</span>
-            </div>
-          ))}
-          <div className={styles.t5Divider} />
-          <div className={styles.t5TotalsSection}>
-            <div className={styles.t5TotRow}><span>Total Paid</span><span style={{ color: '#16a34a', fontWeight: 700 }}>{fmt(currency, thisPaymentTotal)}</span></div>
-            {!isFullPayment && <div className={styles.t5TotRow} style={{ color: '#ef4444' }}><span>Balance Remaining</span><span style={{ fontWeight: 700 }}>{fmt(currency, balanceRemaining)}</span></div>}
-            <div className={`${styles.t5TotRow} ${styles.t5TotBold}`}>
-              <span>{isFullPayment ? 'PAID IN FULL' : 'AMOUNT RECEIVED'}</span>
-              <span style={{ color: isFullPayment ? '#16a34a' : '#1a1a1a' }}>{fmt(currency, thisPaymentTotal)}</span>
-            </div>
-          </div>
-        </>
-      )}
-      {!(receipt.payments || []).length && (
-        <>
-          <div className={styles.t5TotalsSection}>
-            {!isFullPayment && <div className={styles.t5TotRow} style={{ color: '#ef4444' }}><span>Balance Remaining</span><span style={{ fontWeight: 700 }}>{fmt(currency, balanceRemaining)}</span></div>}
-            <div className={`${styles.t5TotRow} ${styles.t5TotBold}`}>
-              <span>{isFullPayment ? 'PAID IN FULL' : 'AMOUNT RECEIVED'}</span>
-              <span style={{ color: isFullPayment ? '#16a34a' : '#1a1a1a' }}>{fmt(currency, thisPaymentTotal)}</span>
-            </div>
-          </div>
-        </>
-      )}
       <div className={styles.t5Divider} />
       <div className={styles.t5Footer}>
-        <div />
+        {brand.accountBank ? (
+          <div>
+            <div className={styles.t5FootLabel}>Payment Information</div>
+            <div>{brand.name || brand.ownerName}</div>
+            {brand.accountBank   && <div>Bank: {brand.accountBank}</div>}
+            {brand.accountNumber && <div>Account No: {brand.accountNumber}</div>}
+            {brand.accountName   && <div>Name: {brand.accountName}</div>}
+          </div>
+        ) : <div />}
         <div style={{ textAlign: 'right' }}>
           <div><strong>{brand.name || brand.ownerName}</strong></div>
           {brand.address && <div>{brand.address}</div>}
@@ -764,13 +699,12 @@ function CanvaTemplate({ receipt, customer, brand }) {
 }
 
 // ── 6. Heavy Header Bar (darkheader) ─────────────────────────
-function DarkHeaderTemplate({ receipt, customer, brand }) {
-  const { currency } = brand
-  const orderTotal       = receipt.items?.reduce((s, i) => s + (parseFloat(i.price) || 0), 0) ?? (parseFloat(receipt.orderPrice) || 0)
-  const cumulativePaid   = resolveCumulativePaid(receipt)
-  const thisPaymentTotal = (receipt.payments || []).reduce((s, p) => s + (parseFloat(p.amount) || 0), 0)
-  const balanceRemaining = Math.max(0, orderTotal - cumulativePaid)
-  const isFullPayment    = balanceRemaining <= 0
+function DarkHeaderTemplate({ invoice, customer, brand }) {
+  const dueDate = getDueDate(invoice, brand.dueDays)
+  const { currency, showTax, taxRate } = brand
+  const subtotal = invoice.items?.reduce((s, i) => s + (parseFloat(i.price) || 0), 0) ?? 0
+  const tax      = calcTax(subtotal, taxRate, showTax)
+  const total    = subtotal + tax
 
   return (
     <div className={styles.t6Wrap}>
@@ -791,108 +725,73 @@ function DarkHeaderTemplate({ receipt, customer, brand }) {
           {brand.address && <div>{brand.address}</div>}
         </div>
         <div className={styles.t6HeaderRight}>
-          {brand.phone   && <div>{brand.phone}</div>}
-          {brand.email   && <div>{brand.email}</div>}
+          {brand.phone && <div>{brand.phone}</div>}
+          {brand.email && <div>{brand.email}</div>}
           {brand.website && <div>{brand.website}</div>}
         </div>
       </div>
       <div className={styles.t6InvoiceRow}>
         <div className={styles.t6InvoiceLeft}>
-          <span className={styles.t6InvoiceWord}>RECEIPT </span>
-          <span className={styles.t6InvoiceNum}>#{receipt.number}</span>
+          <span className={styles.t6InvoiceWord}>INVOICE </span>
+          <span className={styles.t6InvoiceNum}>#{invoice.number}</span>
         </div>
         <div className={styles.t6InvoiceRight}>
-          <div><span className={styles.t6Label}>DATE:</span> {receipt.date}</div>
+          <div><span className={styles.t6Label}>DATE:</span> {invoice.date}</div>
+          <div><span className={styles.t6Label}>DUE:</span> {dueDate}</div>
         </div>
       </div>
       <div className={styles.t6InfoRow}>
+        {brand.accountBank && (
+          <div>
+            <div className={styles.t6InfoLabel}>PAYMENT:</div>
+            <strong>{brand.accountBank}</strong><br />
+            {brand.accountName && <span>{brand.accountName}<br /></span>}
+            {brand.accountNumber && <span>Acct: {brand.accountNumber}</span>}
+          </div>
+        )}
         <div>
-          <div className={styles.t6InfoLabel}>FROM:</div>
+          <div className={styles.t6InfoLabel}>BILL FROM:</div>
           {brand.name || brand.ownerName}<br />
           {brand.address}
         </div>
         <div>
-          <div className={styles.t6InfoLabel}>RECEIVED FROM:</div>
+          <div className={styles.t6InfoLabel}>BILL TO:</div>
           {customer.name}<br />
           {customer.phone}<br />
           {customer.address}
         </div>
       </div>
-      {/* Template 6 unique table with dark header */}
-      <div style={{ fontWeight: 800, fontSize: 7, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '4px 16px 3px', color: '#555' }}>Order Details</div>
+      {/* Template 6 unique table: dark header row, plain rows */}
       <div className={styles.t6TableHead}>
-        <span style={{ flex: 0.5 }}>S/N</span>
-        <span style={{ flex: 3 }}>DESCRIPTION</span><span>AMOUNT</span>
+        <span style={{ flex: 3 }}>DESCRIPTION</span><span>PRICE</span><span>QTY</span><span>TOTAL</span>
       </div>
-      {receipt.items?.map((item, i) => (
+      {invoice.items?.map((item, i) => (
         <div key={i} className={styles.t6TableRow}>
-          <span style={{ flex: 0.5 }}>{i + 1}</span>
           <span style={{ flex: 3 }}>{item.name}</span>
+          <span>{fmt(currency, item.price)}</span>
+          <span>1</span>
           <span>{fmt(currency, item.price)}</span>
         </div>
       ))}
-      {!receipt.items?.length && (
-        <div className={styles.t6TableRow}>
-          <span style={{ flex: 0.5 }}>1</span>
-          <span style={{ flex: 3 }}>{receipt.orderDesc || 'Garment Order'}</span>
-          <span>{fmt(currency, orderTotal)}</span>
-        </div>
-      )}
       <div className={styles.t6TotalsArea}>
-        <div className={styles.t6TotRow}><span>ORDER VALUE</span><span>{fmt(currency, orderTotal)}</span></div>
+        <div className={styles.t6TotRow}><span>SUBTOTAL</span><span>{fmt(currency, subtotal)}</span></div>
+        {showTax && taxRate > 0 && <div className={styles.t6TotRow}><span>TAX ({taxRate}%)</span><span>{fmt(currency, tax)}</span></div>}
+        <div className={styles.t6TotTotal}><span>TOTAL</span><span>{fmt(currency, total)}</span></div>
       </div>
-      {/* Payment History — before totals, styled with template 6's dark header style */}
-      {(receipt.payments || []).length > 0 && (
-        <div style={{ marginTop: 10 }}>
-          <div style={{ fontWeight: 800, fontSize: 7, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '4px 16px 4px', color: '#555' }}>Payment History</div>
-          <div className={styles.t6TableHead}>
-            <span style={{ flex: 0.5 }}>S/N</span>
-            <span style={{ flex: 3 }}>PAYMENT DATE</span><span>AMOUNT</span>
-          </div>
-          {(receipt.payments || []).map((p, idx) => (
-            <div key={`pay-${idx}`} className={styles.t6TableRow} style={{ color: '#16a34a', fontWeight: 700 }}>
-              <span style={{ flex: 0.5 }}>{idx + 1}</span>
-              <span style={{ flex: 3 }}>
-                {p.date}
-                {p.method ? ` · ${p.method.charAt(0).toUpperCase() + p.method.slice(1)}` : ''}
-              </span>
-              <span>{fmt(currency, p.amount)}</span>
-            </div>
-          ))}
-          <div className={styles.t6TotalsArea}>
-            <div className={styles.t6TotRow}><span>TOTAL PAID</span><span style={{ color: '#16a34a', fontWeight: 700 }}>{fmt(currency, thisPaymentTotal)}</span></div>
-            {!isFullPayment && <div className={styles.t6TotRow} style={{ color: '#ef4444' }}><span>BALANCE</span><span style={{ fontWeight: 700 }}>{fmt(currency, balanceRemaining)}</span></div>}
-            <div className={styles.t6TotTotal}>
-              <span>{isFullPayment ? 'PAID IN FULL' : 'RECEIVED'}</span>
-              <span style={{ color: isFullPayment ? '#16a34a' : '#1a1a1a' }}>{fmt(currency, thisPaymentTotal)}</span>
-            </div>
-          </div>
-        </div>
-      )}
-      {!(receipt.payments || []).length && (
-        <div className={styles.t6TotalsArea}>
-          {!isFullPayment && <div className={styles.t6TotRow} style={{ color: '#ef4444' }}><span>BALANCE</span><span style={{ fontWeight: 700 }}>{fmt(currency, balanceRemaining)}</span></div>}
-          <div className={styles.t6TotTotal}>
-            <span>{isFullPayment ? 'PAID IN FULL' : 'RECEIVED'}</span>
-            <span style={{ color: isFullPayment ? '#16a34a' : '#1a1a1a' }}>{fmt(currency, thisPaymentTotal)}</span>
-          </div>
-        </div>
-      )}
-      <div className={styles.t6ThankYou}>{brand.footer || 'THANK YOU FOR YOUR PAYMENT'}</div>
+      <div className={styles.t6ThankYou}>{brand.footer || 'THANK YOU FOR YOUR BUSINESS'}</div>
     </div>
   )
 }
 
 // ── 7. Field-Labelled From / To (redbold) ─────────────────────
-// Unique table: numbered rows, red total bar
-function RedBoldTemplate({ receipt, customer, brand }) {
+// Unique table: numbered rows with red total price
+function RedBoldTemplate({ invoice, customer, brand }) {
+  const dueDate = getDueDate(invoice, brand.dueDays)
   const accentColor = brand.colour || '#cc0000'
-  const { currency } = brand
-  const orderTotal       = receipt.items?.reduce((s, i) => s + (parseFloat(i.price) || 0), 0) ?? (parseFloat(receipt.orderPrice) || 0)
-  const cumulativePaid   = resolveCumulativePaid(receipt)
-  const thisPaymentTotal = (receipt.payments || []).reduce((s, p) => s + (parseFloat(p.amount) || 0), 0)
-  const balanceRemaining = Math.max(0, orderTotal - cumulativePaid)
-  const isFullPayment    = balanceRemaining <= 0
+  const { currency, showTax, taxRate } = brand
+  const subtotal = invoice.items?.reduce((s, i) => s + (parseFloat(i.price) || 0), 0) ?? 0
+  const tax      = calcTax(subtotal, taxRate, showTax)
+  const total    = subtotal + tax
 
   return (
     <div className={styles.t7Wrap}>
@@ -904,12 +803,14 @@ function RedBoldTemplate({ receipt, customer, brand }) {
           }
         </div>
         <div className={styles.t7TitleGroup}>
-          <span className={styles.t7InvoiceWord}>RECEIPT</span>
-          <span className={styles.t7InvoiceNum}>#{receipt.number}</span>
+          <span className={styles.t7InvoiceWord}>INVOICE</span>
+          <span className={styles.t7InvoiceNum}>#{invoice.number}</span>
         </div>
         <div className={styles.t7DateBlock}>
           <div className={styles.t7DateLabel}>DATE:</div>
-          <div className={styles.t7DateVal} style={{ color: accentColor }}>{receipt.date}</div>
+          <div className={styles.t7DateVal} style={{ color: accentColor }}>{invoice.date}</div>
+          <div className={styles.t7DateLabel} style={{ marginTop: 2 }}>DUE:</div>
+          <div className={styles.t7DateVal} style={{ color: accentColor }}>{dueDate}</div>
         </div>
       </div>
       <div className={styles.t7Divider} />
@@ -922,6 +823,7 @@ function RedBoldTemplate({ receipt, customer, brand }) {
             ['COMPANY:', (brand.name || '').toUpperCase()],
             ['ADDRESS:', (brand.address || '').toUpperCase()],
             ['PHONE:', (brand.phone || '').toUpperCase()],
+            ['EMAIL:', (brand.email || '').toUpperCase()],
           ].filter(([,v]) => v).map(([l, v]) => (
             <div key={l} className={styles.t7InfoRow}>
               <span className={styles.t7InfoKey}>{l}</span>
@@ -946,86 +848,48 @@ function RedBoldTemplate({ receipt, customer, brand }) {
       </div>
       <div className={styles.t7Divider} />
       <div className={styles.t7ForLabel}>FOR:</div>
-      {/* Template 7 unique: numbered rows */}
-      <div style={{ fontWeight: 900, fontSize: 8, letterSpacing: '0.04em', margin: '3px 16px 2px', color: '#1a1a1a' }}>Order Details</div>
+      {/* Template 7 unique: numbered rows, red price column */}
       <div className={styles.t7TableHead}>
-        <span className={styles.t7NumCol}>S/N</span>
+        <span className={styles.t7NumCol}>No.</span>
         <span style={{ flex: 3 }}>Description</span>
-        <span style={{ flex: 1, textAlign: 'right' }}>Amount</span>
+        <span style={{ flex: 1, textAlign: 'right' }}>Qty</span>
+        <span style={{ flex: 1, textAlign: 'right' }}>Price</span>
+        <span style={{ flex: 1, textAlign: 'right' }}>Total</span>
       </div>
-      {receipt.items?.map((item, i) => (
+      {invoice.items?.map((item, i) => (
         <div key={i} className={styles.t7TableRow}>
           <span className={styles.t7NumCol}>{i + 1}</span>
           <span style={{ flex: 3 }}>{item.name}</span>
+          <span style={{ flex: 1, textAlign: 'right' }}>1</span>
+          <span style={{ flex: 1, textAlign: 'right' }}>{fmt(currency, item.price)}</span>
           <span className={styles.t7RedPrice} style={{ color: accentColor }}>{fmt(currency, item.price)}</span>
         </div>
       ))}
-      {!receipt.items?.length && (
-        <div className={styles.t7TableRow}>
-          <span className={styles.t7NumCol}>1</span>
-          <span style={{ flex: 3 }}>{receipt.orderDesc || 'Garment Order'}</span>
-          <span className={styles.t7RedPrice} style={{ color: accentColor }}>{fmt(currency, orderTotal)}</span>
-        </div>
-      )}
-      {/* Payment History — before total bar */}
-      {(receipt.payments || []).length > 0 && (
-        <div style={{ marginTop: 8 }}>
-          <div className={styles.t7Divider} />
-          <div style={{ fontWeight: 900, fontSize: 9, letterSpacing: '0.04em', padding: '4px 16px 2px', color: '#1a1a1a' }}>Payment History</div>
-          <div className={styles.t7TableHead}>
-            <span className={styles.t7NumCol}>S/N</span>
-            <span style={{ flex: 3 }}>Payment Date</span>
-            <span style={{ flex: 1, textAlign: 'right' }}>Amount</span>
-          </div>
-          {(receipt.payments || []).map((p, idx) => (
-            <div key={`pay-${idx}`} className={styles.t7TableRow}>
-              <span className={styles.t7NumCol}>{idx + 1}</span>
-              <span style={{ flex: 3, color: '#16a34a', fontWeight: 700 }}>
-                {p.date}
-                {p.method ? ` · ${p.method.charAt(0).toUpperCase() + p.method.slice(1)}` : ''}
-              </span>
-              <span style={{ flex: 1, textAlign: 'right', color: '#16a34a', fontWeight: 700 }}>{fmt(currency, p.amount)}</span>
-            </div>
-          ))}
-          <div className={styles.t7TableRow} style={{ fontWeight: 700 }}>
-            <span className={styles.t7NumCol} />
-            <span style={{ flex: 3, color: '#444' }}>Total Paid</span>
-            <span style={{ flex: 1, textAlign: 'right', color: '#16a34a' }}>{fmt(currency, thisPaymentTotal)}</span>
-          </div>
-          {!isFullPayment && (
-            <div className={styles.t7TableRow}>
-              <span className={styles.t7NumCol}>—</span>
-              <span style={{ flex: 3, color: '#ef4444', fontWeight: 700 }}>Balance Remaining</span>
-              <span style={{ flex: 1, textAlign: 'right', color: '#ef4444', fontWeight: 700 }}>{fmt(currency, balanceRemaining)}</span>
-            </div>
-          )}
-        </div>
-      )}
-      {!(receipt.payments || []).length && !isFullPayment && (
-        <div className={styles.t7TableRow}>
-          <span className={styles.t7NumCol}>—</span>
-          <span style={{ flex: 3, color: '#ef4444', fontWeight: 700 }}>Balance Remaining</span>
-          <span style={{ flex: 1, textAlign: 'right', color: '#ef4444', fontWeight: 700 }}>{fmt(currency, balanceRemaining)}</span>
-        </div>
-      )}
       <div className={styles.t7TotalBar} style={{ background: accentColor }}>
-        <span>{isFullPayment ? 'PAID IN FULL:' : 'RECEIVED:'}</span>
-        <span className={styles.t7TotalAmt}>{fmt(currency, thisPaymentTotal)}</span>
+        <span>TOTAL:</span>
+        <span className={styles.t7TotalAmt}>{fmt(currency, total)}</span>
       </div>
+      {brand.accountBank && (
+        <div className={styles.t7PayRow}>
+          <span className={styles.t7InfoKey}>BANK:</span>
+          <span className={styles.t7InfoVal}>{brand.accountBank}</span>
+          {brand.accountName && <><span className={styles.t7InfoKey} style={{ marginLeft: 8 }}>ACCT NAME:</span><span className={styles.t7InfoVal}>{brand.accountName}</span></>}
+          {brand.accountNumber && <><span className={styles.t7InfoKey} style={{ marginLeft: 8 }}>ACCT #:</span><span className={styles.t7InfoVal}>{brand.accountNumber}</span></>}
+        </div>
+      )}
     </div>
   )
 }
 
 // ── 8. Side Panel with Invoice Box (greenaccent) ──────────────
-// Unique table: SL. numbered, grey bg header, green side panel
-function GreenAccentTemplate({ receipt, customer, brand }) {
+// Unique table: SL. numbered rows, grey header, green bottom panel
+function GreenAccentTemplate({ invoice, customer, brand }) {
+  const dueDate    = getDueDate(invoice, brand.dueDays)
   const accentColor = brand.colour || '#00c896'
-  const { currency } = brand
-  const orderTotal       = receipt.items?.reduce((s, i) => s + (parseFloat(i.price) || 0), 0) ?? (parseFloat(receipt.orderPrice) || 0)
-  const cumulativePaid   = resolveCumulativePaid(receipt)
-  const thisPaymentTotal = (receipt.payments || []).reduce((s, p) => s + (parseFloat(p.amount) || 0), 0)
-  const balanceRemaining = Math.max(0, orderTotal - cumulativePaid)
-  const isFullPayment    = balanceRemaining <= 0
+  const { currency, showTax, taxRate } = brand
+  const subtotal = invoice.items?.reduce((s, i) => s + (parseFloat(i.price) || 0), 0) ?? 0
+  const tax      = calcTax(subtotal, taxRate, showTax)
+  const total    = subtotal + tax
 
   return (
     <div className={styles.t8Wrap}>
@@ -1041,77 +905,54 @@ function GreenAccentTemplate({ receipt, customer, brand }) {
           </div>
         </div>
         <div className={styles.t8InvoiceBox} style={{ background: accentColor }}>
-          <div className={styles.t8InvoiceTitle}>RECEIPT</div>
+          <div className={styles.t8InvoiceTitle}>INVOICE</div>
           <div className={styles.t8InvoiceMeta}>
-            <span>Receipt#</span><span>{receipt.number}</span>
-            <span>Date</span><span>{receipt.date}</span>
+            <span>Invoice#</span><span>{invoice.number}</span>
+            <span>Date</span><span>{invoice.date}</span>
+            <span>Due</span><span>{dueDate}</span>
           </div>
         </div>
       </div>
-      {/* Template 8 unique: S/N numbered, grey bg header */}
-      <div style={{ fontWeight: 800, fontSize: 7, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 16px 3px', color: '#555' }}>Order Details</div>
+      {/* Template 8 unique: SL. numbered, grey bg header */}
       <div className={styles.t8TableHead}>
-        <span>S/N</span>
+        <span>SL.</span>
         <span style={{ flex: 3 }}>Description</span>
-        <span>Amount</span>
+        <span>Price</span><span>Qty</span><span>Total</span>
       </div>
-      {receipt.items?.map((item, i) => (
+      {invoice.items?.map((item, i) => (
         <div key={i} className={styles.t8TableRow}>
           <span>{i + 1}</span>
           <span style={{ flex: 3 }}>{item.name}</span>
           <span>{fmt(currency, item.price)}</span>
+          <span>1</span>
+          <span>{fmt(currency, item.price)}</span>
         </div>
       ))}
-      {!receipt.items?.length && (
-        <div className={styles.t8TableRow}>
-          <span>1</span>
-          <span style={{ flex: 3 }}>{receipt.orderDesc || 'Garment Order'}</span>
-          <span>{fmt(currency, orderTotal)}</span>
-        </div>
-      )}
       <div className={styles.t8Divider} />
-      {/* Payment History — before bottom totals, styled with template 8's grey bg header */}
-      {(receipt.payments || []).length > 0 && (
-        <>
-          <div style={{ fontWeight: 800, fontSize: 7, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '4px 16px 3px', color: '#555' }}>Payment History</div>
-          <div className={styles.t8TableHead} style={{ background: '#e8f5f0' }}>
-            <span>S/N</span>
-            <span style={{ flex: 3 }}>Payment Date</span>
-            <span>Amount</span>
-          </div>
-          {(receipt.payments || []).map((p, idx) => (
-            <div key={`pay-${idx}`} className={styles.t8TableRow}>
-              <span>{idx + 1}</span>
-              <span style={{ flex: 3, color: '#16a34a', fontWeight: 700 }}>
-                {p.date}
-                {p.method ? ` · ${p.method.charAt(0).toUpperCase() + p.method.slice(1)}` : ''}
-              </span>
-              <span style={{ color: '#16a34a', fontWeight: 700 }}>{fmt(currency, p.amount)}</span>
-            </div>
-          ))}
-          <div className={styles.t8Divider} />
-        </>
-      )}
       <div className={styles.t8Bottom}>
         <div className={styles.t8GreenBox} style={{ background: accentColor }}>
-          <div className={styles.t8GreenBoxTitle}>Received from:</div>
+          <div className={styles.t8GreenBoxTitle}>Invoice to:</div>
           <div className={styles.t8GreenBoxName}>{customer.name}</div>
           {customer.phone   && <div className={styles.t8GreenBoxAddr}>{customer.phone}</div>}
           {customer.address && <div className={styles.t8GreenBoxAddr}>{customer.address}</div>}
           <div className={styles.t8GreenDivider} />
-          <div className={styles.t8GreenBoxTitle}>Note</div>
-          <div className={styles.t8GreenBoxAddr}>{brand.footer || 'Thank you for your payment.'}</div>
+          <div className={styles.t8GreenBoxTitle}>Terms &amp; Conditions</div>
+          <div className={styles.t8GreenBoxAddr}>{brand.footer || 'All garments collected within 30 days of completion.'}</div>
         </div>
-        <div style={{ flex: 1, fontSize: 7, lineHeight: 1.6 }} />
-        <div className={styles.t8Totals}>
-          <div className={styles.t8TotRow}><span>Order Value:</span><span>{fmt(currency, orderTotal)}</span></div>
-          <div className={styles.t8TotRow}><span>Total Paid:</span><span style={{ color: '#16a34a', fontWeight: 700 }}>{fmt(currency, thisPaymentTotal)}</span></div>
-          {!isFullPayment && <div className={styles.t8TotRow} style={{ color: '#ef4444' }}><span>Balance:</span><span style={{ fontWeight: 700 }}>{fmt(currency, balanceRemaining)}</span></div>}
-          <div className={styles.t8TotDivider} />
-          <div className={styles.t8TotTotal}>
-            <span>{isFullPayment ? 'Paid:' : 'Received:'}</span>
-            <span style={{ color: isFullPayment ? '#16a34a' : '#1a1a1a' }}>{fmt(currency, thisPaymentTotal)}</span>
+        {brand.accountBank && (
+          <div className={styles.t8PaymentInfo}>
+            <div className={styles.t8PayLabel}>Payment Info:</div>
+            {brand.accountNumber && <div>Account #: {brand.accountNumber}</div>}
+            {brand.accountName   && <div>A/C Name: {brand.accountName}</div>}
+            {brand.accountBank   && <div>Bank: {brand.accountBank}</div>}
+            {brand.phone         && <div className={styles.t8ThankYou}>{brand.phone}</div>}
           </div>
+        )}
+        <div className={styles.t8Totals}>
+          <div className={styles.t8TotRow}><span>Sub Total:</span><span>{fmt(currency, subtotal)}</span></div>
+          {showTax && taxRate > 0 && <div className={styles.t8TotRow}><span>Tax ({taxRate}%):</span><span>{fmt(currency, tax)}</span></div>}
+          <div className={styles.t8TotDivider} />
+          <div className={styles.t8TotTotal}><span>Total:</span><span>{fmt(currency, total)}</span></div>
           <div className={styles.t8SignLine}>Authorised Sign</div>
         </div>
       </div>
@@ -1120,16 +961,15 @@ function GreenAccentTemplate({ receipt, customer, brand }) {
 }
 
 // ── 9. Accent Table Header (tealgeometric) ────────────────────
-// Unique table: teal header, QTY first col, dark total bar, signature
-function TealGeometricTemplate({ receipt, customer, brand }) {
+// Unique table: teal header bar, dark number bar, QTY first col, signature footer
+function TealGeometricTemplate({ invoice, customer, brand }) {
+  const dueDate     = getDueDate(invoice, brand.dueDays)
   const accentColor = brand.colour || '#00b4c8'
   const darkBar     = '#1a1a2e'
-  const { currency } = brand
-  const orderTotal       = receipt.items?.reduce((s, i) => s + (parseFloat(i.price) || 0), 0) ?? (parseFloat(receipt.orderPrice) || 0)
-  const cumulativePaid   = resolveCumulativePaid(receipt)
-  const thisPaymentTotal = (receipt.payments || []).reduce((s, p) => s + (parseFloat(p.amount) || 0), 0)
-  const balanceRemaining = Math.max(0, orderTotal - cumulativePaid)
-  const isFullPayment    = balanceRemaining <= 0
+  const { currency, showTax, taxRate } = brand
+  const subtotal = invoice.items?.reduce((s, i) => s + (parseFloat(i.price) || 0), 0) ?? 0
+  const tax      = calcTax(subtotal, taxRate, showTax)
+  const total    = subtotal + tax
 
   return (
     <div className={styles.t9Wrap}>
@@ -1145,15 +985,16 @@ function TealGeometricTemplate({ receipt, customer, brand }) {
           {brand.tagline && <div className={styles.t9CompanySub}>{brand.tagline.toUpperCase()}</div>}
           {brand.address && <div className={styles.t9CompanyAddr}>{brand.address}</div>}
         </div>
-        <div className={styles.t9InvoiceTitle} style={{ color: accentColor }}>RECEIPT</div>
+        <div className={styles.t9InvoiceTitle} style={{ color: accentColor }}>INVOICE</div>
       </div>
       <div className={styles.t9NumBar} style={{ background: darkBar }}>
-        <span>RECEIPT # {receipt.number}</span><span>|</span>
-        <span>DATE: {receipt.date}</span>
+        <span>INVOICE # {invoice.number}</span><span>|</span>
+        <span>DATE: {invoice.date}</span><span>|</span>
+        <span>DUE: {dueDate}</span>
       </div>
       <div className={styles.t9BillShip}>
         <div>
-          <span className={styles.t9BillLabel}>Received from:</span>
+          <span className={styles.t9BillLabel}>Bill to:</span>
           <div><strong>{customer.name}</strong></div>
           {customer.phone   && <div>{customer.phone}</div>}
           {customer.address && <div>{customer.address}</div>}
@@ -1165,68 +1006,40 @@ function TealGeometricTemplate({ receipt, customer, brand }) {
           {brand.email && <div>{brand.email}</div>}
         </div>
       </div>
-      {/* Template 9 unique: teal-bg header, S/N first col */}
-      <div style={{ fontWeight: 800, fontSize: 7, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '4px 16px 3px', color: '#555' }}>Order Details</div>
+      {/* Template 9 unique: teal-bg header, QTY first col */}
       <div className={styles.t9TableHead} style={{ background: accentColor }}>
-        <span>S/N</span>
+        <span>QTY</span>
         <span style={{ flex: 3 }}>DESCRIPTION</span>
-        <span>AMOUNT</span>
+        <span>PRICE</span><span>TOTAL</span>
       </div>
-      {receipt.items?.map((item, i) => (
+      {invoice.items?.map((item, i) => (
         <div key={i} className={styles.t9TableRow}>
-          <span>{i + 1}</span>
+          <span>1</span>
           <span style={{ flex: 3 }}>{item.name}</span>
+          <span>{fmt(currency, item.price)}</span>
           <span>{fmt(currency, item.price)}</span>
         </div>
       ))}
-      {!receipt.items?.length && (
-        <div className={styles.t9TableRow}>
-          <span>1</span>
-          <span style={{ flex: 3 }}>{receipt.orderDesc || 'Garment Order'}</span>
-          <span>{fmt(currency, orderTotal)}</span>
-        </div>
-      )}
       <div className={styles.t9SubArea}>
-        <div className={styles.t9SubRow}><span>Order Value</span><span>{fmt(currency, orderTotal)}</span></div>
+        <div className={styles.t9SubRow}><span>Subtotal</span><span>{fmt(currency, subtotal)}</span></div>
+        {showTax && taxRate > 0 && <div className={styles.t9SubRow}><span>Tax ({taxRate}%)</span><span>{fmt(currency, tax)}</span></div>}
       </div>
-      {/* Payment History — before total bar, styled with template 9's teal header */}
-      {(receipt.payments || []).length > 0 && (
-        <div style={{ marginTop: 8 }}>
-          <div style={{ fontWeight: 800, fontSize: 7, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '4px 16px 3px', color: '#555' }}>Payment History</div>
-          <div className={styles.t9TableHead} style={{ background: accentColor }}>
-            <span>S/N</span>
-            <span style={{ flex: 3 }}>PAYMENT DATE</span>
-            <span>AMOUNT</span>
-          </div>
-          {(receipt.payments || []).map((p, idx) => (
-            <div key={`pay-${idx}`} className={styles.t9TableRow}>
-              <span>{idx + 1}</span>
-              <span style={{ flex: 3, color: '#16a34a', fontWeight: 700 }}>
-                {p.date}
-                {p.method ? ` · ${p.method.charAt(0).toUpperCase() + p.method.slice(1)}` : ''}
-              </span>
-              <span style={{ color: '#16a34a', fontWeight: 700 }}>{fmt(currency, p.amount)}</span>
-            </div>
-          ))}
-          <div className={styles.t9SubArea}>
-            <div className={styles.t9SubRow}><span>Total Paid</span><span style={{ color: '#16a34a', fontWeight: 700 }}>{fmt(currency, thisPaymentTotal)}</span></div>
-            {!isFullPayment && <div className={styles.t9SubRow} style={{ color: '#ef4444' }}><span>Balance</span><span style={{ fontWeight: 700 }}>{fmt(currency, balanceRemaining)}</span></div>}
-          </div>
-        </div>
-      )}
-      {!(receipt.payments || []).length && (
-        <div className={styles.t9SubArea}>
-          {!isFullPayment && <div className={styles.t9SubRow} style={{ color: '#ef4444' }}><span>Balance</span><span style={{ fontWeight: 700 }}>{fmt(currency, balanceRemaining)}</span></div>}
-        </div>
-      )}
       <div className={styles.t9TotalBar} style={{ background: darkBar }}>
-        <span>{isFullPayment ? 'PAID IN FULL' : 'AMOUNT RECEIVED'}</span>
-        <span>{fmt(currency, thisPaymentTotal)}</span>
+        <span>TOTAL</span><span>{fmt(currency, total)}</span>
       </div>
       <div className={styles.t9Footer}>
         <div>
-          {!brand.accountBank && <div className={styles.t9ThankYou}>THANK YOU FOR YOUR PAYMENT</div>}
-          {brand.footer && <div className={styles.t9PayNote}>{brand.footer}</div>}
+          {brand.accountBank && (
+            <>
+              <div className={styles.t9ThankYou}>PAYMENT INFORMATION</div>
+              <div className={styles.t9PayNote}>
+                {brand.accountBank}{brand.accountName ? ` — ${brand.accountName}` : ''}
+                {brand.accountNumber ? ` | Acct: ${brand.accountNumber}` : ''}
+              </div>
+            </>
+          )}
+          {!brand.accountBank && <div className={styles.t9ThankYou}>THANK YOU FOR YOUR BUSINESS</div>}
+          <div className={styles.t9PayNote}>{brand.footer}</div>
         </div>
         <div className={styles.t9SignArea}>
           <div className={styles.t9SignLine} />
@@ -1240,15 +1053,14 @@ function TealGeometricTemplate({ receipt, customer, brand }) {
 
 // ── 10. Diagonal Header (pinkdiagonal) ────────────────────────
 // Unique table: bordered header, SL. numbered, right side totals + sign
-// Note: no tagline — only brand name + "Tailor Shop"
-function PinkDiagonalTemplate({ receipt, customer, brand }) {
+// Note: no tagline in brand area (would make it look awkward)
+function PinkDiagonalTemplate({ invoice, customer, brand }) {
+  const dueDate     = getDueDate(invoice, brand.dueDays)
   const accentColor = brand.colour || '#ff5c8a'
-  const { currency } = brand
-  const orderTotal       = receipt.items?.reduce((s, i) => s + (parseFloat(i.price) || 0), 0) ?? (parseFloat(receipt.orderPrice) || 0)
-  const cumulativePaid   = resolveCumulativePaid(receipt)
-  const thisPaymentTotal = (receipt.payments || []).reduce((s, p) => s + (parseFloat(p.amount) || 0), 0)
-  const balanceRemaining = Math.max(0, orderTotal - cumulativePaid)
-  const isFullPayment    = balanceRemaining <= 0
+  const { currency, showTax, taxRate } = brand
+  const subtotal = invoice.items?.reduce((s, i) => s + (parseFloat(i.price) || 0), 0) ?? 0
+  const tax      = calcTax(subtotal, taxRate, showTax)
+  const total    = subtotal + tax
 
   return (
     <div className={styles.t10Wrap}>
@@ -1262,9 +1074,9 @@ function PinkDiagonalTemplate({ receipt, customer, brand }) {
           <polygon points="0,0 400,0 400,28 0,72" fill={accentColor} />
         </svg>
         <div style={{ position: 'absolute', top: 10, left: 18, zIndex: 1 }}>
-          <span className={styles.t10BannerTitle}>RECEIPT</span>
+          <span className={styles.t10BannerTitle}>INVOICE</span>
         </div>
-        {/* No tagline — only brand name + "Tailor Shop" */}
+        {/* No tagline here — only brand name + "Tailor Shop" label */}
         <div className={styles.t10BrandInBanner}>
           {brand.logo
             ? <img src={brand.logo} alt="" style={{ width: 14, height: 14, objectFit: 'contain' }} />
@@ -1278,63 +1090,46 @@ function PinkDiagonalTemplate({ receipt, customer, brand }) {
       </div>
       <div className={styles.t10MetaRow}>
         <div>
-          <div className={styles.t10MetaLabel}>Received from:</div>
+          <div className={styles.t10MetaLabel}>Invoice to:</div>
           <div className={styles.t10MetaName}>{customer.name}</div>
           {customer.phone   && <div className={styles.t10MetaAddr}>{customer.phone}</div>}
           {customer.address && <div className={styles.t10MetaAddr}>{customer.address}</div>}
         </div>
         <div style={{ textAlign: 'right' }}>
-          <div><span className={styles.t10MetaKey}>Receipt#</span> <strong>{receipt.number}</strong></div>
-          <div><span className={styles.t10MetaKey}>Date</span> <strong>{receipt.date}</strong></div>
+          <div><span className={styles.t10MetaKey}>Invoice#</span> <strong>{invoice.number}</strong></div>
+          <div><span className={styles.t10MetaKey}>Date</span> <strong>{invoice.date}</strong></div>
+          <div><span className={styles.t10MetaKey}>Due</span> <strong>{dueDate}</strong></div>
         </div>
       </div>
-      {/* Template 10 unique: bordered header, S/N numbered */}
-      <div style={{ fontWeight: 800, fontSize: 7, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '4px 16px 3px', color: '#555' }}>Order Details</div>
+      {/* Template 10 unique: bordered header, SL. numbered */}
       <div className={styles.t10TableHead}>
-        <span>S/N</span>
+        <span>SL.</span>
         <span style={{ flex: 3 }}>Description</span>
-        <span>Amount</span>
+        <span>Price</span><span>Qty</span><span>Total</span>
       </div>
-      {receipt.items?.map((item, i) => (
+      {invoice.items?.map((item, i) => (
         <div key={i} className={styles.t10TableRow}>
           <span>{i + 1}</span>
           <span style={{ flex: 3 }}>{item.name}</span>
           <span>{fmt(currency, item.price)}</span>
+          <span>1</span>
+          <span>{fmt(currency, item.price)}</span>
         </div>
       ))}
-      {!receipt.items?.length && (
-        <div className={styles.t10TableRow}>
-          <span>1</span>
-          <span style={{ flex: 3 }}>{receipt.orderDesc || 'Garment Order'}</span>
-          <span>{fmt(currency, orderTotal)}</span>
-        </div>
-      )}
       <div className={styles.t10Divider} />
-      {/* Payment History — before totals section, styled with template 10's bordered header */}
-      {(receipt.payments || []).length > 0 && (
-        <>
-          <div style={{ fontWeight: 800, fontSize: 7, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '4px 16px 3px', color: '#555' }}>Payment History</div>
-          <div className={styles.t10TableHead}>
-            <span>S/N</span>
-            <span style={{ flex: 3 }}>Payment Date</span>
-            <span>Amount</span>
-          </div>
-          {(receipt.payments || []).map((p, idx) => (
-            <div key={`pay-${idx}`} className={styles.t10TableRow}>
-              <span>{idx + 1}</span>
-              <span style={{ flex: 3, color: '#16a34a', fontWeight: 700 }}>
-                {p.date}
-                {p.method ? ` · ${p.method.charAt(0).toUpperCase() + p.method.slice(1)}` : ''}
-              </span>
-              <span style={{ color: '#16a34a', fontWeight: 700 }}>{fmt(currency, p.amount)}</span>
-            </div>
-          ))}
-          <div className={styles.t10Divider} />
-        </>
-      )}
       <div className={styles.t10Bottom}>
         <div style={{ flex: 1 }}>
-          <div className={styles.t10ThankYou}>{brand.footer || 'Thank you for your payment'}</div>
+          <div className={styles.t10ThankYou}>{brand.footer || 'Thank you for your business'}</div>
+          {brand.accountBank && (
+            <>
+              <div className={styles.t10PayLabel}>Payment Info:</div>
+              <div className={styles.t10PayInfo}>
+                {brand.accountNumber && <span>Account #: {brand.accountNumber}<br /></span>}
+                {brand.accountName   && <span>A/C Name: {brand.accountName}<br /></span>}
+                {brand.accountBank   && <span>Bank: {brand.accountBank}</span>}
+              </div>
+            </>
+          )}
           {(brand.phone || brand.email) && (
             <>
               <div className={styles.t10TCLabel}>Contact</div>
@@ -1347,14 +1142,10 @@ function PinkDiagonalTemplate({ receipt, customer, brand }) {
         </div>
         <div className={styles.t10RightCol}>
           <div className={styles.t10TotalsWrap}>
-            <div className={styles.t10TotRow}><span>Order Value:</span><span>{fmt(currency, orderTotal)}</span></div>
-            <div className={styles.t10TotRow}><span>Total Paid:</span><span style={{ color: '#16a34a', fontWeight: 700 }}>{fmt(currency, thisPaymentTotal)}</span></div>
-            {!isFullPayment && <div className={styles.t10TotRow} style={{ color: '#ef4444' }}><span>Balance:</span><span style={{ fontWeight: 700 }}>{fmt(currency, balanceRemaining)}</span></div>}
+            <div className={styles.t10TotRow}><span>Sub Total:</span><span>{fmt(currency, subtotal)}</span></div>
+            {showTax && taxRate > 0 && <div className={styles.t10TotRow}><span>Tax ({taxRate}%):</span><span>{fmt(currency, tax)}</span></div>}
             <div className={styles.t10TotDivider} />
-            <div className={styles.t10TotTotal}>
-              <span>{isFullPayment ? 'Paid:' : 'Received:'}</span>
-              <span style={{ color: isFullPayment ? '#16a34a' : '#1a1a1a' }}>{fmt(currency, thisPaymentTotal)}</span>
-            </div>
+            <div className={styles.t10TotTotal}><span>Total:</span><span>{fmt(currency, total)}</span></div>
           </div>
           <div className={styles.t10SignBlock}>
             <div className={styles.t10SignLine} />
@@ -1374,16 +1165,15 @@ function PinkDiagonalTemplate({ receipt, customer, brand }) {
 }
 
 // ── 11. Info Bar with Payment Tiles (blueclean) ───────────────
-// Unique table: black header, bullet items, blue amount display
-function BlueCleanTemplate({ receipt, customer, brand }) {
+// Unique table: black header bar, bullet items, blue amount display
+function BlueCleanTemplate({ invoice, customer, brand }) {
+  const dueDate     = getDueDate(invoice, brand.dueDays)
   const accentColor = brand.colour || '#5da0d0'
   const barBg       = '#dbeeff'
-  const { currency } = brand
-  const orderTotal       = receipt.items?.reduce((s, i) => s + (parseFloat(i.price) || 0), 0) ?? (parseFloat(receipt.orderPrice) || 0)
-  const cumulativePaid   = resolveCumulativePaid(receipt)
-  const thisPaymentTotal = (receipt.payments || []).reduce((s, p) => s + (parseFloat(p.amount) || 0), 0)
-  const balanceRemaining = Math.max(0, orderTotal - cumulativePaid)
-  const isFullPayment    = balanceRemaining <= 0
+  const { currency, showTax, taxRate } = brand
+  const subtotal = invoice.items?.reduce((s, i) => s + (parseFloat(i.price) || 0), 0) ?? 0
+  const tax      = calcTax(subtotal, taxRate, showTax)
+  const total    = subtotal + tax
 
   return (
     <div className={styles.t11Wrap}>
@@ -1407,84 +1197,76 @@ function BlueCleanTemplate({ receipt, customer, brand }) {
           {brand.phone   && <div>{brand.phone}</div>}
         </div>
       </div>
-      <div className={styles.t11InvoiceTitle}>Receipt</div>
+      <div className={styles.t11InvoiceTitle}>Invoice</div>
       <div className={styles.t11BlueBar} style={{ background: barBg, color: accentColor }}>
-        <span>RECEIPT: #{receipt.number}</span>
-        <span>DATE: {receipt.date}</span>
-        <span>AMOUNT: {fmt(currency, thisPaymentTotal)}</span>
+        <span>INVOICE: #{invoice.number}</span>
+        <span>DATE ISSUED: {invoice.date}</span>
+        <span>DUE DATE: {dueDate}</span>
       </div>
       <div className={styles.t11IssuedRow}>
         <div>
-          <div className={styles.t11IssuedLabel}>RECEIVED FROM</div>
+          <div className={styles.t11IssuedLabel}>ISSUED TO</div>
           <div>{customer.name}</div>
           {customer.phone   && <div>{customer.phone}</div>}
           {customer.address && <div>{customer.address}</div>}
         </div>
         <div style={{ textAlign: 'right' }}>
-          <div className={styles.t11AmountLabel} style={{ color: accentColor }}>AMOUNT PAID</div>
-          <div className={styles.t11AmountVal} style={{ color: accentColor }}>{fmt(currency, thisPaymentTotal)}</div>
+          <div className={styles.t11AmountLabel} style={{ color: accentColor }}>AMOUNT</div>
+          <div className={styles.t11AmountVal} style={{ color: accentColor }}>{fmt(currency, total)}</div>
         </div>
       </div>
-      {receipt.orderDesc && <div className={styles.t11ProjectName}>{receipt.orderDesc}</div>}
-      {/* Template 11 unique: black header, bullet items */}
-      <div className={styles.t11PayTitle}>Order Details</div>
+      {invoice.orderDesc && <div className={styles.t11ProjectName}>{invoice.orderDesc}</div>}
+      {/* Template 11 unique: black header, bullet items, right-aligned totals */}
       <div className={styles.t11TableHead}>
         <span style={{ flex: 3 }}>Description</span>
-        <span>S/N</span><span>Amount</span>
+        <span>Qty</span><span>Price</span><span>Subtotal</span>
       </div>
-      {receipt.items?.map((item, i) => (
+      {invoice.items?.map((item, i) => (
         <div key={i} className={styles.t11TableRow}>
           <span style={{ flex: 3 }}>• {item.name}</span>
-          <span>{i + 1}</span>
+          <span>1</span>
+          <span>{fmt(currency, item.price)}</span>
           <span>{fmt(currency, item.price)}</span>
         </div>
       ))}
-      {!receipt.items?.length && (
-        <div className={styles.t11TableRow}>
-          <span style={{ flex: 3 }}>• {receipt.orderDesc || 'Garment Order'}</span>
-          <span>1</span>
-          <span>{fmt(currency, orderTotal)}</span>
-        </div>
-      )}
       <div className={styles.t11TotArea}>
-        <div className={styles.t11TotRow}><span>Order Value</span><span>{fmt(currency, orderTotal)}</span></div>
+        <div className={styles.t11TotRow}><span>Subtotal</span><span>{fmt(currency, subtotal)}</span></div>
+        {showTax && taxRate > 0 && (
+          <div className={styles.t11TotRow}><span>Tax ({taxRate}%)</span><span>{fmt(currency, tax)}</span></div>
+        )}
+        <div className={styles.t11TotBold}><span>TOTAL</span><span>{fmt(currency, total)}</span></div>
       </div>
-      {/* Payment History — before paid-in-full row, styled with template 11's header */}
-      {(receipt.payments || []).length > 0 && (
-        <div style={{ marginTop: 10 }}>
-          <div className={styles.t11PayTitle}>Payment History</div>
-          <div className={styles.t11TableHead} style={{ background: barBg, color: accentColor }}>
-            <span style={{ flex: 3 }}>Payment Date</span>
-            <span>S/N</span><span>Amount</span>
+      {(brand.accountBank || brand.phone) && (
+        <>
+          <div className={styles.t11PayTitle}>Payment Information</div>
+          <div className={styles.t11PayBoxRow}>
+            {brand.accountBank && (
+              <div className={styles.t11PayBox} style={{ background: barBg }}>
+                <div className={styles.t11PayBoxTitle}>Bank Transfer</div>
+                <div>
+                  {brand.accountBank}<br />
+                  {brand.accountName && <span>{brand.accountName}<br /></span>}
+                  {brand.accountNumber && <span>Acct: {brand.accountNumber}</span>}
+                </div>
+              </div>
+            )}
+            {brand.phone && (
+              <div className={styles.t11PayBox} style={{ background: barBg }}>
+                <div className={styles.t11PayBoxTitle}>Contact</div>
+                <div>
+                  {brand.phone}<br />
+                  {brand.email && <span>{brand.email}</span>}
+                </div>
+              </div>
+            )}
+            {brand.address && (
+              <div className={styles.t11PayBox} style={{ background: barBg }}>
+                <div className={styles.t11PayBoxTitle}>Visit Us</div>
+                <div>{brand.address}</div>
+              </div>
+            )}
           </div>
-          {(receipt.payments || []).map((p, idx) => (
-            <div key={`pay-${idx}`} className={styles.t11TableRow}>
-              <span style={{ flex: 3, color: '#16a34a', fontWeight: 700 }}>
-                {p.date}
-                {p.method ? ` · ${p.method.charAt(0).toUpperCase() + p.method.slice(1)}` : ''}
-              </span>
-              <span>{idx + 1}</span>
-              <span style={{ color: '#16a34a', fontWeight: 700 }}>{fmt(currency, p.amount)}</span>
-            </div>
-          ))}
-          <div className={styles.t11TotArea}>
-            <div className={styles.t11TotRow}><span>Total Paid</span><span style={{ color: '#16a34a', fontWeight: 700 }}>{fmt(currency, thisPaymentTotal)}</span></div>
-            {!isFullPayment && <div className={styles.t11TotRow} style={{ color: '#ef4444' }}><span>Balance</span><span style={{ fontWeight: 700 }}>{fmt(currency, balanceRemaining)}</span></div>}
-            <div className={styles.t11TotBold}>
-              <span>{isFullPayment ? 'PAID IN FULL' : 'RECEIVED'}</span>
-              <span style={{ color: isFullPayment ? '#16a34a' : accentColor }}>{fmt(currency, thisPaymentTotal)}</span>
-            </div>
-          </div>
-        </div>
-      )}
-      {!(receipt.payments || []).length && (
-        <div className={styles.t11TotArea}>
-          {!isFullPayment && <div className={styles.t11TotRow} style={{ color: '#ef4444' }}><span>Balance</span><span style={{ fontWeight: 700 }}>{fmt(currency, balanceRemaining)}</span></div>}
-          <div className={styles.t11TotBold}>
-            <span>{isFullPayment ? 'PAID IN FULL' : 'RECEIVED'}</span>
-            <span style={{ color: isFullPayment ? '#16a34a' : accentColor }}>{fmt(currency, thisPaymentTotal)}</span>
-          </div>
-        </div>
+        </>
       )}
       <div className={styles.t11ThankYou} style={{ color: accentColor }}>{brand.footer || 'THANK YOU!'}</div>
     </div>
@@ -1496,32 +1278,41 @@ function BlueCleanTemplate({ receipt, customer, brand }) {
 // ─────────────────────────────────────────────────────────────
 
 const TEMPLATE_MAP = {
-  editable:      EditableTemplate,
-  free:          FreeTemplate,
-  custom:        CustomTemplate,
-  printable:     PrintableTemplate,
-  canva:         CanvaTemplate,
-  darkheader:    DarkHeaderTemplate,
-  redbold:       RedBoldTemplate,
-  greenaccent:   GreenAccentTemplate,
+  editable:     EditableTemplate,
+  free:         FreeTemplate,
+  custom:       CustomTemplate,
+  printable:    PrintableTemplate,
+  canva:        CanvaTemplate,
+  darkheader:   DarkHeaderTemplate,
+  redbold:      RedBoldTemplate,
+  greenaccent:  GreenAccentTemplate,
   tealgeometric: TealGeometricTemplate,
-  pinkdiagonal:  PinkDiagonalTemplate,
-  blueclean:     BlueCleanTemplate,
+  pinkdiagonal: PinkDiagonalTemplate,
+  blueclean:    BlueCleanTemplate,
 }
 
-// ── Main component ────────────────────────────────────────────
+const STATUS_LABELS = {
+  unpaid:    'Unpaid',
+  part_paid: 'Part Payment',
+  paid:      'Full Payment',
+  overdue:   'Overdue',
+}
 
-export default function ReceiptView({ receipt: initialReceipt, customer, onClose, onDelete, showToast }) {
+// ─────────────────────────────────────────────────────────────
+// Main component
+// ─────────────────────────────────────────────────────────────
+
+export default function InvoiceView({ invoice: initialInvoice, customer, onClose, onStatusChange, onDelete, showToast }) {
   const { brand } = useBrand()
   const paperRef  = useRef(null)
-  const [receipt,    setReceipt]    = useState(initialReceipt)
+  const [invoice,    setInvoice]    = useState(initialInvoice)
   const [pdfLoading, setPdfLoading] = useState(false)
   const [showShare,  setShowShare]  = useState(false)
 
-  const templateKey    = receipt.template || brand.template || 'editable'
+  const templateKey    = invoice.template || brand.template || 'editable'
   const Template       = TEMPLATE_MAP[templateKey] || EditableTemplate
-  const effectiveBrand = { ...brand, ...(receipt.brandSnapshot || {}) }
-  const filename       = `Receipt-${receipt.number}-${customer.name.replace(/\s+/g, '_')}.pdf`
+  const effectiveBrand = { ...brand, ...(invoice.brandSnapshot || {}) }
+  const filename       = `Invoice-${invoice.number}-${customer.name.replace(/\s+/g, '_')}.pdf`
 
   const handleDownload = async () => {
     if (!paperRef.current) return
@@ -1530,23 +1321,18 @@ export default function ReceiptView({ receipt: initialReceipt, customer, onClose
     try {
       await downloadPDF(paperRef.current, filename)
       showToast?.('PDF downloaded ✓')
-    } catch (err) {
-      console.error(err)
+    } catch {
       showToast?.('PDF failed.')
     } finally {
       setPdfLoading(false)
     }
   }
 
-  const cumulativePaid = resolveCumulativePaid(receipt)
-  const orderTotal     = receipt.orderPrice ? parseFloat(receipt.orderPrice) : cumulativePaid
-  const isFullPay      = cumulativePaid >= orderTotal && orderTotal > 0
-
   return (
     <div className={styles.overlay}>
       <Header
         type="back"
-        title={receipt.number}
+        title={invoice.number}
         onBackClick={onClose}
         customActions={[
           {
@@ -1560,7 +1346,7 @@ export default function ReceiptView({ receipt: initialReceipt, customer, onClose
           },
           {
             icon: 'delete',
-            onClick: () => onDelete(receipt.id),
+            onClick: () => onDelete(invoice.id),
             style: { color: '#ef4444' },
           },
         ]}
@@ -1568,19 +1354,19 @@ export default function ReceiptView({ receipt: initialReceipt, customer, onClose
 
       <div className={styles.scrollArea}>
         <div className={styles.statusRow}>
-          <div className={`${styles.statusBadge} ${isFullPay ? styles.status_paid : styles.status_part_paid}`}>
-            {isFullPay ? 'Paid in Full' : 'Part Payment'}
+          <div className={`${styles.statusBadge} ${styles[`status_${invoice.status}`]}`}>
+            {STATUS_LABELS[invoice.status] || invoice.status}
           </div>
         </div>
         <div className={styles.paperWrap}>
           <div className={styles.paperInner} ref={paperRef}>
-            <Template receipt={receipt} customer={customer} brand={effectiveBrand} />
+            <Template invoice={invoice} customer={customer} brand={effectiveBrand} />
           </div>
         </div>
-        {receipt.notes && (
+        {invoice.notes && (
           <div className={styles.notesBox}>
             <div className={styles.notesLabel}>Notes</div>
-            <div className={styles.notesText}>{receipt.notes}</div>
+            <div className={styles.notesText}>{invoice.notes}</div>
           </div>
         )}
         <div style={{ height: 32 }} />
@@ -1589,12 +1375,13 @@ export default function ReceiptView({ receipt: initialReceipt, customer, onClose
       <ShareSheet
         open={showShare}
         onClose={() => setShowShare(false)}
-        onDownload={handleDownload}
-        docNumber={receipt.number}
+        paperRef={paperRef}
+        filename={filename}
+        docNumber={invoice.number}
         customer={customer}
         brand={effectiveBrand}
-        docType="Receipt"
-        buildMessage={() => buildReceiptWhatsAppMessage(receipt, customer, effectiveBrand)}
+        docType="Invoice"
+        buildMessage={() => buildInvoiceWhatsAppMessage(invoice, customer, effectiveBrand)}
       />
     </div>
   )
