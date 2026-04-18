@@ -49,7 +49,9 @@ function BookingSheet({ isOpen, onClose, brandName, brandEmail, brandPhone }) {
         <div className={styles.drawerHandle} />
         {sent ? (
           <div className={styles.sentState}>
-            <div className={styles.sentCheck}>✓</div>
+            <div className={styles.sentCheck}>
+              <span className="mi">check</span>
+            </div>
             <p className={styles.sentTitle}>Request Received</p>
             <p className={styles.sentSub}>{brandName} will be in touch shortly.</p>
           </div>
@@ -60,7 +62,9 @@ function BookingSheet({ isOpen, onClose, brandName, brandEmail, brandPhone }) {
                 <p className={styles.drawerLabel}>PLACE AN ORDER</p>
                 <p className={styles.drawerTitle}>Book {brandName}</p>
               </div>
-              <button className={styles.drawerClose} onClick={onClose}>✕</button>
+              <button className={styles.drawerClose} onClick={onClose}>
+                <span className="mi">close</span>
+              </button>
             </div>
             <div className={styles.drawerBody}>
               <div className={styles.fieldGroup}>
@@ -110,12 +114,22 @@ function Lightbox({ photo, photos, onClose }) {
   return (
     <div className={styles.lbOverlay} onClick={onClose}>
       <div className={styles.lbInner} onClick={e => e.stopPropagation()}>
-        <button className={styles.lbClose} onClick={onClose}>✕</button>
+        <button className={styles.lbClose} onClick={onClose}>
+          <span className="mi">close</span>
+        </button>
         <img src={current.src || current.storageUrl} alt={current.caption} className={styles.lbImg} />
         {photos.length > 1 && (
           <>
-            {idx > 0 && <button className={`${styles.lbNav} ${styles.lbLeft}`} onClick={e => { e.stopPropagation(); setIdx(i => i - 1) }}>‹</button>}
-            {idx < photos.length - 1 && <button className={`${styles.lbNav} ${styles.lbRight}`} onClick={e => { e.stopPropagation(); setIdx(i => i + 1) }}>›</button>}
+            {idx > 0 && (
+              <button className={`${styles.lbNav} ${styles.lbLeft}`} onClick={e => { e.stopPropagation(); setIdx(i => i - 1) }}>
+                <span className="mi">chevron_left</span>
+              </button>
+            )}
+            {idx < photos.length - 1 && (
+              <button className={`${styles.lbNav} ${styles.lbRight}`} onClick={e => { e.stopPropagation(); setIdx(i => i + 1) }}>
+                <span className="mi">chevron_right</span>
+              </button>
+            )}
           </>
         )}
         {current.caption && (
@@ -197,7 +211,7 @@ export default function Portfolio() {
   if (notFound) {
     return (
       <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#080808', gap: '16px' }}>
-        <p style={{ fontSize: '2.5rem' }}>🧵</p>
+        <span className="mi" style={{ fontSize: '3rem', color: '#333' }}>content_cut</span>
         <p style={{ color: '#fff', fontFamily: 'Georgia, serif', fontSize: '1.2rem', letterSpacing: '1px' }}>Portfolio not found</p>
         <p style={{ color: '#555', fontSize: '0.8rem', letterSpacing: '1px' }}>This tailor hasn't set up their portfolio yet.</p>
       </div>
@@ -250,7 +264,8 @@ export default function Portfolio() {
               Place an Order
             </button>
             <button className={styles.heroSecondary} onClick={() => scrollTo(worksRef)}>
-              View Works ↓
+              View Works
+              <span className="mi" style={{ fontSize: '1rem', marginLeft: 6 }}>arrow_downward</span>
             </button>
           </div>
         </div>
@@ -273,7 +288,7 @@ export default function Portfolio() {
         </div>
         <div className={styles.statDivider} />
         <div className={styles.statItem}>
-          <span className={styles.statNum}>✦</span>
+          <span className="mi" style={{ fontSize: '1.1rem', color: '#fff' }}>verified</span>
           <span className={styles.statLabel}>Bespoke Only</span>
         </div>
       </div>
@@ -300,22 +315,26 @@ export default function Portfolio() {
               <div className={styles.aboutMeta}>
                 {brand.brandAddress && (
                   <div className={styles.aboutMetaRow}>
-                    <span>📍</span><span>{brand.brandAddress}</span>
+                    <span className="mi" style={{ fontSize: '0.95rem', color: '#555', flexShrink: 0 }}>location_on</span>
+                    <span>{brand.brandAddress}</span>
                   </div>
                 )}
                 {brand.brandPhone && (
                   <a href={`tel:${brand.brandPhone}`} className={styles.aboutMetaRow}>
-                    <span>📞</span><span>{brand.brandPhone}</span>
+                    <span className="mi" style={{ fontSize: '0.95rem', color: '#555', flexShrink: 0 }}>call</span>
+                    <span>{brand.brandPhone}</span>
                   </a>
                 )}
                 {brand.brandEmail && (
                   <a href={`mailto:${brand.brandEmail}`} className={styles.aboutMetaRow}>
-                    <span>✉️</span><span>{brand.brandEmail}</span>
+                    <span className="mi" style={{ fontSize: '0.95rem', color: '#555', flexShrink: 0 }}>mail</span>
+                    <span>{brand.brandEmail}</span>
                   </a>
                 )}
                 {brand.brandWebsite && (
                   <a href={brand.brandWebsite} target="_blank" rel="noopener noreferrer" className={styles.aboutMetaRow}>
-                    <span>🌐</span><span>{brand.brandWebsite}</span>
+                    <span className="mi" style={{ fontSize: '0.95rem', color: '#555', flexShrink: 0 }}>language</span>
+                    <span>{brand.brandWebsite}</span>
                   </a>
                 )}
               </div>
@@ -341,7 +360,8 @@ export default function Portfolio() {
           <div className={styles.marqueeTrack}>
             {[...dressTypes, ...dressTypes, ...dressTypes, ...dressTypes].map((t, i) => (
               <span key={i} className={styles.marqueeItem}>
-                {t.label} <span className={styles.marqueeDot}>✦</span>
+                {t.label}
+                <span className="mi" style={{ fontSize: '0.5rem', margin: '0 16px', opacity: 0.3, verticalAlign: 'middle' }}>fiber_manual_record</span>
               </span>
             ))}
           </div>
@@ -394,7 +414,7 @@ export default function Portfolio() {
                   loading="lazy"
                 />
                 <div className={styles.photoOverlay}>
-                  <span className={styles.photoZoom}>↗</span>
+                  <span className={`mi ${styles.photoZoom}`}>open_in_full</span>
                   {photo.caption && <p className={styles.photoCaption}>{photo.caption}</p>}
                   {photo.clothingTypeLabel && <span className={styles.photoType}>{photo.clothingTypeLabel}</span>}
                 </div>
@@ -411,16 +431,21 @@ export default function Portfolio() {
           <h2 className={styles.processTitle}>From Idea<br />to Outfit</h2>
           <div className={styles.processSteps}>
             {[
-              { num: '01', title: 'Consultation', desc: 'Share your vision, occasion, and preferences. We listen carefully.' },
-              { num: '02', title: 'Measurements', desc: 'Precise measurements taken for a flawless custom fit.' },
-              { num: '03', title: 'Crafting',     desc: 'Every stitch placed with intention, skill, and care.' },
-              { num: '04', title: 'Delivery',     desc: 'Your bespoke garment, delivered to perfection.' },
+              { num: '01', icon: 'forum',        title: 'Consultation', desc: 'Share your vision, occasion, and preferences. We listen carefully.' },
+              { num: '02', icon: 'straighten',   title: 'Measurements', desc: 'Precise measurements taken for a flawless custom fit.' },
+              { num: '03', icon: 'content_cut',  title: 'Crafting',     desc: 'Every stitch placed with intention, skill, and care.' },
+              { num: '04', icon: 'local_shipping',title: 'Delivery',    desc: 'Your bespoke garment, delivered to perfection.' },
             ].map(step => (
               <div key={step.num} className={styles.processStep}>
-                <span className={styles.processNum}>{step.num}</span>
+                <div className={styles.processNumWrap}>
+                  <span className={styles.processNum}>{step.num}</span>
+                  <span className={`mi ${styles.processIcon}`}>{step.icon}</span>
+                </div>
                 <div className={styles.processLine} />
-                <p className={styles.processStepTitle}>{step.title}</p>
-                <p className={styles.processStepDesc}>{step.desc}</p>
+                <div>
+                  <p className={styles.processStepTitle}>{step.title}</p>
+                  <p className={styles.processStepDesc}>{step.desc}</p>
+                </div>
               </div>
             ))}
           </div>
@@ -449,12 +474,14 @@ export default function Portfolio() {
           <div className={styles.bookContacts}>
             {brand.brandPhone && (
               <a href={`tel:${brand.brandPhone}`} className={styles.bookContact}>
-                📞 {brand.brandPhone}
+                <span className="mi" style={{ fontSize: '0.9rem' }}>call</span>
+                {brand.brandPhone}
               </a>
             )}
             {brand.brandEmail && (
               <a href={`mailto:${brand.brandEmail}`} className={styles.bookContact}>
-                ✉️ {brand.brandEmail}
+                <span className="mi" style={{ fontSize: '0.9rem' }}>mail</span>
+                {brand.brandEmail}
               </a>
             )}
           </div>
