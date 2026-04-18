@@ -1,73 +1,40 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { useCustomers } from '../../contexts/CustomerContext'
-import Header from '../../components/Header/Header'
-import ConfirmSheet from '../../components/ConfirmSheet/ConfirmSheet'
-import Toast from '../../components/Toast/Toast'
-import styles from './Gallery.module.css'
+import { useGallery }   from '../../contexts/GalleryContext'
+import Header           from '../../components/Header/Header'
+import ConfirmSheet     from '../../components/ConfirmSheet/ConfirmSheet'
+import Toast            from '../../components/Toast/Toast'
+import styles           from './Gallery.module.css'
 
-// ── STORAGE ──
-const GALLERY_KEY = 'tailorbook_gallery'
-const SUB_TABS_KEY = 'tailorbook_gallery_subtabs'
+// ── CONSTANTS ──────────────────────────────────────────────────
 
-function loadPhotos() {
-  try {
-    const raw = localStorage.getItem(GALLERY_KEY)
-    return raw ? JSON.parse(raw) : []
-  } catch { return [] }
-}
-
-function savePhotos(photos) {
-  try { localStorage.setItem(GALLERY_KEY, JSON.stringify(photos)) }
-  catch { /* quota exceeded — base64 images are large */ }
-}
-
-function loadSubTabs() {
-  try {
-    const raw = localStorage.getItem(SUB_TABS_KEY)
-    return raw ? JSON.parse(raw) : DEFAULT_SUB_TABS
-  } catch { return DEFAULT_SUB_TABS }
-}
-
-function saveSubTabs(subTabs) {
-  try { localStorage.setItem(SUB_TABS_KEY, JSON.stringify(subTabs)) }
-  catch {}
-}
-
-// ── TABS ──
 const TABS = [
   { id: 'completed_works', label: 'Completed Works', icon: 'check_circle' },
-  { id: 'designs',         label: 'Designs',         icon: 'content_cut' },
-  { id: 'inspiration',     label: 'Inspiration',     icon: 'lightbulb' },
+  { id: 'designs',         label: 'Designs',         icon: 'content_cut'  },
+  { id: 'inspiration',     label: 'Inspiration',     icon: 'lightbulb'    },
 ]
 
 const CATEGORY_MAP = {
-  designs:         { label: 'Design Reference', icon: 'content_cut' },
   completed_works: { label: 'Completed Work',   icon: 'check_circle' },
-  inspiration:     { label: 'Inspiration',      icon: 'lightbulb' },
+  designs:         { label: 'Design Reference', icon: 'content_cut'  },
+  inspiration:     { label: 'Inspiration',      icon: 'lightbulb'    },
 }
 
-// Default sub-tabs for each main tab
-const DEFAULT_SUB_TABS = {
-  completed_works: [{ id: 'kaftan', label: 'Kaftan' }, { id: 'gown', label: 'Gown' }],
-  designs:         [{ id: 'kaftan', label: 'Kaftan' }, { id: 'gown', label: 'Gown' }],
-  inspiration:     [{ id: 'kaftan', label: 'Kaftan' }, { id: 'gown', label: 'Gown' }],
+function formatDate(ts) {
+  if (!ts) return ''
+  const d = ts?.toDate ? ts.toDate() : new Date(ts)
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
-function formatDate(dateStr) {
-  if (!dateStr) return ''
-  return new Date(dateStr).toLocaleDateString('en-US', {
-    month: 'short', day: 'numeric', year: 'numeric'
-  })
-}
+// ── MANAGE DRESS TYPES SHEET ────────────────────────────────────
 
-// ── MANAGE SUB-TABS MODAL ──
-function ManageSubTabsModal({ isOpen, onClose, tabId, subTabs, onSave }) {
-  const [items, setItems] = useState([...(subTabs || [])])
+function ManageDressTypesSheet({ isOpen, onClose, tabId, types, onSave }) {
+  const [items,    setItems]    = useState([...(types || [])])
   const [newLabel, setNewLabel] = useState('')
 
   useEffect(() => {
-    if (isOpen) setItems([...(subTabs || [])])
-  }, [isOpen, subTabs])
+    if (isOpen) setItems([...(types || [])])
+  }, [isOpen, types])
 
   if (!isOpen) return null
 
@@ -80,24 +47,23 @@ function ManageSubTabsModal({ isOpen, onClose, tabId, subTabs, onSave }) {
   }
 
   const removeItem = (id) => setItems(prev => prev.filter(t => t.id !== id))
-
-  const handleSave = () => {
-    onSave(tabId, items)
-    onClose()
-  }
+  const handleSave = () => { onSave(tabId, items); onClose() }
 
   return (
     <div className={styles.sheetOverlay} onClick={onClose}>
       <div className={styles.sheet} onClick={e => e.stopPropagation()}>
         <div className={styles.sheetHandle} />
         <div className={styles.sheetHeader}>
-          <span className={styles.sheetTitle}>Manage Categories</span>
+          <span className={styles.sheetTitle}>Dress Types</span>
           <button className={styles.sheetClose} onClick={onClose}>
             <span className="mi" style={{ fontSize: '1.2rem' }}>close</span>
           </button>
         </div>
 
         <div className={styles.sheetBody}>
+          {items.length === 0 && (
+            <p className={styles.sheetEmpty}>No dress types yet. Add one below.</p>
+          )}
           {items.map(item => (
             <div key={item.id} className={styles.manageRow}>
               <span className={styles.manageLabel}>{item.label}</span>
@@ -106,21 +72,16 @@ function ManageSubTabsModal({ isOpen, onClose, tabId, subTabs, onSave }) {
               </button>
             </div>
           ))}
-
           <div className={styles.manageAddRow}>
             <input
               type="text"
               className={styles.manageInput}
-              placeholder="New category (e.g. Agbada)"
+              placeholder="e.g. Agbada, Senator, Aso-Oke…"
               value={newLabel}
               onChange={e => setNewLabel(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') addItem() }}
             />
-            <button
-              className={styles.manageAddBtn}
-              onClick={addItem}
-              disabled={!newLabel.trim()}
-            >
+            <button className={styles.manageAddBtn} onClick={addItem} disabled={!newLabel.trim()}>
               <span className="mi" style={{ fontSize: '1.1rem' }}>add</span>
             </button>
           </div>
@@ -134,37 +95,33 @@ function ManageSubTabsModal({ isOpen, onClose, tabId, subTabs, onSave }) {
   )
 }
 
-// ── ADD PHOTO MODAL ──
-function AddPhotoModal({ isOpen, onClose, onSave, customers, subTabs, activeMainTab }) {
-  const [category, setCategory]         = useState(activeMainTab || 'completed_works')
-  const [selectedCust, setSelectedCust] = useState(null)
-  const [custQuery, setCustQuery]       = useState('')
-  const [custDropOpen, setCustDropOpen] = useState(false)
-  const [photos, setPhotos]             = useState([]) // array of { src, name, caption, clothingType }
+// ── ADD PHOTO MODAL ─────────────────────────────────────────────
+
+function AddPhotoModal({ isOpen, onClose, onSave, customers, dressTypes, activeMainTab }) {
+  const [category,      setCategory]     = useState(activeMainTab || 'completed_works')
+  const [selectedCust,  setSelectedCust] = useState(null)
+  const [custQuery,     setCustQuery]    = useState('')
+  const [custDropOpen,  setCustDropOpen] = useState(false)
+  const [photos,        setPhotos]       = useState([])
   const [captionErrors, setCaptionErrors] = useState({})
+  const [typeErrors,    setTypeErrors]   = useState({})
   const fileInputRef   = useRef(null)
   const cameraInputRef = useRef(null)
 
-  const currentSubTabs = subTabs[category] || []
+  const typeOptions = dressTypes[category] || []
 
   const filteredCusts = custQuery.trim()
     ? customers.filter(c =>
         c.name.toLowerCase().includes(custQuery.toLowerCase()) ||
-        c.phone?.includes(custQuery)
-      )
+        c.phone?.includes(custQuery))
     : customers
 
   const handleFiles = (files) => {
-    const defaultType = currentSubTabs[0]?.id || ''
+    const defaultType = typeOptions[0]?.id || ''
     Array.from(files).forEach(file => {
       const reader = new FileReader()
       reader.onload = (e) => {
-        setPhotos(prev => [...prev, {
-          src: e.target.result,
-          name: file.name,
-          caption: '',
-          clothingType: defaultType,
-        }])
+        setPhotos(prev => [...prev, { src: e.target.result, name: file.name, caption: '', clothingType: defaultType }])
       }
       reader.readAsDataURL(file)
     })
@@ -174,54 +131,49 @@ function AddPhotoModal({ isOpen, onClose, onSave, customers, subTabs, activeMain
 
   const updatePhoto = (idx, field, value) => {
     setPhotos(prev => prev.map((p, i) => i === idx ? { ...p, [field]: value } : p))
-    if (field === 'caption') {
-      setCaptionErrors(prev => ({ ...prev, [idx]: false }))
-    }
+    if (field === 'caption')      setCaptionErrors(prev => ({ ...prev, [idx]: false }))
+    if (field === 'clothingType') setTypeErrors(prev    => ({ ...prev, [idx]: false }))
   }
 
   const reset = () => {
     setCategory(activeMainTab || 'completed_works')
-    setSelectedCust(null)
-    setCustQuery(''); setCustDropOpen(false)
-    setPhotos([])
-    setCaptionErrors({})
+    setSelectedCust(null); setCustQuery(''); setCustDropOpen(false)
+    setPhotos([]); setCaptionErrors({}); setTypeErrors({})
   }
 
   const handleClose = () => { reset(); onClose() }
 
   const handleSave = () => {
     if (photos.length === 0) return
-    // Validate all captions are filled
-    const errors = {}
+    const capErrs = {}; const typErrs = {}
     photos.forEach((p, i) => {
-      if (!p.caption.trim()) errors[i] = true
+      if (!p.caption.trim()) capErrs[i] = true
+      if (!p.clothingType)   typErrs[i] = true
     })
-    if (Object.keys(errors).length > 0) {
-      setCaptionErrors(errors)
-      return
+    if (Object.keys(capErrs).length || Object.keys(typErrs).length) {
+      setCaptionErrors(capErrs); setTypeErrors(typErrs); return
     }
     const dateStr = new Date().toISOString()
     photos.forEach(p => {
+      const typeLabel = typeOptions.find(t => t.id === p.clothingType)?.label || p.clothingType
       onSave({
         id: Date.now() + Math.random(),
-        src: p.src,
-        category,
+        src: p.src, category,
         caption: p.caption.trim(),
         clothingType: p.clothingType,
+        clothingTypeLabel: typeLabel,
         customerId:   selectedCust ? String(selectedCust.id) : null,
         customerName: selectedCust ? selectedCust.name : null,
         date: dateStr,
       })
     })
-    reset()
-    onClose()
+    reset(); onClose()
   }
 
-  // When category changes, reset clothingType for all photos
   useEffect(() => {
-    const defaultType = (subTabs[category] || [])[0]?.id || ''
+    const defaultType = (dressTypes[category] || [])[0]?.id || ''
     setPhotos(prev => prev.map(p => ({ ...p, clothingType: defaultType })))
-  }, [category, subTabs])
+  }, [category, dressTypes])
 
   if (!isOpen) return null
 
@@ -231,37 +183,28 @@ function AddPhotoModal({ isOpen, onClose, onSave, customers, subTabs, activeMain
         type="back"
         title="Add Photo"
         onBackClick={handleClose}
-        customActions={[{
-          label: 'Save',
-          onClick: handleSave,
-          disabled: photos.length === 0
-        }]}
+        customActions={[{ label: 'Save', onClick: handleSave, disabled: photos.length === 0 }]}
       />
 
       <div className={styles.modalBody}>
-        {/* Photo picker area */}
+
         {photos.length === 0 ? (
           <div className={styles.uploadArea}>
-            <div className={styles.uploadIcon}>
-              <span className="mi" style={{ fontSize: '3rem', opacity: 0.3 }}>add_a_photo</span>
-            </div>
+            <span className="mi" style={{ fontSize: '3rem', opacity: 0.3 }}>add_a_photo</span>
             <p className={styles.uploadText}>Add photos from your camera or files</p>
             <div className={styles.uploadBtns}>
               <button className={styles.uploadBtn} onClick={() => cameraInputRef.current?.click()}>
-                <span className="mi" style={{ fontSize: '1.2rem' }}>photo_camera</span>
-                Camera
+                <span className="mi" style={{ fontSize: '1.2rem' }}>photo_camera</span> Camera
               </button>
               <button className={styles.uploadBtn} onClick={() => fileInputRef.current?.click()}>
-                <span className="mi" style={{ fontSize: '1.2rem' }}>photo_library</span>
-                Gallery
+                <span className="mi" style={{ fontSize: '1.2rem' }}>photo_library</span> Gallery
               </button>
             </div>
             <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" hidden onChange={e => handleFiles(e.target.files)} />
-            <input ref={fileInputRef}   type="file" accept="image/*" multiple          hidden onChange={e => handleFiles(e.target.files)} />
+            <input ref={fileInputRef}   type="file" accept="image/*" multiple           hidden onChange={e => handleFiles(e.target.files)} />
           </div>
         ) : (
           <div className={styles.previewSection}>
-            {/* Per-image caption + clothing type */}
             {photos.map((p, i) => (
               <div key={i} className={styles.photoEntry}>
                 <div className={styles.photoEntryTop}>
@@ -271,7 +214,9 @@ function AddPhotoModal({ isOpen, onClose, onSave, customers, subTabs, activeMain
                       <span className="mi" style={{ fontSize: '0.9rem' }}>close</span>
                     </button>
                   </div>
+
                   <div className={styles.photoEntryFields}>
+                    {/* Caption */}
                     <div className={styles.fieldGroup}>
                       <label className={styles.fieldLabel}>
                         Caption <span className={styles.required}>*</span>
@@ -283,43 +228,50 @@ function AddPhotoModal({ isOpen, onClose, onSave, customers, subTabs, activeMain
                         value={p.caption}
                         onChange={e => updatePhoto(i, 'caption', e.target.value)}
                       />
-                      {captionErrors[i] && (
-                        <span className={styles.errorMsg}>Caption is required</span>
-                      )}
+                      {captionErrors[i] && <span className={styles.errorMsg}>Caption is required</span>}
                     </div>
-                    {currentSubTabs.length > 0 && (
-                      <div className={styles.fieldGroup}>
-                        <label className={styles.fieldLabel}>Category</label>
-                        <div className={styles.clothingTypeRow}>
-                          {currentSubTabs.map(st => (
-                            <button
-                              key={st.id}
-                              className={`${styles.clothingTypeChip} ${p.clothingType === st.id ? styles.clothingTypeActive : ''}`}
-                              onClick={() => updatePhoto(i, 'clothingType', st.id)}
-                            >
-                              {st.label}
-                            </button>
-                          ))}
+
+                    {/* Dress type dropdown */}
+                    <div className={styles.fieldGroup}>
+                      <label className={styles.fieldLabel}>
+                        Dress Type <span className={styles.required}>*</span>
+                      </label>
+                      {typeOptions.length === 0 ? (
+                        <p className={styles.noTypesHint}>
+                          No dress types for this section. Add them via the edit icon on the gallery page.
+                        </p>
+                      ) : (
+                        <div className={styles.selectWrap}>
+                          <select
+                            className={`${styles.select} ${typeErrors[i] ? styles.inputError : ''}`}
+                            value={p.clothingType}
+                            onChange={e => updatePhoto(i, 'clothingType', e.target.value)}
+                          >
+                            <option value="" disabled>Select dress type…</option>
+                            {typeOptions.map(t => (
+                              <option key={t.id} value={t.id}>{t.label}</option>
+                            ))}
+                          </select>
+                          <span className={`mi ${styles.selectChevron}`}>expand_more</span>
                         </div>
-                      </div>
-                    )}
+                      )}
+                      {typeErrors[i] && <span className={styles.errorMsg}>Dress type is required</span>}
+                    </div>
                   </div>
                 </div>
               </div>
             ))}
 
-            {/* Add more button */}
             <button className={styles.addMoreBtn} onClick={() => fileInputRef.current?.click()}>
-              <span className="mi" style={{ fontSize: '1.5rem', color: 'var(--text3)' }}>add_photo_alternate</span>
+              <span className="mi" style={{ fontSize: '1.4rem', color: 'var(--text3)' }}>add_photo_alternate</span>
               <span style={{ fontSize: '0.78rem', color: 'var(--text3)', fontWeight: 700 }}>Add more photos</span>
             </button>
-
-            <input ref={fileInputRef}   type="file" accept="image/*" multiple          hidden onChange={e => handleFiles(e.target.files)} />
+            <input ref={fileInputRef}   type="file" accept="image/*" multiple           hidden onChange={e => handleFiles(e.target.files)} />
             <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" hidden onChange={e => handleFiles(e.target.files)} />
           </div>
         )}
 
-        {/* Category (main tab) */}
+        {/* Section */}
         <div className={styles.fieldGroup}>
           <label className={styles.fieldLabel}>Section</label>
           <div className={styles.categoryRow}>
@@ -342,7 +294,7 @@ function AddPhotoModal({ isOpen, onClose, onSave, customers, subTabs, activeMain
           {selectedCust ? (
             <div className={styles.selectedChip}>
               <div className={styles.chipAvatar}>
-                {selectedCust.name.trim().split(/\s+/).map(w => w[0]).slice(0,2).join('').toUpperCase()}
+                {selectedCust.name.trim().split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase()}
               </div>
               <span className={styles.chipName}>{selectedCust.name}</span>
               <button className={styles.chipRemove} onClick={() => setSelectedCust(null)}>
@@ -364,34 +316,33 @@ function AddPhotoModal({ isOpen, onClose, onSave, customers, subTabs, activeMain
                 <div className={styles.dropdown}>
                   {filteredCusts.length === 0 ? (
                     <div className={styles.dropEmpty}>No clients found</div>
-                  ) : (
-                    filteredCusts.slice(0, 5).map(c => (
-                      <button key={c.id} className={styles.dropItem}
-                        onClick={() => { setSelectedCust(c); setCustQuery(''); setCustDropOpen(false) }}>
-                        <div className={styles.dropAvatar}>
-                          {c.name.trim().split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase()}
-                        </div>
-                        <div>
-                          <div className={styles.dropName}>{c.name}</div>
-                          <div className={styles.dropMeta}>{c.phone}</div>
-                        </div>
-                      </button>
-                    ))
-                  )}
+                  ) : filteredCusts.slice(0, 5).map(c => (
+                    <button key={c.id} className={styles.dropItem}
+                      onClick={() => { setSelectedCust(c); setCustQuery(''); setCustDropOpen(false) }}>
+                      <div className={styles.dropAvatar}>
+                        {c.name.trim().split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase()}
+                      </div>
+                      <div>
+                        <div className={styles.dropName}>{c.name}</div>
+                        <div className={styles.dropMeta}>{c.phone}</div>
+                      </div>
+                    </button>
+                  ))}
                 </div>
               )}
             </div>
           )}
         </div>
+
       </div>
     </div>
   )
 }
 
-// ── LIGHTBOX ──
+// ── LIGHTBOX ────────────────────────────────────────────────────
+
 function Lightbox({ photo, photos, onClose, onDelete }) {
   const [current, setCurrent] = useState(photo)
-
   const idx     = photos.findIndex(p => p.id === current.id)
   const hasPrev = idx > 0
   const hasNext = idx < photos.length - 1
@@ -411,25 +362,23 @@ function Lightbox({ photo, photos, onClose, onDelete }) {
   return (
     <div className={styles.lightboxOverlay} onClick={onClose}>
       <div className={styles.lightboxContent} onClick={e => e.stopPropagation()}>
-        {/* Top bar */}
         <div className={styles.lightboxBar}>
           <button className={styles.lightboxBtn} onClick={onClose}>
             <span className="mi" style={{ fontSize: '1.6rem' }}>close</span>
           </button>
           <div className={styles.lightboxCounter}>{idx + 1} / {photos.length}</div>
-          <button className={styles.lightboxBtn} onClick={() => onDelete(current)} style={{ color: 'var(--danger)' }}>
+          <button className={styles.lightboxBtn} onClick={() => onDelete(current)}>
             <span className="mi" style={{ fontSize: '1.4rem', color: 'var(--danger)' }}>delete_outline</span>
           </button>
         </div>
 
-        {/* Image */}
         <div className={styles.lightboxImgWrap}>
           {hasPrev && (
             <button className={`${styles.navBtn} ${styles.navLeft}`} onClick={() => setCurrent(photos[idx - 1])}>
               <span className="mi" style={{ fontSize: '1.6rem' }}>chevron_left</span>
             </button>
           )}
-          <img src={current.src} alt={current.caption || 'Photo'} className={styles.lightboxImg} />
+          <img src={current.src || current.storageUrl} alt={current.caption || 'Photo'} className={styles.lightboxImg} />
           {hasNext && (
             <button className={`${styles.navBtn} ${styles.navRight}`} onClick={() => setCurrent(photos[idx + 1])}>
               <span className="mi" style={{ fontSize: '1.6rem' }}>chevron_right</span>
@@ -437,10 +386,15 @@ function Lightbox({ photo, photos, onClose, onDelete }) {
           )}
         </div>
 
-        {/* Info */}
         <div className={styles.lightboxInfo}>
           {current.caption && <div className={styles.lightboxCaption}>{current.caption}</div>}
           <div className={styles.lightboxMeta}>
+            {current.clothingTypeLabel && (
+              <span className={styles.lightboxChip}>
+                <span className="mi" style={{ fontSize: '0.75rem' }}>checkroom</span>
+                {current.clothingTypeLabel}
+              </span>
+            )}
             {cat && (
               <span className={styles.lightboxChip}>
                 <span className="mi" style={{ fontSize: '0.85rem' }}>{cat.icon}</span>
@@ -455,7 +409,7 @@ function Lightbox({ photo, photos, onClose, onDelete }) {
             )}
             <span className={styles.lightboxChip}>
               <span className="mi" style={{ fontSize: '0.75rem' }}>calendar_today</span>
-              {formatDate(current.date)}
+              {formatDate(current.createdAt || current.date)}
             </span>
           </div>
         </div>
@@ -464,19 +418,19 @@ function Lightbox({ photo, photos, onClose, onDelete }) {
   )
 }
 
-// ── MAIN PAGE ──
+// ── MAIN PAGE ────────────────────────────────────────────────────
+
 export default function Gallery({ onMenuClick }) {
   const { customers } = useCustomers()
+  const { photos, dressTypes, loading, addPhoto, deletePhoto, saveDressTypes } = useGallery()
 
-  const [photos, setPhotos]                     = useState(() => loadPhotos())
-  const [activeTab, setActiveTab]               = useState('completed_works')
-  const [activeSubTabs, setActiveSubTabs]       = useState({}) // { tabId: subTabId }
-  const [subTabs, setSubTabs]                   = useState(() => loadSubTabs())
-  const [manageTabId, setManageTabId]           = useState(null)
-  const [modalOpen, setModalOpen]               = useState(false)
-  const [lightboxPhoto, setLightboxPhoto]       = useState(null)
-  const [confirmDel, setConfirmDel]             = useState(null)
-  const [toastMsg, setToastMsg]                 = useState('')
+  const [activeTab,     setActiveTab]     = useState('completed_works')
+  const [activeSubTabs, setActiveSubTabs] = useState({})
+  const [manageTabId,   setManageTabId]   = useState(null)
+  const [modalOpen,     setModalOpen]     = useState(false)
+  const [lightboxPhoto, setLightboxPhoto] = useState(null)
+  const [confirmDel,    setConfirmDel]    = useState(null)
+  const [toastMsg,      setToastMsg]      = useState('')
   const toastTimer = useRef(null)
   const tabsRef    = useRef(null)
 
@@ -486,58 +440,51 @@ export default function Gallery({ onMenuClick }) {
     toastTimer.current = setTimeout(() => setToastMsg(''), 2400)
   }, [])
 
-  useEffect(() => { savePhotos(photos) }, [photos])
-  useEffect(() => { saveSubTabs(subTabs) }, [subTabs])
+  const currentDressTypes = dressTypes[activeTab] || []
+  const activeSubTab      = activeSubTabs[activeTab] || currentDressTypes[0]?.id || null
+  const filteredByMain    = photos.filter(p => p.category === activeTab)
+  const filtered          = activeSubTab
+    ? filteredByMain.filter(p => p.clothingType === activeSubTab)
+    : filteredByMain
+  const counts = Object.fromEntries(TABS.map(t => [t.id, photos.filter(p => p.category === t.id).length]))
+  const lightboxList = lightboxPhoto ? filtered : []
 
-  const addPhoto = (photo) => setPhotos(prev => [photo, ...prev])
+  const handleAddPhoto = async (photoData) => {
+    try { await addPhoto(photoData) }
+    catch { showToast('Failed to save photo') }
+  }
 
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = async () => {
     if (!confirmDel) return
-    setPhotos(prev => prev.filter(p => p.id !== confirmDel.id))
-    if (lightboxPhoto?.id === confirmDel.id) setLightboxPhoto(null)
-    showToast('Photo deleted')
+    try {
+      await deletePhoto(confirmDel.id)
+      if (lightboxPhoto?.id === confirmDel.id) setLightboxPhoto(null)
+      showToast('Photo deleted')
+    } catch { showToast('Failed to delete photo') }
     setConfirmDel(null)
   }
 
-  const handleSaveSubTabs = (tabId, newTabs) => {
-    setSubTabs(prev => ({ ...prev, [tabId]: newTabs }))
-    // Reset active sub-tab for this main tab if it no longer exists
-    const ids = newTabs.map(t => t.id)
-    setActiveSubTabs(prev => ({
-      ...prev,
-      [tabId]: ids.includes(prev[tabId]) ? prev[tabId] : (ids[0] || null)
-    }))
+  const handleSaveDressTypes = async (tabId, types) => {
+    try {
+      await saveDressTypes(tabId, types)
+      const ids = types.map(t => t.id)
+      setActiveSubTabs(prev => ({
+        ...prev,
+        [tabId]: ids.includes(prev[tabId]) ? prev[tabId] : (ids[0] || null)
+      }))
+    } catch { showToast('Failed to save dress types') }
   }
 
-  const currentSubTabs = subTabs[activeTab] || []
-  const activeSubTab   = activeSubTabs[activeTab] || currentSubTabs[0]?.id || null
-
-  // Filter by main tab then by sub-tab
-  const filteredByMain = photos.filter(p => p.category === activeTab)
-  const filtered = activeSubTab
-    ? filteredByMain.filter(p => p.clothingType === activeSubTab)
-    : filteredByMain
-
-  const counts = Object.fromEntries(
-    TABS.map(t => [t.id, photos.filter(p => p.category === t.id).length])
-  )
-
-  const lightboxList = lightboxPhoto ? filtered : []
-
-  // ── Expandable tab action pill ──
-  // Auto-expands once each time the active tab changes (teaches the user),
-  // then collapses to icon-only after 2s.
+  // Expandable pill
   const TAB_ACTIONS = {
     completed_works: { icon: 'share',          label: 'Share Portfolio Link', onPress: () => showToast('Portfolio link coming soon!') },
     designs:         { icon: 'picture_as_pdf', label: 'Export Lookbook',      onPress: () => showToast('Export lookbook coming soon!') },
     inspiration:     { icon: 'send',           label: 'Send Board',           onPress: () => showToast('Share board coming soon!') },
   }
   const tabAction = TAB_ACTIONS[activeTab]
-
   const [pillExpanded, setPillExpanded] = useState(true)
   const pillTimer = useRef(null)
 
-  // Every time activeTab changes: expand for 2s then collapse
   useEffect(() => {
     setPillExpanded(true)
     clearTimeout(pillTimer.current)
@@ -547,12 +494,10 @@ export default function Gallery({ onMenuClick }) {
 
   const handlePillClick = () => {
     if (!pillExpanded) {
-      // First tap: expand and start collapse timer
       setPillExpanded(true)
       clearTimeout(pillTimer.current)
       pillTimer.current = setTimeout(() => setPillExpanded(false), 2000)
     } else {
-      // Already expanded: fire the action
       tabAction?.onPress()
     }
   }
@@ -561,7 +506,7 @@ export default function Gallery({ onMenuClick }) {
     <div className={styles.page}>
       <Header title="Gallery" onMenuClick={onMenuClick} />
 
-      {/* MAIN TABS + EXPANDABLE PILL ACTION */}
+      {/* MAIN TABS + PILL */}
       <div className={styles.tabActionBar}>
         <div className={styles.tabs} ref={tabsRef}>
           {TABS.map(tab => (
@@ -574,14 +519,10 @@ export default function Gallery({ onMenuClick }) {
               }}
             >
               <span>{tab.label}</span>
-              {counts[tab.id] > 0 && (
-                <span className={styles.tabBadge}>{counts[tab.id]}</span>
-              )}
+              {counts[tab.id] > 0 && <span className={styles.tabBadge}>{counts[tab.id]}</span>}
             </div>
           ))}
         </div>
-
-        {/* Expandable pill — icon only until tapped or on tab switch */}
         {tabAction && (
           <div className={styles.pillWrap}>
             <button
@@ -596,10 +537,10 @@ export default function Gallery({ onMenuClick }) {
         )}
       </div>
 
-      {/* SUB-TABS (rounded pill style) */}
+      {/* DRESS TYPE SUB-TABS */}
       <div className={styles.subTabsBar}>
         <div className={styles.subTabsScroll}>
-          {currentSubTabs.map(st => (
+          {currentDressTypes.map(st => (
             <button
               key={st.id}
               className={`${styles.subTab} ${activeSubTab === st.id ? styles.subTabActive : ''}`}
@@ -609,20 +550,11 @@ export default function Gallery({ onMenuClick }) {
             </button>
           ))}
         </div>
-        {/* Action icons */}
         <div className={styles.subTabActions}>
-          <button
-            className={styles.subTabIconBtn}
-            onClick={() => setManageTabId(activeTab)}
-            title="Edit categories"
-          >
+          <button className={styles.subTabIconBtn} onClick={() => setManageTabId(activeTab)} title="Edit dress types">
             <span className="mi" style={{ fontSize: '1.1rem' }}>edit</span>
           </button>
-          <button
-            className={styles.subTabIconBtn}
-            onClick={() => setManageTabId(activeTab)}
-            title="Add category"
-          >
+          <button className={styles.subTabIconBtn} onClick={() => setManageTabId(activeTab)} title="Add dress type">
             <span className="mi" style={{ fontSize: '1.1rem' }}>add</span>
           </button>
         </div>
@@ -630,11 +562,14 @@ export default function Gallery({ onMenuClick }) {
 
       {/* GRID */}
       <div className={styles.gridArea}>
-        {filtered.length === 0 ? (
+        {loading ? (
           <div className={styles.emptyState}>
-            <span className="mi" style={{ fontSize: '3rem', opacity: 0.15 }}>
-              {CATEGORY_MAP[activeTab]?.icon ?? 'image'}
-            </span>
+            <span className="mi" style={{ fontSize: '2rem', opacity: 0.2 }}>hourglass_empty</span>
+            <p>Loading…</p>
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className={styles.emptyState}>
+            <span className="mi" style={{ fontSize: '3rem', opacity: 0.15 }}>{CATEGORY_MAP[activeTab]?.icon ?? 'image'}</span>
             <p>No photos here yet.</p>
             <span className={styles.emptyHint}>Tap + to add your first photo</span>
           </div>
@@ -647,46 +582,40 @@ export default function Gallery({ onMenuClick }) {
                 style={{ animationDelay: `${i * 0.03}s` }}
                 onClick={() => setLightboxPhoto(photo)}
               >
-                <img src={photo.src} alt={photo.caption || 'photo'} className={styles.thumbImg} />
+                <img src={photo.src || photo.storageUrl} alt={photo.caption || 'photo'} className={styles.thumbImg} />
                 <div className={styles.thumbBadge}>
                   <span className="mi" style={{ fontSize: '0.8rem' }}>{CATEGORY_MAP[photo.category]?.icon}</span>
                 </div>
-                {photo.caption && (
-                  <div className={styles.thumbCaption}>{photo.caption}</div>
-                )}
+                {photo.caption && <div className={styles.thumbCaption}>{photo.caption}</div>}
               </div>
             ))}
           </div>
         )}
       </div>
 
-      {/* FAB */}
       <button className={styles.fab} onClick={() => setModalOpen(true)}>
         <span className="mi">add</span>
       </button>
 
-      {/* ADD PHOTO MODAL */}
       {modalOpen && (
         <AddPhotoModal
           isOpen={modalOpen}
           onClose={() => setModalOpen(false)}
-          onSave={addPhoto}
+          onSave={handleAddPhoto}
           customers={customers}
-          subTabs={subTabs}
+          dressTypes={dressTypes}
           activeMainTab={activeTab}
         />
       )}
 
-      {/* MANAGE SUB-TABS */}
-      <ManageSubTabsModal
+      <ManageDressTypesSheet
         isOpen={!!manageTabId}
         onClose={() => setManageTabId(null)}
         tabId={manageTabId}
-        subTabs={subTabs[manageTabId] || []}
-        onSave={handleSaveSubTabs}
+        types={dressTypes[manageTabId] || []}
+        onSave={handleSaveDressTypes}
       />
 
-      {/* LIGHTBOX */}
       {lightboxPhoto && (
         <Lightbox
           photo={lightboxPhoto}
@@ -696,7 +625,6 @@ export default function Gallery({ onMenuClick }) {
         />
       )}
 
-      {/* CONFIRM DELETE */}
       <ConfirmSheet
         open={!!confirmDel}
         title="Delete Photo?"
