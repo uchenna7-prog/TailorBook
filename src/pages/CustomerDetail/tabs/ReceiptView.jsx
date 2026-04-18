@@ -292,7 +292,7 @@ function LogoOrName({ brand, darkBg = false }) {
 
 // ─────────────────────────────────────────────────────────────
 // Shared receipt payment summary block
-// Used by templates 1, 2, 3, 4 (standard layout)
+// Used by templates 1, 2, 3 (standard layout)
 // ─────────────────────────────────────────────────────────────
 
 function ReceiptPaymentSummary({ receipt, brand }) {
@@ -388,73 +388,6 @@ function ReceiptPaymentSummary({ receipt, brand }) {
         </div>
       </div>
     </div>
-  )
-}
-
-// ─────────────────────────────────────────────────────────────
-// Compact payment history rows for templates with their own table style
-// ─────────────────────────────────────────────────────────────
-
-function PaymentHistoryRows({ receipt, brand, rowClass, cellClass, accentGreen = '#16a34a', accentRed = '#ef4444' }) {
-  const { currency } = brand
-  const orderTotal = receipt.items?.length > 0
-    ? receipt.items.reduce((sum, item) => sum + (parseFloat(item.price) || 0), 0)
-    : (parseFloat(receipt.orderPrice) || 0)
-  const previousPaid   = parseFloat(receipt.previousPaid) || 0
-  const hasPrevious    = (receipt.previousInstallments?.length > 0) || previousPaid > 0
-  const cumulativePaid = resolveCumulativePaid(receipt)
-  const thisPaymentTotal = (receipt.payments || []).reduce((s, p) => s + (parseFloat(p.amount) || 0), 0)
-  const balanceRemaining = Math.max(0, orderTotal - cumulativePaid)
-  const isFullPayment    = balanceRemaining <= 0
-
-  return (
-    <>
-      {/* Order items */}
-      {receipt.items?.map((item, idx) => (
-        <div key={idx} className={rowClass}>
-          <span style={{ flex: 3 }}>• {item.name}</span>
-          <span style={{ textAlign: 'right' }}>{fmt(currency, item.price)}</span>
-        </div>
-      ))}
-      {!receipt.items?.length && (
-        <div className={rowClass}>
-          <span style={{ flex: 3 }}>{receipt.orderDesc || 'Garment Order'}</span>
-          <span style={{ textAlign: 'right' }}>{fmt(currency, orderTotal)}</span>
-        </div>
-      )}
-      {/* Previous payments */}
-      {hasPrevious && (receipt.previousInstallments || []).map((p, idx) => (
-        <div key={`prev-${idx}`} className={rowClass}>
-          <span style={{ flex: 3, color: '#6b7280' }}>
-            Prior: {p.date}{p.method ? ` (${p.method})` : ''}
-          </span>
-          <span style={{ textAlign: 'right', color: '#6b7280' }}>{fmt(currency, p.amount)}</span>
-        </div>
-      ))}
-      {hasPrevious && !receipt.previousInstallments?.length && previousPaid > 0 && (
-        <div className={rowClass}>
-          <span style={{ flex: 3, color: '#6b7280' }}>Prior payments</span>
-          <span style={{ textAlign: 'right', color: '#6b7280' }}>{fmt(currency, previousPaid)}</span>
-        </div>
-      )}
-      {/* This receipt's payments */}
-      {(receipt.payments || []).map((p, idx) => (
-        <div key={`pay-${idx}`} className={rowClass}>
-          <span style={{ flex: 3, color: accentGreen, fontWeight: 700 }}>
-            Paid{receipt.payments.length > 1 ? ` (${idx + 1})` : ''}: {p.date}
-            {p.method ? ` · ${p.method.charAt(0).toUpperCase() + p.method.slice(1)}` : ''}
-          </span>
-          <span style={{ textAlign: 'right', color: accentGreen, fontWeight: 700 }}>{fmt(currency, p.amount)}</span>
-        </div>
-      ))}
-      {/* Balance row if outstanding */}
-      {!isFullPayment && (
-        <div className={rowClass}>
-          <span style={{ flex: 3, color: accentRed, fontWeight: 700 }}>Balance Remaining</span>
-          <span style={{ textAlign: 'right', color: accentRed, fontWeight: 700 }}>{fmt(currency, balanceRemaining)}</span>
-        </div>
-      )}
-    </>
   )
 }
 
@@ -627,16 +560,6 @@ function PrintableTemplate({ receipt, customer, brand }) {
             <span>{fmt(currency, orderTotal)}</span>
           </div>
         )}
-        {/* Payment history rows */}
-        {(receipt.payments || []).map((p, idx) => (
-          <div key={`pay-${idx}`} className={styles.p4TableRow} style={{ color: '#16a34a' }}>
-            <span style={{ flex: 3 }}>
-              Payment{receipt.payments.length > 1 ? ` ${idx + 1}` : ''}: {p.date}
-              {p.method ? ` (${p.method.charAt(0).toUpperCase() + p.method.slice(1)})` : ''}
-            </span>
-            <span style={{ fontWeight: 700 }}>{fmt(currency, p.amount)}</span>
-          </div>
-        ))}
         <div className={styles.p4TotalsArea}>
           <div className={styles.p4TotRow}><span>Order Value</span><span>{fmt(currency, orderTotal)}</span></div>
           {!isFullPayment && <div className={styles.p4TotRow} style={{ color: '#ef4444' }}><span>Balance Remaining</span><span>{fmt(currency, balanceRemaining)}</span></div>}
@@ -647,6 +570,24 @@ function PrintableTemplate({ receipt, customer, brand }) {
           </div>
         </div>
       </div>
+      {/* Payment History — separate section styled with template 4's border style */}
+      {(receipt.payments || []).length > 0 && (
+        <div style={{ marginTop: 12 }}>
+          <div className={styles.p4TableHead} style={{ borderColor: barColor }}>
+            <span style={{ flex: 3 }}>Payment History</span>
+            <span>Amount</span>
+          </div>
+          {(receipt.payments || []).map((p, idx) => (
+            <div key={`pay-${idx}`} className={styles.p4TableRow} style={{ color: '#16a34a' }}>
+              <span style={{ flex: 3 }}>
+                {receipt.payments.length > 1 ? `Payment ${idx + 1}: ` : ''}{p.date}
+                {p.method ? ` · ${p.method.charAt(0).toUpperCase() + p.method.slice(1)}` : ''}
+              </span>
+              <span style={{ fontWeight: 700 }}>{fmt(currency, p.amount)}</span>
+            </div>
+          ))}
+        </div>
+      )}
       <div className={styles.tplFooterPush} />
       {brand.footer && (
         <div className={styles.printFooterCentered}>
@@ -699,16 +640,6 @@ function CanvaTemplate({ receipt, customer, brand }) {
           <span>{fmt(currency, orderTotal)}</span>
         </div>
       )}
-      {/* Payment history */}
-      {(receipt.payments || []).map((p, idx) => (
-        <div key={`pay-${idx}`} className={styles.t5TableRow} style={{ color: '#16a34a', fontWeight: 600 }}>
-          <span style={{ flex: 3 }}>
-            Paid{receipt.payments.length > 1 ? ` (${idx + 1})` : ''}: {p.date}
-            {p.method ? ` · ${p.method.charAt(0).toUpperCase() + p.method.slice(1)}` : ''}
-          </span>
-          <span>{fmt(currency, p.amount)}</span>
-        </div>
-      ))}
       <div className={styles.t5Divider} />
       <div className={styles.t5TotalsSection}>
         <div className={styles.t5TotRow}><span>Order Value</span><span>{fmt(currency, orderTotal)}</span></div>
@@ -718,6 +649,24 @@ function CanvaTemplate({ receipt, customer, brand }) {
           <span style={{ color: isFullPayment ? '#16a34a' : '#1a1a1a' }}>{fmt(currency, thisPaymentTotal)}</span>
         </div>
       </div>
+      {/* Payment History — separate section styled with template 5's divider style */}
+      {(receipt.payments || []).length > 0 && (
+        <>
+          <div className={styles.t5Divider} />
+          <div className={styles.t5TableHead}>
+            <span style={{ flex: 3 }}>Payment History</span><span>Amount</span>
+          </div>
+          {(receipt.payments || []).map((p, idx) => (
+            <div key={`pay-${idx}`} className={styles.t5TableRow} style={{ color: '#16a34a', fontWeight: 600 }}>
+              <span style={{ flex: 3 }}>
+                {receipt.payments.length > 1 ? `Payment ${idx + 1}: ` : ''}{p.date}
+                {p.method ? ` · ${p.method.charAt(0).toUpperCase() + p.method.slice(1)}` : ''}
+              </span>
+              <span>{fmt(currency, p.amount)}</span>
+            </div>
+          ))}
+        </>
+      )}
       <div className={styles.t5Divider} />
       <div className={styles.t5Footer}>
         <div />
@@ -804,16 +753,6 @@ function DarkHeaderTemplate({ receipt, customer, brand }) {
           <span>{fmt(currency, orderTotal)}</span>
         </div>
       )}
-      {/* Payment history */}
-      {(receipt.payments || []).map((p, idx) => (
-        <div key={`pay-${idx}`} className={styles.t6TableRow} style={{ color: '#16a34a', fontWeight: 700 }}>
-          <span style={{ flex: 3 }}>
-            Paid{receipt.payments.length > 1 ? ` (${idx + 1})` : ''}: {p.date}
-            {p.method ? ` · ${p.method.charAt(0).toUpperCase() + p.method.slice(1)}` : ''}
-          </span>
-          <span>{fmt(currency, p.amount)}</span>
-        </div>
-      ))}
       <div className={styles.t6TotalsArea}>
         <div className={styles.t6TotRow}><span>ORDER VALUE</span><span>{fmt(currency, orderTotal)}</span></div>
         {!isFullPayment && <div className={styles.t6TotRow} style={{ color: '#ef4444' }}><span>BALANCE</span><span>{fmt(currency, balanceRemaining)}</span></div>}
@@ -822,6 +761,23 @@ function DarkHeaderTemplate({ receipt, customer, brand }) {
           <span style={{ color: isFullPayment ? '#16a34a' : '#1a1a1a' }}>{fmt(currency, thisPaymentTotal)}</span>
         </div>
       </div>
+      {/* Payment History — separate section styled with template 6's dark header style */}
+      {(receipt.payments || []).length > 0 && (
+        <div style={{ marginTop: 10 }}>
+          <div className={styles.t6TableHead}>
+            <span style={{ flex: 3 }}>PAYMENT HISTORY</span><span>AMOUNT</span>
+          </div>
+          {(receipt.payments || []).map((p, idx) => (
+            <div key={`pay-${idx}`} className={styles.t6TableRow} style={{ color: '#16a34a', fontWeight: 700 }}>
+              <span style={{ flex: 3 }}>
+                {receipt.payments.length > 1 ? `Payment ${idx + 1}: ` : ''}{p.date}
+                {p.method ? ` · ${p.method.charAt(0).toUpperCase() + p.method.slice(1)}` : ''}
+              </span>
+              <span>{fmt(currency, p.amount)}</span>
+            </div>
+          ))}
+        </div>
+      )}
       <div className={styles.t6ThankYou}>{brand.footer || 'THANK YOU FOR YOUR PAYMENT'}</div>
     </div>
   )
@@ -910,17 +866,6 @@ function RedBoldTemplate({ receipt, customer, brand }) {
           <span className={styles.t7RedPrice} style={{ color: accentColor }}>{fmt(currency, orderTotal)}</span>
         </div>
       )}
-      {/* Payment history in numbered style */}
-      {(receipt.payments || []).map((p, idx) => (
-        <div key={`pay-${idx}`} className={styles.t7TableRow}>
-          <span className={styles.t7NumCol}>—</span>
-          <span style={{ flex: 3, color: '#16a34a', fontWeight: 700 }}>
-            Paid{receipt.payments.length > 1 ? ` (${idx + 1})` : ''}: {p.date}
-            {p.method ? ` · ${p.method.charAt(0).toUpperCase() + p.method.slice(1)}` : ''}
-          </span>
-          <span style={{ flex: 1, textAlign: 'right', color: '#16a34a', fontWeight: 700 }}>{fmt(currency, p.amount)}</span>
-        </div>
-      ))}
       {!isFullPayment && (
         <div className={styles.t7TableRow}>
           <span className={styles.t7NumCol}>—</span>
@@ -932,6 +877,28 @@ function RedBoldTemplate({ receipt, customer, brand }) {
         <span>{isFullPayment ? 'PAID IN FULL:' : 'RECEIVED:'}</span>
         <span className={styles.t7TotalAmt}>{fmt(currency, thisPaymentTotal)}</span>
       </div>
+      {/* Payment History — separate section styled with template 7's numbered row style */}
+      {(receipt.payments || []).length > 0 && (
+        <div style={{ marginTop: 8 }}>
+          <div className={styles.t7Divider} />
+          <div className={styles.t7ForLabel}>PAYMENT HISTORY:</div>
+          <div className={styles.t7TableHead}>
+            <span className={styles.t7NumCol}>No.</span>
+            <span style={{ flex: 3 }}>Date & Method</span>
+            <span style={{ flex: 1, textAlign: 'right' }}>Amount</span>
+          </div>
+          {(receipt.payments || []).map((p, idx) => (
+            <div key={`pay-${idx}`} className={styles.t7TableRow}>
+              <span className={styles.t7NumCol}>{idx + 1}</span>
+              <span style={{ flex: 3, color: '#16a34a', fontWeight: 700 }}>
+                {p.date}
+                {p.method ? ` · ${p.method.charAt(0).toUpperCase() + p.method.slice(1)}` : ''}
+              </span>
+              <span style={{ flex: 1, textAlign: 'right', color: '#16a34a', fontWeight: 700 }}>{fmt(currency, p.amount)}</span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
@@ -988,18 +955,28 @@ function GreenAccentTemplate({ receipt, customer, brand }) {
           <span>{fmt(currency, orderTotal)}</span>
         </div>
       )}
-      {/* Payment history rows */}
-      {(receipt.payments || []).map((p, idx) => (
-        <div key={`pay-${idx}`} className={styles.t8TableRow}>
-          <span>—</span>
-          <span style={{ flex: 3, color: '#16a34a', fontWeight: 700 }}>
-            Paid{receipt.payments.length > 1 ? ` (${idx + 1})` : ''}: {p.date}
-            {p.method ? ` · ${p.method.charAt(0).toUpperCase() + p.method.slice(1)}` : ''}
-          </span>
-          <span style={{ color: '#16a34a', fontWeight: 700 }}>{fmt(currency, p.amount)}</span>
-        </div>
-      ))}
       <div className={styles.t8Divider} />
+      {/* Payment History — separate section styled with template 8's grey bg header */}
+      {(receipt.payments || []).length > 0 && (
+        <>
+          <div className={styles.t8TableHead} style={{ background: '#e8f5f0' }}>
+            <span>No.</span>
+            <span style={{ flex: 3 }}>Payment History</span>
+            <span>Amount</span>
+          </div>
+          {(receipt.payments || []).map((p, idx) => (
+            <div key={`pay-${idx}`} className={styles.t8TableRow}>
+              <span>{idx + 1}</span>
+              <span style={{ flex: 3, color: '#16a34a', fontWeight: 700 }}>
+                {p.date}
+                {p.method ? ` · ${p.method.charAt(0).toUpperCase() + p.method.slice(1)}` : ''}
+              </span>
+              <span style={{ color: '#16a34a', fontWeight: 700 }}>{fmt(currency, p.amount)}</span>
+            </div>
+          ))}
+          <div className={styles.t8Divider} />
+        </>
+      )}
       <div className={styles.t8Bottom}>
         <div className={styles.t8GreenBox} style={{ background: accentColor }}>
           <div className={styles.t8GreenBoxTitle}>Received from:</div>
@@ -1092,17 +1069,6 @@ function TealGeometricTemplate({ receipt, customer, brand }) {
           <span>{fmt(currency, orderTotal)}</span>
         </div>
       )}
-      {/* Payment history */}
-      {(receipt.payments || []).map((p, idx) => (
-        <div key={`pay-${idx}`} className={styles.t9TableRow}>
-          <span>—</span>
-          <span style={{ flex: 3, color: '#16a34a', fontWeight: 700 }}>
-            Paid{receipt.payments.length > 1 ? ` (${idx + 1})` : ''}: {p.date}
-            {p.method ? ` · ${p.method.charAt(0).toUpperCase() + p.method.slice(1)}` : ''}
-          </span>
-          <span style={{ color: '#16a34a', fontWeight: 700 }}>{fmt(currency, p.amount)}</span>
-        </div>
-      ))}
       <div className={styles.t9SubArea}>
         <div className={styles.t9SubRow}><span>Order Value</span><span>{fmt(currency, orderTotal)}</span></div>
         {!isFullPayment && <div className={styles.t9SubRow} style={{ color: '#ef4444' }}><span>Balance</span><span>{fmt(currency, balanceRemaining)}</span></div>}
@@ -1111,6 +1077,26 @@ function TealGeometricTemplate({ receipt, customer, brand }) {
         <span>{isFullPayment ? 'PAID IN FULL' : 'AMOUNT RECEIVED'}</span>
         <span>{fmt(currency, thisPaymentTotal)}</span>
       </div>
+      {/* Payment History — separate section styled with template 9's teal header */}
+      {(receipt.payments || []).length > 0 && (
+        <div style={{ marginTop: 8 }}>
+          <div className={styles.t9TableHead} style={{ background: accentColor }}>
+            <span>No.</span>
+            <span style={{ flex: 3 }}>PAYMENT HISTORY</span>
+            <span>AMOUNT</span>
+          </div>
+          {(receipt.payments || []).map((p, idx) => (
+            <div key={`pay-${idx}`} className={styles.t9TableRow}>
+              <span>{idx + 1}</span>
+              <span style={{ flex: 3, color: '#16a34a', fontWeight: 700 }}>
+                {p.date}
+                {p.method ? ` · ${p.method.charAt(0).toUpperCase() + p.method.slice(1)}` : ''}
+              </span>
+              <span style={{ color: '#16a34a', fontWeight: 700 }}>{fmt(currency, p.amount)}</span>
+            </div>
+          ))}
+        </div>
+      )}
       <div className={styles.t9Footer}>
         <div>
           {!brand.accountBank && <div className={styles.t9ThankYou}>THANK YOU FOR YOUR PAYMENT</div>}
@@ -1188,18 +1174,28 @@ function PinkDiagonalTemplate({ receipt, customer, brand }) {
           <span>{fmt(currency, orderTotal)}</span>
         </div>
       )}
-      {/* Payment history */}
-      {(receipt.payments || []).map((p, idx) => (
-        <div key={`pay-${idx}`} className={styles.t10TableRow}>
-          <span>—</span>
-          <span style={{ flex: 3, color: '#16a34a', fontWeight: 700 }}>
-            Paid{receipt.payments.length > 1 ? ` (${idx + 1})` : ''}: {p.date}
-            {p.method ? ` · ${p.method.charAt(0).toUpperCase() + p.method.slice(1)}` : ''}
-          </span>
-          <span style={{ color: '#16a34a', fontWeight: 700 }}>{fmt(currency, p.amount)}</span>
-        </div>
-      ))}
       <div className={styles.t10Divider} />
+      {/* Payment History — separate section styled with template 10's bordered header style */}
+      {(receipt.payments || []).length > 0 && (
+        <>
+          <div className={styles.t10TableHead}>
+            <span>No.</span>
+            <span style={{ flex: 3 }}>Payment History</span>
+            <span>Amount</span>
+          </div>
+          {(receipt.payments || []).map((p, idx) => (
+            <div key={`pay-${idx}`} className={styles.t10TableRow}>
+              <span>{idx + 1}</span>
+              <span style={{ flex: 3, color: '#16a34a', fontWeight: 700 }}>
+                {p.date}
+                {p.method ? ` · ${p.method.charAt(0).toUpperCase() + p.method.slice(1)}` : ''}
+              </span>
+              <span style={{ color: '#16a34a', fontWeight: 700 }}>{fmt(currency, p.amount)}</span>
+            </div>
+          ))}
+          <div className={styles.t10Divider} />
+        </>
+      )}
       <div className={styles.t10Bottom}>
         <div style={{ flex: 1 }}>
           <div className={styles.t10ThankYou}>{brand.footer || 'Thank you for your payment'}</div>
@@ -1306,17 +1302,6 @@ function BlueCleanTemplate({ receipt, customer, brand }) {
           <span>{fmt(currency, orderTotal)}</span>
         </div>
       )}
-      {/* Payment history */}
-      {(receipt.payments || []).map((p, idx) => (
-        <div key={`pay-${idx}`} className={styles.t11TableRow}>
-          <span style={{ flex: 3, color: '#16a34a', fontWeight: 700 }}>
-            • Paid{receipt.payments.length > 1 ? ` (${idx + 1})` : ''}: {p.date}
-            {p.method ? ` · ${p.method.charAt(0).toUpperCase() + p.method.slice(1)}` : ''}
-          </span>
-          <span>—</span>
-          <span style={{ color: '#16a34a', fontWeight: 700 }}>{fmt(currency, p.amount)}</span>
-        </div>
-      ))}
       <div className={styles.t11TotArea}>
         <div className={styles.t11TotRow}><span>Order Value</span><span>{fmt(currency, orderTotal)}</span></div>
         {!isFullPayment && <div className={styles.t11TotRow} style={{ color: '#ef4444' }}><span>Balance</span><span>{fmt(currency, balanceRemaining)}</span></div>}
@@ -1325,6 +1310,26 @@ function BlueCleanTemplate({ receipt, customer, brand }) {
           <span style={{ color: isFullPayment ? '#16a34a' : accentColor }}>{fmt(currency, thisPaymentTotal)}</span>
         </div>
       </div>
+      {/* Payment History — separate section styled with template 11's black header style */}
+      {(receipt.payments || []).length > 0 && (
+        <div style={{ marginTop: 10 }}>
+          <div className={styles.t11PayTitle}>Payment History</div>
+          <div className={styles.t11TableHead} style={{ background: barBg, color: accentColor }}>
+            <span style={{ flex: 3 }}>Date & Method</span>
+            <span>No.</span><span>Amount</span>
+          </div>
+          {(receipt.payments || []).map((p, idx) => (
+            <div key={`pay-${idx}`} className={styles.t11TableRow}>
+              <span style={{ flex: 3, color: '#16a34a', fontWeight: 700 }}>
+                {p.date}
+                {p.method ? ` · ${p.method.charAt(0).toUpperCase() + p.method.slice(1)}` : ''}
+              </span>
+              <span>{idx + 1}</span>
+              <span style={{ color: '#16a34a', fontWeight: 700 }}>{fmt(currency, p.amount)}</span>
+            </div>
+          ))}
+        </div>
+      )}
       <div className={styles.t11ThankYou} style={{ color: accentColor }}>{brand.footer || 'THANK YOU!'}</div>
     </div>
   )
