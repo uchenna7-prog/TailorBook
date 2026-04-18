@@ -313,6 +313,7 @@ function ReceiptPaymentSummary({ receipt, brand }) {
 
   return (
     <div className={styles.tableWrapper}>
+      <div style={{ fontWeight: 900, fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 5, color: '#444' }}>Order Details</div>
       <div className={styles.tHead}>
         <span style={{ width: 18, flexShrink: 0, fontVariantNumeric: 'tabular-nums' }}>S/N</span>
         <span className={styles.tColDesc}>Description</span>
@@ -336,10 +337,10 @@ function ReceiptPaymentSummary({ receipt, brand }) {
       <div className={styles.summary} style={{ width: '100%', marginLeft: 0 }}>
         <div className={styles.sumRow}><span>Order Value</span><span>{fmt(currency, orderTotal)}</span></div>
       </div>
-      {/* Payment History — before totals, centred heading */}
+      {/* Payment History — before totals */}
       {(receipt.payments || []).length > 0 && (
         <div style={{ marginTop: 14 }}>
-          <div style={{ textAlign: 'center', fontWeight: 900, fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 6, color: '#444', borderTop: '1px solid #eee', paddingTop: 10 }}>
+          <div style={{ fontWeight: 900, fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 6, color: '#444', borderTop: '1px solid #eee', paddingTop: 10 }}>
             Payment History
           </div>
           <div className={styles.tHead}>
@@ -562,6 +563,7 @@ function PrintableTemplate({ receipt, customer, brand }) {
       </div>
       {/* Template 4 unique table with divider-separated rows */}
       <div className={styles.p4TableArea}>
+        <div style={{ fontWeight: 800, fontSize: 8, textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 4px', color: '#555' }}>Order Details</div>
         <div className={styles.p4TableHead} style={{ borderColor: barColor }}>
           <span style={{ flex: 0.5 }}>S/N</span>
           <span style={{ flex: 3 }}>Description</span>
@@ -588,7 +590,7 @@ function PrintableTemplate({ receipt, customer, brand }) {
       {/* Payment History — before totals, styled with template 4's border style */}
       {(receipt.payments || []).length > 0 && (
         <div style={{ marginTop: 12 }}>
-          <div style={{ textAlign: 'center', fontWeight: 800, fontSize: 8, textTransform: 'uppercase', letterSpacing: '0.06em', margin: '6px 0 4px', color: '#555' }}>Payment History</div>
+          <div style={{ fontWeight: 800, fontSize: 8, textTransform: 'uppercase', letterSpacing: '0.06em', margin: '6px 0 4px', color: '#555' }}>Payment History</div>
           <div className={styles.p4TableHead} style={{ borderColor: barColor }}>
             <span style={{ flex: 0.5 }}>S/N</span>
             <span style={{ flex: 3 }}>Payment Date</span>
@@ -664,6 +666,7 @@ function CanvaTemplate({ receipt, customer, brand }) {
       </div>
       <div className={styles.t5Divider} />
       {/* Template 5 unique table: divider-separated rows on beige */}
+      <div style={{ fontWeight: 800, fontSize: 8, textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 3px', color: '#5a4f3c' }}>Order Details</div>
       <div className={styles.t5TableHead}>
         <span style={{ flex: 0.5 }}>S/N</span>
         <span style={{ flex: 3 }}>Description</span><span>Amount</span>
@@ -690,7 +693,7 @@ function CanvaTemplate({ receipt, customer, brand }) {
       {(receipt.payments || []).length > 0 && (
         <>
           <div className={styles.t5Divider} />
-          <div style={{ textAlign: 'center', fontWeight: 800, fontSize: 8, textTransform: 'uppercase', letterSpacing: '0.06em', margin: '4px 0', color: '#5a4f3c' }}>Payment History</div>
+          <div style={{ fontWeight: 800, fontSize: 8, textTransform: 'uppercase', letterSpacing: '0.06em', margin: '4px 0', color: '#5a4f3c' }}>Payment History</div>
           <div className={styles.t5TableHead}>
             <span style={{ flex: 0.5 }}>S/N</span>
             <span style={{ flex: 3 }}>Payment Date</span><span>Amount</span>
@@ -798,6 +801,7 @@ function DarkHeaderTemplate({ receipt, customer, brand }) {
         </div>
       </div>
       {/* Template 6 unique table with dark header */}
+      <div style={{ fontWeight: 800, fontSize: 7, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '4px 16px 3px', color: '#555' }}>Order Details</div>
       <div className={styles.t6TableHead}>
         <span style={{ flex: 0.5 }}>S/N</span>
         <span style={{ flex: 3 }}>DESCRIPTION</span><span>AMOUNT</span>
@@ -822,7 +826,7 @@ function DarkHeaderTemplate({ receipt, customer, brand }) {
       {/* Payment History — before totals, styled with template 6's dark header style */}
       {(receipt.payments || []).length > 0 && (
         <div style={{ marginTop: 10 }}>
-          <div style={{ textAlign: 'center', fontWeight: 800, fontSize: 7, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '4px 16px 4px', color: '#555' }}>Payment History</div>
+          <div style={{ fontWeight: 800, fontSize: 7, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '4px 16px 4px', color: '#555' }}>Payment History</div>
           <div className={styles.t6TableHead}>
             <span style={{ flex: 0.5 }}>S/N</span>
             <span style={{ flex: 3 }}>PAYMENT DATE</span><span>AMOUNT</span>
@@ -925,6 +929,7 @@ function RedBoldTemplate({ receipt, customer, brand }) {
       <div className={styles.t7Divider} />
       <div className={styles.t7ForLabel}>FOR:</div>
       {/* Template 7 unique: numbered rows */}
+      <div style={{ fontWeight: 900, fontSize: 8, letterSpacing: '0.04em', margin: '3px 16px 2px', color: '#1a1a1a' }}>Order Details</div>
       <div className={styles.t7TableHead}>
         <span className={styles.t7NumCol}>S/N</span>
         <span style={{ flex: 3 }}>Description</span>
@@ -948,7 +953,7 @@ function RedBoldTemplate({ receipt, customer, brand }) {
       {(receipt.payments || []).length > 0 && (
         <div style={{ marginTop: 8 }}>
           <div className={styles.t7Divider} />
-          <div style={{ textAlign: 'center', fontWeight: 900, fontSize: 9, letterSpacing: '0.05em', margin: '5px 16px 4px' }}>PAYMENT HISTORY</div>
+          <div style={{ fontWeight: 900, fontSize: 9, letterSpacing: '0.04em', padding: '4px 16px 2px', color: '#1a1a1a' }}>Payment History</div>
           <div className={styles.t7TableHead}>
             <span className={styles.t7NumCol}>S/N</span>
             <span style={{ flex: 3 }}>Payment Date</span>
@@ -1025,7 +1030,8 @@ function GreenAccentTemplate({ receipt, customer, brand }) {
           </div>
         </div>
       </div>
-      {/* Template 8 unique: SL. numbered, grey bg header */}
+      {/* Template 8 unique: S/N numbered, grey bg header */}
+      <div style={{ fontWeight: 800, fontSize: 7, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 16px 3px', color: '#555' }}>Order Details</div>
       <div className={styles.t8TableHead}>
         <span>S/N</span>
         <span style={{ flex: 3 }}>Description</span>
@@ -1049,7 +1055,7 @@ function GreenAccentTemplate({ receipt, customer, brand }) {
       {/* Payment History — before bottom totals, styled with template 8's grey bg header */}
       {(receipt.payments || []).length > 0 && (
         <>
-          <div style={{ textAlign: 'center', fontWeight: 800, fontSize: 7, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '4px 16px 3px', color: '#555' }}>Payment History</div>
+          <div style={{ fontWeight: 800, fontSize: 7, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '4px 16px 3px', color: '#555' }}>Payment History</div>
           <div className={styles.t8TableHead} style={{ background: '#e8f5f0' }}>
             <span>S/N</span>
             <span style={{ flex: 3 }}>Payment Date</span>
@@ -1142,6 +1148,7 @@ function TealGeometricTemplate({ receipt, customer, brand }) {
         </div>
       </div>
       {/* Template 9 unique: teal-bg header, S/N first col */}
+      <div style={{ fontWeight: 800, fontSize: 7, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '4px 16px 3px', color: '#555' }}>Order Details</div>
       <div className={styles.t9TableHead} style={{ background: accentColor }}>
         <span>S/N</span>
         <span style={{ flex: 3 }}>DESCRIPTION</span>
@@ -1167,7 +1174,7 @@ function TealGeometricTemplate({ receipt, customer, brand }) {
       {/* Payment History — before total bar, styled with template 9's teal header */}
       {(receipt.payments || []).length > 0 && (
         <div style={{ marginTop: 8 }}>
-          <div style={{ textAlign: 'center', fontWeight: 800, fontSize: 7, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '4px 16px 3px', color: '#555' }}>Payment History</div>
+          <div style={{ fontWeight: 800, fontSize: 7, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '4px 16px 3px', color: '#555' }}>Payment History</div>
           <div className={styles.t9TableHead} style={{ background: accentColor }}>
             <span>S/N</span>
             <span style={{ flex: 3 }}>PAYMENT DATE</span>
@@ -1256,6 +1263,7 @@ function PinkDiagonalTemplate({ receipt, customer, brand }) {
         </div>
       </div>
       {/* Template 10 unique: bordered header, S/N numbered */}
+      <div style={{ fontWeight: 800, fontSize: 7, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '4px 16px 3px', color: '#555' }}>Order Details</div>
       <div className={styles.t10TableHead}>
         <span>S/N</span>
         <span style={{ flex: 3 }}>Description</span>
@@ -1279,7 +1287,7 @@ function PinkDiagonalTemplate({ receipt, customer, brand }) {
       {/* Payment History — before totals section, styled with template 10's bordered header */}
       {(receipt.payments || []).length > 0 && (
         <>
-          <div style={{ textAlign: 'center', fontWeight: 800, fontSize: 7, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '4px 16px 3px', color: '#555' }}>Payment History</div>
+          <div style={{ fontWeight: 800, fontSize: 7, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '4px 16px 3px', color: '#555' }}>Payment History</div>
           <div className={styles.t10TableHead}>
             <span>S/N</span>
             <span style={{ flex: 3 }}>Payment Date</span>
@@ -1387,6 +1395,7 @@ function BlueCleanTemplate({ receipt, customer, brand }) {
       </div>
       {receipt.orderDesc && <div className={styles.t11ProjectName}>{receipt.orderDesc}</div>}
       {/* Template 11 unique: black header, bullet items */}
+      <div className={styles.t11PayTitle}>Order Details</div>
       <div className={styles.t11TableHead}>
         <span style={{ flex: 3 }}>Description</span>
         <span>S/N</span><span>Amount</span>
@@ -1411,7 +1420,7 @@ function BlueCleanTemplate({ receipt, customer, brand }) {
       {/* Payment History — before paid-in-full row, styled with template 11's header */}
       {(receipt.payments || []).length > 0 && (
         <div style={{ marginTop: 10 }}>
-          <div className={styles.t11PayTitle} style={{ textAlign: 'center' }}>Payment History</div>
+          <div className={styles.t11PayTitle}>Payment History</div>
           <div className={styles.t11TableHead} style={{ background: barBg, color: accentColor }}>
             <span style={{ flex: 3 }}>Payment Date</span>
             <span>S/N</span><span>Amount</span>
