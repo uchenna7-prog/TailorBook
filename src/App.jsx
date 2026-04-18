@@ -1,3 +1,4 @@
+// src/App.jsx — updated to add public /portfolio/:uid route
 import { useState } from 'react'
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import RequireAuth    from './components/RequireAuth/RequireAuth'
@@ -21,6 +22,7 @@ import Appointments             from './pages/Appointments/Appointments'
 import AllPayments              from './pages/AllPayments/AllPayments'
 import Inventory                from './pages/Inventory/Inventory'
 import Reports                  from './pages/Reports/Reports'
+import Portfolio                from './pages/Portfolio/Portfolio'   // ← NEW
 
 function AppShell() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -56,8 +58,12 @@ function AppShell() {
 export default function App() {
   return (
     <Routes>
-      <Route path="/login"  element={<Login />} />
-      <Route path="/signup" element={<Signup />} />
+      {/* ── Public routes (no auth) ── */}
+      <Route path="/login"            element={<Login />} />
+      <Route path="/signup"           element={<Signup />} />
+      <Route path="/portfolio/:uid"   element={<Portfolio />} />  {/* ← NEW */}
+
+      {/* ── Protected routes ── */}
       <Route
         path="/*"
         element={
