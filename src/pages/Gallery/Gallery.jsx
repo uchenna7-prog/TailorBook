@@ -524,7 +524,9 @@ export default function Gallery({ onMenuClick }) {
 
   const lightboxList = lightboxPhoto ? filtered : []
 
-  // Context action per tab — lives in the Header right side
+  // ── Expandable tab action pill ──
+  // Auto-expands once each time the active tab changes (teaches the user),
+  // then collapses to icon-only after 2s.
   const TAB_ACTIONS = {
     completed_works: { icon: 'share',          label: 'Share Portfolio Link', onPress: () => showToast('Portfolio link coming soon!') },
     designs:         { icon: 'picture_as_pdf', label: 'Export Lookbook',      onPress: () => showToast('Export lookbook coming soon!') },
@@ -532,15 +534,34 @@ export default function Gallery({ onMenuClick }) {
   }
   const tabAction = TAB_ACTIONS[activeTab]
 
+  const [pillExpanded, setPillExpanded] = useState(true)
+  const pillTimer = useRef(null)
+
+  // Every time activeTab changes: expand for 2s then collapse
+  useEffect(() => {
+    setPillExpanded(true)
+    clearTimeout(pillTimer.current)
+    pillTimer.current = setTimeout(() => setPillExpanded(false), 2000)
+    return () => clearTimeout(pillTimer.current)
+  }, [activeTab])
+
+  const handlePillClick = () => {
+    if (!pillExpanded) {
+      // First tap: expand and start collapse timer
+      setPillExpanded(true)
+      clearTimeout(pillTimer.current)
+      pillTimer.current = setTimeout(() => setPillExpanded(false), 2000)
+    } else {
+      // Already expanded: fire the action
+      tabAction?.onPress()
+    }
+  }
+
   return (
     <div className={styles.page}>
-      <Header
-        title="Gallery"
-        onMenuClick={onMenuClick}
-        customActions={tabAction ? [{ icon: tabAction.icon, onClick: tabAction.onPress, title: tabAction.label }] : []}
-      />
+      <Header title="Gallery" onMenuClick={onMenuClick} />
 
-      {/* MAIN TABS — full width, clean */}
+      {/* MAIN TABS + EXPANDABLE PILL ACTION */}
       <div className={styles.tabActionBar}>
         <div className={styles.tabs} ref={tabsRef}>
           {TABS.map(tab => (
@@ -559,6 +580,20 @@ export default function Gallery({ onMenuClick }) {
             </div>
           ))}
         </div>
+
+        {/* Expandable pill — icon only until tapped or on tab switch */}
+        {tabAction && (
+          <div className={styles.pillWrap}>
+            <button
+              className={`${styles.pill} ${pillExpanded ? styles.pillExpanded : ''}`}
+              onClick={handlePillClick}
+              aria-label={tabAction.label}
+            >
+              <span className={`mi ${styles.pillIcon}`}>{tabAction.icon}</span>
+              <span className={styles.pillLabel}>{tabAction.label}</span>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* SUB-TABS (rounded pill style) */}
