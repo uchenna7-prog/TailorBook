@@ -584,3 +584,198 @@
   background: #ef4444;
   color: #fff;
 }
+
+/* SharePortfolioModal.slug.css
+   Add these rules to your existing SharePortfolioModal.module.css
+   They style the new SlugEditor component and the updated linkSection.
+   ------------------------------------------------------------------ */
+
+/* ── Slug section container ── */
+.slugSection {
+  background: var(--surface2, #f5f5f5);
+  border: 1px solid var(--border, #e5e5e5);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+}
+
+.slugSectionLabel {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text3, #888);
+  margin-bottom: 10px;
+}
+
+.slugLoading {
+  font-size: 0.78rem;
+  color: var(--text3, #888);
+}
+
+.slugAutoHint {
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+  font-size: 0.72rem;
+  color: var(--text3, #888);
+  margin-top: 8px;
+  line-height: 1.5;
+}
+
+/* ── Slug display (read mode) ── */
+.slugDisplay {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.slugCurrent {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text1, #111);
+  background: var(--surface1, #fff);
+  border: 1px solid var(--border, #e5e5e5);
+  border-radius: 6px;
+  padding: 5px 10px;
+  letter-spacing: 0.3px;
+  word-break: break-all;
+}
+
+.slugNone {
+  font-size: 0.78rem;
+  color: var(--text3, #888);
+  font-style: italic;
+}
+
+.slugEditBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: 1px solid var(--border, #e5e5e5);
+  border-radius: 6px;
+  color: var(--text2, #555);
+  font-size: 0.7rem;
+  font-weight: 500;
+  padding: 5px 10px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+.slugEditBtn:hover { background: var(--surface1, #fff); color: var(--text1, #111); }
+
+/* ── Slug editor (edit mode) ── */
+.slugEditorWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.slugInputRow {
+  display: flex;
+  align-items: center;
+  background: var(--surface1, #fff);
+  border: 1.5px solid var(--border, #e0e0e0);
+  border-radius: 8px;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+.slugInputRowOk    { border-color: #22c55e; }
+.slugInputRowError { border-color: #ef4444; }
+
+.slugPrefix {
+  font-size: 0.68rem;
+  color: var(--text3, #999);
+  padding: 0 0 0 10px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  pointer-events: none;
+  line-height: 1;
+}
+
+.slugInput {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text1, #111);
+  padding: 11px 6px;
+  min-width: 0;
+}
+.slugInput::placeholder { color: var(--text3, #bbb); font-weight: 400; }
+
+.slugPreviewNote {
+  font-size: 0.68rem;
+  color: var(--text3, #888);
+  padding-left: 2px;
+}
+
+.slugHint {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.7rem;
+  color: var(--text3, #888);
+  padding-left: 2px;
+}
+
+.slugActions {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.slugCancelBtn {
+  flex: 1;
+  background: none;
+  border: 1px solid var(--border, #e0e0e0);
+  border-radius: 7px;
+  color: var(--text2, #555);
+  font-size: 0.72rem;
+  font-weight: 500;
+  padding: 9px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.slugCancelBtn:hover:not(:disabled) { background: var(--surface2, #f5f5f5); }
+.slugCancelBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.slugSaveBtn {
+  flex: 1;
+  background: var(--accent, #111);
+  border: none;
+  border-radius: 7px;
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 9px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  transition: opacity 0.15s;
+}
+.slugSaveBtn:hover:not(:disabled) { opacity: 0.88; }
+.slugSaveBtn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+/* ── Link label row ── */
+.linkLabelRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+/* Spin keyframe (reuse if already defined elsewhere) */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
