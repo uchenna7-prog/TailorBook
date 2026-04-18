@@ -300,7 +300,7 @@ export default function Invoices({ onMenuClick }) {
 
   return (
     <div className={styles.page}>
-      <Header title="Invoices" onMenuClick={onMenuClick} />
+      <Header title="All Invoices" onMenuClick={onMenuClick} />
 
       {/* ── Search + filter ── */}
       <div className={styles.searchContainer}>
