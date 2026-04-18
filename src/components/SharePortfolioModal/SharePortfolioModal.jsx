@@ -67,14 +67,14 @@ const SHARE_OPTIONS = [
     color: '#E1306C',
     getUrl: (link) => {
       navigator.clipboard?.writeText(link)
-      return null // Instagram doesn't support direct share links; we copy instead
+      return null
     },
   },
 ]
 
 // ── IMAGE DROPDOWN ──────────────────────────────────────────────
 
-function ImageDropdown({ label, photos, value, onChange }) {
+function ImageDropdown({ label, photos, value, onChange, required, hasError }) {
   const [query,  setQuery]  = useState('')
   const [isOpen, setIsOpen] = useState(false)
 
@@ -103,12 +103,15 @@ function ImageDropdown({ label, photos, value, onChange }) {
 
   return (
     <div className={styles.imgDropWrap}>
-      <p className={styles.imgDropLabel}>{label}</p>
+      <p className={styles.imgDropLabel}>
+        {label}
+        {required && <span className={styles.imgDropRequired}> *</span>}
+      </p>
 
       {/* Trigger */}
       <button
         type="button"
-        className={`${styles.imgDropTrigger} ${isOpen ? styles.imgDropTriggerOpen : ''}`}
+        className={`${styles.imgDropTrigger} ${isOpen ? styles.imgDropTriggerOpen : ''} ${hasError ? styles.imgDropTriggerError : ''}`}
         onClick={() => setIsOpen(prev => !prev)}
       >
         {selected ? (
@@ -133,6 +136,14 @@ function ImageDropdown({ label, photos, value, onChange }) {
           expand_more
         </span>
       </button>
+
+      {/* Error hint */}
+      {hasError && (
+        <p className={styles.imgDropErrorHint}>
+          <span className="mi" style={{ fontSize: '0.8rem' }}>error_outline</span>
+          Please select an image
+        </p>
+      )}
 
       {/* Panel */}
       {isOpen && (
@@ -198,8 +209,17 @@ export default function SharePortfolioModal({ isOpen, onClose, brandName, comple
   const [visible,         setVisible]         = useState(false)
   const [heroImageId,     setHeroImageId]     = useState(null)
   const [footerImageId,   setFooterImageId]   = useState(null)
-  // Track whether we've loaded existing settings so we don't overwrite with null on mount
   const [settingsLoaded,  setSettingsLoaded]  = useState(false)
+  const [saving,          setSaving]          = useState(false)
+  const [saved,           setSaved]           = useState(false)
+  // Validation error flags — only shown after a save attempt
+  const [showErrors,      setShowErrors]      = useState(false)
+
+  const hasPhotos      = completedWorksPhotos.length > 0
+  // Both required only when photos exist
+  const heroError      = hasPhotos && showErrors && !heroImageId
+  const footerError    = hasPhotos && showErrors && !footerImageId
+  const bothSelected   = !hasPhotos || (!!heroImageId && !!footerImageId)
 
   const portfolioLink = user
     ? `${window.location.origin}/portfolio/${user.uid}`
@@ -211,12 +231,15 @@ export default function SharePortfolioModal({ isOpen, onClose, brandName, comple
       requestAnimationFrame(() => setVisible(true))
     } else {
       setVisible(false)
+      // Reset error state when modal closes
+      setShowErrors(false)
     }
   }, [isOpen])
 
   // Load existing saved settings when modal opens
   useEffect(() => {
     if (!isOpen || !user) return
+    setSettingsLoaded(false)
     const unsub = subscribeToPortfolioSettings(
       user.uid,
       ({ heroImageId: h, footerImageId: f }) => {
@@ -228,13 +251,38 @@ export default function SharePortfolioModal({ isOpen, onClose, brandName, comple
     return () => unsub()
   }, [isOpen, user])
 
-  // Auto-save to Firestore whenever a selection changes (after initial load)
-  useEffect(() => {
-    if (!settingsLoaded || !user) return
-    savePortfolioSettings(user.uid, { heroImageId, footerImageId }).catch(console.error)
-  }, [heroImageId, footerImageId, settingsLoaded, user])
-
   if (!isOpen) return null
+
+  // ── Explicit save (replaces auto-save) ──────────────────────
+  const handleSaveImages = async () => {
+    // If photos exist, both must be selected
+    if (hasPhotos && (!heroImageId || !footerImageId)) {
+      setShowErrors(true)
+      return
+    }
+    if (!user) return
+    setSaving(true)
+    try {
+      await savePortfolioSettings(user.uid, { heroImageId, footerImageId })
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2500)
+    } catch (err) {
+      console.error('[SharePortfolioModal] save failed', err)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  // Clear errors as soon as both are filled
+  const handleHeroChange = (id) => {
+    setHeroImageId(id)
+    if (id && footerImageId) setShowErrors(false)
+  }
+
+  const handleFooterChange = (id) => {
+    setFooterImageId(id)
+    if (heroImageId && id) setShowErrors(false)
+  }
 
   const handleCopy = async () => {
     try {
@@ -242,7 +290,6 @@ export default function SharePortfolioModal({ isOpen, onClose, brandName, comple
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch {
-      // fallback
       const el = document.createElement('textarea')
       el.value = portfolioLink
       document.body.appendChild(el)
@@ -313,26 +360,73 @@ export default function SharePortfolioModal({ isOpen, onClose, brandName, comple
 
         {/* Hero & Footer image pickers */}
         <div className={styles.imageSection}>
-          <p className={styles.imageLabel}>Portfolio images</p>
-          {completedWorksPhotos.length === 0 ? (
+          <div className={styles.imageSectionHead}>
+            <p className={styles.imageLabel}>Portfolio images</p>
+            {hasPhotos && (
+              <p className={styles.imageRequired}>Both images required</p>
+            )}
+          </div>
+
+          {!hasPhotos ? (
             <p className={styles.imageEmptyHint}>
               <span className="mi" style={{ fontSize: '0.9rem' }}>info</span>
               Add photos to Completed Works to choose hero and footer images.
             </p>
           ) : (
             <>
+              {/* Validation banner — shown after failed save attempt */}
+              {showErrors && (
+                <div className={styles.validationBanner}>
+                  <span className="mi" style={{ fontSize: '0.9rem' }}>warning</span>
+                  Select both a hero and footer image to save.
+                </div>
+              )}
+
               <ImageDropdown
                 label="Hero Image"
                 photos={completedWorksPhotos}
                 value={heroImageId}
-                onChange={setHeroImageId}
+                onChange={handleHeroChange}
+                required
+                hasError={heroError}
               />
               <ImageDropdown
                 label="Footer Image"
                 photos={completedWorksPhotos}
                 value={footerImageId}
-                onChange={setFooterImageId}
+                onChange={handleFooterChange}
+                required
+                hasError={footerError}
               />
+
+              {/* Save button */}
+              <button
+                className={`${styles.saveImagesBtn} ${saved ? styles.saveImagesBtnDone : ''}`}
+                onClick={handleSaveImages}
+                disabled={saving}
+              >
+                {saving ? (
+                  <>
+                    <span className="mi" style={{ fontSize: '1rem', animation: 'spin 0.8s linear infinite' }}>refresh</span>
+                    Saving…
+                  </>
+                ) : saved ? (
+                  <>
+                    <span className="mi" style={{ fontSize: '1rem' }}>check</span>
+                    Saved to portfolio!
+                  </>
+                ) : (
+                  <>
+                    <span className="mi" style={{ fontSize: '1rem' }}>save</span>
+                    Save images to portfolio
+                  </>
+                )}
+              </button>
+
+              {/* Loading skeleton while settings are fetching */}
+              {!settingsLoaded && (
+                <p className={styles.settingsLoading}>Loading saved selections…</p>
+              )}
             </>
           )}
         </div>
