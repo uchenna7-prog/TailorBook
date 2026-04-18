@@ -7,6 +7,7 @@ import { useParams } from 'react-router-dom'
 import { collection, query, orderBy, onSnapshot, doc } from 'firebase/firestore'
 import { db } from '../../firebase'
 import { getBrandFromFirestore } from '../../services/brandService'
+import { getPortfolioSettings } from '../../services/portfolioSettingsService'
 import styles from './Portfolio.module.css'
 
 function initials(name = '') {
@@ -157,6 +158,9 @@ export default function Portfolio() {
   const [bookingOpen, setBookingOpen] = useState(false)
   const [navScrolled, setNavScrolled] = useState(false)
   const [navOpen, setNavOpen] = useState(false)
+  // Saved hero/footer image IDs from portfolioSettings
+  const [heroImageId,   setHeroImageId]   = useState(null)
+  const [footerImageId, setFooterImageId] = useState(null)
   const worksRef = useRef(null)
   const aboutRef = useRef(null)
   const bookRef  = useRef(null)
@@ -184,6 +188,17 @@ export default function Portfolio() {
         setDressTypes(types)
       }, () => {}
     )
+  }, [uid])
+
+  // Load saved hero/footer image selections
+  useEffect(() => {
+    if (!uid) return
+    getPortfolioSettings(uid)
+      .then(({ heroImageId: h, footerImageId: f }) => {
+        setHeroImageId(h)
+        setFooterImageId(f)
+      })
+      .catch(() => {})
   }, [uid])
 
   useEffect(() => {
@@ -224,7 +239,10 @@ export default function Portfolio() {
   const brandBio        = brand.brandBio     || ''
   const completedPhotos = photos.filter(p => p.category === 'completed_works')
   const filteredPhotos  = activeTab ? completedPhotos.filter(p => p.clothingType === activeTab) : completedPhotos
-  const heroPhoto       = completedPhotos[0]
+
+  // Use saved selections; fall back to first/second photo if none saved
+  const heroPhoto   = (heroImageId   ? completedPhotos.find(p => p.id === heroImageId)   : null) ?? completedPhotos[0]   ?? null
+  const footerPhoto = (footerImageId ? completedPhotos.find(p => p.id === footerImageId) : null) ?? completedPhotos[1]   ?? null
 
   return (
     <div className={styles.page}>
@@ -480,9 +498,9 @@ export default function Portfolio() {
 
       {/* ── BOOK CTA ── */}
       <section className={styles.bookSection} ref={bookRef}>
-        {completedPhotos[1] ? (
+        {footerPhoto ? (
           <div className={styles.bookBgWrap}>
-            <img src={completedPhotos[1].src || completedPhotos[1].storageUrl} alt="" className={styles.bookBgImg} />
+            <img src={footerPhoto.src || footerPhoto.storageUrl} alt="" className={styles.bookBgImg} />
             <div className={styles.bookBgOverlay} />
           </div>
         ) : (
