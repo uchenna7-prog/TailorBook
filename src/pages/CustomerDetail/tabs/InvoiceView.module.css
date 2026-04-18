@@ -48,15 +48,17 @@
   box-shadow: 0 4px 24px rgba(0,0,0,0.12);
   overflow: hidden;
   margin-bottom: 14px;
-  /* Constrain to 96% so download PDF matches preview width */
-  width: 96%;
+  /* Fixed document width — centered, not full screen */
+  width: 380px;
+  max-width: 96%;
   margin-left: auto;
   margin-right: auto;
 }
 
-/* paperInner is what html2canvas captures — same width as the visual preview */
+/* paperInner is what html2canvas captures */
 .paperInner {
-  width: 100%;
+  width: 380px;
+  max-width: 100%;
   overflow: hidden;
 }
 
