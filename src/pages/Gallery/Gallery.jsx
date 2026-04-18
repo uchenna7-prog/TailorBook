@@ -1,9 +1,11 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { useCustomers } from '../../contexts/CustomerContext'
 import { useGallery }   from '../../contexts/GalleryContext'
+import { useBrand }     from '../../contexts/BrandContext'
 import Header           from '../../components/Header/Header'
 import ConfirmSheet     from '../../components/ConfirmSheet/ConfirmSheet'
 import Toast            from '../../components/Toast/Toast'
+import SharePortfolioModal from '../../components/SharePortfolioModal/SharePortfolioModal'
 import styles           from './Gallery.module.css'
 
 // ── CONSTANTS ──────────────────────────────────────────────────
@@ -423,6 +425,7 @@ function Lightbox({ photo, photos, onClose, onDelete }) {
 export default function Gallery({ onMenuClick }) {
   const { customers } = useCustomers()
   const { photos, dressTypes, loading, addPhoto, deletePhoto, saveDressTypes } = useGallery()
+  const { brand }     = useBrand()
 
   const [activeTab,     setActiveTab]     = useState('completed_works')
   const [activeSubTabs, setActiveSubTabs] = useState({})
@@ -431,6 +434,7 @@ export default function Gallery({ onMenuClick }) {
   const [lightboxPhoto, setLightboxPhoto] = useState(null)
   const [confirmDel,    setConfirmDel]    = useState(null)
   const [toastMsg,      setToastMsg]      = useState('')
+  const [shareOpen,     setShareOpen]     = useState(false)   // ← NEW
   const toastTimer = useRef(null)
   const tabsRef    = useRef(null)
 
@@ -475,9 +479,9 @@ export default function Gallery({ onMenuClick }) {
     } catch { showToast('Failed to save dress types') }
   }
 
-  // Expandable pill
+  // Expandable pill — "Share Portfolio Link" now opens the modal
   const TAB_ACTIONS = {
-    completed_works: { icon: 'share',          label: 'Share Portfolio Link', onPress: () => showToast('Portfolio link coming soon!') },
+    completed_works: { icon: 'share',          label: 'Share Portfolio Link', onPress: () => setShareOpen(true) },
     designs:         { icon: 'picture_as_pdf', label: 'Export Lookbook',      onPress: () => showToast('Export lookbook coming soon!') },
     inspiration:     { icon: 'send',           label: 'Send Board',           onPress: () => showToast('Share board coming soon!') },
   }
@@ -631,6 +635,13 @@ export default function Gallery({ onMenuClick }) {
         message="This photo will be permanently removed."
         onConfirm={handleDeleteConfirm}
         onCancel={() => setConfirmDel(null)}
+      />
+
+      {/* ── Share Portfolio Modal ── */}
+      <SharePortfolioModal
+        isOpen={shareOpen}
+        onClose={() => setShareOpen(false)}
+        brandName={brand.name}
       />
 
       <Toast message={toastMsg} />
