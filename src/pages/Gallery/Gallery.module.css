@@ -112,9 +112,9 @@
 }
 
 .subTabActive {
-  border-color: var(--accent);
-  color: var(--accent);
-  background: rgba(255,255,255,0.05);
+  border-color: var(--text);
+  color: var(--bg);
+  background: var(--text);
 }
 
 .subTabActions {
@@ -143,7 +143,7 @@
 
 /* ── SHARE PORTFOLIO BANNER ── */
 .portfolioBanner {
-  padding: 10px 14px 6px;
+  padding: 10px 14px 8px;
   display: flex;
   flex-shrink: 0;
 }
@@ -152,19 +152,19 @@
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  padding: 9px 18px;
-  border-radius: 12px;
-  border: 1.5px solid var(--accent);
-  background: transparent;
-  color: var(--accent);
+  padding: 7px 16px;
+  border-radius: 10px;
+  border: none;
+  background: var(--text);
+  color: var(--bg);
   font-family: 'DM Sans', sans-serif;
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   font-weight: 800;
   cursor: pointer;
   letter-spacing: 0.2px;
-  transition: background 0.15s;
+  transition: opacity 0.15s;
 }
-.portfolioBtn:active { background: rgba(255,255,255,0.06); }
+.portfolioBtn:active { opacity: 0.75; }
 
 /* ── PHOTO GRID ── */
 .gridArea {
@@ -744,13 +744,12 @@
 .manageRemove {
   background: none;
   border: none;
-  color: var(--text3);
+  color: var(--danger);
   cursor: pointer;
   display: flex;
   align-items: center;
   padding: 4px;
 }
-.manageRemove:active { color: var(--danger, #e53e3e); }
 
 .manageAddRow {
   display: flex;
