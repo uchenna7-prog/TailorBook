@@ -1,6 +1,6 @@
 // src/pages/Portfolio/Portfolio.jsx
 // Public-facing tailor landing page — no auth required
-// Route: /portfolio/:uid
+// Route: /portfolio/:handle   (handle = slug OR legacy uid)
 
 import { useState, useEffect, useRef } from 'react'
 import { useParams } from 'react-router-dom'
@@ -8,6 +8,7 @@ import { collection, query, orderBy, onSnapshot, doc } from 'firebase/firestore'
 import { db } from '../../firebase'
 import { getBrandFromFirestore } from '../../services/brandService'
 import { getPortfolioSettings } from '../../services/portfolioSettingsService'
+import { resolveSlug } from '../../services/slugService'
 import styles from './Portfolio.module.css'
 
 function initials(name = '') {
@@ -50,9 +51,7 @@ function BookingSheet({ isOpen, onClose, brandName, brandEmail, brandPhone }) {
         <div className={styles.drawerHandle} />
         {sent ? (
           <div className={styles.sentState}>
-            <div className={styles.sentCheck}>
-              <span className="mi">check</span>
-            </div>
+            <div className={styles.sentCheck}><span className="mi">check</span></div>
             <p className={styles.sentTitle}>Request Received</p>
             <p className={styles.sentSub}>{brandName} will be in touch shortly.</p>
           </div>
@@ -115,9 +114,7 @@ function Lightbox({ photo, photos, onClose }) {
   return (
     <div className={styles.lbOverlay} onClick={onClose}>
       <div className={styles.lbInner} onClick={e => e.stopPropagation()}>
-        <button className={styles.lbClose} onClick={onClose}>
-          <span className="mi">close</span>
-        </button>
+        <button className={styles.lbClose} onClick={onClose}><span className="mi">close</span></button>
         <img src={current.src || current.storageUrl} alt={current.caption} className={styles.lbImg} />
         {photos.length > 1 && (
           <>
@@ -146,62 +143,84 @@ function Lightbox({ photo, photos, onClose }) {
 
 // ── Main Component ────────────────────────────────────────────
 export default function Portfolio() {
-  const { uid } = useParams()
-  const [brand, setBrand] = useState(null)
-  const [photos, setPhotos] = useState([])
-  const [dressTypes, setDressTypes] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [notFound, setNotFound] = useState(false)
-  const [activeTab, setActiveTab] = useState(null)
-  const [lightbox, setLightbox] = useState(null)
-  const [bookingOpen, setBookingOpen] = useState(false)
-  const [navScrolled, setNavScrolled] = useState(false)
-  const [navOpen, setNavOpen] = useState(false)
-  // Light mode — default true (light)
-  const [lightMode, setLightMode] = useState(true)
-  // Saved hero/footer image IDs from portfolioSettings
+  // `handle` = slug ("stitched-by-amara") OR legacy Firebase UID
+  const { handle } = useParams()
+
+  const [resolvedUid,   setResolvedUid]   = useState(null)
+  const [brand,         setBrand]         = useState(null)
+  const [photos,        setPhotos]        = useState([])
+  const [dressTypes,    setDressTypes]    = useState([])
+  const [loading,       setLoading]       = useState(true)
+  const [notFound,      setNotFound]      = useState(false)
+  const [activeTab,     setActiveTab]     = useState(null)
+  const [lightbox,      setLightbox]      = useState(null)
+  const [bookingOpen,   setBookingOpen]   = useState(false)
+  const [navScrolled,   setNavScrolled]   = useState(false)
+  const [navOpen,       setNavOpen]       = useState(false)
+  const [lightMode,     setLightMode]     = useState(true)
   const [heroImageId,   setHeroImageId]   = useState(null)
   const [footerImageId, setFooterImageId] = useState(null)
-  const worksRef = useRef(null)
-  const aboutRef = useRef(null)
-  const bookRef  = useRef(null)
+
+  const worksRef        = useRef(null)
+  const aboutRef        = useRef(null)
+  const bookRef         = useRef(null)
   const filterScrollRef = useRef(null)
 
+  // ── Step 1: resolve handle → uid ─────────────────────────────
+  // Firebase UIDs always contain uppercase letters.
+  // Slugs are purely lowercase a-z, 0-9, hyphens.
+  // This lets us route both formats without a server.
   useEffect(() => {
-    if (!uid) { setNotFound(true); setLoading(false); return }
-    getBrandFromFirestore(uid)
+    if (!handle) { setNotFound(true); setLoading(false); return }
+
+    const looksLikeUid = /[A-Z]/.test(handle)
+
+    if (looksLikeUid) {
+      // Legacy UID link — use directly, no slug lookup needed
+      setResolvedUid(handle)
+    } else {
+      resolveSlug(handle)
+        .then(uid => {
+          if (!uid) { setNotFound(true); setLoading(false) }
+          else setResolvedUid(uid)
+        })
+        .catch(() => { setNotFound(true); setLoading(false) })
+    }
+  }, [handle])
+
+  // ── Step 2: load brand once uid is known ─────────────────────
+  useEffect(() => {
+    if (!resolvedUid) return
+    getBrandFromFirestore(resolvedUid)
       .then(data => { if (!data) setNotFound(true); else setBrand(data) })
       .catch(() => setNotFound(true))
       .finally(() => setLoading(false))
-  }, [uid])
+  }, [resolvedUid])
 
+  // ── Step 3: realtime photos ───────────────────────────────────
   useEffect(() => {
-    if (!uid) return
-    const q = query(collection(db, 'users', uid, 'galleryPhotos'), orderBy('createdAt', 'desc'))
+    if (!resolvedUid) return
+    const q = query(collection(db, 'users', resolvedUid, 'galleryPhotos'), orderBy('createdAt', 'desc'))
     return onSnapshot(q, snap => setPhotos(snap.docs.map(d => ({ id: d.id, ...d.data() }))), () => {})
-  }, [uid])
+  }, [resolvedUid])
 
+  // ── Step 4: realtime dress types ─────────────────────────────
   useEffect(() => {
-    if (!uid) return
+    if (!resolvedUid) return
     return onSnapshot(
-      doc(db, 'users', uid, 'galleryDressTypes', 'completed_works'),
-      snap => {
-        const types = snap.exists() ? (snap.data().types ?? []) : []
-        setDressTypes(types)
-      }, () => {}
+      doc(db, 'users', resolvedUid, 'galleryDressTypes', 'completed_works'),
+      snap => setDressTypes(snap.exists() ? (snap.data().types ?? []) : []),
+      () => {}
     )
-  }, [uid])
+  }, [resolvedUid])
 
-  // Load saved hero/footer image selections
+  // ── Step 5: portfolio image selections ───────────────────────
   useEffect(() => {
-    if (!uid) return
-    getPortfolioSettings(uid)
-      .then(({ heroImageId: h, footerImageId: f }) => {
-        setHeroImageId(h)
-        setFooterImageId(f)
-      })
+    if (!resolvedUid) return
+    getPortfolioSettings(resolvedUid)
+      .then(({ heroImageId: h, footerImageId: f }) => { setHeroImageId(h); setFooterImageId(f) })
       .catch(() => {})
-  }, [uid])
+  }, [resolvedUid])
 
   useEffect(() => {
     const handler = () => setNavScrolled(window.scrollY > 60)
@@ -209,15 +228,11 @@ export default function Portfolio() {
     return () => window.removeEventListener('scroll', handler)
   }, [])
 
-  // Smooth scroll to filter tab when switching
   const handleTabChange = (tabId) => {
     setActiveTab(tabId)
-    // Smooth scroll the filter bar to keep active tab visible
     if (filterScrollRef.current) {
-      const activeBtn = filterScrollRef.current.querySelector(`[data-tab="${tabId ?? 'all'}"]`)
-      if (activeBtn) {
-        activeBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' })
-      }
+      const el = filterScrollRef.current.querySelector(`[data-tab="${tabId ?? 'all'}"]`)
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' })
     }
   }
 
@@ -253,10 +268,8 @@ export default function Portfolio() {
   const brandBio        = brand.brandBio     || ''
   const completedPhotos = photos.filter(p => p.category === 'completed_works')
   const filteredPhotos  = activeTab ? completedPhotos.filter(p => p.clothingType === activeTab) : completedPhotos
-
-  // Use saved selections; fall back to first/second photo if none saved
-  const heroPhoto   = (heroImageId   ? completedPhotos.find(p => p.id === heroImageId)   : null) ?? completedPhotos[0]   ?? null
-  const footerPhoto = (footerImageId ? completedPhotos.find(p => p.id === footerImageId) : null) ?? completedPhotos[1]   ?? null
+  const heroPhoto       = (heroImageId   ? completedPhotos.find(p => p.id === heroImageId)   : null) ?? completedPhotos[0] ?? null
+  const footerPhoto     = (footerImageId ? completedPhotos.find(p => p.id === footerImageId) : null) ?? completedPhotos[1] ?? null
 
   return (
     <div className={`${styles.page} ${lightMode ? styles.lightMode : ''}`}>
@@ -270,24 +283,14 @@ export default function Portfolio() {
             <button onClick={() => scrollTo(aboutRef)} className={styles.navLink}>About</button>
             <button onClick={() => scrollTo(worksRef)} className={styles.navLink}>Works</button>
             <button onClick={() => scrollTo(bookRef)}  className={styles.navLink}>Book</button>
-            {/* Light / Dark toggle — inside the dropdown on mobile */}
-            <button
-              className={styles.themeToggle}
-              onClick={() => setLightMode(m => !m)}
-              aria-label={lightMode ? 'Switch to dark mode' : 'Switch to light mode'}
-            >
+            <button className={styles.themeToggle} onClick={() => setLightMode(m => !m)} aria-label="Toggle theme">
               <span className="mi">{lightMode ? 'dark_mode' : 'light_mode'}</span>
               <span className={styles.themeToggleLabel}>{lightMode ? 'Dark Mode' : 'Light Mode'}</span>
             </button>
             <button onClick={() => { setNavOpen(false); setBookingOpen(true) }} className={styles.navCta}>Order Now</button>
           </div>
           <div className={styles.navRight}>
-            {/* Theme toggle visible on desktop outside hamburger */}
-            <button
-              className={`${styles.themeToggleDesktop}`}
-              onClick={() => setLightMode(m => !m)}
-              aria-label={lightMode ? 'Switch to dark mode' : 'Switch to light mode'}
-            >
+            <button className={styles.themeToggleDesktop} onClick={() => setLightMode(m => !m)} aria-label="Toggle theme">
               <span className="mi">{lightMode ? 'dark_mode' : 'light_mode'}</span>
             </button>
             <button className={styles.navHamburger} onClick={() => setNavOpen(o => !o)} aria-label="Menu">
@@ -305,24 +308,19 @@ export default function Portfolio() {
             <img src={heroPhoto.src || heroPhoto.storageUrl} alt="" className={styles.heroBgImg} />
             <div className={styles.heroBgOverlay} />
           </div>
-        ) : (
-          <div className={styles.heroBgFallback} />
-        )}
+        ) : <div className={styles.heroBgFallback} />}
         <div className={styles.heroContent}>
           <p className={styles.heroEyebrow}>— {brandName} —</p>
           <h1 className={styles.heroName}>{brandName}</h1>
           {tagline && <p className={styles.heroTagline}>{tagline}</p>}
           <div className={styles.heroCtas}>
-            <button className={styles.heroPrimary} onClick={() => setBookingOpen(true)}>
-              Place an Order
-            </button>
+            <button className={styles.heroPrimary} onClick={() => setBookingOpen(true)}>Place an Order</button>
             <button className={styles.heroSecondary} onClick={() => scrollTo(worksRef)}>
               View Works
               <span className="mi" style={{ fontSize: '1rem', marginLeft: 6 }}>arrow_downward</span>
             </button>
           </div>
         </div>
-        {/* Scroll indicator — bottom-center, clean vertical layout */}
         <div className={styles.heroScroll}>
           <span className={styles.heroScrollLine} />
           <span className={styles.heroScrollText}>Scroll</span>
@@ -342,7 +340,7 @@ export default function Portfolio() {
         </div>
         <div className={styles.statDivider} />
         <div className={styles.statItem}>
-          <span className="mi" style={{ fontSize: '1.1rem' }} >verified</span>
+          <span className="mi" style={{ fontSize: '1.1rem' }}>verified</span>
           <span className={styles.statLabel}>Bespoke Only</span>
         </div>
       </div>
@@ -352,39 +350,27 @@ export default function Portfolio() {
         <div className={styles.aboutInner}>
           <div className={styles.aboutLeft}>
             <p className={styles.sectionEyebrow}>01 — About</p>
-            <h2 className={styles.aboutHeading}>
-              {brandName}
-            </h2>
-            {tagline && (
-              <p className={styles.aboutHeadingTagline}>"{tagline}"</p>
-            )}
+            <h2 className={styles.aboutHeading}>{brandName}</h2>
+            {tagline && <p className={styles.aboutHeadingTagline}>"{tagline}"</p>}
           </div>
           <div className={styles.aboutRight}>
             <div className={styles.aboutCard}>
               <div className={styles.aboutLogo}>
                 {brand.brandLogo
                   ? <img src={brand.brandLogo} alt={brandName} className={styles.aboutLogoImg} />
-                  : <div className={styles.aboutInitials}>{initials(brandName)}</div>
-                }
+                  : <div className={styles.aboutInitials}>{initials(brandName)}</div>}
               </div>
               <p className={styles.aboutName}>{brandName}</p>
               {tagline && <p className={styles.aboutTagline}>"{tagline}"</p>}
-
-              {brandBio && (
-                <p className={styles.aboutBio}>{brandBio}</p>
-              )}
-
+              {brandBio && <p className={styles.aboutBio}>{brandBio}</p>}
               {dressTypes.length > 0 && (
                 <div className={styles.aboutSpecialties}>
                   <p className={styles.aboutSpecialtiesLabel}>Specialises in</p>
                   <div className={styles.aboutSpecialtiesList}>
-                    {dressTypes.map(t => (
-                      <span key={t.id} className={styles.aboutSpecialtyPill}>{t.label}</span>
-                    ))}
+                    {dressTypes.map(t => <span key={t.id} className={styles.aboutSpecialtyPill}>{t.label}</span>)}
                   </div>
                 </div>
               )}
-
               <div className={styles.aboutMeta}>
                 {brand.brandAddress && (
                   <div className={styles.aboutMetaRow}>
@@ -412,12 +398,7 @@ export default function Portfolio() {
                 )}
               </div>
               {brand.brandPhone && (
-                <a
-                  href={`https://wa.me/${brand.brandPhone.replace(/\D/g,'')}`}
-                  className={styles.whatsappBtn}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
+                <a href={`https://wa.me/${brand.brandPhone.replace(/\D/g,'')}`} className={styles.whatsappBtn} target="_blank" rel="noopener noreferrer">
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
                   Chat on WhatsApp
                 </a>
@@ -448,46 +429,23 @@ export default function Portfolio() {
           <h2 className={styles.worksTitle}>Completed Works</h2>
           <p className={styles.worksSub}>Every piece is a testament to precision and craft.</p>
         </div>
-
         {dressTypes.length > 0 && (
           <div className={styles.filterBar}>
             <div className={styles.filterScroll} ref={filterScrollRef}>
-              <button
-                data-tab="all"
-                className={`${styles.filterPill} ${!activeTab ? styles.filterPillActive : ''}`}
-                onClick={() => handleTabChange(null)}
-              >All</button>
+              <button data-tab="all" className={`${styles.filterPill} ${!activeTab ? styles.filterPillActive : ''}`} onClick={() => handleTabChange(null)}>All</button>
               {dressTypes.map(t => (
-                <button
-                  key={t.id}
-                  data-tab={t.id}
-                  className={`${styles.filterPill} ${activeTab === t.id ? styles.filterPillActive : ''}`}
-                  onClick={() => handleTabChange(t.id)}
-                >{t.label}</button>
+                <button key={t.id} data-tab={t.id} className={`${styles.filterPill} ${activeTab === t.id ? styles.filterPillActive : ''}`} onClick={() => handleTabChange(t.id)}>{t.label}</button>
               ))}
             </div>
           </div>
         )}
-
         {filteredPhotos.length === 0 ? (
-          <div className={styles.emptyWorks}>
-            <p>No works in this category yet.</p>
-          </div>
+          <div className={styles.emptyWorks}><p>No works in this category yet.</p></div>
         ) : (
           <div className={styles.photoGrid}>
             {filteredPhotos.map((photo, i) => (
-              <div
-                key={photo.id}
-                className={`${styles.photoCard} ${i === 0 ? styles.photoCardFeatured : ''}`}
-                style={{ animationDelay: `${i * 0.05}s` }}
-                onClick={() => setLightbox(photo)}
-              >
-                <img
-                  src={photo.src || photo.storageUrl}
-                  alt={photo.caption || 'Completed work'}
-                  className={styles.photoImg}
-                  loading="lazy"
-                />
+              <div key={photo.id} className={`${styles.photoCard} ${i === 0 ? styles.photoCardFeatured : ''}`} style={{ animationDelay: `${i * 0.05}s` }} onClick={() => setLightbox(photo)}>
+                <img src={photo.src || photo.storageUrl} alt={photo.caption || 'Completed work'} className={styles.photoImg} loading="lazy" />
                 <div className={styles.photoOverlay}>
                   <span className={`mi ${styles.photoZoom}`}>open_in_full</span>
                   {photo.caption && <p className={styles.photoCaption}>{photo.caption}</p>}
@@ -506,10 +464,10 @@ export default function Portfolio() {
           <h2 className={styles.processTitle}>From Idea<br />to Outfit</h2>
           <div className={styles.processSteps}>
             {[
-              { num: '01', icon: 'forum',         title: 'Consultation', desc: 'Share your vision, occasion, and preferences. We listen carefully.' },
-              { num: '02', icon: 'straighten',    title: 'Measurements', desc: 'Precise measurements taken for a flawless custom fit.' },
-              { num: '03', icon: 'content_cut',   title: 'Crafting',     desc: 'Every stitch placed with intention, skill, and care.' },
-              { num: '04', icon: 'local_shipping', title: 'Delivery',    desc: 'Your bespoke garment, delivered to perfection.' },
+              { num: '01', icon: 'forum',          title: 'Consultation', desc: 'Share your vision, occasion, and preferences. We listen carefully.' },
+              { num: '02', icon: 'straighten',     title: 'Measurements', desc: 'Precise measurements taken for a flawless custom fit.' },
+              { num: '03', icon: 'content_cut',    title: 'Crafting',     desc: 'Every stitch placed with intention, skill, and care.' },
+              { num: '04', icon: 'local_shipping', title: 'Delivery',     desc: 'Your bespoke garment, delivered to perfection.' },
             ].map(step => (
               <div key={step.num} className={styles.processStep}>
                 <div className={styles.processNumWrap}>
@@ -534,29 +492,21 @@ export default function Portfolio() {
             <img src={footerPhoto.src || footerPhoto.storageUrl} alt="" className={styles.bookBgImg} />
             <div className={styles.bookBgOverlay} />
           </div>
-        ) : (
-          <div className={styles.bookBgFallback} />
-        )}
+        ) : <div className={styles.bookBgFallback} />}
         <div className={styles.bookContent}>
           <p className={styles.sectionEyebrow} style={{ color: '#888' }}>04 — Book</p>
           <h2 className={styles.bookTitle}>Ready for<br />something<br />extraordinary?</h2>
-          <p className={styles.bookSub}>
-            Every garment is made to order.<br />Let's create yours.
-          </p>
-          <button className={styles.bookCta} onClick={() => setBookingOpen(true)}>
-            Place Your Order
-          </button>
+          <p className={styles.bookSub}>Every garment is made to order.<br />Let's create yours.</p>
+          <button className={styles.bookCta} onClick={() => setBookingOpen(true)}>Place Your Order</button>
           <div className={styles.bookContacts}>
             {brand.brandPhone && (
               <a href={`tel:${brand.brandPhone}`} className={styles.bookContact}>
-                <span className="mi" style={{ fontSize: '0.9rem' }}>call</span>
-                {brand.brandPhone}
+                <span className="mi" style={{ fontSize: '0.9rem' }}>call</span>{brand.brandPhone}
               </a>
             )}
             {brand.brandEmail && (
               <a href={`mailto:${brand.brandEmail}`} className={styles.bookContact}>
-                <span className="mi" style={{ fontSize: '0.9rem' }}>mail</span>
-                {brand.brandEmail}
+                <span className="mi" style={{ fontSize: '0.9rem' }}>mail</span>{brand.brandEmail}
               </a>
             )}
           </div>
@@ -572,18 +522,8 @@ export default function Portfolio() {
         <div className={styles.footerDivider} />
         <div className={styles.footerBottom}>
           <div className={styles.footerLinks}>
-            {brand.brandPhone && (
-              <a href={`tel:${brand.brandPhone}`} className={styles.footerLink}>
-                <span className="mi">call</span>
-                Call
-              </a>
-            )}
-            {brand.brandEmail && (
-              <a href={`mailto:${brand.brandEmail}`} className={styles.footerLink}>
-                <span className="mi">mail</span>
-                Email
-              </a>
-            )}
+            {brand.brandPhone && <a href={`tel:${brand.brandPhone}`} className={styles.footerLink}><span className="mi">call</span>Call</a>}
+            {brand.brandEmail && <a href={`mailto:${brand.brandEmail}`} className={styles.footerLink}><span className="mi">mail</span>Email</a>}
             {brand.brandPhone && (
               <a href={`https://wa.me/${brand.brandPhone.replace(/\D/g,'')}`} target="_blank" rel="noopener noreferrer" className={styles.footerLink}>
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" style={{ flexShrink: 0 }}><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
@@ -598,13 +538,7 @@ export default function Portfolio() {
       </footer>
 
       {lightbox && <Lightbox photo={lightbox} photos={filteredPhotos} onClose={() => setLightbox(null)} />}
-      <BookingSheet
-        isOpen={bookingOpen}
-        onClose={() => setBookingOpen(false)}
-        brandName={brandName}
-        brandEmail={brand.brandEmail}
-        brandPhone={brand.brandPhone}
-      />
+      <BookingSheet isOpen={bookingOpen} onClose={() => setBookingOpen(false)} brandName={brandName} brandEmail={brand.brandEmail} brandPhone={brand.brandPhone} />
     </div>
   )
 }
