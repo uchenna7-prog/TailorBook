@@ -102,7 +102,7 @@ function ManageSubTabsModal({ isOpen, onClose, tabId, subTabs, onSave }) {
             <div key={item.id} className={styles.manageRow}>
               <span className={styles.manageLabel}>{item.label}</span>
               <button className={styles.manageRemove} onClick={() => removeItem(item.id)}>
-                <span className="mi" style={{ fontSize: '1rem' }}>delete_outline</span>
+                <span className="mi" style={{ fontSize: '1rem', color: 'var(--danger)' }}>delete_outline</span>
               </button>
             </div>
           ))}
@@ -418,7 +418,7 @@ function Lightbox({ photo, photos, onClose, onDelete }) {
           </button>
           <div className={styles.lightboxCounter}>{idx + 1} / {photos.length}</div>
           <button className={styles.lightboxBtn} onClick={() => onDelete(current)} style={{ color: 'var(--danger)' }}>
-            <span className="mi" style={{ fontSize: '1.4rem' }}>delete_outline</span>
+            <span className="mi" style={{ fontSize: '1.4rem', color: 'var(--danger)' }}>delete_outline</span>
           </button>
         </div>
 
@@ -528,6 +528,16 @@ export default function Gallery({ onMenuClick }) {
     <div className={styles.page}>
       <Header title="Gallery" onMenuClick={onMenuClick} />
 
+      {/* SHARE PORTFOLIO LINK — above tabs, only on Completed Works */}
+      {activeTab === 'completed_works' && (
+        <div className={styles.portfolioBanner}>
+          <button className={styles.portfolioBtn} onClick={() => showToast('Portfolio link coming soon!')}>
+            <span className="mi" style={{ fontSize: '0.95rem' }}>share</span>
+            Share Portfolio Link
+          </button>
+        </div>
+      )}
+
       {/* MAIN TABS (underline style) */}
       <div className={styles.tabs} ref={tabsRef}>
         {TABS.map(tab => (
@@ -578,16 +588,6 @@ export default function Gallery({ onMenuClick }) {
           </button>
         </div>
       </div>
-
-      {/* SHARE PORTFOLIO LINK — only on Completed Works */}
-      {activeTab === 'completed_works' && (
-        <div className={styles.portfolioBanner}>
-          <button className={styles.portfolioBtn} onClick={() => showToast('Portfolio link coming soon!')}>
-            <span className="mi" style={{ fontSize: '1rem' }}>share</span>
-            Share Portfolio Link
-          </button>
-        </div>
-      )}
 
       {/* GRID */}
       <div className={styles.gridArea}>
