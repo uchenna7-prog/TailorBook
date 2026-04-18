@@ -721,7 +721,7 @@ export default function Orders({ onMenuClick, onGoToCustomer }) {
 
   return (
     <div className={styles.page}>
-      <Header title="Orders" onMenuClick={onMenuClick} />
+      <Header title="All Orders" onMenuClick={onMenuClick} />
 
       {/* Search + filter */}
       <div className={styles.searchContainer}>
