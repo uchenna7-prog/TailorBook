@@ -13,17 +13,86 @@
   top: 56px;
   z-index: 50;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
 }
 
 /* ── MAIN TABS (underline) ── */
 .tabs {
   display: flex;
+  flex: 1;
+  min-width: 0;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
   scroll-behavior: smooth;
 }
 .tabs::-webkit-scrollbar { display: none; }
+
+/* ── EXPANDABLE PILL ── */
+.pillWrap {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  padding: 0 10px 0 6px;
+  border-left: 1px solid var(--border);
+  height: 100%;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  height: 32px;
+  border-radius: 20px;
+  border: none;
+  background: var(--text);
+  color: var(--bg);
+  cursor: pointer;
+  overflow: hidden;
+  /* width animates between icon-only and expanded */
+  width: 32px;
+  transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              gap 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+}
+
+.pill:active { opacity: 0.75; }
+
+.pillIcon {
+  font-size: 1rem;
+  flex-shrink: 0;
+  width: 32px;
+  text-align: center;
+  line-height: 32px;
+}
+
+.pillLabel {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.1px;
+  /* hidden until expanded */
+  max-width: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-width 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.2s ease,
+              padding-right 0.35s;
+  padding-right: 0;
+}
+
+/* Expanded state */
+.pillExpanded {
+  width: 180px;
+  gap: 2px;
+}
+
+.pillExpanded .pillLabel {
+  max-width: 160px;
+  opacity: 1;
+  padding-right: 12px;
+}
 
 .tab {
   display: flex;
