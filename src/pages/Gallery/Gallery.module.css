@@ -5,18 +5,27 @@
   flex-direction: column;
 }
 
-/* ── MAIN TABS (underline) ── */
-.tabs {
+/* ── TAB ACTION BAR (tabs left + context button right) ── */
+.tabActionBar {
   display: flex;
+  align-items: stretch;
   border-bottom: 1px solid var(--border);
   background: var(--bg);
   position: sticky;
   top: 56px;
   z-index: 50;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+/* ── MAIN TABS (underline) ── */
+.tabs {
+  display: flex;
+  flex: 1;
+  min-width: 0;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
-  flex-shrink: 0;
   scroll-behavior: smooth;
 }
 .tabs::-webkit-scrollbar { display: none; }
@@ -69,6 +78,34 @@
   text-align: center;
 }
 
+/* Context action button — right side of tab bar */
+.tabAction {
+  display: flex;
+  align-items: center;
+  padding: 0 12px 0 8px;
+  border-left: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.tabActionBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: none;
+  background: var(--text);
+  color: var(--bg);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.68rem;
+  font-weight: 800;
+  cursor: pointer;
+  white-space: nowrap;
+  letter-spacing: 0.1px;
+  transition: opacity 0.15s;
+}
+.tabActionBtn:active { opacity: 0.75; }
+
 /* ── SUB TABS (rounded pills) ── */
 .subTabsBar {
   display: flex;
@@ -77,7 +114,7 @@
   padding: 10px 12px 8px;
   background: var(--bg);
   position: sticky;
-  top: calc(56px + 43px); /* header + main tabs height */
+  top: calc(56px + 45px); /* header + tabActionBar */
   z-index: 49;
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
