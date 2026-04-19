@@ -215,6 +215,35 @@
 .themeToggle:hover { color: var(--text-primary); }
 .themeToggle .mi { font-size: 1rem; line-height: 1; }
 
+/* Home row: contrast icon + HOME side by side */
+.navHomeRow {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+/* Inline contrast icon button next to HOME on mobile */
+.themeToggleMobileInline {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 10px 10px 12px;
+  transition: color 0.2s;
+}
+.themeToggleMobileInline:hover { color: var(--text-primary); }
+.themeToggleMobileInline svg { display: block; }
+
+/* Active nav link — underlined like the reference */
+.navLinkActive {
+  color: var(--text-primary) !important;
+  border-bottom: 1.5px solid var(--text-primary);
+  padding-bottom: 8px;
+}
+
 .themeToggleLabel {
   font-size: 0.7rem;
 }
@@ -280,22 +309,18 @@
   transition: all 0.3s ease;
 }
 
-.hamLineOpen1 {
-  display: block;
+/* Clean X close button */
+.navCloseX {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  line-height: 1;
+  color: var(--ham-color);
+  font-style: normal;
+  font-weight: 300;
   width: 22px;
-  height: 1px;
-  background: var(--ham-color);
-  transform: rotate(45deg) translate(4px, 4px);
-  transition: all 0.3s ease;
-}
-
-.hamLineOpen2 {
-  display: block;
-  width: 22px;
-  height: 1px;
-  background: var(--ham-color);
-  transform: rotate(-45deg) translate(4px, -4px);
-  transition: all 0.3s ease;
+  height: 22px;
 }
 
 /* ── HERO ── */
@@ -1454,6 +1479,8 @@
   }
   /* Hide theme toggle from dropdown on desktop (it's in navRight) */
   .navLinksOpen .themeToggle { display: none; }
+  .navLinksOpen .themeToggleMobileInline { display: none; }
+  .navLinksOpen .navHomeRow { display: contents; }
   .navCta { margin-top: 0; }
   .aboutInner {
     flex-direction: row;
