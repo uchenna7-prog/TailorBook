@@ -293,15 +293,13 @@ export default function Portfolio() {
         <div className={styles.navInner}>
           <span className={styles.navBrand}>{brandName}</span>
           <div className={`${styles.navLinks} ${navOpen ? styles.navLinksOpen : ''}`}>
-            <div className={styles.navHomeRow}>
-              <button className={styles.themeToggleMobileInline} onClick={() => setLightMode(m => !m)} aria-label="Toggle theme">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.5"/>
-                  <path d="M12 2 A10 10 0 0 1 12 22 Z" fill="currentColor"/>
-                </svg>
-              </button>
-              <button onClick={() => { setNavOpen(false); window.scrollTo({ top: 0, behavior: 'smooth' }) }} className={`${styles.navLink} ${styles.navLinkActive}`}>Home</button>
-            </div>
+            <button className={styles.themeToggleMobileInline} onClick={() => setLightMode(m => !m)} aria-label="Toggle theme">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.5"/>
+                <path d="M12 2 A10 10 0 0 1 12 22 Z" fill="currentColor"/>
+              </svg>
+            </button>
+            <button onClick={() => { setNavOpen(false); window.scrollTo({ top: 0, behavior: 'smooth' }) }} className={`${styles.navLink} ${styles.navLinkActive}`}>Home</button>
             <button onClick={() => scrollTo(aboutRef)} className={styles.navLink}>About</button>
             <button onClick={() => scrollTo(worksRef)} className={styles.navLink}>Works</button>
             <button onClick={() => scrollTo(bookRef)}  className={styles.navLink}>Book</button>
@@ -312,14 +310,8 @@ export default function Portfolio() {
               <span className="material-icons">{lightMode ? 'dark_mode' : 'light_mode'}</span>
             </button>
             <button className={styles.navHamburger} onClick={() => setNavOpen(o => !o)} aria-label="Menu">
-              {navOpen ? (
-                <span className={styles.navCloseX}>&#10005;</span>
-              ) : (
-                <>
-                  <span className={styles.hamLine} />
-                  <span className={styles.hamLine} />
-                </>
-              )}
+              <span className={`${styles.hamLine} ${navOpen ? styles.hamLineToTop : ''}`} />
+              <span className={`${styles.hamLine} ${navOpen ? styles.hamLineToBottom : ''}`} />
             </button>
           </div>
         </div>
