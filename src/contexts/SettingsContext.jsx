@@ -25,6 +25,17 @@ export const DEFAULTS = {
   brandAddress: '',
   brandWebsite: '',
 
+  // ── Business Info (portfolio personalisation) ──
+  brandFoundedYear:      '',       // e.g. '2018'
+  brandTurnaround:       '',       // e.g. '2-3 weeks'
+  brandServiceArea:      '',       // e.g. 'Lagos only' | 'Nationwide' | 'International'
+  brandAvailability:     'open',   // 'open' | 'booked'
+  brandAvailableUntil:   '',       // ISO date string, e.g. '2025-08-01' (used when booked)
+  brandStyleStatement:   '',       // e.g. 'I specialise in Yoruba ceremonial wear'
+  brandFeaturedTechnique:'',       // e.g. 'Hand-embroidered agbada'
+  brandMilestone:        '',       // e.g. '200+ garments delivered'
+  brandSocials:          [],       // [{ platform: 'instagram', handle: 'yourbrand' }, ...]
+
   // ── Account / Payment Details ──
   accountBank: '',
   accountNumber: '',
@@ -101,17 +112,14 @@ export function SettingsProvider({ children }) {
     } catch { /* ignore quota errors */ }
   }, [settings])
 
-  // One-time sync on login: push whatever is in localStorage to Firestore
-  // immediately so the public portfolio doc exists even if the user never
-  // changed a brand setting in this session.
+  // One-time sync on login
   useEffect(() => {
     if (!user?.uid) return
     saveBrandToFirestore(user.uid, settings).catch(console.error)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.uid])
 
-  // Sync brand fields to Firestore whenever they change and user is logged in.
-  // Debounced 1.5 s to avoid hammering Firestore on rapid typing.
+  // Sync brand fields to Firestore whenever they change (debounced 1.5s)
   useEffect(() => {
     if (!user?.uid) return
     const timer = setTimeout(() => {
@@ -129,6 +137,15 @@ export function SettingsProvider({ children }) {
     settings.brandEmail,
     settings.brandAddress,
     settings.brandWebsite,
+    settings.brandFoundedYear,
+    settings.brandTurnaround,
+    settings.brandServiceArea,
+    settings.brandAvailability,
+    settings.brandAvailableUntil,
+    settings.brandStyleStatement,
+    settings.brandFeaturedTechnique,
+    settings.brandMilestone,
+    settings.brandSocials,
   ])
 
   const updateSetting = useCallback((key, value) => {
