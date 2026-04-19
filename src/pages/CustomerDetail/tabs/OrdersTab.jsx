@@ -512,6 +512,18 @@ function OrderDetail({ order, measurements, onClose, onDelete, onStatusChange, o
           </div>
         </div>
 
+        {/* Share Review Link — only when completed or delivered */}
+        {(order.status === 'completed' || order.status === 'delivered') && (
+          <button
+            disabled
+            className={styles.shareReviewBtn}
+          >
+            <span className="material-icons" style={{ fontSize: '1.15rem' }}>rate_review</span>
+            Share Review Link
+            <span className={styles.shareReviewBadge}>Coming Soon</span>
+          </button>
+        )}
+
         {/* Notes */}
         {order.notes && (
           <div className={styles.notesSection}>
