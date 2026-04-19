@@ -15,7 +15,6 @@
   flex-shrink: 0;
   display: flex;
   align-items: center;
-  height: 46px;
 }
 
 /* ── MAIN TABS (underline) ── */
@@ -150,7 +149,7 @@
   padding: 10px 12px 8px;
   background: var(--bg);
   position: sticky;
-  top: calc(56px + 46px); /* header + tabActionBar */
+  top: calc(56px + 47px); /* header + tabActionBar */
   z-index: 49;
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
