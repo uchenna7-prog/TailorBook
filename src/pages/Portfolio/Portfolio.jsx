@@ -15,14 +15,28 @@ function initials(name = '') {
   return name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
 }
 
+// ── Brand colour helpers ──────────────────────────────────────
+function hexLuminance(hex = '#000000') {
+  const clean = hex.replace('#', '')
+  const r = parseInt(clean.slice(0, 2), 16)
+  const g = parseInt(clean.slice(2, 4), 16)
+  const b = parseInt(clean.slice(4, 6), 16)
+  return (r * 299 + g * 587 + b * 114) / 1000
+}
+
+function accentTextColour(hex) {
+  return hexLuminance(hex) > 128 ? '#1a1814' : '#ffffff'
+}
+
 // ── Booking Sheet ─────────────────────────────────────────────
-function BookingSheet({ isOpen, onClose, brandName, brandEmail, brandPhone }) {
-  const [name, setName] = useState('')
-  const [phone, setPhone] = useState('')
-  const [garment, setGarment] = useState('')
-  const [message, setMessage] = useState('')
-  const [sent, setSent] = useState(false)
-  const [visible, setVisible] = useState(false)
+function BookingSheet({ isOpen, onClose, brandName, brandEmail, brandPhone, accentColour, accentText }) {
+  const [name,     setName]     = useState('')
+  const [phone,    setPhone]    = useState('')
+  const [garment,  setGarment]  = useState('')
+  const [deadline, setDeadline] = useState('')
+  const [message,  setMessage]  = useState('')
+  const [sent,     setSent]     = useState(false)
+  const [visible,  setVisible]  = useState(false)
 
   useEffect(() => {
     if (isOpen) requestAnimationFrame(() => setVisible(true))
@@ -33,7 +47,8 @@ function BookingSheet({ isOpen, onClose, brandName, brandEmail, brandPhone }) {
 
   const handleSubmit = () => {
     if (!name.trim() || !phone.trim()) return
-    const msg = `Hello ${brandName},%0A%0AI'd like to place an order.%0A%0AName: ${name}%0APhone: ${phone}%0AGarment: ${garment}%0ADetails: ${message}`
+    const deadlineLine = deadline ? `%0ADeadline / Occasion Date: ${deadline}` : ''
+    const msg = `Hello ${brandName},%0A%0AI'd like to place an order.%0A%0AName: ${name}%0APhone: ${phone}%0AGarment: ${garment}${deadlineLine}%0ADetails: ${message}`
     if (brandPhone) {
       const clean = brandPhone.replace(/\D/g, '')
       window.open(`https://wa.me/${clean}?text=${msg}`, '_blank', 'noopener,noreferrer')
@@ -41,17 +56,24 @@ function BookingSheet({ isOpen, onClose, brandName, brandEmail, brandPhone }) {
       window.open(`mailto:${brandEmail}?subject=Order Enquiry&body=${decodeURIComponent(msg.replace(/%0A/g, '\n').replace(/%0A%0A/g, '\n\n'))}`)
     }
     setSent(true)
-    setTimeout(() => { setSent(false); onClose(); setName(''); setPhone(''); setGarment(''); setMessage('') }, 2500)
+    setTimeout(() => {
+      setSent(false); onClose()
+      setName(''); setPhone(''); setGarment(''); setDeadline(''); setMessage('')
+    }, 2500)
   }
 
   return (
-    <div className={`${styles.bookingOverlay} ${visible ? styles.bookingOverlayVisible : ''}`}
-      onClick={e => { if (e.target === e.currentTarget) onClose() }}>
+    <div
+      className={`${styles.bookingOverlay} ${visible ? styles.bookingOverlayVisible : ''}`}
+      onClick={e => { if (e.target === e.currentTarget) onClose() }}
+    >
       <div className={`${styles.bookingDrawer} ${visible ? styles.bookingDrawerVisible : ''}`}>
         <div className={styles.drawerHandle} />
         {sent ? (
           <div className={styles.sentState}>
-            <div className={styles.sentCheck}><span className="mi">check</span></div>
+            <div className={styles.sentCheck} style={{ borderColor: accentColour }}>
+              <span className="mi" style={{ color: accentColour }}>check</span>
+            </div>
             <p className={styles.sentTitle}>Request Received</p>
             <p className={styles.sentSub}>{brandName} will be in touch shortly.</p>
           </div>
@@ -80,12 +102,28 @@ function BookingSheet({ isOpen, onClose, brandName, brandEmail, brandPhone }) {
                 <input className={styles.fieldInput} placeholder="e.g. Suit, Dress, Agbada, Co-ord…" value={garment} onChange={e => setGarment(e.target.value)} />
               </div>
               <div className={styles.fieldGroup}>
+                <label className={styles.fieldLabel}>Occasion / Deadline Date</label>
+                <input
+                  className={styles.fieldInput}
+                  type="date"
+                  value={deadline}
+                  onChange={e => setDeadline(e.target.value)}
+                  style={{ colorScheme: 'light dark' }}
+                />
+                <span className={styles.fieldHint}>When do you need this ready?</span>
+              </div>
+              <div className={styles.fieldGroup}>
                 <label className={styles.fieldLabel}>Additional Details</label>
-                <textarea className={styles.fieldTextarea} placeholder="Occasion, fabric preferences, measurements, deadline…" value={message} onChange={e => setMessage(e.target.value)} rows={4} />
+                <textarea className={styles.fieldTextarea} placeholder="Fabric preferences, measurements, colour, event type…" value={message} onChange={e => setMessage(e.target.value)} rows={4} />
               </div>
             </div>
             <div className={styles.drawerFooter}>
-              <button className={styles.sendBtn} onClick={handleSubmit} disabled={!name.trim() || !phone.trim()}>
+              <button
+                className={styles.sendBtn}
+                onClick={handleSubmit}
+                disabled={!name.trim() || !phone.trim()}
+                style={{ background: accentColour, color: accentText }}
+              >
                 Send Booking Request
               </button>
             </div>
@@ -146,7 +184,6 @@ function Lightbox({ photo, photos, onClose }) {
 
 // ── Main Component ────────────────────────────────────────────
 export default function Portfolio() {
-  // `handle` = slug ("stitched-by-amara") OR legacy Firebase UID
   const { handle } = useParams()
 
   const [resolvedUid,   setResolvedUid]   = useState(null)
@@ -164,7 +201,6 @@ export default function Portfolio() {
   const [heroImageId,   setHeroImageId]   = useState(null)
   const [footerImageId, setFooterImageId] = useState(null)
   const [reviews,       setReviews]       = useState([])
-
   const [activeNav,     setActiveNav]     = useState('home')
 
   const worksRef        = useRef(null)
@@ -174,16 +210,10 @@ export default function Portfolio() {
   const filterScrollRef = useRef(null)
 
   // ── Step 1: resolve handle → uid ─────────────────────────────
-  // Firebase UIDs always contain uppercase letters.
-  // Slugs are purely lowercase a-z, 0-9, hyphens.
-  // This lets us route both formats without a server.
   useEffect(() => {
     if (!handle) { setNotFound(true); setLoading(false); return }
-
     const looksLikeUid = /[A-Z]/.test(handle)
-
     if (looksLikeUid) {
-      // Legacy UID link — use directly, no slug lookup needed
       setResolvedUid(handle)
     } else {
       resolveSlug(handle)
@@ -229,7 +259,7 @@ export default function Portfolio() {
       .catch(() => {})
   }, [resolvedUid])
 
-  // ── Step 6: approved reviews (public, real-time) ──────────
+  // ── Step 6: approved reviews ──────────────────────────────────
   useEffect(() => {
     if (!resolvedUid) return
     const q = query(
@@ -303,6 +333,7 @@ export default function Portfolio() {
     )
   }
 
+  // ── Derived values ────────────────────────────────────────────
   const brandName       = brand.brandName    || 'The Tailor'
   const tagline         = brand.brandTagline || ''
   const brandBio        = brand.brandBio     || ''
@@ -310,6 +341,23 @@ export default function Portfolio() {
   const filteredPhotos  = activeTab ? completedPhotos.filter(p => p.clothingType === activeTab) : completedPhotos
   const heroPhoto       = (heroImageId   ? completedPhotos.find(p => p.id === heroImageId)   : null) ?? completedPhotos[0] ?? null
   const footerPhoto     = (footerImageId ? completedPhotos.find(p => p.id === footerImageId) : null) ?? completedPhotos[1] ?? null
+
+  // ── Brand colour — applied surgically to CTAs only ────────────
+  const accentColour = brand.brandColour || '#D4AF37'
+  const accentText   = accentTextColour(accentColour)
+
+  // ── Personalization fields ────────────────────────────────────
+  const foundedYear       = brand.brandFoundedYear       || ''
+  const turnaround        = brand.brandTurnaround        || ''
+  const serviceArea       = brand.brandServiceArea       || ''
+  const styleStatement    = brand.brandStyleStatement    || ''
+  const featuredTechnique = brand.brandFeaturedTechnique || ''
+  const milestone         = brand.brandMilestone         || ''
+  const availability      = brand.brandAvailability      || 'open'
+  const availableUntil    = brand.brandAvailableUntil    || ''
+
+  // Stats strip: milestone overrides completed count if set
+  const statGarments = milestone || (completedPhotos.length ? `${completedPhotos.length}+` : '—')
 
   return (
     <div className={`${styles.page} ${lightMode ? styles.lightMode : ''}`}>
@@ -332,7 +380,13 @@ export default function Portfolio() {
             <button onClick={() => scrollTo(aboutRef)} className={`${styles.navLink} ${activeNav === 'about' ? styles.navLinkActive : ''}`}>About</button>
             <button onClick={() => scrollTo(worksRef)} className={`${styles.navLink} ${activeNav === 'works' ? styles.navLinkActive : ''}`}>Works</button>
             <button onClick={() => scrollTo(bookRef)}  className={`${styles.navLink} ${activeNav === 'book'  ? styles.navLinkActive : ''}`}>Book</button>
-            <button onClick={() => { setNavOpen(false); setBookingOpen(true) }} className={styles.navCta}>Order Now</button>
+            <button
+              onClick={() => { setNavOpen(false); setBookingOpen(true) }}
+              className={styles.navCta}
+              style={{ background: accentColour, color: accentText }}
+            >
+              Order Now
+            </button>
           </div>
           <div className={styles.navRight}>
             <button className={styles.themeToggleDesktop} onClick={() => setLightMode(m => !m)} aria-label="Toggle theme">
@@ -358,13 +412,35 @@ export default function Portfolio() {
           <p className={styles.heroEyebrow}>— {brandName} —</p>
           <h1 className={styles.heroName}>{brandName}</h1>
           {tagline && <p className={styles.heroTagline}>{tagline}</p>}
+          {styleStatement && <p className={styles.heroStyleStatement}>{styleStatement}</p>}
           <div className={styles.heroCtas}>
-            <button className={styles.heroPrimary} onClick={() => setBookingOpen(true)}>Place an Order</button>
+            <button
+              className={styles.heroPrimary}
+              onClick={() => setBookingOpen(true)}
+              style={{ background: accentColour, color: accentText }}
+            >
+              Place an Order
+            </button>
             <button className={styles.heroSecondary} onClick={() => scrollTo(worksRef)}>
               View Works
               <span className="material-icons" style={{ fontSize: '1rem', marginLeft: 6 }}>arrow_downward</span>
             </button>
           </div>
+          {/* Availability badge */}
+          {availability === 'open' && (
+            <div className={styles.availBadge}>
+              <span className={styles.availDot} style={{ background: accentColour }} />
+              <span className={styles.availText}>
+                {availableUntil ? `Taking orders until ${availableUntil}` : 'Currently taking orders'}
+              </span>
+            </div>
+          )}
+          {availability === 'busy' && availableUntil && (
+            <div className={styles.availBadge}>
+              <span className={styles.availDotBusy} />
+              <span className={styles.availText}>Fully booked until {availableUntil}</span>
+            </div>
+          )}
         </div>
         <div className={styles.heroScroll}>
           <span className={styles.heroScrollLine} />
@@ -375,8 +451,8 @@ export default function Portfolio() {
       {/* ── STATS STRIP ── */}
       <div className={styles.statsStrip}>
         <div className={styles.statItem}>
-          <span className={styles.statNum}>{completedPhotos.length || '—'}</span>
-          <span className={styles.statLabel}>Completed Works</span>
+          <span className={styles.statNum}>{statGarments}</span>
+          <span className={styles.statLabel}>Garments Delivered</span>
         </div>
         <div className={styles.statDivider} />
         <div className={styles.statItem}>
@@ -384,10 +460,17 @@ export default function Portfolio() {
           <span className={styles.statLabel}>Specialties</span>
         </div>
         <div className={styles.statDivider} />
-        <div className={styles.statItem}>
-          <span className="mi" style={{ fontSize: '1.1rem' }}>verified</span>
-          <span className={styles.statLabel}>Bespoke Only</span>
-        </div>
+        {foundedYear ? (
+          <div className={styles.statItem}>
+            <span className={styles.statNum}>{new Date().getFullYear() - parseInt(foundedYear)}+</span>
+            <span className={styles.statLabel}>Years Crafting</span>
+          </div>
+        ) : (
+          <div className={styles.statItem}>
+            <span className="mi" style={{ fontSize: '1.1rem' }}>verified</span>
+            <span className={styles.statLabel}>Bespoke Only</span>
+          </div>
+        )}
       </div>
 
       {/* ── ABOUT ── */}
@@ -407,7 +490,44 @@ export default function Portfolio() {
               </div>
               <p className={styles.aboutName}>{brandName}</p>
               {tagline && <p className={styles.aboutTagline}>"{tagline}"</p>}
+
+              {/* Style statement — the personal signature line */}
+              {styleStatement && (
+                <p className={styles.aboutStyleStatement}>{styleStatement}</p>
+              )}
+
               {brandBio && <p className={styles.aboutBio}>{brandBio}</p>}
+
+              {/* Business info pills */}
+              {(turnaround || serviceArea || featuredTechnique || foundedYear) && (
+                <div className={styles.aboutInfoGrid}>
+                  {foundedYear && (
+                    <div className={styles.aboutInfoItem}>
+                      <span className="material-icons" style={{ fontSize: '0.9rem' }}>history</span>
+                      <span>Crafting since {foundedYear}</span>
+                    </div>
+                  )}
+                  {turnaround && (
+                    <div className={styles.aboutInfoItem}>
+                      <span className="material-icons" style={{ fontSize: '0.9rem' }}>schedule</span>
+                      <span>{turnaround}</span>
+                    </div>
+                  )}
+                  {serviceArea && (
+                    <div className={styles.aboutInfoItem}>
+                      <span className="material-icons" style={{ fontSize: '0.9rem' }}>place</span>
+                      <span>{serviceArea}</span>
+                    </div>
+                  )}
+                  {featuredTechnique && (
+                    <div className={styles.aboutInfoItem}>
+                      <span className="material-icons" style={{ fontSize: '0.9rem' }}>auto_fix_high</span>
+                      <span>{featuredTechnique}</span>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {dressTypes.length > 0 && (
                 <div className={styles.aboutSpecialties}>
                   <p className={styles.aboutSpecialtiesLabel}>Specialises in</p>
@@ -477,9 +597,24 @@ export default function Portfolio() {
         {dressTypes.length > 0 && (
           <div className={styles.filterBar}>
             <div className={styles.filterScroll} ref={filterScrollRef}>
-              <button data-tab="all" className={`${styles.filterPill} ${!activeTab ? styles.filterPillActive : ''}`} onClick={() => handleTabChange(null)}>All</button>
+              <button
+                data-tab="all"
+                className={`${styles.filterPill} ${!activeTab ? styles.filterPillActive : ''}`}
+                onClick={() => handleTabChange(null)}
+                style={!activeTab ? { background: accentColour, color: accentText, borderColor: accentColour } : {}}
+              >
+                All
+              </button>
               {dressTypes.map(t => (
-                <button key={t.id} data-tab={t.id} className={`${styles.filterPill} ${activeTab === t.id ? styles.filterPillActive : ''}`} onClick={() => handleTabChange(t.id)}>{t.label}</button>
+                <button
+                  key={t.id}
+                  data-tab={t.id}
+                  className={`${styles.filterPill} ${activeTab === t.id ? styles.filterPillActive : ''}`}
+                  onClick={() => handleTabChange(t.id)}
+                  style={activeTab === t.id ? { background: accentColour, color: accentText, borderColor: accentColour } : {}}
+                >
+                  {t.label}
+                </button>
               ))}
             </div>
           </div>
@@ -512,10 +647,10 @@ export default function Portfolio() {
           <h2 className={styles.processTitle}>From Idea<br />to Outfit</h2>
           <div className={styles.processSteps}>
             {[
-              { num: '01', icon: 'forum',          title: 'Consultation', desc: 'Share your vision, occasion, and preferences. We listen carefully.' },
+              { num: '01', icon: 'forum',          title: 'Consultation', desc: 'Share your vision, occasion, and deadline. We listen carefully.' },
               { num: '02', icon: 'straighten',     title: 'Measurements', desc: 'Precise measurements taken for a flawless custom fit.' },
               { num: '03', icon: 'content_cut',    title: 'Crafting',     desc: 'Every stitch placed with intention, skill, and care.' },
-              { num: '04', icon: 'local_shipping', title: 'Delivery',     desc: 'Your bespoke garment, delivered to perfection.' },
+              { num: '04', icon: 'local_shipping', title: 'Delivery',     desc: turnaround ? `${turnaround}. Your bespoke garment, delivered to perfection.` : 'Your bespoke garment, delivered to perfection.' },
             ].map(step => (
               <div key={step.num} className={styles.processStep}>
                 <div className={styles.processNumWrap}>
@@ -547,7 +682,7 @@ export default function Portfolio() {
                       <span
                         key={n}
                         className="material-icons"
-                        style={{ fontSize: '0.9rem', color: n <= r.rating ? '#f59e0b' : 'var(--border)' }}
+                        style={{ fontSize: '0.9rem', color: n <= r.rating ? accentColour : 'var(--border)' }}
                       >star</span>
                     ))}
                   </div>
@@ -577,7 +712,19 @@ export default function Portfolio() {
           <p className={styles.sectionEyebrow} style={{ color: '#888' }}>05 — Book</p>
           <h2 className={styles.bookTitle}>Ready for<br />something<br />extraordinary?</h2>
           <p className={styles.bookSub}>Every garment is made to order.<br />Let's create yours.</p>
-          <button className={styles.bookCta} onClick={() => setBookingOpen(true)}>Place Your Order</button>
+          {turnaround && (
+            <p className={styles.bookTurnaround}>
+              <span className="material-icons" style={{ fontSize: '0.85rem', verticalAlign: 'middle', marginRight: 6 }}>schedule</span>
+              {turnaround}
+            </p>
+          )}
+          <button
+            className={styles.bookCta}
+            onClick={() => setBookingOpen(true)}
+            style={{ background: accentColour, color: accentText }}
+          >
+            Place Your Order
+          </button>
           <div className={styles.bookContacts}>
             {brand.brandPhone && (
               <a href={`tel:${brand.brandPhone}`} className={styles.bookContact}>
@@ -598,6 +745,7 @@ export default function Portfolio() {
         <div className={styles.footerTop}>
           <p className={styles.footerBrand}>{brandName}</p>
           {tagline && <p className={styles.footerTagline}>{tagline}</p>}
+          {foundedYear && <p className={styles.footerFounded}>Crafting since {foundedYear}</p>}
         </div>
         <div className={styles.footerDivider} />
         <div className={styles.footerBottom}>
@@ -618,7 +766,15 @@ export default function Portfolio() {
       </footer>
 
       {lightbox && <Lightbox photo={lightbox} photos={filteredPhotos} onClose={() => setLightbox(null)} />}
-      <BookingSheet isOpen={bookingOpen} onClose={() => setBookingOpen(false)} brandName={brandName} brandEmail={brand.brandEmail} brandPhone={brand.brandPhone} />
+      <BookingSheet
+        isOpen={bookingOpen}
+        onClose={() => setBookingOpen(false)}
+        brandName={brandName}
+        brandEmail={brand.brandEmail}
+        brandPhone={brand.brandPhone}
+        accentColour={accentColour}
+        accentText={accentText}
+      />
     </div>
   )
 }
