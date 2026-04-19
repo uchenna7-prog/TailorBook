@@ -524,10 +524,12 @@ export default function Gallery({ onMenuClick }) {
               {st.label}
             </button>
           ))}
-        </div>
-        <div className={styles.subTabActions}>
-          {/* Only the edit button — add button removed */}
-          <button className={styles.subTabIconBtn} onClick={() => setManageTabId(activeTab)} title="Edit dress types">
+          {/* Edit button — lives as last item in the scroll row */}
+          <button
+            className={styles.subTabEditBtn}
+            onClick={() => setManageTabId(activeTab)}
+            title="Edit dress types"
+          >
             <span className="mi" style={{ fontSize: '1.1rem' }}>edit</span>
           </button>
         </div>
