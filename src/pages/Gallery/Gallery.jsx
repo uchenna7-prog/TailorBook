@@ -11,15 +11,15 @@ import styles           from './Gallery.module.css'
 // ── CONSTANTS ──────────────────────────────────────────────────
 
 const TABS = [
-  { id: 'completed_works', label: 'Completed Works', icon: 'check_circle' },
-  { id: 'designs',         label: 'Designs',         icon: 'content_cut'  },
-  { id: 'inspiration',     label: 'Inspiration',     icon: 'lightbulb'    },
+  { id: 'completed_works', label: 'Portfolio',   icon: 'check_circle' },
+  { id: 'designs',         label: 'Designs',     icon: 'content_cut'  },
+  { id: 'inspiration',     label: 'Inspiration', icon: 'lightbulb'    },
 ]
 
 const CATEGORY_MAP = {
-  completed_works: { label: 'Completed Work', icon: 'check_circle' },
-  designs:         { label: 'Design',         icon: 'content_cut'  },
-  inspiration:     { label: 'Inspiration',    icon: 'lightbulb'    },
+  completed_works: { label: 'Portfolio',    icon: 'check_circle' },
+  designs:         { label: 'Design',       icon: 'content_cut'  },
+  inspiration:     { label: 'Inspiration',  icon: 'lightbulb'    },
 }
 
 // The virtual "All" sub-tab — always first, never editable
