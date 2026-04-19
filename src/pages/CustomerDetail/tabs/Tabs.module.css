@@ -702,3 +702,37 @@
   pointer-events: none;
   z-index: 5;
 }
+
+/* ── ORDERS TAB ONLY — Share Review Link button ── */
+.shareReviewBtn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px dashed rgba(34, 197, 94, 0.45);
+  background: rgba(34, 197, 94, 0.05);
+  color: #22c55e;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: not-allowed;
+  margin-bottom: 16px;
+  opacity: 0.8;
+}
+
+.shareReviewBadge {
+  margin-left: auto;
+  font-size: 0.55rem;
+  font-weight: 700;
+  background: rgba(34, 197, 94, 0.15);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  border-radius: 6px;
+  padding: 2px 7px;
+  color: #22c55e;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
