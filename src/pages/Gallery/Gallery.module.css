@@ -146,7 +146,6 @@
 .subTabsBar {
   display: flex;
   align-items: center;
-  gap: 6px;
   padding: 10px 12px 8px;
   background: var(--bg);
   position: sticky;
