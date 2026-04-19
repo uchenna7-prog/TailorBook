@@ -488,23 +488,6 @@ function OrderDetail({ order, measurements, onClose, onDelete, onStatusChange, o
           </div>
         )}
 
-        {/* Footer dates */}
-        <div className={styles.detailDate}>
-          Order Taken: {placedOn}
-          {order.due && <> &nbsp;•&nbsp; Due: {order.due}</>}
-          &nbsp;•&nbsp; Qty: {order.qty}
-        </div>
-
-        {/* Generate Invoice */}
-        <button
-          className={styles.generateInvoiceBtn}
-          onClick={() => onGenerateInvoice(order.id)}
-          style={{ marginTop: 16 }}
-        >
-          <span className="material-icons" style={{ fontSize: '1.2rem', verticalAlign: 'middle', marginRight: 6 }}>receipt_long</span>
-          Generate Invoice
-        </button>
-
         {/* Change Stage */}
         <div className={styles.linkedSection} style={{ marginTop: 16 }}>
           <div className={styles.linkLabel}>Change Stage</div>
@@ -549,6 +532,23 @@ function OrderDetail({ order, measurements, onClose, onDelete, onStatusChange, o
             <span className="material-icons" style={{ fontSize: '1rem', marginLeft: 'auto', color: '#22c55e' }}>open_in_new</span>
           </button>
         )}
+
+        {/* Footer dates */}
+        <div className={styles.detailDate}>
+          Order Taken: {placedOn}
+          {order.due && <> &nbsp;•&nbsp; Due: {order.due}</>}
+          &nbsp;•&nbsp; Qty: {order.qty}
+        </div>
+
+        {/* Generate Invoice */}
+        <button
+          className={styles.generateInvoiceBtn}
+          onClick={() => onGenerateInvoice(order.id)}
+          style={{ marginTop: 16 }}
+        >
+          <span className="material-icons" style={{ fontSize: '1.2rem', verticalAlign: 'middle', marginRight: 6 }}>receipt_long</span>
+          Generate Invoice
+        </button>
       </div>
     </div>
   )
