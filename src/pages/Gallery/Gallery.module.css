@@ -5,13 +5,19 @@
   flex-direction: column;
 }
 
+/* ── STICKY WRAPPER — holds both bars as one unit ── */
+.stickyHeader {
+  position: sticky;
+  top: 56px;
+  z-index: 50;
+  background: var(--bg);
+  flex-shrink: 0;
+}
+
 /* ── TAB BAR ── */
 .tabActionBar {
   background: var(--bg);
   border-bottom: 1px solid var(--border);
-  position: sticky;
-  top: 56px;
-  z-index: 50;
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -148,9 +154,6 @@
   align-items: center;
   padding: 10px 12px 8px;
   background: var(--bg);
-  position: sticky;
-  top: calc(56px + var(--tab-bar-h, 47px)); /* header + tabActionBar */
-  z-index: 49;
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
 }
