@@ -190,27 +190,23 @@
 }
 
 .subTabActions {
-  display: flex;
-  gap: 2px;
-  flex-shrink: 0;
-  border-left: 1px solid var(--border);
-  padding-left: 8px;
+  display: none;
 }
 
-.subTabIconBtn {
-  width: 32px;
-  height: 32px;
-  border-radius: 10px;
-  border: 1px solid var(--border2);
-  background: var(--surface);
-  color: var(--text3);
-  display: flex;
+.subTabEditBtn {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
+  padding: 6px 10px;
+  border-radius: 10px;
+  border: 1.5px solid var(--border2);
+  background: var(--surface);
+  color: var(--text3);
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  flex-shrink: 0;
+  transition: all 0.15s;
 }
-.subTabIconBtn:active { background: var(--surface2); color: var(--text); }
+.subTabEditBtn:active { background: var(--surface2); color: var(--text); }
 
 /* ── SHARE PORTFOLIO BANNER ── */
 .portfolioBanner {
