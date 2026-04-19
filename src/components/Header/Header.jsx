@@ -12,6 +12,7 @@ const TYPE_BG = {
   task:        'rgba(99,102,241,0.12)',
   appointment: 'rgba(6,182,212,0.12)',
   birthday:    'rgba(251,146,60,0.12)',
+  review:      'rgba(245,158,11,0.15)',
 }
 
 function timeLabel(timeStr) {
@@ -27,11 +28,17 @@ function timeLabel(timeStr) {
   return timeStr
 }
 
-function NotifItem({ n, onRead }) {
+function NotifItem({ n, onRead, onNavigate }) {
+  const handleClick = () => {
+    if (n.unread) onRead(n.id)
+    if (n.type === 'review') onNavigate?.('/reviews')
+  }
+
   return (
     <div
-      className={`${styles.notifItem} ${n.unread ? styles.unread : ''}`}
-      onClick={() => n.unread && onRead(n.id)}
+      className={`${styles.notifItem} ${n.unread ? styles.unread : ''} ${n.type === 'review' ? styles.notifItemReview : ''}`}
+      onClick={handleClick}
+      style={{ cursor: n.type === 'review' ? 'pointer' : n.unread ? 'pointer' : 'default' }}
     >
       <div className={styles.notifIcon} style={{ background: TYPE_BG[n.type] || 'var(--surface2)' }}>
         {n.icon}
@@ -39,6 +46,9 @@ function NotifItem({ n, onRead }) {
       <div className={styles.notifContent}>
         <h5>{n.title}</h5>
         <p>{n.body}</p>
+        {n.type === 'review' && (
+          <span className={styles.notifReviewHint}>Tap to review →</span>
+        )}
         <span className={styles.notifTime}>{timeLabel(n.time)}</span>
       </div>
       {n.unread && <span className={styles.unreadDot} />}
@@ -255,7 +265,7 @@ function Header({ onMenuClick, onBackClick, type = 'default', title, customActio
                 </div>
               ) : (
                 visibleNotifs.map(n => (
-                  <NotifItem key={n.id} n={n} onRead={markRead} />
+                  <NotifItem key={n.id} n={n} onRead={markRead} onNavigate={(path) => { closeNotif(); navigate(path) }} />
                 ))
               )}
             </div>
