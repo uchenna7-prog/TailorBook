@@ -117,7 +117,7 @@ function AddPhotoModal({ isOpen, onClose, onSave, dressTypes, activeMainTab }) {
     Array.from(files).forEach(file => {
       const reader = new FileReader()
       reader.onload = (e) => {
-        setPhotos(prev => [...prev, { src: e.target.result, name: file.name, caption: '', clothingType: defaultType }])
+        setPhotos(prev => [...prev, { src: e.target.result, name: file.name, caption: '', clothingType: defaultType, price: '' }])
       }
       reader.readAsDataURL(file)
     })
@@ -157,6 +157,7 @@ function AddPhotoModal({ isOpen, onClose, onSave, dressTypes, activeMainTab }) {
         caption: p.caption.trim(),
         clothingType: p.clothingType,
         clothingTypeLabel: typeLabel,
+        price: category === 'completed_works' && p.price.trim() ? p.price.trim() : null,
         customerId:   null,
         customerName: null,
         date: dateStr,
@@ -252,6 +253,26 @@ function AddPhotoModal({ isOpen, onClose, onSave, dressTypes, activeMainTab }) {
                       )}
                       {typeErrors[i] && <span className={styles.errorMsg}>Dress type is required</span>}
                     </div>
+
+                    {/* Price — only for Portfolio / completed_works */}
+                    {category === 'completed_works' && (
+                      <div className={styles.fieldGroup}>
+                        <label className={styles.fieldLabel}>
+                          Starting Price <span className={styles.optional}>(optional)</span>
+                        </label>
+                        <div className={styles.priceWrap}>
+                          <span className={styles.priceCurrency}>₦</span>
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            className={styles.priceInput}
+                            placeholder="e.g. 45,000"
+                            value={p.price}
+                            onChange={e => updatePhoto(i, 'price', e.target.value)}
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -338,6 +359,12 @@ function Lightbox({ photo, photos, onClose, onDelete }) {
         <div className={styles.lightboxInfo}>
           {current.caption && <div className={styles.lightboxCaption}>{current.caption}</div>}
           <div className={styles.lightboxMeta}>
+            {current.price && (
+              <span className={`${styles.lightboxChip} ${styles.lightboxPriceChip}`}>
+                <span className="mi" style={{ fontSize: '0.75rem' }}>sell</span>
+                From ₦{current.price}
+              </span>
+            )}
             {current.clothingTypeLabel && (
               <span className={styles.lightboxChip}>
                 <span className="mi" style={{ fontSize: '0.75rem' }}>checkroom</span>
@@ -608,6 +635,9 @@ export default function Gallery({ onMenuClick }) {
                     <div className={styles.thumbBadge}>
                       <span className="mi" style={{ fontSize: '0.8rem' }}>{CATEGORY_MAP[photo.category]?.icon}</span>
                     </div>
+                    {photo.price && (
+                      <div className={styles.thumbPrice}>₦{photo.price}</div>
+                    )}
                     {photo.caption && <div className={styles.thumbCaption}>{photo.caption}</div>}
                   </div>
                 ))}
