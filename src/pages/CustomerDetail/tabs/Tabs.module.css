@@ -273,19 +273,19 @@
 }
 
 /* ── STAGE CHIP ROW (Orders tab — Change Stage section) ──────────
-   Switched from flexbox to block + inline-flex chips.
-   This is the only reliable way to prevent a lone chip on its own
-   line from ever stretching to full width.
+   flex-wrap: wrap + width: fit-content on each chip ensures chips
+   always size to their content and NEVER stretch, even when a
+   single chip wraps onto its own line.
    ─────────────────────────────────────────────────────────────── */
 .stageChipRow {
-  display: block;      /* block container — chips flow like words  */
-  line-height: 0;      /* collapse whitespace gaps between chips    */
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
   margin-top: 4px;
-  margin-bottom: -2px; /* offset last chip's bottom margin          */
 }
 
 .stageChip {
-  display: inline-flex; /* sizes to content, never stretches        */
+  display: flex;
   align-items: center;
   gap: 5px;
   padding: 8px 12px;
@@ -294,14 +294,14 @@
   background: transparent;
   color: var(--text3);
   font-size: 0.7rem;
-  line-height: 1.4;     /* readable line-height inside the chip     */
+  line-height: 1.4;
   font-weight: 800;
   font-family: 'DM Sans', sans-serif;
   cursor: pointer;
   transition: all 0.18s;
   white-space: nowrap;
-  vertical-align: top;
-  margin: 0 6px 8px 0; /* spacing between chips via margin          */
+  width: fit-content;
+  flex-shrink: 0;
 }
 
 .stageChip:active { opacity: 0.7; }
