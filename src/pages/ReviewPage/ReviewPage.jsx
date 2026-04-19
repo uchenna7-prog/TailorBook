@@ -188,8 +188,7 @@ export default function ReviewPage() {
           </div>
           <h2 className={styles.title}>Thank You! 🎉</h2>
           <p className={styles.subtitle}>
-            Your review has been submitted and is being reviewed by {tailorName}.
-            It may appear on their portfolio soon.
+            Thank you for your feedback! {tailorName} appreciates it.
           </p>
           <div className={styles.starRow}>
             {[1,2,3,4,5].map(n => (
@@ -305,7 +304,7 @@ export default function ReviewPage() {
         </div>
 
         <p className={styles.disclaimer}>
-          Your review will be visible on {tailorName}'s portfolio only after they approve it.
+          Your review will be live on {tailorName}'s portfolio once it's approved.
         </p>
 
       </div>
