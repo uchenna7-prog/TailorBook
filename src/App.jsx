@@ -1,4 +1,4 @@
-// src/App.jsx — updated to add public /portfolio/:uid route
+// src/App.jsx
 import { useState } from 'react'
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import RequireAuth    from './components/RequireAuth/RequireAuth'
@@ -22,7 +22,9 @@ import Appointments             from './pages/Appointments/Appointments'
 import AllPayments              from './pages/AllPayments/AllPayments'
 import Inventory                from './pages/Inventory/Inventory'
 import Reports                  from './pages/Reports/Reports'
-import Portfolio                from './pages/Portfolio/Portfolio'   // ← NEW
+import Portfolio                from './pages/Portfolio/Portfolio'
+import ReviewPage               from './pages/ReviewPage/ReviewPage'
+import Reviews                  from './pages/Reviews/Reviews'
 
 function AppShell() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -49,6 +51,7 @@ function AppShell() {
         <Route path="/profile"                             element={<Profile                  onMenuClick={menuClick} />} />
         <Route path="/contact"                             element={<Contact                  onMenuClick={menuClick} />} />
         <Route path="/faq"                                 element={<FAQ                      onMenuClick={menuClick} />} />
+        <Route path="/reviews"                             element={<Reviews                  onMenuClick={menuClick} />} />
         <Route path="*"                                    element={<Navigate to="/" replace />} />
       </Routes>
     </>
@@ -59,9 +62,10 @@ export default function App() {
   return (
     <Routes>
       {/* ── Public routes (no auth) ── */}
-      <Route path="/login"            element={<Login />} />
-      <Route path="/signup"           element={<Signup />} />
-      <Route path="/portfolio/:handle" element={<Portfolio />} />  {/* slug or legacy uid */}
+      <Route path="/login"               element={<Login />} />
+      <Route path="/signup"              element={<Signup />} />
+      <Route path="/portfolio/:handle"   element={<Portfolio />} />
+      <Route path="/review/:uid/:token"  element={<ReviewPage />} />
 
       {/* ── Protected routes ── */}
       <Route
