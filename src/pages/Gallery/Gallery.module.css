@@ -149,7 +149,7 @@
   padding: 10px 12px 8px;
   background: var(--bg);
   position: sticky;
-  top: calc(56px + 47px); /* header + tabActionBar */
+  top: calc(56px + var(--tab-bar-h, 47px)); /* header + tabActionBar */
   z-index: 49;
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
