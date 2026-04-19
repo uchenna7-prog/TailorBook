@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useOrders } from '../../../contexts/OrdersContext'
+import { useAuth }   from '../../../contexts/AuthContext'
 import ConfirmSheet from '../../../components/ConfirmSheet/ConfirmSheet'
 import Header from '../../../components/Header/Header'
 import styles from './Tabs.module.css'
@@ -558,6 +559,7 @@ function OrderDetail({ order, measurements, onClose, onDelete, onStatusChange, o
 // ─────────────────────────────────────────────────────────────
 export default function OrdersTab({ customerId, orders, measurements, showToast, onGenerateInvoice }) {
   const { addOrder, deleteOrder, updateOrderStatus, updateOrderStage } = useOrders()
+  const { user } = useAuth()
   const [modalOpen,   setModalOpen]   = useState(false)
   const [detailOrder, setDetailOrder] = useState(null)
   const [confirmDel,  setConfirmDel]  = useState(null)
@@ -622,7 +624,7 @@ export default function OrdersTab({ customerId, orders, measurements, showToast,
     const token = order.reviewToken || crypto.randomUUID()
 
     // Public review submission URL — adjust YOUR_DOMAIN to match your deployed URL
-    const reviewUrl = `https://YOUR_DOMAIN/review/${token}`
+    const reviewUrl = `https://YOUR_DOMAIN/review/${user?.uid}/${token}`
 
     const customerName = order.customerName || 'there'
     const message = encodeURIComponent(
