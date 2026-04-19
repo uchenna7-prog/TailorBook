@@ -519,9 +519,9 @@ function OrderDetail({ order, measurements, onClose, onDelete, onStatusChange, o
             className={styles.shareReviewBtn}
             onClick={() => onShareReviewLink(order)}
           >
-            <span className="mi" style={{ fontSize: '1.15rem' }}>rate_review</span>
-            Share Review Link
-            <span className="mi" style={{ fontSize: '1rem', marginLeft: 'auto', color: '#22c55e' }}>open_in_new</span>
+            <span className="material-icons" style={{ fontSize: '1.15rem' }}>rate_review</span>
+            Share Review Link Via WhatsApp 
+            <span className="material-icons" style={{ fontSize: '1rem', marginLeft: 'auto', color: '#22c55e' }}>open_in_new</span>
           </button>
         )}
 
@@ -624,7 +624,7 @@ export default function OrdersTab({ customerId, orders, measurements, showToast,
     const token = order.reviewToken || crypto.randomUUID()
 
     // Public review submission URL — adjust YOUR_DOMAIN to match your deployed URL
-    const reviewUrl = `https://YOUR_DOMAIN/review/${user?.uid}/${token}`
+    const reviewUrl = `https://tailorflow-62b0a.web.app/review/${user?.uid}/${token}`
 
     const customerName = order.customerName || 'there'
     const message = encodeURIComponent(
