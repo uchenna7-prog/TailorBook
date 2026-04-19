@@ -304,6 +304,7 @@ export default function Portfolio() {
                 </svg>
               </button>
               <button onClick={() => { setNavOpen(false); window.scrollTo({ top: 0, behavior: 'smooth' }) }} className={`${styles.navLink} ${styles.navLinkActive}`}>Home</button>
+              <span className={styles.navHomeRowSpacer} />
             </div>
             <button onClick={() => scrollTo(aboutRef)} className={styles.navLink}>About</button>
             <button onClick={() => scrollTo(worksRef)} className={styles.navLink}>Works</button>
