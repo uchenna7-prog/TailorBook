@@ -18,6 +18,7 @@ import { useInvoices }     from './InvoiceContext'
 import { useTasks }        from './TaskContext'
 import { useAppointments } from './AppointmentContext'
 import { useCustomers }    from './CustomerContext'
+import { useReviews }      from './ReviewContext'
 
 const STORAGE_KEY  = 'tailorflow_read_notifs'
 const PUSHED_KEY   = 'tailorflow_pushed_notifs'
@@ -132,6 +133,7 @@ export function NotificationProvider({ children }) {
   const { tasks }       = useTasks()
   const { upcoming: upcomingAppts } = useAppointments()
   const { customers }   = useCustomers()
+  const { reviews }     = useReviews()
 
   const [readIds,     setReadIds]     = useState(() => loadReadIds())
   const [pushedIds,   setPushedIds]   = useState(() => loadPushedIds())
@@ -278,6 +280,22 @@ export function NotificationProvider({ children }) {
       }
     })
 
+    // ── Pending reviews — awaiting tailor approval ──
+    reviews
+      .filter(r => r.status === 'pending')
+      .forEach(r => {
+        list.push({
+          id:      `review-pending-${r.id}`,
+          type:    'review',
+          icon:    '⭐',
+          title:   `New review from ${r.customerName || 'a customer'}`,
+          body:    `${r.rating ? `${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)} · ` : ''}Tap to approve or reject.`,
+          time:    r.createdAt?.toDate?.().toISOString?.() ?? null,
+          sortKey: 0,
+          reviewId: r.id,
+        })
+      })
+
     // Sort: overdue/today first, then by date
     list.sort((a, b) => {
       if (a.sortKey !== b.sortKey) return a.sortKey - b.sortKey
@@ -286,7 +304,7 @@ export function NotificationProvider({ children }) {
     })
 
     return list.map(n => ({ ...n, unread: !readIds.has(n.id) }))
-  }, [allOrders, allInvoices, tasks, upcomingAppts, customers, readIds])
+  }, [allOrders, allInvoices, tasks, upcomingAppts, customers, reviews, readIds])
 
   // ── Fire push notifications for new items ─────────────────
   const isFirstRun = useRef(true)
