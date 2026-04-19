@@ -96,6 +96,7 @@ const WA_SVG = (
     <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
   </svg>
 )
+
 function BookingSheet({ isOpen, onClose, brandName, brandEmail, brandPhone, accentColour, accentText }) {
   const [name,     setName]     = useState('')
   const [phone,    setPhone]    = useState('')
@@ -135,7 +136,7 @@ function BookingSheet({ isOpen, onClose, brandName, brandEmail, brandPhone, acce
       onClick={e => { if (e.target === e.currentTarget) onClose() }}
     >
       <div className={`${styles.bookingDrawer} ${visible ? styles.bookingDrawerVisible : ''}`}>
-        <div className={styles.drawerHandle} />
+        <div className={styles.drawerHandle} style={{ background: accentColour, opacity: 0.4 }} />
         {sent ? (
           <div className={styles.sentState}>
             <div className={styles.sentCheck} style={{ borderColor: accentColour }}>
@@ -148,7 +149,7 @@ function BookingSheet({ isOpen, onClose, brandName, brandEmail, brandPhone, acce
           <>
             <div className={styles.drawerHead}>
               <div>
-                <p className={styles.drawerLabel}>PLACE AN ORDER</p>
+                <p className={styles.drawerLabel} style={{ color: accentColour }}>PLACE AN ORDER</p>
                 <p className={styles.drawerTitle}>Book {brandName}</p>
               </div>
               <button className={styles.drawerClose} onClick={onClose}>
@@ -158,15 +159,34 @@ function BookingSheet({ isOpen, onClose, brandName, brandEmail, brandPhone, acce
             <div className={styles.drawerBody}>
               <div className={styles.fieldGroup}>
                 <label className={styles.fieldLabel}>Full Name *</label>
-                <input className={styles.fieldInput} placeholder="Your name" value={name} onChange={e => setName(e.target.value)} />
+                <input
+                  className={styles.fieldInput}
+                  placeholder="Your name"
+                  value={name}
+                  onChange={e => setName(e.target.value)}
+                  style={{ '--field-focus-border': accentColour }}
+                />
               </div>
               <div className={styles.fieldGroup}>
                 <label className={styles.fieldLabel}>Phone Number *</label>
-                <input className={styles.fieldInput} placeholder="e.g. 0812 345 6789" value={phone} onChange={e => setPhone(e.target.value)} type="tel" />
+                <input
+                  className={styles.fieldInput}
+                  placeholder="e.g. 0812 345 6789"
+                  value={phone}
+                  onChange={e => setPhone(e.target.value)}
+                  type="tel"
+                  style={{ '--field-focus-border': accentColour }}
+                />
               </div>
               <div className={styles.fieldGroup}>
                 <label className={styles.fieldLabel}>Garment Type</label>
-                <input className={styles.fieldInput} placeholder="e.g. Suit, Dress, Agbada, Co-ord…" value={garment} onChange={e => setGarment(e.target.value)} />
+                <input
+                  className={styles.fieldInput}
+                  placeholder="e.g. Suit, Dress, Agbada, Co-ord…"
+                  value={garment}
+                  onChange={e => setGarment(e.target.value)}
+                  style={{ '--field-focus-border': accentColour }}
+                />
               </div>
               <div className={styles.fieldGroup}>
                 <label className={styles.fieldLabel}>Occasion / Deadline Date</label>
@@ -175,13 +195,20 @@ function BookingSheet({ isOpen, onClose, brandName, brandEmail, brandPhone, acce
                   type="date"
                   value={deadline}
                   onChange={e => setDeadline(e.target.value)}
-                  style={{ colorScheme: 'light dark' }}
+                  style={{ colorScheme: 'light dark', '--field-focus-border': accentColour }}
                 />
                 <span className={styles.fieldHint}>When do you need this ready?</span>
               </div>
               <div className={styles.fieldGroup}>
                 <label className={styles.fieldLabel}>Additional Details</label>
-                <textarea className={styles.fieldTextarea} placeholder="Fabric preferences, measurements, colour, event type…" value={message} onChange={e => setMessage(e.target.value)} rows={4} />
+                <textarea
+                  className={styles.fieldTextarea}
+                  placeholder="Fabric preferences, measurements, colour, event type…"
+                  value={message}
+                  onChange={e => setMessage(e.target.value)}
+                  rows={4}
+                  style={{ '--field-focus-border': accentColour }}
+                />
               </div>
             </div>
             <div className={styles.drawerFooter}>
@@ -202,7 +229,7 @@ function BookingSheet({ isOpen, onClose, brandName, brandEmail, brandPhone, acce
 }
 
 // ── Lightbox ──────────────────────────────────────────────────
-function Lightbox({ photo, photos, onClose }) {
+function Lightbox({ photo, photos, onClose, accentColour }) {
   const [idx, setIdx] = useState(() => photos.findIndex(p => p.id === photo.id))
   const current = photos[idx] || photo
 
@@ -240,7 +267,14 @@ function Lightbox({ photo, photos, onClose }) {
             {current.caption && <p className={styles.lbCaption}>{current.caption}</p>}
             <div className={styles.lbTags}>
               {current.clothingTypeLabel && <span className={styles.lbType}>{current.clothingTypeLabel}</span>}
-              {current.price && <span className={styles.lbPrice}>From ₦{current.price}</span>}
+              {current.price && (
+                <span
+                  className={styles.lbPrice}
+                  style={{ background: accentColour ? `${accentColour}30` : 'rgba(255,255,255,0.18)', borderColor: accentColour ? `${accentColour}60` : 'rgba(255,255,255,0.25)', color: '#fff' }}
+                >
+                  From ₦{current.price}
+                </span>
+              )}
             </div>
           </div>
         )}
@@ -409,7 +443,7 @@ export default function Portfolio() {
   const heroPhoto       = (heroImageId   ? completedPhotos.find(p => p.id === heroImageId)   : null) ?? completedPhotos[0] ?? null
   const footerPhoto     = (footerImageId ? completedPhotos.find(p => p.id === footerImageId) : null) ?? completedPhotos[1] ?? null
 
-  // ── Brand colour — applied surgically to CTAs only ────────────
+  // ── Brand colour ──────────────────────────────────────────────
   const accentColour = brand.brandColour || '#D4AF37'
   const accentText   = accentTextColour(accentColour)
 
@@ -432,7 +466,7 @@ export default function Portfolio() {
       {/* ── NAV ── */}
       <nav className={`${styles.nav} ${navScrolled ? styles.navScrolled : ''}`}>
         <div className={styles.navInner}>
-          <span className={styles.navBrand}>{brandName}</span>
+          <span className={styles.navBrand} style={{ color: accentColour }}>{brandName}</span>
           <div className={`${styles.navLinks} ${navOpen ? styles.navLinksOpen : ''}`}>
             <div className={styles.navHomeRow}>
               <button className={styles.themeToggleMobileInline} onClick={() => setLightMode(m => !m)} aria-label="Toggle theme">
@@ -441,12 +475,36 @@ export default function Portfolio() {
                   <path d="M12 2 A10 10 0 0 1 12 22 Z" fill="currentColor"/>
                 </svg>
               </button>
-              <button onClick={() => { setNavOpen(false); window.scrollTo({ top: 0, behavior: 'smooth' }) }} className={`${styles.navLink} ${activeNav === 'home' ? styles.navLinkActive : ''}`}>Home</button>
+              <button
+                onClick={() => { setNavOpen(false); window.scrollTo({ top: 0, behavior: 'smooth' }) }}
+                className={`${styles.navLink} ${activeNav === 'home' ? styles.navLinkActive : ''}`}
+                style={activeNav === 'home' ? { color: accentColour, borderBottomColor: accentColour } : {}}
+              >
+                Home
+              </button>
               <span className={styles.navHomeRowSpacer} />
             </div>
-            <button onClick={() => scrollTo(aboutRef)} className={`${styles.navLink} ${activeNav === 'about' ? styles.navLinkActive : ''}`}>About</button>
-            <button onClick={() => scrollTo(worksRef)} className={`${styles.navLink} ${activeNav === 'works' ? styles.navLinkActive : ''}`}>Works</button>
-            <button onClick={() => scrollTo(bookRef)}  className={`${styles.navLink} ${activeNav === 'book'  ? styles.navLinkActive : ''}`}>Book</button>
+            <button
+              onClick={() => scrollTo(aboutRef)}
+              className={`${styles.navLink} ${activeNav === 'about' ? styles.navLinkActive : ''}`}
+              style={activeNav === 'about' ? { color: accentColour, borderBottomColor: accentColour } : {}}
+            >
+              About
+            </button>
+            <button
+              onClick={() => scrollTo(worksRef)}
+              className={`${styles.navLink} ${activeNav === 'works' ? styles.navLinkActive : ''}`}
+              style={activeNav === 'works' ? { color: accentColour, borderBottomColor: accentColour } : {}}
+            >
+              Works
+            </button>
+            <button
+              onClick={() => scrollTo(bookRef)}
+              className={`${styles.navLink} ${activeNav === 'book' ? styles.navLinkActive : ''}`}
+              style={activeNav === 'book' ? { color: accentColour, borderBottomColor: accentColour } : {}}
+            >
+              Book
+            </button>
             <button
               onClick={() => { setNavOpen(false); setBookingOpen(true) }}
               className={styles.navCta}
@@ -476,7 +534,7 @@ export default function Portfolio() {
           </div>
         ) : <div className={styles.heroBgFallback} />}
         <div className={styles.heroContent}>
-          <p className={styles.heroEyebrow}>— {brandName} —</p>
+          <p className={styles.heroEyebrow} style={{ color: accentColour }}>— {brandName} —</p>
           <h1 className={styles.heroName}>{brandName}</h1>
           {tagline && <p className={styles.heroTagline}>{tagline}</p>}
           {styleStatement && <p className={styles.heroStyleStatement}>{styleStatement}</p>}
@@ -493,7 +551,7 @@ export default function Portfolio() {
               <span className="material-icons" style={{ fontSize: '1rem', marginLeft: 6 }}>arrow_downward</span>
             </button>
           </div>
-          {/* Availability badge — green is semantic "open", never brand colour */}
+          {/* Availability badge — green dot is semantic "open", never brand colour */}
           {availability === 'open' && (
             <div className={styles.availBadge}>
               <span className={styles.availDot} />
@@ -510,7 +568,7 @@ export default function Portfolio() {
           )}
         </div>
         <div className={styles.heroScroll}>
-          <span className={styles.heroScrollLine} />
+          <span className={styles.heroScrollLine} style={{ background: `linear-gradient(to bottom, transparent, ${accentColour}80)` }} />
           <span className={styles.heroScrollText}>Scroll</span>
         </div>
       </section>
@@ -518,23 +576,23 @@ export default function Portfolio() {
       {/* ── STATS STRIP ── */}
       <div className={styles.statsStrip}>
         <div className={styles.statItem}>
-          <span className={styles.statNum}>{statGarments}</span>
+          <span className={styles.statNum} style={{ color: accentColour }}>{statGarments}</span>
           <span className={styles.statLabel}>Garments Delivered</span>
         </div>
         <div className={styles.statDivider} />
         <div className={styles.statItem}>
-          <span className={styles.statNum}>{dressTypes.length || '—'}</span>
+          <span className={styles.statNum} style={{ color: accentColour }}>{dressTypes.length || '—'}</span>
           <span className={styles.statLabel}>Specialties</span>
         </div>
         <div className={styles.statDivider} />
         {foundedYear ? (
           <div className={styles.statItem}>
-            <span className={styles.statNum}>{new Date().getFullYear() - parseInt(foundedYear)}+</span>
+            <span className={styles.statNum} style={{ color: accentColour }}>{new Date().getFullYear() - parseInt(foundedYear)}+</span>
             <span className={styles.statLabel}>Years Crafting</span>
           </div>
         ) : (
           <div className={styles.statItem}>
-            <span className="mi" style={{ fontSize: '1.1rem' }}>verified</span>
+            <span className="mi" style={{ fontSize: '1.1rem', color: accentColour }}>verified</span>
             <span className={styles.statLabel}>Bespoke Only</span>
           </div>
         )}
@@ -549,18 +607,18 @@ export default function Portfolio() {
             {tagline && <p className={styles.aboutHeadingTagline}>"{tagline}"</p>}
           </div>
           <div className={styles.aboutRight}>
-            <div className={styles.aboutCard}>
+            <div className={styles.aboutCard} style={{ borderTopColor: accentColour }}>
               <div className={styles.aboutLogo}>
                 {brand.brandLogo
                   ? <img src={brand.brandLogo} alt={brandName} className={styles.aboutLogoImg} />
-                  : <div className={styles.aboutInitials}>{initials(brandName)}</div>}
+                  : <div className={styles.aboutInitials} style={{ borderColor: accentColour, color: accentColour }}>{initials(brandName)}</div>}
               </div>
               <p className={styles.aboutName}>{brandName}</p>
               {tagline && <p className={styles.aboutTagline}>"{tagline}"</p>}
 
               {/* Style statement — the personal signature line */}
               {styleStatement && (
-                <p className={styles.aboutStyleStatement}>{styleStatement}</p>
+                <p className={styles.aboutStyleStatement} style={{ borderLeftColor: accentColour }}>{styleStatement}</p>
               )}
 
               {brandBio && <p className={styles.aboutBio}>{brandBio}</p>}
@@ -667,7 +725,7 @@ export default function Portfolio() {
             {[...dressTypes, ...dressTypes, ...dressTypes, ...dressTypes].map((t, i) => (
               <span key={i} className={styles.marqueeItem}>
                 {t.label}
-                <span className="mi" style={{ fontSize: '0.5rem', margin: '0 16px', opacity: 0.3, verticalAlign: 'middle' }}>fiber_manual_record</span>
+                <span className="mi" style={{ fontSize: '0.5rem', margin: '0 16px', color: accentColour, opacity: 0.5, verticalAlign: 'middle' }}>fiber_manual_record</span>
               </span>
             ))}
           </div>
@@ -711,12 +769,17 @@ export default function Portfolio() {
         ) : (
           <div className={styles.photoGrid}>
             {filteredPhotos.map((photo, i) => (
-              <div key={photo.id} className={`${styles.photoCard} ${i === 0 ? styles.photoCardFeatured : ''}`} style={{ animationDelay: `${i * 0.05}s` }} onClick={() => setLightbox(photo)}>
+              <div
+                key={photo.id}
+                className={`${styles.photoCard} ${i === 0 ? styles.photoCardFeatured : ''}`}
+                style={{ animationDelay: `${i * 0.05}s` }}
+                onClick={() => setLightbox(photo)}
+              >
                 <img src={photo.src || photo.storageUrl} alt={photo.caption || 'Completed work'} className={styles.photoImg} loading="lazy" />
                 {photo.price && (
                   <span className={styles.photoPrice}>₦{photo.price}</span>
                 )}
-                <div className={styles.photoOverlay}>
+                <div className={styles.photoOverlay} style={{ background: `linear-gradient(to top, ${accentColour}40 0%, transparent 55%)` }}>
                   <span className={`mi ${styles.photoZoom}`}>open_in_full</span>
                   {photo.caption && <p className={styles.photoCaption}>{photo.caption}</p>}
                   {photo.clothingTypeLabel && <span className={styles.photoType}>{photo.clothingTypeLabel}</span>}
@@ -741,10 +804,10 @@ export default function Portfolio() {
             ].map(step => (
               <div key={step.num} className={styles.processStep}>
                 <div className={styles.processNumWrap}>
-                  <span className={styles.processNum}>{step.num}</span>
-                  <span className={`mi ${styles.processIcon}`}>{step.icon}</span>
+                  <span className={styles.processNum} style={{ color: accentColour }}>{step.num}</span>
+                  <span className={`mi ${styles.processIcon}`} style={{ color: accentColour }}>{step.icon}</span>
                 </div>
-                <div className={styles.processLine} />
+                <div className={styles.processLine} style={{ background: `linear-gradient(to bottom, ${accentColour}60, transparent)` }} />
                 <div>
                   <p className={styles.processStepTitle}>{step.title}</p>
                   <p className={styles.processStepDesc}>{step.desc}</p>
@@ -763,7 +826,7 @@ export default function Portfolio() {
             <h2 className={styles.testimonialsTitle}>What Clients Say</h2>
             <div className={styles.testimonialsGrid}>
               {reviews.map(r => (
-                <div key={r.id} className={styles.testimonialCard}>
+                <div key={r.id} className={styles.testimonialCard} style={{ borderTopColor: accentColour }}>
                   <div className={styles.testimonialStars}>
                     {[1,2,3,4,5].map(n => (
                       <span
@@ -775,7 +838,7 @@ export default function Portfolio() {
                   </div>
                   <p className={styles.testimonialText}>"{r.review}"</p>
                   <div className={styles.testimonialAuthor}>
-                    <div className={styles.testimonialAvatar}>
+                    <div className={styles.testimonialAvatar} style={{ borderColor: accentColour, color: accentColour }}>
                       {(r.customerName || '?').charAt(0).toUpperCase()}
                     </div>
                     <span className={styles.testimonialName}>{r.customerName}</span>
@@ -796,11 +859,11 @@ export default function Portfolio() {
           </div>
         ) : <div className={styles.bookBgFallback} />}
         <div className={styles.bookContent}>
-          <p className={styles.sectionEyebrow} style={{ color: '#888' }}>05 — Book</p>
+          <p className={styles.sectionEyebrow} style={{ color: accentColour }}>05 — Book</p>
           <h2 className={styles.bookTitle}>Ready for<br />something<br />extraordinary?</h2>
           <p className={styles.bookSub}>Every garment is made to order.<br />Let's create yours.</p>
           {turnaround && (
-            <p className={styles.bookTurnaround}>
+            <p className={styles.bookTurnaround} style={{ color: accentColour }}>
               <span className="material-icons" style={{ fontSize: '0.85rem', verticalAlign: 'middle', marginRight: 6 }}>schedule</span>
               {turnaround}
             </p>
@@ -832,7 +895,7 @@ export default function Portfolio() {
         {/* Top: brand name + tagline + socials */}
         <div className={styles.footerTop}>
           <div className={styles.footerBrandBlock}>
-            <p className={styles.footerBrand}>{brandName}</p>
+            <p className={styles.footerBrand} style={{ color: accentColour }}>{brandName}</p>
             {tagline && <p className={styles.footerTagline}>{tagline}</p>}
             {foundedYear && <p className={styles.footerFounded}>Crafting since {foundedYear}</p>}
           </div>
@@ -863,12 +926,12 @@ export default function Portfolio() {
           )}
         </div>
 
-        <div className={styles.footerDivider} />
+        <div className={styles.footerDivider} style={{ background: `${accentColour}25` }} />
 
         {/* Mid: contact info + quick links in columns */}
         <div className={styles.footerCols}>
           <div className={styles.footerCol}>
-            <p className={styles.footerColLabel}>Contact</p>
+            <p className={styles.footerColLabel} style={{ color: accentColour }}>Contact</p>
             {brand.brandAddress && (
               <div className={styles.footerColRow}>
                 <span className="material-icons" style={{ fontSize: '0.85rem', flexShrink: 0 }}>location_on</span>
@@ -889,7 +952,7 @@ export default function Portfolio() {
             )}
           </div>
           <div className={styles.footerCol}>
-            <p className={styles.footerColLabel}>Quick Links</p>
+            <p className={styles.footerColLabel} style={{ color: accentColour }}>Quick Links</p>
             <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className={styles.footerColLink}>Home</button>
             {aboutRef.current && <button onClick={() => scrollTo(aboutRef)} className={styles.footerColLink}>About</button>}
             {worksRef.current && <button onClick={() => scrollTo(worksRef)} className={styles.footerColLink}>Portfolio</button>}
@@ -897,7 +960,7 @@ export default function Portfolio() {
           </div>
         </div>
 
-        <div className={styles.footerDivider} />
+        <div className={styles.footerDivider} style={{ background: `${accentColour}15` }} />
 
         {/* Bottom: copyright + powered by */}
         <div className={styles.footerBottom}>
@@ -907,7 +970,14 @@ export default function Portfolio() {
         </div>
       </footer>
 
-      {lightbox && <Lightbox photo={lightbox} photos={filteredPhotos} onClose={() => setLightbox(null)} />}
+      {lightbox && (
+        <Lightbox
+          photo={lightbox}
+          photos={filteredPhotos}
+          onClose={() => setLightbox(null)}
+          accentColour={accentColour}
+        />
+      )}
       <BookingSheet
         isOpen={bookingOpen}
         onClose={() => setBookingOpen(false)}
