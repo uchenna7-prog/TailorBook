@@ -4,7 +4,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useParams } from 'react-router-dom'
-import { collection, query, orderBy, onSnapshot, doc } from 'firebase/firestore'
+import { collection, query, orderBy, onSnapshot, doc, where } from 'firebase/firestore'
 import { db } from '../../firebase'
 import { getBrandFromFirestore } from '../../services/brandService'
 import { getPortfolioSettings } from '../../services/portfolioSettingsService'
@@ -160,6 +160,7 @@ export default function Portfolio() {
   const [lightMode,     setLightMode]     = useState(true)
   const [heroImageId,   setHeroImageId]   = useState(null)
   const [footerImageId, setFooterImageId] = useState(null)
+  const [reviews,       setReviews]       = useState([])
 
   const worksRef        = useRef(null)
   const aboutRef        = useRef(null)
@@ -220,6 +221,19 @@ export default function Portfolio() {
     getPortfolioSettings(resolvedUid)
       .then(({ heroImageId: h, footerImageId: f }) => { setHeroImageId(h); setFooterImageId(f) })
       .catch(() => {})
+  }, [resolvedUid])
+
+  // ── Step 6: approved reviews (public, real-time) ──────────
+  useEffect(() => {
+    if (!resolvedUid) return
+    const q = query(
+      collection(db, 'users', resolvedUid, 'reviews'),
+      where('status', '==', 'approved'),
+      orderBy('approvedAt', 'desc')
+    )
+    return onSnapshot(q, snap => {
+      setReviews(snap.docs.map(d => ({ id: d.id, ...d.data() })))
+    }, () => {})
   }, [resolvedUid])
 
   useEffect(() => {
@@ -485,6 +499,38 @@ export default function Portfolio() {
         </div>
       </section>
 
+      {/* ── TESTIMONIALS ── */}
+      {reviews.length > 0 && (
+        <section className={styles.testimonials}>
+          <div className={styles.testimonialsInner}>
+            <p className={styles.sectionEyebrow}>04 — Testimonials</p>
+            <h2 className={styles.testimonialsTitle}>What Clients Say</h2>
+            <div className={styles.testimonialsGrid}>
+              {reviews.map(r => (
+                <div key={r.id} className={styles.testimonialCard}>
+                  <div className={styles.testimonialStars}>
+                    {[1,2,3,4,5].map(n => (
+                      <span
+                        key={n}
+                        className="material-icons"
+                        style={{ fontSize: '0.9rem', color: n <= r.rating ? '#f59e0b' : 'var(--border)' }}
+                      >star</span>
+                    ))}
+                  </div>
+                  <p className={styles.testimonialText}>"{r.review}"</p>
+                  <div className={styles.testimonialAuthor}>
+                    <div className={styles.testimonialAvatar}>
+                      {(r.customerName || '?').charAt(0).toUpperCase()}
+                    </div>
+                    <span className={styles.testimonialName}>{r.customerName}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* ── BOOK CTA ── */}
       <section className={styles.bookSection} ref={bookRef}>
         {footerPhoto ? (
@@ -494,7 +540,7 @@ export default function Portfolio() {
           </div>
         ) : <div className={styles.bookBgFallback} />}
         <div className={styles.bookContent}>
-          <p className={styles.sectionEyebrow} style={{ color: '#888' }}>04 — Book</p>
+          <p className={styles.sectionEyebrow} style={{ color: '#888' }}>05 — Book</p>
           <h2 className={styles.bookTitle}>Ready for<br />something<br />extraordinary?</h2>
           <p className={styles.bookSub}>Every garment is made to order.<br />Let's create yours.</p>
           <button className={styles.bookCta} onClick={() => setBookingOpen(true)}>Place Your Order</button>
