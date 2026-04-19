@@ -25,19 +25,17 @@ export function BrandProvider({ children }) {
   const [personal, setPersonal] = useState(loadPersonal)
 
   // Re-read personal info whenever the window gains focus
-  // (user may have saved it from the Profile page)
   useEffect(() => {
     const refresh = () => setPersonal(loadPersonal())
     window.addEventListener('focus', refresh)
     return () => window.removeEventListener('focus', refresh)
   }, [])
 
-  // Manually refresh — call this after saving personal info
   const refreshPersonal = useCallback(() => setPersonal(loadPersonal()), [])
 
-  // ── Derived brand object used by invoice templates ──
+  // ── Derived brand object used by invoice templates & portfolio ──
   const brand = {
-    // From SettingsContext
+    // ── Core brand (from SettingsContext) ──
     name:       settings.brandName     || '',
     tagline:    settings.brandTagline  || '',
     colour:     settings.brandColour   || '#D4AF37',
@@ -46,7 +44,19 @@ export function BrandProvider({ children }) {
     email:      settings.brandEmail    || '',
     address:    settings.brandAddress  || '',
     website:    settings.brandWebsite  || '',
-    // Invoice settings
+
+    // ── Business info ──
+    foundedYear:       settings.brandFoundedYear       || '',
+    turnaround:        settings.brandTurnaround        || '',
+    serviceArea:       settings.brandServiceArea       || '',
+    availability:      settings.brandAvailability      || 'open',
+    availableUntil:    settings.brandAvailableUntil    || '',
+    styleStatement:    settings.brandStyleStatement    || '',
+    featuredTechnique: settings.brandFeaturedTechnique || '',
+    milestone:         settings.brandMilestone         || '',
+    socials:           settings.brandSocials           || [],
+
+    // ── Invoice settings ──
     currency:   settings.invoiceCurrency || '₦',
     prefix:     settings.invoicePrefix   || 'INV',
     dueDays:    settings.invoiceDueDays  || 7,
@@ -54,11 +64,13 @@ export function BrandProvider({ children }) {
     taxRate:    settings.invoiceTaxRate  || 0,
     footer:     settings.invoiceFooter   || 'Thank you for your patronage 🙏',
     template:   settings.invoiceTemplate || 'editable',
-    // Account / payment details (shown on invoice payment section)
+
+    // ── Account / payment details ──
     accountBank:   settings.accountBank   || '',
     accountNumber: settings.accountNumber || '',
     accountName:   settings.accountName   || '',
-    // From personal info (fallback for solo tailors without a brand name)
+
+    // ── Personal info fallback ──
     ownerName:  personal.fullName  || '',
     ownerEmail: personal.email     || '',
     ownerPhone: personal.phone     || '',
