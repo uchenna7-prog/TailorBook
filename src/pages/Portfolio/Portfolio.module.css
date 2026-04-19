@@ -906,6 +906,22 @@
   margin: 0 0 4px;
 }
 
+.photoPrice {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: rgba(255,255,255,0.9);
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 20px;
+  padding: 3px 10px;
+  display: inline-block;
+  margin-bottom: 6px;
+  width: fit-content;
+}
+
 .photoType {
   font-size: 0.58rem;
   letter-spacing: 2px;
@@ -1456,7 +1472,14 @@
   font-family: 'Cormorant Garamond', Georgia, serif;
   font-size: 1rem;
   color: #fff;
-  margin: 0 0 4px;
+  margin: 0 0 8px;
+}
+
+.lbTags {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .lbType {
@@ -1464,6 +1487,18 @@
   letter-spacing: 2px;
   text-transform: uppercase;
   color: #aaa;
+}
+
+.lbPrice {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: #fff;
+  background: rgba(255,255,255,0.18);
+  border: 1px solid rgba(255,255,255,0.25);
+  border-radius: 20px;
+  padding: 3px 10px;
 }
 
 /* ── DESKTOP ADJUSTMENTS ── */
