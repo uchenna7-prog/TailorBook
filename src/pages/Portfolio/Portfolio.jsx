@@ -29,7 +29,6 @@ function accentTextColour(hex) {
 }
 
 // ── Social helpers ────────────────────────────────────────────
-// Builds a full URL from platform id + handle (matching Profile.jsx SOCIAL_PLATFORMS)
 function buildSocialUrl(platform, handle) {
   const h = handle.replace(/^@/, '')
   switch (platform) {
@@ -90,7 +89,6 @@ function SocialIcon({ platform }) {
   )
 }
 
-// WhatsApp SVG reused in social rows
 const WA_SVG = (
   <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor">
     <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
@@ -136,7 +134,8 @@ function BookingSheet({ isOpen, onClose, brandName, brandEmail, brandPhone, acce
       onClick={e => { if (e.target === e.currentTarget) onClose() }}
     >
       <div className={`${styles.bookingDrawer} ${visible ? styles.bookingDrawerVisible : ''}`}>
-        <div className={styles.drawerHandle} style={{ background: accentColour, opacity: 0.4 }} />
+        {/* REMOVED brand colour from drawerHandle — it's nav chrome, use neutral */}
+        <div className={styles.drawerHandle} />
         {sent ? (
           <div className={styles.sentState}>
             <div className={styles.sentCheck} style={{ borderColor: accentColour }}>
@@ -270,7 +269,11 @@ function Lightbox({ photo, photos, onClose, accentColour }) {
               {current.price && (
                 <span
                   className={styles.lbPrice}
-                  style={{ background: accentColour ? `${accentColour}30` : 'rgba(255,255,255,0.18)', borderColor: accentColour ? `${accentColour}60` : 'rgba(255,255,255,0.25)', color: '#fff' }}
+                  style={{
+                    background: accentColour ? `${accentColour}30` : 'rgba(255,255,255,0.18)',
+                    borderColor: accentColour ? `${accentColour}60` : 'rgba(255,255,255,0.25)',
+                    color: '#fff'
+                  }}
                 >
                   From ₦{current.price}
                 </span>
@@ -310,7 +313,6 @@ export default function Portfolio() {
   const heroRef         = useRef(null)
   const filterScrollRef = useRef(null)
 
-  // ── Step 1: resolve handle → uid ─────────────────────────────
   useEffect(() => {
     if (!handle) { setNotFound(true); setLoading(false); return }
     const looksLikeUid = /[A-Z]/.test(handle)
@@ -326,7 +328,6 @@ export default function Portfolio() {
     }
   }, [handle])
 
-  // ── Step 2: load brand once uid is known ─────────────────────
   useEffect(() => {
     if (!resolvedUid) return
     getBrandFromFirestore(resolvedUid)
@@ -335,14 +336,12 @@ export default function Portfolio() {
       .finally(() => setLoading(false))
   }, [resolvedUid])
 
-  // ── Step 3: realtime photos ───────────────────────────────────
   useEffect(() => {
     if (!resolvedUid) return
     const q = query(collection(db, 'users', resolvedUid, 'galleryPhotos'), orderBy('createdAt', 'desc'))
     return onSnapshot(q, snap => setPhotos(snap.docs.map(d => ({ id: d.id, ...d.data() }))), () => {})
   }, [resolvedUid])
 
-  // ── Step 4: realtime dress types ─────────────────────────────
   useEffect(() => {
     if (!resolvedUid) return
     return onSnapshot(
@@ -352,7 +351,6 @@ export default function Portfolio() {
     )
   }, [resolvedUid])
 
-  // ── Step 5: portfolio image selections ───────────────────────
   useEffect(() => {
     if (!resolvedUid) return
     getPortfolioSettings(resolvedUid)
@@ -360,7 +358,6 @@ export default function Portfolio() {
       .catch(() => {})
   }, [resolvedUid])
 
-  // ── Step 6: approved reviews ──────────────────────────────────
   useEffect(() => {
     if (!resolvedUid) return
     const q = query(
@@ -443,11 +440,9 @@ export default function Portfolio() {
   const heroPhoto       = (heroImageId   ? completedPhotos.find(p => p.id === heroImageId)   : null) ?? completedPhotos[0] ?? null
   const footerPhoto     = (footerImageId ? completedPhotos.find(p => p.id === footerImageId) : null) ?? completedPhotos[1] ?? null
 
-  // ── Brand colour ──────────────────────────────────────────────
   const accentColour = brand.brandColour || '#D4AF37'
   const accentText   = accentTextColour(accentColour)
 
-  // ── Personalization fields ────────────────────────────────────
   const foundedYear       = brand.brandFoundedYear       || ''
   const turnaround        = brand.brandTurnaround        || ''
   const serviceArea       = brand.brandServiceArea       || ''
@@ -457,7 +452,6 @@ export default function Portfolio() {
   const availability      = brand.brandAvailability      || 'open'
   const availableUntil    = brand.brandAvailableUntil    || ''
 
-  // Stats strip: milestone overrides completed count if set
   const statGarments = milestone || (completedPhotos.length ? `${completedPhotos.length}+` : '—')
 
   return (
@@ -537,7 +531,12 @@ export default function Portfolio() {
           <p className={styles.heroEyebrow} style={{ color: accentColour }}>— {brandName} —</p>
           <h1 className={styles.heroName}>{brandName}</h1>
           {tagline && <p className={styles.heroTagline}>{tagline}</p>}
-          {styleStatement && <p className={styles.heroStyleStatement}>{styleStatement}</p>}
+          {/* styleStatement as italic brand-coloured quote — like the screenshots */}
+          {styleStatement && (
+            <p className={styles.heroStyleStatement} style={{ color: accentColour }}>
+              "{styleStatement}"
+            </p>
+          )}
           <div className={styles.heroCtas}>
             <button
               className={styles.heroPrimary}
@@ -551,7 +550,7 @@ export default function Portfolio() {
               <span className="material-icons" style={{ fontSize: '1rem', marginLeft: 6 }}>arrow_downward</span>
             </button>
           </div>
-          {/* Availability badge — green dot is semantic "open", never brand colour */}
+          {/* Availability badge — green dot is semantic, never brand colour */}
           {availability === 'open' && (
             <div className={styles.availBadge}>
               <span className={styles.availDot} />
@@ -567,8 +566,9 @@ export default function Portfolio() {
             </div>
           )}
         </div>
+        {/* REMOVED brand colour from heroScrollLine — pure UI affordance, stays white */}
         <div className={styles.heroScroll}>
-          <span className={styles.heroScrollLine} style={{ background: `linear-gradient(to bottom, transparent, ${accentColour}80)` }} />
+          <span className={styles.heroScrollLine} />
           <span className={styles.heroScrollText}>Scroll</span>
         </div>
       </section>
@@ -616,37 +616,38 @@ export default function Portfolio() {
               <p className={styles.aboutName}>{brandName}</p>
               {tagline && <p className={styles.aboutTagline}>"{tagline}"</p>}
 
-              {/* Style statement — the personal signature line */}
               {styleStatement && (
-                <p className={styles.aboutStyleStatement} style={{ borderLeftColor: accentColour }}>{styleStatement}</p>
+                <p className={styles.aboutStyleStatement} style={{ borderLeftColor: accentColour, color: accentColour }}>
+                  {styleStatement}
+                </p>
               )}
 
               {brandBio && <p className={styles.aboutBio}>{brandBio}</p>}
 
-              {/* Business info pills */}
               {(turnaround || serviceArea || featuredTechnique || foundedYear) && (
                 <div className={styles.aboutInfoGrid}>
                   {foundedYear && (
                     <div className={styles.aboutInfoItem}>
-                      <span className="material-icons" style={{ fontSize: '0.9rem' }}>history</span>
+                      {/* ADD brand colour to info icons — matches screenshots */}
+                      <span className="material-icons" style={{ fontSize: '0.9rem', color: accentColour }}>history</span>
                       <span>Crafting since {foundedYear}</span>
                     </div>
                   )}
                   {turnaround && (
                     <div className={styles.aboutInfoItem}>
-                      <span className="material-icons" style={{ fontSize: '0.9rem' }}>schedule</span>
+                      <span className="material-icons" style={{ fontSize: '0.9rem', color: accentColour }}>schedule</span>
                       <span>{turnaround}</span>
                     </div>
                   )}
                   {serviceArea && (
                     <div className={styles.aboutInfoItem}>
-                      <span className="material-icons" style={{ fontSize: '0.9rem' }}>place</span>
+                      <span className="material-icons" style={{ fontSize: '0.9rem', color: accentColour }}>place</span>
                       <span>{serviceArea}</span>
                     </div>
                   )}
                   {featuredTechnique && (
                     <div className={styles.aboutInfoItem}>
-                      <span className="material-icons" style={{ fontSize: '0.9rem' }}>auto_fix_high</span>
+                      <span className="material-icons" style={{ fontSize: '0.9rem', color: accentColour }}>auto_fix_high</span>
                       <span>{featuredTechnique}</span>
                     </div>
                   )}
@@ -657,37 +658,48 @@ export default function Portfolio() {
                 <div className={styles.aboutSpecialties}>
                   <p className={styles.aboutSpecialtiesLabel}>Specialises in</p>
                   <div className={styles.aboutSpecialtiesList}>
-                    {dressTypes.map(t => <span key={t.id} className={styles.aboutSpecialtyPill}>{t.label}</span>)}
+                    {/* ADD brand colour to specialty pills — text + border, like screenshots */}
+                    {dressTypes.map(t => (
+                      <span
+                        key={t.id}
+                        className={styles.aboutSpecialtyPill}
+                        style={{ color: accentColour, borderColor: `${accentColour}60` }}
+                      >
+                        {t.label}
+                      </span>
+                    ))}
                   </div>
                 </div>
               )}
+
               <div className={styles.aboutMeta}>
                 {brand.brandAddress && (
                   <div className={styles.aboutMetaRow}>
-                    <span className="material-icons" style={{ fontSize: '0.95rem', flexShrink: 0 }}>location_on</span>
+                    {/* ADD brand colour to contact meta icons — matches screenshots */}
+                    <span className="material-icons" style={{ fontSize: '0.95rem', flexShrink: 0, color: accentColour }}>location_on</span>
                     <span>{brand.brandAddress}</span>
                   </div>
                 )}
                 {brand.brandPhone && (
                   <a href={`tel:${brand.brandPhone}`} className={styles.aboutMetaRow}>
-                    <span className="material-icons" style={{ fontSize: '0.95rem', flexShrink: 0 }}>call</span>
+                    <span className="material-icons" style={{ fontSize: '0.95rem', flexShrink: 0, color: accentColour }}>call</span>
                     <span>{brand.brandPhone}</span>
                   </a>
                 )}
                 {brand.brandEmail && (
                   <a href={`mailto:${brand.brandEmail}`} className={styles.aboutMetaRow}>
-                    <span className="material-icons" style={{ fontSize: '0.95rem', flexShrink: 0 }}>mail</span>
+                    <span className="material-icons" style={{ fontSize: '0.95rem', flexShrink: 0, color: accentColour }}>mail</span>
                     <span>{brand.brandEmail}</span>
                   </a>
                 )}
                 {brand.brandWebsite && (
                   <a href={brand.brandWebsite} target="_blank" rel="noopener noreferrer" className={styles.aboutMetaRow}>
-                    <span className="material-icons" style={{ fontSize: '0.95rem', flexShrink: 0 }}>language</span>
+                    <span className="material-icons" style={{ fontSize: '0.95rem', flexShrink: 0, color: accentColour }}>language</span>
                     <span>{brand.brandWebsite}</span>
                   </a>
                 )}
               </div>
-              {/* Social links — WhatsApp always first, then only filled platforms */}
+
               {brand.brandPhone && (
                 <div className={styles.aboutSocials}>
                   <a
@@ -719,13 +731,14 @@ export default function Portfolio() {
       </section>
 
       {/* ── SPECIALTIES MARQUEE ── */}
+      {/* REMOVED brand colour from marquee dot — muted dot matches muted marquee text */}
       {dressTypes.length > 0 && (
         <div className={styles.marqueeWrap}>
           <div className={styles.marqueeTrack}>
             {[...dressTypes, ...dressTypes, ...dressTypes, ...dressTypes].map((t, i) => (
               <span key={i} className={styles.marqueeItem}>
                 {t.label}
-                <span className="mi" style={{ fontSize: '0.5rem', margin: '0 16px', color: accentColour, opacity: 0.5, verticalAlign: 'middle' }}>fiber_manual_record</span>
+                <span className="mi" style={{ fontSize: '0.5rem', margin: '0 16px', color: 'currentColor', opacity: 0.4, verticalAlign: 'middle' }}>fiber_manual_record</span>
               </span>
             ))}
           </div>
@@ -776,10 +789,16 @@ export default function Portfolio() {
                 onClick={() => setLightbox(photo)}
               >
                 <img src={photo.src || photo.storageUrl} alt={photo.caption || 'Completed work'} className={styles.photoImg} loading="lazy" />
+                {/* ADD brand colour to photoPrice badge — solid brand bg, like screenshots */}
                 {photo.price && (
-                  <span className={styles.photoPrice}>₦{photo.price}</span>
+                  <span
+                    className={styles.photoPrice}
+                    style={{ background: accentColour, color: accentText }}
+                  >
+                    From ₦{photo.price}
+                  </span>
                 )}
-                <div className={styles.photoOverlay} style={{ background: `linear-gradient(to top, ${accentColour}40 0%, transparent 55%)` }}>
+                <div className={styles.photoOverlay}>
                   <span className={`mi ${styles.photoZoom}`}>open_in_full</span>
                   {photo.caption && <p className={styles.photoCaption}>{photo.caption}</p>}
                   {photo.clothingTypeLabel && <span className={styles.photoType}>{photo.clothingTypeLabel}</span>}
@@ -803,11 +822,17 @@ export default function Portfolio() {
               { num: '04', icon: 'local_shipping', title: 'Delivery',     desc: turnaround ? `${turnaround}. Your bespoke garment, delivered to perfection.` : 'Your bespoke garment, delivered to perfection.' },
             ].map(step => (
               <div key={step.num} className={styles.processStep}>
+                {/* REDESIGNED: circular badge matching screenshots — brand colour border + text */}
                 <div className={styles.processNumWrap}>
-                  <span className={styles.processNum} style={{ color: accentColour }}>{step.num}</span>
-                  <span className={`mi ${styles.processIcon}`} style={{ color: accentColour }}>{step.icon}</span>
+                  <div
+                    className={styles.processNumBadge}
+                    style={{ borderColor: accentColour, color: accentColour }}
+                  >
+                    {step.num}
+                  </div>
                 </div>
-                <div className={styles.processLine} style={{ background: `linear-gradient(to bottom, ${accentColour}60, transparent)` }} />
+                {/* REMOVED brand colour gradient from processLine — structural divider stays neutral */}
+                <div className={styles.processLine} />
                 <div>
                   <p className={styles.processStepTitle}>{step.title}</p>
                   <p className={styles.processStepDesc}>{step.desc}</p>
@@ -832,7 +857,7 @@ export default function Portfolio() {
                       <span
                         key={n}
                         className="material-icons"
-                        style={{ fontSize: '0.9rem', color: n <= r.rating ? '#f59e0b' : 'var(--border)' }}
+                        style={{ fontSize: '0.9rem', color: n <= r.rating ? accentColour : 'var(--border)' }}
                       >star</span>
                     ))}
                   </div>
@@ -860,7 +885,11 @@ export default function Portfolio() {
         ) : <div className={styles.bookBgFallback} />}
         <div className={styles.bookContent}>
           <p className={styles.sectionEyebrow} style={{ color: accentColour }}>05 — Book</p>
-          <h2 className={styles.bookTitle}>Ready for<br />something<br />extraordinary?</h2>
+          {/* Editorial highlight: last word in brand colour — like the screenshots */}
+          <h2 className={styles.bookTitle}>
+            Ready for<br />something<br />
+            <span style={{ color: accentColour }}>extraordinary?</span>
+          </h2>
           <p className={styles.bookSub}>Every garment is made to order.<br />Let's create yours.</p>
           {turnaround && (
             <p className={styles.bookTurnaround} style={{ color: accentColour }}>
@@ -875,6 +904,20 @@ export default function Portfolio() {
           >
             Place Your Order
           </button>
+          {/* WhatsApp as secondary ghost CTA — matches screenshot pattern */}
+          {brand.brandPhone && (
+            <a
+              href={`https://wa.me/${brand.brandPhone.replace(/\D/g,'')}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.bookWhatsapp}
+            >
+              <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                {WA_SVG}
+                WhatsApp us
+              </span>
+            </a>
+          )}
           <div className={styles.bookContacts}>
             {brand.brandPhone && (
               <a href={`tel:${brand.brandPhone}`} className={styles.bookContact}>
@@ -892,7 +935,6 @@ export default function Portfolio() {
 
       {/* ── FOOTER ── */}
       <footer className={styles.footer}>
-        {/* Top: brand name + tagline + socials */}
         <div className={styles.footerTop}>
           <div className={styles.footerBrandBlock}>
             <p className={styles.footerBrand} style={{ color: accentColour }}>{brandName}</p>
@@ -907,6 +949,7 @@ export default function Portfolio() {
                 rel="noopener noreferrer"
                 className={styles.footerSocialIcon}
                 aria-label="WhatsApp"
+                style={{ '--accent-brand': accentColour }}
               >
                 {WA_SVG}
               </a>
@@ -918,6 +961,7 @@ export default function Portfolio() {
                   rel="noopener noreferrer"
                   className={styles.footerSocialIcon}
                   aria-label={s.platform}
+                  style={{ '--accent-brand': accentColour }}
                 >
                   <SocialIcon platform={s.platform} />
                 </a>
@@ -928,7 +972,6 @@ export default function Portfolio() {
 
         <div className={styles.footerDivider} style={{ background: `${accentColour}25` }} />
 
-        {/* Mid: contact info + quick links in columns */}
         <div className={styles.footerCols}>
           <div className={styles.footerCol}>
             <p className={styles.footerColLabel} style={{ color: accentColour }}>Contact</p>
@@ -962,10 +1005,13 @@ export default function Portfolio() {
 
         <div className={styles.footerDivider} style={{ background: `${accentColour}15` }} />
 
-        {/* Bottom: copyright + powered by */}
         <div className={styles.footerBottom}>
           <div className={styles.footerPoweredRow}>
-            <p className={styles.footerPowered}>{brandName} © {new Date().getFullYear()} · Powered by TailorFlow</p>
+            {/* "TailorFlow" in brand colour — matches screenshots */}
+            <p className={styles.footerPowered}>
+              {brandName} © {new Date().getFullYear()} · Powered by{' '}
+              <span style={{ color: accentColour }}>TailorFlow</span>
+            </p>
           </div>
         </div>
       </footer>
