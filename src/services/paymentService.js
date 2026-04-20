@@ -12,7 +12,6 @@ import {
   deleteDoc,
   onSnapshot,
   query,
-  orderBy,
   serverTimestamp,
 } from 'firebase/firestore'
 import { db } from '../firebase'
@@ -27,10 +26,19 @@ function paymentDoc(uid, customerId, paymentId) {
 
 // ── Subscribe ─────────────────────────────────────────────────
 export function subscribeToPayments(uid, customerId, onData, onError) {
-  const q = query(paymentsRef(uid, customerId), orderBy('createdAt', 'desc'))
+  const q = query(paymentsRef(uid, customerId))
   return onSnapshot(
     q,
-    (snap) => onData(snap.docs.map(d => ({ id: d.id, ...d.data() }))),
+    (snap) => {
+      const data = snap.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .sort((a, b) => {
+          const aTime = a.createdAt?.toMillis?.() ?? 0
+          const bTime = b.createdAt?.toMillis?.() ?? 0
+          return bTime - aTime
+        })
+      onData(data)
+    },
     onError
   )
 }
