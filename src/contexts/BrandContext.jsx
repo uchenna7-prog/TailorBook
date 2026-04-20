@@ -1,5 +1,7 @@
+// src/contexts/BrandContext.jsx
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import { useSettings } from './SettingsContext'
+import { DEFAULT_COLOUR_ID } from '../config/brandPalette'
 
 // ─────────────────────────────────────────────────────────────
 // Personal info loader (mirrors Profile.jsx)
@@ -38,7 +40,8 @@ export function BrandProvider({ children }) {
     // ── Core brand (from SettingsContext) ──
     name:       settings.brandName     || '',
     tagline:    settings.brandTagline  || '',
-    colour:     settings.brandColour   || '#D4AF37',
+    colourId:   settings.brandColourId || DEFAULT_COLOUR_ID,  // ← palette ID for useBrandTokens
+    colour:     settings.brandColour   || '#D4AF37',          // ← hex fallback for legacy templates
     logo:       settings.brandLogo     || null,
     phone:      settings.brandPhone    || '',
     email:      settings.brandEmail    || '',
