@@ -9,7 +9,6 @@ import {
   deleteDoc,
   onSnapshot,
   query,
-  orderBy,
   serverTimestamp,
 } from 'firebase/firestore'
 import { db } from '../firebase'
@@ -44,10 +43,19 @@ export async function deleteReceipt(uid, customerId, receiptId) {
 }
 
 export function subscribeToReceipts(uid, customerId, callback, onError) {
-  const q = query(receiptsRef(uid, customerId), orderBy('createdAt', 'desc'))
+  const q = query(receiptsRef(uid, customerId))
   return onSnapshot(
     q,
-    snap => callback(snap.docs.map(d => ({ id: d.id, ...d.data() }))),
-    err  => { console.error('[receiptService]', err); onError?.(err) }
+    snap => {
+      const data = snap.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .sort((a, b) => {
+          const aTime = a.createdAt?.toMillis?.() ?? 0
+          const bTime = b.createdAt?.toMillis?.() ?? 0
+          return bTime - aTime
+        })
+      callback(data)
+    },
+    err => { console.error('[receiptService]', err); onError?.(err) }
   )
 }
