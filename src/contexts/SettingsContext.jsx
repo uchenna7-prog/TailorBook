@@ -4,7 +4,10 @@ import { useAuth } from './AuthContext'
 import { saveBrandToFirestore } from '../services/brandService'
 
 const SETTINGS_KEY = 'tailorbook_settings'
-const LOGO_KEY     = 'tailorbook_brand_logo'
+// LOGO_KEY is intentionally removed — logo is now a Firebase Storage URL
+// stored as a normal string in tailorbook_settings alongside other fields.
+// The old tailorbook_brand_logo key in localStorage is ignored on load
+// since the URL is now saved in the main settings object under brandLogo.
 
 export const DEFAULTS = {
   // ── Appearance ──
@@ -20,22 +23,22 @@ export const DEFAULTS = {
   brandTagline: '',
   brandColourId: 'classic-deep-gold',  // palette colour ID — used by useBrandTokens
   brandColour:   '#D4AF37',            // kept as hex fallback for legacy invoice templates
-  brandLogo: null,
+  brandLogo: null,                     // Firebase Storage download URL (or null)
   brandPhone: '',
   brandEmail: '',
   brandAddress: '',
   brandWebsite: '',
 
   // ── Business Info (portfolio personalisation) ──
-  brandFoundedYear:      '',       // e.g. '2018'
-  brandTurnaround:       '',       // e.g. '2-3 weeks'
-  brandServiceArea:      '',       // e.g. 'Lagos only' | 'Nationwide' | 'International'
-  brandAvailability:     'open',   // 'open' | 'booked'
-  brandAvailableUntil:   '',       // ISO date string, e.g. '2025-08-01' (used when booked)
-  brandStyleStatement:   '',       // e.g. 'I specialise in Yoruba ceremonial wear'
-  brandFeaturedTechnique:'',       // e.g. 'Hand-embroidered agbada'
-  brandMilestone:        '',       // e.g. '200+ garments delivered'
-  brandSocials:          [],       // [{ platform: 'instagram', handle: 'yourbrand' }, ...]
+  brandFoundedYear:      '',
+  brandTurnaround:       '',
+  brandServiceArea:      '',
+  brandAvailability:     'open',
+  brandAvailableUntil:   '',
+  brandStyleStatement:   '',
+  brandFeaturedTechnique:'',
+  brandMilestone:        '',
+  brandSocials:          [],
 
   // ── Account / Payment Details ──
   accountBank: '',
@@ -65,8 +68,19 @@ function loadSettings() {
   try {
     const raw  = localStorage.getItem(SETTINGS_KEY)
     const data = raw ? { ...DEFAULTS, ...JSON.parse(raw) } : { ...DEFAULTS }
-    const logo = localStorage.getItem(LOGO_KEY)
-    if (logo) data.brandLogo = logo
+
+    // Migration: if brandLogo in settings is a base64 string (starts with "data:"),
+    // strip it — base64 logos are no longer stored; only Firebase Storage URLs kept.
+    if (data.brandLogo && data.brandLogo.startsWith('data:')) {
+      data.brandLogo = null
+    }
+
+    // Migration: ensure brandColourId is always a valid palette ID.
+    // If missing, fall back to default (covers users created before palette system).
+    if (!data.brandColourId || data.brandColourId.startsWith('#')) {
+      data.brandColourId = DEFAULTS.brandColourId
+    }
+
     return data
   } catch {
     return { ...DEFAULTS }
@@ -100,16 +114,13 @@ export function SettingsProvider({ children }) {
     }
   }, [settings.theme])
 
-  // Persist to localStorage on every change
+  // Persist to localStorage on every change.
+  // brandLogo is now a short URL so it's safe to store in the main settings key.
   useEffect(() => {
     try {
-      const { brandLogo, ...rest } = settings
-      localStorage.setItem(SETTINGS_KEY, JSON.stringify(rest))
-      if (brandLogo) {
-        localStorage.setItem(LOGO_KEY, brandLogo)
-      } else {
-        localStorage.removeItem(LOGO_KEY)
-      }
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings))
+      // Clean up the old separate logo key if it still exists
+      localStorage.removeItem('tailorbook_brand_logo')
     } catch { /* ignore quota errors */ }
   }, [settings])
 
@@ -132,7 +143,7 @@ export function SettingsProvider({ children }) {
     user?.uid,
     settings.brandName,
     settings.brandTagline,
-    settings.brandColourId,  // ← replaces brandColour in sync trigger
+    settings.brandColourId,
     settings.brandColour,
     settings.brandLogo,
     settings.brandPhone,
