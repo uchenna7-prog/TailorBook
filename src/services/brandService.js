@@ -4,6 +4,7 @@
 
 import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore'
 import { db } from '../firebase'
+import { DEFAULT_COLOUR_ID } from '../config/brandPalette'
 
 function brandDocRef(uid) {
   return doc(db, 'users', uid, 'publicProfile', 'brand')
@@ -17,14 +18,15 @@ export async function saveBrandToFirestore(uid, settings) {
   if (!uid) return
   await setDoc(brandDocRef(uid), {
     // ── Core brand ──
-    brandName:    settings.brandName    || '',
-    brandTagline: settings.brandTagline || '',
-    brandColour:  settings.brandColour  || '#D4AF37',
-    brandLogo:    settings.brandLogo    || null,
-    brandPhone:   settings.brandPhone   || '',
-    brandEmail:   settings.brandEmail   || '',
-    brandAddress: settings.brandAddress || '',
-    brandWebsite: settings.brandWebsite || '',
+    brandName:      settings.brandName      || '',
+    brandTagline:   settings.brandTagline   || '',
+    brandColourId:  settings.brandColourId  || DEFAULT_COLOUR_ID,  // ← palette ID for Portfolio
+    brandColour:    settings.brandColour    || '#D4AF37',           // ← hex fallback for invoices
+    brandLogo:      settings.brandLogo      || null,
+    brandPhone:     settings.brandPhone     || '',
+    brandEmail:     settings.brandEmail     || '',
+    brandAddress:   settings.brandAddress   || '',
+    brandWebsite:   settings.brandWebsite   || '',
 
     // ── Business info ──
     brandFoundedYear:       settings.brandFoundedYear       || '',
