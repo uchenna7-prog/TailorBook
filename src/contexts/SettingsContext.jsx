@@ -18,7 +18,8 @@ export const DEFAULTS = {
   // ── Brand / Business ──
   brandName: '',
   brandTagline: '',
-  brandColour: '#D4AF37',
+  brandColourId: 'classic-deep-gold',  // palette colour ID — used by useBrandTokens
+  brandColour:   '#D4AF37',            // kept as hex fallback for legacy invoice templates
   brandLogo: null,
   brandPhone: '',
   brandEmail: '',
@@ -131,6 +132,7 @@ export function SettingsProvider({ children }) {
     user?.uid,
     settings.brandName,
     settings.brandTagline,
+    settings.brandColourId,  // ← replaces brandColour in sync trigger
     settings.brandColour,
     settings.brandLogo,
     settings.brandPhone,
