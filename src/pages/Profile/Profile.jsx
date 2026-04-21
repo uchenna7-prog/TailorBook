@@ -324,24 +324,40 @@ function PhoneField({ label, hint, localValue, onLocalChange, country, onCountry
 
 const PERSONAL_KEY = 'tailorflow_personal'
 
+const MONTHS = [
+  'January','February','March','April','May','June',
+  'July','August','September','October','November','December',
+]
+
+const DAYS_IN_MONTH = {
+  January: 31, February: 29, March: 31, April: 30, May: 31, June: 30,
+  July: 31, August: 31, September: 30, October: 31, November: 30, December: 31,
+}
+
 function loadPersonal(authUser) {
   try {
     const raw = localStorage.getItem(PERSONAL_KEY)
     const stored = raw ? JSON.parse(raw) : {}
     return {
-      fullName: stored.fullName || authUser?.displayName || '',
-      email:    stored.email    || authUser?.email       || '',
-      phone:    stored.phone    || '',
-      city:     stored.city     || '',
-      country:  stored.country  || '',
+      fullName:     stored.fullName     || authUser?.displayName || '',
+      email:        stored.email        || authUser?.email       || '',
+      phone:        stored.phone        || '',
+      city:         stored.city         || '',
+      country:      stored.country      || '',
+      sex:          stored.sex          || '',
+      birthMonth:   stored.birthMonth   || '',
+      birthDay:     stored.birthDay     || '',
     }
   } catch {
     return {
-      fullName: authUser?.displayName || '',
-      email:    authUser?.email       || '',
-      phone:    '',
-      city:     '',
-      country:  '',
+      fullName:   authUser?.displayName || '',
+      email:      authUser?.email       || '',
+      phone:      '',
+      city:       '',
+      country:    '',
+      sex:        '',
+      birthMonth: '',
+      birthDay:   '',
     }
   }
 }
@@ -367,15 +383,35 @@ function parseStoredPhone(stored) {
 function PersonalModal({ personal, onBack, onSave, authUser }) {
   const parsed = parseStoredPhone(personal.phone)
   const [local, setLocal] = useState({
-    fullName: personal.fullName || '',
-    email:    personal.email    || '',
-    city:     personal.city     || '',
-    country:  personal.country  || '',
+    fullName:   personal.fullName   || '',
+    email:      personal.email      || '',
+    city:       personal.city       || '',
+    country:    personal.country    || '',
+    sex:        personal.sex        || '',
+    birthMonth: personal.birthMonth || '',
+    birthDay:   personal.birthDay   || '',
   })
   const [phoneLocal,   setPhoneLocal]   = useState(parsed.local)
   const [phoneCountry, setPhoneCountry] = useState(parsed.country)
 
   const set = key => val => setLocal(p => ({ ...p, [key]: val }))
+
+  // When month changes, reset day if it exceeds the new month's max days
+  const handleMonthChange = month => {
+    setLocal(p => {
+      const maxDay = DAYS_IN_MONTH[month] || 31
+      const currentDay = parseInt(p.birthDay)
+      return {
+        ...p,
+        birthMonth: month,
+        birthDay: currentDay > maxDay ? '' : p.birthDay,
+      }
+    })
+  }
+
+  const dayOptions = local.birthMonth
+    ? Array.from({ length: DAYS_IN_MONTH[local.birthMonth] || 31 }, (_, i) => String(i + 1))
+    : Array.from({ length: 31 }, (_, i) => String(i + 1))
 
   const handleSave = async () => {
     const builtPhone = buildPhoneNumber(phoneLocal, phoneCountry.dial_code) || phoneLocal
@@ -411,6 +447,45 @@ function PersonalModal({ personal, onBack, onSave, authUser }) {
         </Field>
         <Field label="Country">
           <TextInput value={local.country} onChange={set('country')} placeholder="e.g. Nigeria" />
+        </Field>
+      </FieldGroup>
+      <FieldGroup>
+        <Field label="Sex">
+          <select
+            className={styles.turnaroundSelect}
+            style={{ width: '100%' }}
+            value={local.sex}
+            onChange={e => set('sex')(e.target.value)}
+          >
+            <option value="">Select</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            <option value="Prefer not to say">Prefer not to say</option>
+          </select>
+        </Field>
+        <Field label="Birthday" hint="Day and month only — no year needed">
+          <div className={styles.turnaroundRow}>
+            <select
+              className={styles.turnaroundSelect}
+              value={local.birthMonth}
+              onChange={e => handleMonthChange(e.target.value)}
+            >
+              <option value="">Month</option>
+              {MONTHS.map(m => (
+                <option key={m} value={m}>{m}</option>
+              ))}
+            </select>
+            <select
+              className={styles.turnaroundSelect}
+              value={local.birthDay}
+              onChange={e => set('birthDay')(e.target.value)}
+            >
+              <option value="">Day</option>
+              {dayOptions.map(d => (
+                <option key={d} value={d}>{d}</option>
+              ))}
+            </select>
+          </div>
         </Field>
       </FieldGroup>
     </FullModal>
@@ -533,12 +608,12 @@ function BrandModal({ onBack, showToast }) {
         </Field>
       </FieldGroup>
 
-      {/* Milestone + Featured Technique */}
+      {/* Milestone + Signature Style */}
       <FieldGroup>
         <Field label="Milestone" hint="A proud achievement shown on your portfolio. e.g. 500+ happy clients">
           <TextInput value={local.brandMilestone} onChange={set('brandMilestone')} placeholder="e.g. 500+ happy clients" />
         </Field>
-        <Field label="Featured Technique" hint="Your signature craft. e.g. Hand-embroidered agbada">
+        <Field label="Signature Style" hint="What you're known for. e.g. Hand-embroidered agbada">
           <TextInput value={local.brandFeaturedTechnique} onChange={set('brandFeaturedTechnique')} placeholder="e.g. Hand-embroidered agbada" />
         </Field>
       </FieldGroup>
@@ -986,17 +1061,67 @@ function BusinessInfoModal({ onBack, showToast }) {
 }
 
 // ─────────────────────────────────────────────────────────────
+// Social Media SVG Icons
+// ─────────────────────────────────────────────────────────────
+
+function SocialIcon({ platformId, size = 20 }) {
+  const icons = {
+    instagram: (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/>
+      </svg>
+    ),
+    tiktok: (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
+        <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.31 6.31 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.2 8.2 0 004.79 1.53V6.76a4.85 4.85 0 01-1.02-.07z"/>
+      </svg>
+    ),
+    facebook: (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
+        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+      </svg>
+    ),
+    twitter: (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
+        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+      </svg>
+    ),
+    youtube: (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
+        <path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+      </svg>
+    ),
+    pinterest: (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 0C5.373 0 0 5.373 0 12c0 5.084 3.163 9.426 7.627 11.174-.105-.949-.2-2.405.042-3.441.218-.937 1.407-5.965 1.407-5.965s-.359-.719-.359-1.782c0-1.668.967-2.914 2.171-2.914 1.023 0 1.518.769 1.518 1.69 0 1.029-.655 2.568-.994 3.995-.283 1.194.599 2.169 1.777 2.169 2.133 0 3.772-2.249 3.772-5.495 0-2.873-2.064-4.882-5.012-4.882-3.414 0-5.418 2.561-5.418 5.207 0 1.031.397 2.138.893 2.738a.36.36 0 01.083.345l-.333 1.36c-.053.22-.174.267-.402.161-1.499-.698-2.436-2.889-2.436-4.649 0-3.785 2.75-7.262 7.929-7.262 4.163 0 7.398 2.967 7.398 6.931 0 4.136-2.607 7.464-6.227 7.464-1.216 0-2.359-.632-2.75-1.378l-.748 2.853c-.271 1.043-1.002 2.35-1.492 3.146C9.57 23.812 10.763 24 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/>
+      </svg>
+    ),
+    threads: (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12.186 24h-.007c-3.581-.024-6.334-1.205-8.184-3.509C2.35 18.44 1.5 15.586 1.472 12.01v-.017c.028-3.579.879-6.43 2.525-8.482C5.845 1.205 8.6.024 12.18 0h.014c2.746.02 5.043.725 6.826 2.098 1.677 1.29 2.858 3.13 3.509 5.467l-2.04.569c-1.104-3.96-3.898-5.984-8.304-6.015-2.91.022-5.11.936-6.54 2.717C4.307 6.504 3.616 8.914 3.589 12c.027 3.086.718 5.496 2.057 7.164 1.43 1.783 3.631 2.698 6.54 2.717 2.623-.02 4.358-.631 5.8-2.045 1.647-1.613 1.618-3.593 1.09-4.798-.31-.71-.873-1.3-1.634-1.75-.192 1.352-.622 2.446-1.284 3.272-.886 1.102-2.14 1.704-3.73 1.79-1.202.065-2.361-.218-3.259-.801-1.063-.689-1.685-1.74-1.752-2.964-.065-1.19.408-2.285 1.33-3.082.88-.76 2.119-1.207 3.583-1.291a13.853 13.853 0 012.581.185v-.:369c0-1.207-.334-2.134-.993-2.755-.64-.6-1.59-.905-2.816-.905-2.153 0-3.412.974-3.87 2.977l-1.943-.526C7.1 5.82 8.914 4.323 12.023 4.323c1.736 0 3.133.457 4.149 1.357 1.032.913 1.554 2.228 1.554 3.91v6.41a.51.51 0 00.509.51h.001a.51.51 0 00.509-.51V9.59c0-2.007-.615-3.626-1.826-4.806l1.438-1.45C19.874 4.58 20.7 6.63 20.7 9.59v6.41c0 1.38-1.12 2.5-2.5 2.5h-.001a2.501 2.501 0 01-2.499-2.5v-.643c-.984 1.448-2.531 2.271-4.514 2.371zm.278-8.67c-.9.05-1.669.29-2.237.695-.548.392-.829.924-.798 1.496.033.606.38 1.117.975 1.498.635.41 1.472.604 2.293.56 1.147-.062 2.026-.489 2.612-1.268.552-.733.84-1.768.854-3.076a11.888 11.888 0 00-1.699-.205c-.66-.04-1.34-.01-2-.3z"/>
+      </svg>
+    ),
+  }
+
+  return icons[platformId] || (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
+      <circle cx="12" cy="12" r="10" opacity="0.3"/>
+    </svg>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────
 // MODAL: Social Media Links
 // ─────────────────────────────────────────────────────────────
 
 const SOCIAL_PLATFORMS = [
-  { id: 'instagram', label: 'Instagram',   placeholder: 'yourbrand',        icon: 'photo_camera'  },
-  { id: 'tiktok',    label: 'TikTok',      placeholder: 'yourbrand',        icon: 'play_circle'   },
-  { id: 'facebook',  label: 'Facebook',    placeholder: 'yourbrand',        icon: 'groups'        },
-  { id: 'twitter',   label: 'Twitter / X', placeholder: 'yourbrand',        icon: 'tag'           },
-  { id: 'youtube',   label: 'YouTube',     placeholder: 'YourBrandChannel', icon: 'smart_display' },
-  { id: 'pinterest', label: 'Pinterest',   placeholder: 'yourbrand',        icon: 'push_pin'      },
-  { id: 'threads',   label: 'Threads',     placeholder: 'yourbrand',        icon: 'forum'         },
+  { id: 'instagram', label: 'Instagram',   placeholder: 'yourbrand'        },
+  { id: 'tiktok',    label: 'TikTok',      placeholder: 'yourbrand'        },
+  { id: 'facebook',  label: 'Facebook',    placeholder: 'yourbrand'        },
+  { id: 'twitter',   label: 'Twitter / X', placeholder: 'yourbrand'        },
+  { id: 'youtube',   label: 'YouTube',     placeholder: 'YourBrandChannel' },
+  { id: 'pinterest', label: 'Pinterest',   placeholder: 'yourbrand'        },
+  { id: 'threads',   label: 'Threads',     placeholder: 'yourbrand'        },
 ]
 
 function SocialsModal({ onBack, showToast }) {
@@ -1038,7 +1163,7 @@ function SocialsModal({ onBack, showToast }) {
             >
               <div className={styles.socialToggleLeft}>
                 <div className={`${styles.socialIconWrap} ${expanded[platform.id] ? styles.socialIconActive : ''}`}>
-                  <span className="mi" style={{ fontSize: '1.1rem' }}>{platform.icon}</span>
+                  <SocialIcon platformId={platform.id} size={18} />
                 </div>
                 <span className={styles.socialPlatformLabel}>{platform.label}</span>
               </div>
@@ -1213,6 +1338,12 @@ export default function Profile({ onMenuClick, isPremium = false, onUpgrade = ()
         <InfoRow icon="mail"   label="Email"     value={personal.email || user?.email} placeholder="Not set" />
         <InfoRow icon="call"   label="Phone"     value={personal.phone}     placeholder="Not set" />
         <InfoRow icon="public" label="Location"  value={[personal.city, personal.country].filter(Boolean).join(', ')} placeholder="Not set" />
+        {personal.sex && (
+          <InfoRow icon="person_outline" label="Sex" value={personal.sex} placeholder="Not set" />
+        )}
+        {(personal.birthMonth && personal.birthDay) && (
+          <InfoRow icon="cake" label="Birthday" value={`${personal.birthDay} ${personal.birthMonth}`} placeholder="Not set" />
+        )}
         <TappableRow
           icon="edit"
           label="Edit Personal Info"
@@ -1243,13 +1374,13 @@ export default function Profile({ onMenuClick, isPremium = false, onUpgrade = ()
             <span className={styles.brandEmptyText}>No brand set up yet</span>
           </div>
         )}
-        <InfoRow icon="store"        label="Brand Name"        value={settings.brandName}              placeholder="Not set" />
-        <InfoRow icon="emoji_events" label="Milestone"         value={settings.brandMilestone}         placeholder="Not set" />
-        <InfoRow icon="auto_fix_high" label="Featured Technique" value={settings.brandFeaturedTechnique} placeholder="Not set" />
+        <InfoRow icon="store"        label="Brand Name"      value={settings.brandName}              placeholder="Not set" />
+        <InfoRow icon="emoji_events" label="Milestone"       value={settings.brandMilestone}         placeholder="Not set" />
+        <InfoRow icon="auto_fix_high" label="Signature Style" value={settings.brandFeaturedTechnique} placeholder="Not set" />
         <TappableRow
           icon="edit"
           label="Edit Brand Identity"
-          sub="Logo, colours, milestone, featured technique"
+          sub="Logo, colours, milestone, signature style"
           onClick={() => setActiveModal('brand')}
           divider={false}
         />
@@ -1318,7 +1449,7 @@ export default function Profile({ onMenuClick, isPremium = false, onUpgrade = ()
               const p = SOCIAL_PLATFORMS.find(pl => pl.id === s.platform)
               return p ? (
                 <div key={s.platform} className={styles.socialPreviewChip}>
-                  <span className="mi" style={{ fontSize: '0.9rem' }}>{p.icon}</span>
+                  <SocialIcon platformId={s.platform} size={14} />
                   <span className={styles.socialPreviewLabel}>@{s.handle}</span>
                 </div>
               ) : null
@@ -1379,7 +1510,7 @@ export default function Profile({ onMenuClick, isPremium = false, onUpgrade = ()
             <span className="mi" style={{ fontSize: '1.3rem', color: 'var(--accent)' }}>workspace_premium</span>
             <div className={styles.upgradeStripText}>
               <div className={styles.upgradeStripTitle}>Upgrade to Pro</div>
-              <div className={styles.upgradeStripSub}>Unlock everything — invoices, brand colours, PDFs</div>
+              <div className={styles.upgradeStripSub}>Branded invoices and receipts PDFs, unlimited uploads & a portfolio that works for you 24/7</div>
             </div>
             <span className="mi" style={{ fontSize: '1rem', color: 'var(--accent)' }}>chevron_right</span>
           </div>
