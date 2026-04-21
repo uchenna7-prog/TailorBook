@@ -96,7 +96,6 @@ async function downloadPDF(paperEl, filename) {
   setTimeout(() => URL.revokeObjectURL(url), 10000)
 }
 
-// Returns a PDF Blob without triggering a download — used for direct sharing
 async function generatePDFBlob(paperEl) {
   const PDF_W = 380
   const prevWidth  = paperEl.style.width
@@ -131,7 +130,7 @@ async function generatePDFBlob(paperEl) {
 // ── Share Sheet ───────────────────────────────────────────────
 
 function ShareSheet({ open, onClose, paperRef, filename, docNumber, customer, brand, docType, buildMessage }) {
-  const [status, setStatus] = useState('idle') // idle | generating | done | error
+  const [status, setStatus] = useState('idle')
 
   if (!open) return null
 
@@ -405,7 +404,7 @@ function ReceiptPaymentSummary({ receipt, brand }) {
       <div className={styles.summary} style={{ width: '100%', marginLeft: 0 }}>
         <div className={styles.sumRow}><span>Order Value</span><span>{fmt(currency, orderTotal)}</span></div>
       </div>
-      {/* Payment History — before totals */}
+      {/* Payment History */}
       {(receipt.payments || []).length > 0 && (
         <div style={{ marginTop: 14 }}>
           <div style={{ fontWeight: 900, fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 6, color: '#444', borderTop: '1px solid #eee', paddingTop: 10 }}>
@@ -436,11 +435,15 @@ function ReceiptPaymentSummary({ receipt, brand }) {
             const offset = hasPrevious ? ((receipt.previousInstallments?.length || 0) || (previousPaid > 0 ? 1 : 0)) : 0
             return (
               <div key={`pay-${idx}`} className={styles.tRowSub}>
-                <span style={{ width: 18, flexShrink: 0, color: '#16a34a', fontWeight: 700 }}>{offset + idx + 1}</span>
-                <span className={styles.tColDesc} style={{ color: '#16a34a', fontWeight: 700 }}>
+                <span style={{ width: 18, flexShrink: 0, color: '#1a1a1a', fontWeight: 700 }}>{offset + idx + 1}</span>
+                {/* Date — black. Method tag in green if present */}
+                <span className={styles.tColDesc} style={{ color: '#1a1a1a', fontWeight: 700 }}>
                   {p.date}
-                  {p.method ? ` · ${p.method.charAt(0).toUpperCase() + p.method.slice(1)}` : ''}
+                  {p.method && (
+                    <span style={{ color: '#16a34a', fontWeight: 700 }}> · {p.method.charAt(0).toUpperCase() + p.method.slice(1)}</span>
+                  )}
                 </span>
+                {/* Amount — green */}
                 <span className={styles.tColNum} style={{ color: '#16a34a', fontWeight: 700 }}>{fmt(currency, p.amount)}</span>
               </div>
             )
@@ -483,12 +486,14 @@ function ReceiptPaymentSummary({ receipt, brand }) {
 // ─────────────────────────────────────────────────────────────
 
 // ── 1. Centred Line Receipt (editable) ────────────────────────
+// Settings preview: brand name as text only, NO logo element
 function EditableTemplate({ receipt, customer, brand }) {
   const lineColor = brand.colour || '#c8a96e'
   return (
     <div className={styles.tplBase}>
       <div className={styles.editHeader}>
-        <LogoOrName brand={brand} />
+        {/* No logo — settings preview shows brand name text only */}
+        <div className={styles.pBrandName}>{brand.name || 'Your Brand'}</div>
         {brand.tagline && <div className={styles.editTagline}>{brand.tagline}</div>}
         {brand.address && <div className={styles.editAddr}>{brand.address}</div>}
         <div className={styles.editTitleRow}>
@@ -629,7 +634,6 @@ function PrintableTemplate({ receipt, customer, brand }) {
           {customer.phone && <div className={styles.metaSub}>{customer.phone}</div>}
         </div>
       </div>
-      {/* Template 4 unique table with divider-separated rows */}
       <div className={styles.p4TableArea}>
         <div style={{ fontWeight: 800, fontSize: 8, textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 4px', color: '#555' }}>Order Details</div>
         <div className={styles.p4TableHead} style={{ borderColor: barColor }}>
@@ -655,7 +659,6 @@ function PrintableTemplate({ receipt, customer, brand }) {
           <div className={styles.p4TotRow}><span>Order Value</span><span>{fmt(currency, orderTotal)}</span></div>
         </div>
       </div>
-      {/* Payment History — before totals, styled with template 4's border style */}
       {(receipt.payments || []).length > 0 && (
         <div style={{ marginTop: 12 }}>
           <div style={{ fontWeight: 800, fontSize: 8, textTransform: 'uppercase', letterSpacing: '0.06em', margin: '6px 0 4px', color: '#555' }}>Payment History</div>
@@ -665,13 +668,17 @@ function PrintableTemplate({ receipt, customer, brand }) {
             <span>Amount</span>
           </div>
           {(receipt.payments || []).map((p, idx) => (
-            <div key={`pay-${idx}`} className={styles.p4TableRow} style={{ color: '#16a34a' }}>
+            <div key={`pay-${idx}`} className={styles.p4TableRow}>
               <span style={{ flex: 0.5 }}>{idx + 1}</span>
-              <span style={{ flex: 3 }}>
+              {/* Date black, method tag green */}
+              <span style={{ flex: 3, color: '#1a1a1a' }}>
                 {p.date}
-                {p.method ? ` · ${p.method.charAt(0).toUpperCase() + p.method.slice(1)}` : ''}
+                {p.method && (
+                  <span style={{ color: '#16a34a', fontWeight: 700 }}> · {p.method.charAt(0).toUpperCase() + p.method.slice(1)}</span>
+                )}
               </span>
-              <span style={{ fontWeight: 700 }}>{fmt(currency, p.amount)}</span>
+              {/* Amount green */}
+              <span style={{ fontWeight: 700, color: '#16a34a' }}>{fmt(currency, p.amount)}</span>
             </div>
           ))}
           <div className={styles.p4TotalsArea}>
@@ -733,7 +740,6 @@ function CanvaTemplate({ receipt, customer, brand }) {
         {customer.address && <div>{customer.address}</div>}
       </div>
       <div className={styles.t5Divider} />
-      {/* Template 5 unique table: divider-separated rows on beige */}
       <div style={{ fontWeight: 800, fontSize: 8, textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 3px', color: '#5a4f3c' }}>Order Details</div>
       <div className={styles.t5TableHead}>
         <span style={{ flex: 0.5 }}>S/N</span>
@@ -757,7 +763,6 @@ function CanvaTemplate({ receipt, customer, brand }) {
       <div className={styles.t5TotalsSection}>
         <div className={styles.t5TotRow}><span>Order Value</span><span>{fmt(currency, orderTotal)}</span></div>
       </div>
-      {/* Payment History — before totals, styled with template 5's divider style */}
       {(receipt.payments || []).length > 0 && (
         <>
           <div className={styles.t5Divider} />
@@ -767,13 +772,17 @@ function CanvaTemplate({ receipt, customer, brand }) {
             <span style={{ flex: 3 }}>Payment Date</span><span>Amount</span>
           </div>
           {(receipt.payments || []).map((p, idx) => (
-            <div key={`pay-${idx}`} className={styles.t5TableRow} style={{ color: '#16a34a', fontWeight: 600 }}>
+            <div key={`pay-${idx}`} className={styles.t5TableRow}>
               <span style={{ flex: 0.5 }}>{idx + 1}</span>
+              {/* Date in normal template colour, method tag green */}
               <span style={{ flex: 3 }}>
                 {p.date}
-                {p.method ? ` · ${p.method.charAt(0).toUpperCase() + p.method.slice(1)}` : ''}
+                {p.method && (
+                  <span style={{ color: '#16a34a', fontWeight: 700 }}> · {p.method.charAt(0).toUpperCase() + p.method.slice(1)}</span>
+                )}
               </span>
-              <span>{fmt(currency, p.amount)}</span>
+              {/* Amount green */}
+              <span style={{ color: '#16a34a', fontWeight: 700 }}>{fmt(currency, p.amount)}</span>
             </div>
           ))}
           <div className={styles.t5Divider} />
@@ -868,7 +877,6 @@ function DarkHeaderTemplate({ receipt, customer, brand }) {
           {customer.address}
         </div>
       </div>
-      {/* Template 6 unique table with dark header */}
       <div style={{ fontWeight: 800, fontSize: 7, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '4px 16px 3px', color: '#555' }}>Order Details</div>
       <div className={styles.t6TableHead}>
         <span style={{ flex: 0.5 }}>S/N</span>
@@ -891,7 +899,6 @@ function DarkHeaderTemplate({ receipt, customer, brand }) {
       <div className={styles.t6TotalsArea}>
         <div className={styles.t6TotRow}><span>ORDER VALUE</span><span>{fmt(currency, orderTotal)}</span></div>
       </div>
-      {/* Payment History — before totals, styled with template 6's dark header style */}
       {(receipt.payments || []).length > 0 && (
         <div style={{ marginTop: 10 }}>
           <div style={{ fontWeight: 800, fontSize: 7, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '4px 16px 4px', color: '#555' }}>Payment History</div>
@@ -900,13 +907,17 @@ function DarkHeaderTemplate({ receipt, customer, brand }) {
             <span style={{ flex: 3 }}>PAYMENT DATE</span><span>AMOUNT</span>
           </div>
           {(receipt.payments || []).map((p, idx) => (
-            <div key={`pay-${idx}`} className={styles.t6TableRow} style={{ color: '#16a34a', fontWeight: 700 }}>
+            <div key={`pay-${idx}`} className={styles.t6TableRow}>
               <span style={{ flex: 0.5 }}>{idx + 1}</span>
-              <span style={{ flex: 3 }}>
+              {/* Date black, method tag green */}
+              <span style={{ flex: 3, color: '#1a1a1a', fontWeight: 600 }}>
                 {p.date}
-                {p.method ? ` · ${p.method.charAt(0).toUpperCase() + p.method.slice(1)}` : ''}
+                {p.method && (
+                  <span style={{ color: '#16a34a', fontWeight: 700 }}> · {p.method.charAt(0).toUpperCase() + p.method.slice(1)}</span>
+                )}
               </span>
-              <span>{fmt(currency, p.amount)}</span>
+              {/* Amount green */}
+              <span style={{ color: '#16a34a', fontWeight: 700 }}>{fmt(currency, p.amount)}</span>
             </div>
           ))}
           <div className={styles.t6TotalsArea}>
@@ -934,7 +945,6 @@ function DarkHeaderTemplate({ receipt, customer, brand }) {
 }
 
 // ── 7. Field-Labelled From / To (redbold) ─────────────────────
-// Unique table: numbered rows, red total bar
 function RedBoldTemplate({ receipt, customer, brand }) {
   const accentColor = brand.colour || '#cc0000'
   const { currency } = brand
@@ -996,7 +1006,6 @@ function RedBoldTemplate({ receipt, customer, brand }) {
       </div>
       <div className={styles.t7Divider} />
       <div className={styles.t7ForLabel}>FOR:</div>
-      {/* Template 7 unique: numbered rows */}
       <div style={{ fontWeight: 900, fontSize: 8, letterSpacing: '0.04em', margin: '3px 16px 2px', color: '#1a1a1a' }}>Order Details</div>
       <div className={styles.t7TableHead}>
         <span className={styles.t7NumCol}>S/N</span>
@@ -1017,7 +1026,6 @@ function RedBoldTemplate({ receipt, customer, brand }) {
           <span className={styles.t7RedPrice} style={{ color: accentColor }}>{fmt(currency, orderTotal)}</span>
         </div>
       )}
-      {/* Payment History — before total bar */}
       {(receipt.payments || []).length > 0 && (
         <div style={{ marginTop: 8 }}>
           <div className={styles.t7Divider} />
@@ -1030,10 +1038,14 @@ function RedBoldTemplate({ receipt, customer, brand }) {
           {(receipt.payments || []).map((p, idx) => (
             <div key={`pay-${idx}`} className={styles.t7TableRow}>
               <span className={styles.t7NumCol}>{idx + 1}</span>
-              <span style={{ flex: 3, color: '#16a34a', fontWeight: 700 }}>
+              {/* Date black, method tag green */}
+              <span style={{ flex: 3, color: '#1a1a1a', fontWeight: 600 }}>
                 {p.date}
-                {p.method ? ` · ${p.method.charAt(0).toUpperCase() + p.method.slice(1)}` : ''}
+                {p.method && (
+                  <span style={{ color: '#16a34a', fontWeight: 700 }}> · {p.method.charAt(0).toUpperCase() + p.method.slice(1)}</span>
+                )}
               </span>
+              {/* Amount green */}
               <span style={{ flex: 1, textAlign: 'right', color: '#16a34a', fontWeight: 700 }}>{fmt(currency, p.amount)}</span>
             </div>
           ))}
@@ -1067,7 +1079,6 @@ function RedBoldTemplate({ receipt, customer, brand }) {
 }
 
 // ── 8. Side Panel with Invoice Box (greenaccent) ──────────────
-// Unique table: SL. numbered, grey bg header, green side panel
 function GreenAccentTemplate({ receipt, customer, brand }) {
   const accentColor = brand.colour || '#00c896'
   const { currency } = brand
@@ -1098,7 +1109,6 @@ function GreenAccentTemplate({ receipt, customer, brand }) {
           </div>
         </div>
       </div>
-      {/* Template 8 unique: S/N numbered, grey bg header */}
       <div style={{ fontWeight: 800, fontSize: 7, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 16px 3px', color: '#555' }}>Order Details</div>
       <div className={styles.t8TableHead}>
         <span>S/N</span>
@@ -1120,7 +1130,6 @@ function GreenAccentTemplate({ receipt, customer, brand }) {
         </div>
       )}
       <div className={styles.t8Divider} />
-      {/* Payment History — before bottom totals, styled with template 8's grey bg header */}
       {(receipt.payments || []).length > 0 && (
         <>
           <div style={{ fontWeight: 800, fontSize: 7, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '4px 16px 3px', color: '#555' }}>Payment History</div>
@@ -1132,10 +1141,14 @@ function GreenAccentTemplate({ receipt, customer, brand }) {
           {(receipt.payments || []).map((p, idx) => (
             <div key={`pay-${idx}`} className={styles.t8TableRow}>
               <span>{idx + 1}</span>
-              <span style={{ flex: 3, color: '#16a34a', fontWeight: 700 }}>
+              {/* Date black, method tag green */}
+              <span style={{ flex: 3, color: '#1a1a1a', fontWeight: 600 }}>
                 {p.date}
-                {p.method ? ` · ${p.method.charAt(0).toUpperCase() + p.method.slice(1)}` : ''}
+                {p.method && (
+                  <span style={{ color: '#16a34a', fontWeight: 700 }}> · {p.method.charAt(0).toUpperCase() + p.method.slice(1)}</span>
+                )}
               </span>
+              {/* Amount green */}
               <span style={{ color: '#16a34a', fontWeight: 700 }}>{fmt(currency, p.amount)}</span>
             </div>
           ))}
@@ -1170,7 +1183,6 @@ function GreenAccentTemplate({ receipt, customer, brand }) {
 }
 
 // ── 9. Accent Table Header (tealgeometric) ────────────────────
-// Unique table: teal header, QTY first col, dark total bar, signature
 function TealGeometricTemplate({ receipt, customer, brand }) {
   const accentColor = brand.colour || '#00b4c8'
   const darkBar     = '#1a1a2e'
@@ -1215,7 +1227,6 @@ function TealGeometricTemplate({ receipt, customer, brand }) {
           {brand.email && <div>{brand.email}</div>}
         </div>
       </div>
-      {/* Template 9 unique: teal-bg header, S/N first col */}
       <div style={{ fontWeight: 800, fontSize: 7, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '4px 16px 3px', color: '#555' }}>Order Details</div>
       <div className={styles.t9TableHead} style={{ background: accentColor }}>
         <span>S/N</span>
@@ -1239,7 +1250,6 @@ function TealGeometricTemplate({ receipt, customer, brand }) {
       <div className={styles.t9SubArea}>
         <div className={styles.t9SubRow}><span>Order Value</span><span>{fmt(currency, orderTotal)}</span></div>
       </div>
-      {/* Payment History — before total bar, styled with template 9's teal header */}
       {(receipt.payments || []).length > 0 && (
         <div style={{ marginTop: 8 }}>
           <div style={{ fontWeight: 800, fontSize: 7, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '4px 16px 3px', color: '#555' }}>Payment History</div>
@@ -1251,10 +1261,14 @@ function TealGeometricTemplate({ receipt, customer, brand }) {
           {(receipt.payments || []).map((p, idx) => (
             <div key={`pay-${idx}`} className={styles.t9TableRow}>
               <span>{idx + 1}</span>
-              <span style={{ flex: 3, color: '#16a34a', fontWeight: 700 }}>
+              {/* Date black, method tag green */}
+              <span style={{ flex: 3, color: '#1a1a1a', fontWeight: 600 }}>
                 {p.date}
-                {p.method ? ` · ${p.method.charAt(0).toUpperCase() + p.method.slice(1)}` : ''}
+                {p.method && (
+                  <span style={{ color: '#16a34a', fontWeight: 700 }}> · {p.method.charAt(0).toUpperCase() + p.method.slice(1)}</span>
+                )}
               </span>
+              {/* Amount green */}
               <span style={{ color: '#16a34a', fontWeight: 700 }}>{fmt(currency, p.amount)}</span>
             </div>
           ))}
@@ -1289,8 +1303,6 @@ function TealGeometricTemplate({ receipt, customer, brand }) {
 }
 
 // ── 10. Diagonal Header (pinkdiagonal) ────────────────────────
-// Unique table: bordered header, SL. numbered, right side totals + sign
-// Note: no tagline — only brand name + "Tailor Shop"
 function PinkDiagonalTemplate({ receipt, customer, brand }) {
   const accentColor = brand.colour || '#ff5c8a'
   const { currency } = brand
@@ -1303,7 +1315,6 @@ function PinkDiagonalTemplate({ receipt, customer, brand }) {
   return (
     <div className={styles.t10Wrap}>
       <div className={styles.t10HeaderZone}>
-        {/* SVG diagonal banner — replaces clip-path which html2canvas cannot render */}
         <svg
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
           viewBox="0 0 400 72"
@@ -1314,7 +1325,6 @@ function PinkDiagonalTemplate({ receipt, customer, brand }) {
         <div style={{ position: 'absolute', top: 10, left: 18, zIndex: 1 }}>
           <span className={styles.t10BannerTitle}>RECEIPT</span>
         </div>
-        {/* No tagline — only brand name + "Tailor Shop" */}
         <div className={styles.t10BrandInBanner}>
           {brand.logo
             ? <img src={brand.logo} alt="" style={{ width: 14, height: 14, objectFit: 'contain' }} />
@@ -1338,7 +1348,6 @@ function PinkDiagonalTemplate({ receipt, customer, brand }) {
           <div><span className={styles.t10MetaKey}>Date</span> <strong>{receipt.date}</strong></div>
         </div>
       </div>
-      {/* Template 10 unique: bordered header, S/N numbered */}
       <div style={{ fontWeight: 800, fontSize: 7, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '4px 16px 3px', color: '#555' }}>Order Details</div>
       <div className={styles.t10TableHead}>
         <span>S/N</span>
@@ -1360,7 +1369,6 @@ function PinkDiagonalTemplate({ receipt, customer, brand }) {
         </div>
       )}
       <div className={styles.t10Divider} />
-      {/* Payment History — before totals section, styled with template 10's bordered header */}
       {(receipt.payments || []).length > 0 && (
         <>
           <div style={{ fontWeight: 800, fontSize: 7, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '4px 16px 3px', color: '#555' }}>Payment History</div>
@@ -1372,10 +1380,14 @@ function PinkDiagonalTemplate({ receipt, customer, brand }) {
           {(receipt.payments || []).map((p, idx) => (
             <div key={`pay-${idx}`} className={styles.t10TableRow}>
               <span>{idx + 1}</span>
-              <span style={{ flex: 3, color: '#16a34a', fontWeight: 700 }}>
+              {/* Date black, method tag green */}
+              <span style={{ flex: 3, color: '#1a1a1a', fontWeight: 600 }}>
                 {p.date}
-                {p.method ? ` · ${p.method.charAt(0).toUpperCase() + p.method.slice(1)}` : ''}
+                {p.method && (
+                  <span style={{ color: '#16a34a', fontWeight: 700 }}> · {p.method.charAt(0).toUpperCase() + p.method.slice(1)}</span>
+                )}
               </span>
+              {/* Amount green */}
               <span style={{ color: '#16a34a', fontWeight: 700 }}>{fmt(currency, p.amount)}</span>
             </div>
           ))}
@@ -1412,7 +1424,6 @@ function PinkDiagonalTemplate({ receipt, customer, brand }) {
           </div>
         </div>
       </div>
-      {/* SVG corner accent — replaces clip-path which html2canvas cannot render */}
       <svg
         style={{ position: 'absolute', bottom: 0, right: 0, width: 68, height: 58 }}
         viewBox="0 0 68 58"
@@ -1424,7 +1435,6 @@ function PinkDiagonalTemplate({ receipt, customer, brand }) {
 }
 
 // ── 11. Info Bar with Payment Tiles (blueclean) ───────────────
-// Unique table: black header, bullet items, blue amount display
 function BlueCleanTemplate({ receipt, customer, brand }) {
   const accentColor = brand.colour || '#5da0d0'
   const barBg       = '#dbeeff'
@@ -1476,7 +1486,6 @@ function BlueCleanTemplate({ receipt, customer, brand }) {
         </div>
       </div>
       {receipt.orderDesc && <div className={styles.t11ProjectName}>{receipt.orderDesc}</div>}
-      {/* Template 11 unique: black header, bullet items */}
       <div className={styles.t11PayTitle}>Order Details</div>
       <div className={styles.t11TableHead}>
         <span style={{ flex: 3 }}>Description</span>
@@ -1499,7 +1508,6 @@ function BlueCleanTemplate({ receipt, customer, brand }) {
       <div className={styles.t11TotArea}>
         <div className={styles.t11TotRow}><span>Order Value</span><span>{fmt(currency, orderTotal)}</span></div>
       </div>
-      {/* Payment History — before paid-in-full row, styled with template 11's header */}
       {(receipt.payments || []).length > 0 && (
         <div style={{ marginTop: 10 }}>
           <div className={styles.t11PayTitle}>Payment History</div>
@@ -1509,11 +1517,15 @@ function BlueCleanTemplate({ receipt, customer, brand }) {
           </div>
           {(receipt.payments || []).map((p, idx) => (
             <div key={`pay-${idx}`} className={styles.t11TableRow}>
-              <span style={{ flex: 3, color: '#16a34a', fontWeight: 700 }}>
+              {/* Date black, method tag green */}
+              <span style={{ flex: 3, color: '#1a1a1a', fontWeight: 600 }}>
                 {p.date}
-                {p.method ? ` · ${p.method.charAt(0).toUpperCase() + p.method.slice(1)}` : ''}
+                {p.method && (
+                  <span style={{ color: '#16a34a', fontWeight: 700 }}> · {p.method.charAt(0).toUpperCase() + p.method.slice(1)}</span>
+                )}
               </span>
               <span>{idx + 1}</span>
+              {/* Amount green */}
               <span style={{ color: '#16a34a', fontWeight: 700 }}>{fmt(currency, p.amount)}</span>
             </div>
           ))}
