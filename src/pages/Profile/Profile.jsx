@@ -18,6 +18,8 @@ import styles from './Profile.module.css'
 // Nigerian States
 // ─────────────────────────────────────────────────────────────
 
+const SERVICE_AREA_SPECIAL = ['Nationwide', 'International']
+
 const NIGERIAN_STATES = [
   'Abia','Adamawa','Akwa Ibom','Anambra','Bauchi','Bayelsa','Benue','Borno',
   'Cross River','Delta','Ebonyi','Edo','Ekiti','Enugu','FCT – Abuja','Gombe',
@@ -37,6 +39,9 @@ function CountryCodePicker({ selected, onSelect }) {
   const [search, setSearch]       = useState('')
   const [countries, setCountries] = useState([])
   const [loading, setLoading]     = useState(false)
+  // dropdownPos stores { top, left, width } for fixed positioning
+  const [dropdownPos, setDropdownPos] = useState(null)
+  const btnRef      = useRef(null)
   const dropdownRef = useRef(null)
 
   useEffect(() => {
@@ -65,13 +70,33 @@ function CountryCodePicker({ selected, onSelect }) {
   useEffect(() => {
     if (!open) return
     const handler = e => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+      const clickedBtn      = btnRef.current?.contains(e.target)
+      const clickedDropdown = dropdownRef.current?.contains(e.target)
+      if (!clickedBtn && !clickedDropdown) {
         setOpen(false); setSearch('')
       }
     }
     document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
+    document.addEventListener('touchstart', handler)
+    return () => {
+      document.removeEventListener('mousedown', handler)
+      document.removeEventListener('touchstart', handler)
+    }
   }, [open])
+
+  const handleOpen = () => {
+    if (open) { setOpen(false); return }
+    // Calculate position of button to anchor dropdown below it using fixed coords
+    if (btnRef.current) {
+      const rect = btnRef.current.getBoundingClientRect()
+      setDropdownPos({
+        top:   rect.bottom + 6,
+        left:  rect.left,
+        width: Math.max(rect.width, 280),
+      })
+    }
+    setOpen(true)
+  }
 
   const filtered = search.trim()
     ? countries.filter(c => c.name.toLowerCase().includes(search.toLowerCase()) || c.dial_code.includes(search))
@@ -80,14 +105,24 @@ function CountryCodePicker({ selected, onSelect }) {
   const handleSelect = country => { onSelect(country); setOpen(false); setSearch('') }
 
   return (
-    <div className={styles.ccPickerWrap} ref={dropdownRef}>
-      <button type="button" className={styles.ccBtn} onClick={() => setOpen(v => !v)}>
+    <>
+      <button ref={btnRef} type="button" className={styles.ccBtn} onClick={handleOpen}>
         <span className={styles.ccFlag}>{selected.flag}</span>
         <span className={styles.ccCode}>{selected.dial_code}</span>
         <span className="mi" style={{ fontSize: '0.9rem', color: 'var(--text3)' }}>expand_more</span>
       </button>
-      {open && (
-        <div className={styles.ccDropdown}>
+      {open && dropdownPos && (
+        <div
+          ref={dropdownRef}
+          className={styles.ccDropdown}
+          style={{
+            position: 'fixed',
+            top:      dropdownPos.top,
+            left:     dropdownPos.left,
+            width:    dropdownPos.width,
+            zIndex:   99999,
+          }}
+        >
           <div className={styles.ccSearchWrap}>
             <span className="mi" style={{ fontSize: '1rem', color: 'var(--text3)' }}>search</span>
             <input
@@ -117,7 +152,7 @@ function CountryCodePicker({ selected, onSelect }) {
           </div>
         </div>
       )}
-    </div>
+    </>
   )
 }
 
@@ -609,23 +644,23 @@ const AVAILABILITY_OPTIONS = [
 ]
 
 function ServiceAreaPicker({ value, onChange }) {
-  // value is a comma-separated string of selected states
   const selected = value ? value.split(',').map(s => s.trim()).filter(Boolean) : []
   const [search, setSearch] = useState('')
 
-  const toggle = state => {
-    const next = selected.includes(state)
-      ? selected.filter(s => s !== state)
-      : [...selected, state]
+  const toggle = area => {
+    const next = selected.includes(area)
+      ? selected.filter(s => s !== area)
+      : [...selected, area]
     onChange(next.join(', '))
   }
 
-  const filtered = search.trim()
+  const filteredStates = search.trim()
     ? NIGERIAN_STATES.filter(s => s.toLowerCase().includes(search.toLowerCase()))
     : NIGERIAN_STATES
 
   return (
     <div className={styles.serviceAreaWrap}>
+      {/* Selected chips */}
       {selected.length > 0 && (
         <div className={styles.serviceAreaSelected}>
           {selected.map(s => (
@@ -636,6 +671,28 @@ function ServiceAreaPicker({ value, onChange }) {
           ))}
         </div>
       )}
+
+      {/* Special options */}
+      <div className={styles.serviceAreaSpecial}>
+        {SERVICE_AREA_SPECIAL.map(opt => (
+          <button
+            key={opt}
+            type="button"
+            className={`${styles.serviceAreaSpecialBtn} ${selected.includes(opt) ? styles.serviceAreaOptionActive : ''}`}
+            onClick={() => toggle(opt)}
+          >
+            <span className="mi" style={{ fontSize: '0.9rem' }}>
+              {opt === 'Nationwide' ? 'flag' : 'public'}
+            </span>
+            {opt}
+            {selected.includes(opt) && (
+              <span className="mi" style={{ fontSize: '0.85rem', marginLeft: 2 }}>check</span>
+            )}
+          </button>
+        ))}
+      </div>
+
+      {/* Search + state list */}
       <div className={styles.serviceAreaSearch}>
         <span className="mi" style={{ fontSize: '1rem', color: 'var(--text3)' }}>search</span>
         <input
@@ -647,7 +704,7 @@ function ServiceAreaPicker({ value, onChange }) {
         />
       </div>
       <div className={styles.serviceAreaList}>
-        {filtered.map(state => (
+        {filteredStates.map(state => (
           <button
             key={state}
             type="button"
