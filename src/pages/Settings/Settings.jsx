@@ -884,14 +884,371 @@ const TEMPLATE_GROUPS = [
   },
 ]
 
+// ─────────────────────────────────────────────────────────────
+// Receipt preview sample data
+// ─────────────────────────────────────────────────────────────
+
+const RECEIPT_SAMPLE = {
+  number: 'RCP-0001',
+  date: '12 Apr 2025',
+  orderDesc: 'Custom Agbada Sewing',
+  orderPrice: '56200',
+  items: [
+    { name: 'Custom Agbada Sewing', price: '8500' },
+    { name: 'Senator Suit Stitching', price: '6200' },
+    { name: 'Ankara Dress Alteration', price: '2500' },
+    { name: 'Bridal Gown Fitting', price: '15000' },
+    { name: 'Trouser Hemming', price: '1200' },
+  ],
+  payments: [
+    { date: '10 Apr 2025', amount: '28100', method: 'transfer' },
+    { date: '12 Apr 2025', amount: '28100', method: 'cash' },
+  ],
+  cumulativePaid: '56200',
+}
+
+const RECEIPT_SAMPLE_CUSTOMER = {
+  name: 'Mrs. Chidinma Okafor',
+  phone: '+234 801 234 5678',
+  address: '22 Akin Adesola St, Victoria Island',
+}
+
+const RECEIPT_BRAND_SAMPLE = {
+  name: 'Adeola Couture House',
+  ownerName: 'Adeola Fashola',
+  tagline: 'Crafted with love, fitted for you',
+  address: '14 Bode Thomas St, Surulere, Lagos',
+  phone: '+234 801 234 5678',
+  email: 'info@adeolacouture.ng',
+  website: 'adeolacouture.ng',
+  currency: '₦',
+  colour: '#c8a96e',
+  footer: 'Thank you for your payment!',
+  showTax: false,
+  taxRate: 0,
+}
+
+// ── Receipt preview helpers ────────────────────────────────────
+
+function rFmt(amount) {
+  const n = parseFloat(amount) || 0
+  return `₦${n.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+}
+
+function rResolvePaid(receipt) {
+  if (receipt.cumulativePaid != null) return parseFloat(receipt.cumulativePaid)
+  return (receipt.payments || []).reduce((s, p) => s + (parseFloat(p.amount) || 0), 0)
+}
+
+// Shared receipt payment summary for preview templates
+function RPreviewSummary({ receipt }) {
+  const orderTotal     = receipt.items?.reduce((s, i) => s + (parseFloat(i.price) || 0), 0) ?? (parseFloat(receipt.orderPrice) || 0)
+  const cumulativePaid = rResolvePaid(receipt)
+  const thisPaid       = (receipt.payments || []).reduce((s, p) => s + (parseFloat(p.amount) || 0), 0)
+  const balance        = Math.max(0, orderTotal - cumulativePaid)
+  const isFull         = balance <= 0
+
+  return (
+    <div style={{ marginTop: 8, fontSize: 7 }}>
+      <div style={{ fontWeight: 900, fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 5, color: '#444' }}>Order Details</div>
+      <div style={{ display: 'flex', fontWeight: 800, borderBottom: '1.5px solid #1a1a1a', paddingBottom: 3, marginBottom: 5, fontSize: 7 }}>
+        <span style={{ flex: 3 }}>Description</span><span style={{ textAlign: 'right' }}>Amount</span>
+      </div>
+      {receipt.items?.slice(0,3).map((item, i) => (
+        <div key={i} style={{ display: 'flex', borderBottom: '1px solid #eee', padding: '3px 0', fontSize: 7 }}>
+          <span style={{ flex: 3 }}>{item.name}</span>
+          <span style={{ textAlign: 'right' }}>{rFmt(item.price)}</span>
+        </div>
+      ))}
+      <div style={{ marginLeft: 'auto', width: '55%', marginTop: 6, fontSize: 7 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 0' }}><span>Total Paid</span><span style={{ color: '#16a34a', fontWeight: 700 }}>{rFmt(thisPaid)}</span></div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 900, borderTop: '1px solid #1a1a1a', paddingTop: 2, marginTop: 2 }}>
+          <span>{isFull ? 'PAID IN FULL' : 'RECEIVED'}</span>
+          <span style={{ color: isFull ? '#16a34a' : '#1a1a1a' }}>{rFmt(thisPaid)}</span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Receipt Preview Templates (static, for picker only) ────────
+
+function REditablePreview() {
+  const r = RECEIPT_SAMPLE; const c = RECEIPT_SAMPLE_CUSTOMER; const b = RECEIPT_BRAND_SAMPLE
+  const lineColor = b.colour || '#c8a96e'
+  return (
+    <div className={styles.pBase}>
+      <div className={styles.pBrandCenter}>
+        <div className={styles.pBrandName}>{b.name}</div>
+        <div className={styles.pBrandSub}>{b.address}</div>
+      </div>
+      <div className={styles.pInvoiceCentred}>
+        <div className={styles.pInvoiceLine} style={{ background: lineColor }} />
+        <div className={styles.pInvoiceWordCentre}>RECEIPT</div>
+        <div className={styles.pInvoiceLine} style={{ background: lineColor }} />
+      </div>
+      <div className={styles.pBody}>
+        <div className={styles.pMetaRow}>
+          <div><div className={styles.pSmallCap}>RECEIVED FROM:</div><strong>{c.name}</strong><br />{c.phone}</div>
+          <div style={{ textAlign: 'right', fontSize: '7px' }}>Receipt #: <strong>{r.number}</strong><br />Date: <strong>{r.date}</strong></div>
+        </div>
+        <RPreviewSummary receipt={r} />
+      </div>
+      <div className={styles.pFooter}><div className={styles.pFootSection}><strong>Notes:</strong><br />{b.footer}</div></div>
+    </div>
+  )
+}
+
+function RFreePreview() {
+  const r = RECEIPT_SAMPLE; const c = RECEIPT_SAMPLE_CUSTOMER; const b = RECEIPT_BRAND_SAMPLE
+  return (
+    <div className={styles.pBase}>
+      <div className={styles.pHeaderFree}>
+        <div className={styles.pTitleBlock}>
+          <div className={styles.pLargeTitle}>RECEIPT</div>
+          <div className={styles.pSubNo}>{r.number}</div>
+        </div>
+        <div className={styles.pLogoPlaceholderBig}>{b.name}</div>
+      </div>
+      <div className={styles.pFreeGrid}>
+        <div className={styles.pFreeBox}><div className={styles.pSmallCap}>FROM:</div><strong>{b.name}</strong><br />{b.address}</div>
+        <div className={styles.pFreeBox}><div className={styles.pSmallCap}>RECEIVED FROM:</div><strong>{c.name}</strong><br />{c.phone}</div>
+        <div className={styles.pFreeBox}><div className={styles.pSmallCap}>DATE:</div><strong>{r.date}</strong></div>
+      </div>
+      <div className={styles.pBody}><RPreviewSummary receipt={r} /></div>
+      <div className={styles.pFooterGray}>{b.footer}</div>
+    </div>
+  )
+}
+
+function RCustomPreview() {
+  const r = RECEIPT_SAMPLE; const c = RECEIPT_SAMPLE_CUSTOMER; const b = RECEIPT_BRAND_SAMPLE
+  const bannerBg = b.colour || '#7c3aed'
+  return (
+    <div className={styles.pBase} style={{ padding: 0 }}>
+      <div className={styles.pPurpleBanner} style={{ background: bannerBg }}>
+        <div className={styles.pLogoBoxWhite}>{b.name}</div>
+        <div style={{ textAlign: 'right' }}>
+          <div className={styles.pLargeTitleWhite}>RECEIPT</div>
+          <div className={styles.pWhiteNo}>{r.number}</div>
+        </div>
+      </div>
+      <div style={{ display: 'flex', gap: 8, padding: '10px 14px 6px', fontSize: '7px' }}>
+        <div style={{ flex: 1 }}><div className={styles.pSmallCap}>FROM:</div><strong>{b.name}</strong><br />{b.address}</div>
+        <div style={{ flex: 1 }}><div className={styles.pSmallCap}>RECEIVED FROM:</div><strong>{c.name}</strong><br />{c.phone}</div>
+        <div style={{ flex: 1 }}><div className={styles.pSmallCap}>DATE:</div><strong>{r.date}</strong></div>
+      </div>
+      <div style={{ padding: '0 14px' }}><RPreviewSummary receipt={r} /></div>
+      <div className={styles.pPurpleBottom} style={{ background: bannerBg }}>
+        <div className={styles.pPurpleFootRow}><div className={styles.pFootSectionWhite}>{b.footer}</div></div>
+      </div>
+    </div>
+  )
+}
+
+function RPrintablePreview() {
+  const r = RECEIPT_SAMPLE; const c = RECEIPT_SAMPLE_CUSTOMER; const b = RECEIPT_BRAND_SAMPLE
+  const barColor = b.colour || '#c8a96e'
+  return (
+    <div className={styles.p4Base}>
+      <div className={styles.p4GoldBar} style={{ background: barColor }} />
+      <div className={styles.p4Header}>
+        <div className={styles.p4InvoiceWord}>RECEIPT</div>
+        <div className={styles.p4HeaderRight}>
+          <div className={styles.p4MetaRow}><span className={styles.p4MetaKey}>DATE</span><span className={styles.p4MetaVal}>{r.date}</span></div>
+          <div className={styles.p4MetaRow}><span className={styles.p4MetaKey}>RECEIPT #</span><span className={styles.p4MetaVal}>{r.number}</span></div>
+        </div>
+      </div>
+      <div className={styles.p4BillRow}>
+        <div className={styles.p4BillBlock}><div className={styles.p4BillLabel}>FROM</div><div className={styles.p4BillName}>{b.name}</div><div className={styles.p4BillInfo}>{b.address}</div></div>
+        <div className={styles.p4BillBlock} style={{ textAlign: 'right' }}><div className={styles.p4BillLabel}>RECEIVED FROM</div><div className={styles.p4BillName}>{c.name}</div><div className={styles.p4BillInfo}>{c.phone}</div></div>
+      </div>
+      <div className={styles.p4Divider} />
+      <RPreviewSummary receipt={r} />
+    </div>
+  )
+}
+
+function RCanvaPreview() {
+  const r = RECEIPT_SAMPLE; const c = RECEIPT_SAMPLE_CUSTOMER; const b = RECEIPT_BRAND_SAMPLE
+  return (
+    <div className={styles.t5Base}>
+      <div className={styles.t5Top}><div className={styles.t5Title}>Receipt</div><div className={styles.t5TopRight}><div>{r.date}</div><div><strong>Receipt No. {r.number}</strong></div></div></div>
+      <div className={styles.t5Divider} />
+      <div className={styles.t5BilledTo}><div className={styles.t5BilledLabel}>Received from:</div><div><strong>{c.name}</strong></div><div>{c.phone}</div></div>
+      <div className={styles.t5Divider} />
+      <RPreviewSummary receipt={r} />
+      <div className={styles.t5Divider} />
+      <div className={styles.t5Footer}><div /><div style={{ textAlign: 'right' }}><div><strong>{b.name}</strong></div><div>{b.phone}</div></div></div>
+    </div>
+  )
+}
+
+function RDarkHeaderPreview() {
+  const r = RECEIPT_SAMPLE; const c = RECEIPT_SAMPLE_CUSTOMER; const b = RECEIPT_BRAND_SAMPLE
+  return (
+    <div className={styles.t6Base}>
+      <div className={styles.t6Header}>
+        <div className={styles.t6LogoArea}><div className={styles.t6LogoCircle}><span className="mi" style={{ fontSize: 13, color: '#1a1a1a' }}>checkroom</span></div><div><div className={styles.t6CompanyName}>{b.name.toUpperCase()}</div></div></div>
+        <div className={styles.t6HeaderRight}><div>{b.address}</div></div>
+        <div className={styles.t6HeaderRight}><div>{b.phone}</div></div>
+      </div>
+      <div className={styles.t6InvoiceRow}><div className={styles.t6InvoiceLeft}><span className={styles.t6InvoiceWord}>RECEIPT </span><span className={styles.t6InvoiceNum}>#{r.number}</span></div><div className={styles.t6InvoiceRight}><div><span className={styles.t6Label}>DATE:</span> {r.date}</div></div></div>
+      <div className={styles.t6InfoRow}><div><div className={styles.t6InfoLabel}>FROM:</div>{b.name}<br />{b.address}</div><div><div className={styles.t6InfoLabel}>RECEIVED FROM:</div>{c.name}<br />{c.phone}</div></div>
+      <RPreviewSummary receipt={r} />
+      <div className={styles.t6ThankYou}>{b.footer}</div>
+    </div>
+  )
+}
+
+function RRedBoldPreview() {
+  const r = RECEIPT_SAMPLE; const c = RECEIPT_SAMPLE_CUSTOMER; const b = RECEIPT_BRAND_SAMPLE
+  const accentColor = b.colour || '#cc0000'
+  return (
+    <div className={styles.t7Base}>
+      <div className={styles.t7Header}>
+        <div className={styles.t7LogoCircle}><span className="mi" style={{ fontSize: 13, color: accentColor }}>checkroom</span></div>
+        <div className={styles.t7TitleGroup}><span className={styles.t7InvoiceWord}>RECEIPT</span><span className={styles.t7InvoiceNum}>#{r.number}</span></div>
+        <div className={styles.t7DateBlock}><div className={styles.t7DateLabel}>DATE:</div><div className={styles.t7DateVal}>{r.date}</div></div>
+      </div>
+      <div className={styles.t7Divider} />
+      <div className={styles.t7FromTo}>
+        <div className={styles.t7FromToBlock}><div className={styles.t7FromLabel}>FROM:</div><div className={styles.t7FromDivider} />{[['NAME:',b.name],['PHONE:',b.phone]].map(([l,v])=>(<div key={l} className={styles.t7InfoRow}><span className={styles.t7InfoKey}>{l}</span><span className={styles.t7InfoVal}>{v}</span></div>))}</div>
+        <div className={styles.t7FromToBlock}><div className={styles.t7ToLabel}>TO:</div><div className={styles.t7FromDivider} />{[['NAME:',c.name],['PHONE:',c.phone]].map(([l,v])=>(<div key={l} className={styles.t7InfoRow}><span className={styles.t7InfoKey}>{l}</span><span className={styles.t7InfoVal}>{v}</span></div>))}</div>
+      </div>
+      <div className={styles.t7Divider} />
+      <RPreviewSummary receipt={r} />
+      <div className={styles.t7TotalBar} style={{ background: accentColor }}><span>RECEIVED:</span><span className={styles.t7TotalAmt}>{rFmt('56200')}</span></div>
+    </div>
+  )
+}
+
+function RGreenAccentPreview() {
+  const r = RECEIPT_SAMPLE; const c = RECEIPT_SAMPLE_CUSTOMER; const b = RECEIPT_BRAND_SAMPLE
+  const accentColor = b.colour || '#00c896'
+  return (
+    <div className={styles.t8Base}>
+      <div className={styles.t8Header}>
+        <div className={styles.t8LogoArea}><span className="mi" style={{ fontSize: 20, color: '#333' }}>checkroom</span><div><div className={styles.t8BrandName}>{b.name}</div></div></div>
+        <div className={styles.t8InvoiceBox} style={{ background: accentColor }}><div className={styles.t8InvoiceTitle}>RECEIPT</div><div className={styles.t8InvoiceMeta}><span>Receipt#</span><span>{r.number}</span><span>Date</span><span>{r.date}</span></div></div>
+      </div>
+      <RPreviewSummary receipt={r} />
+      <div className={styles.t8Bottom}>
+        <div className={styles.t8GreenBox} style={{ background: accentColor }}><div className={styles.t8GreenBoxTitle}>Received from:</div><div className={styles.t8GreenBoxName}>{c.name}</div><div className={styles.t8GreenBoxAddr}>{c.phone}</div></div>
+        <div style={{ flex: 1 }} />
+        <div className={styles.t8Totals}><div className={styles.t8TotRow}><span>Received:</span><span style={{ color: '#16a34a', fontWeight: 700 }}>{rFmt('56200')}</span></div><div className={styles.t8SignLine}>Authorised Sign</div></div>
+      </div>
+    </div>
+  )
+}
+
+function RTealGeometricPreview() {
+  const r = RECEIPT_SAMPLE; const c = RECEIPT_SAMPLE_CUSTOMER; const b = RECEIPT_BRAND_SAMPLE
+  const accentColor = b.colour || '#00b4c8'
+  return (
+    <div className={styles.t9Base}>
+      <div className={styles.t9Header}><div><div className={styles.t9LogoRow}><span className="mi" style={{ fontSize:14,color:'#333' }}>checkroom</span><span className={styles.t9CompanyName}>{b.name.toUpperCase()}</span></div></div><div className={styles.t9InvoiceTitle} style={{ color: accentColor }}>RECEIPT</div></div>
+      <div className={styles.t9NumBar}><span>RECEIPT # {r.number}</span><span>|</span><span>DATE: {r.date}</span></div>
+      <div className={styles.t9BillShip}><div><span className={styles.t9BillLabel}>Received from:</span><div><strong>{c.name}</strong></div><div>{c.phone}</div></div><div><span className={styles.t9BillLabel}>From:</span><div><strong>{b.name}</strong></div><div>{b.phone}</div></div></div>
+      <RPreviewSummary receipt={r} />
+      <div className={styles.t9TotalBar}><span>AMOUNT RECEIVED</span><span>{rFmt('56200')}</span></div>
+    </div>
+  )
+}
+
+function RPinkDiagonalPreview() {
+  const r = RECEIPT_SAMPLE; const c = RECEIPT_SAMPLE_CUSTOMER; const b = RECEIPT_BRAND_SAMPLE
+  const accentColor = b.colour || '#ff5c8a'
+  return (
+    <div className={styles.t10Base}>
+      <div className={styles.t10HeaderZone}>
+        <div className={styles.t10FullBanner} style={{ background: accentColor }}><span className={styles.t10BannerTitle}>RECEIPT</span></div>
+        <div className={styles.t10BrandInBanner}><span className="mi" style={{ fontSize:14,color:'#333' }}>checkroom</span><div><div className={styles.t10BrandName}>{b.name}</div><div className={styles.t10BrandSub}>TAILOR SHOP</div></div></div>
+      </div>
+      <div className={styles.t10MetaRow}><div><div className={styles.t10MetaLabel}>Received from:</div><div className={styles.t10MetaName}>{c.name}</div><div className={styles.t10MetaAddr}>{c.phone}</div></div><div style={{ textAlign:'right' }}><div><span className={styles.t10MetaKey}>Receipt#</span> <strong>{r.number}</strong></div><div><span className={styles.t10MetaKey}>Date</span> <strong>{r.date}</strong></div></div></div>
+      <RPreviewSummary receipt={r} />
+      <div className={styles.t10CornerPink} style={{ background: accentColor }} />
+    </div>
+  )
+}
+
+function RBlueCleanPreview() {
+  const r = RECEIPT_SAMPLE; const c = RECEIPT_SAMPLE_CUSTOMER; const b = RECEIPT_BRAND_SAMPLE
+  const accentColor = b.colour || '#5da0d0'
+  const barBg = '#dbeeff'
+  return (
+    <div className={styles.t11Base}>
+      <div className={styles.t11TopBar}><div className={styles.t11LogoArea}><div className={styles.t11LogoHex}><span className="mi" style={{ fontSize:11,color:'#fff' }}>checkroom</span></div><div><div className={styles.t11CompanyName}>{b.name.toUpperCase()}</div></div></div><div className={styles.t11CompanyInfo} style={{ textAlign:'right' }}><div>{b.phone}</div></div></div>
+      <div className={styles.t11InvoiceTitle}>Receipt</div>
+      <div className={styles.t11BlueBar} style={{ background: barBg, color: accentColor }}><span>RECEIPT: #{r.number}</span><span>DATE: {r.date}</span><span>AMOUNT: {rFmt('56200')}</span></div>
+      <div className={styles.t11IssuedRow}><div><div className={styles.t11IssuedLabel}>RECEIVED FROM</div><div>{c.name}</div><div>{c.phone}</div></div><div style={{ textAlign:'right' }}><div className={styles.t11AmountLabel} style={{ color: accentColor }}>AMOUNT PAID</div><div className={styles.t11AmountVal} style={{ color: accentColor }}>{rFmt('56200')}</div></div></div>
+      <RPreviewSummary receipt={r} />
+      <div className={styles.t11ThankYou} style={{ color: accentColor }}>{b.footer}</div>
+    </div>
+  )
+}
+
+const RECEIPT_TEMPLATE_GROUPS = [
+  {
+    groupLabel: 'Essential',
+    groupDesc: 'Straightforward and clean — nothing in the way',
+    templates: [
+      { id:'editable',  label:'1. Centred Line Receipt',     desc:'Centred header with flanking lines',              Component: REditablePreview },
+      { id:'free',      label:'2. Three-Column Info Bar',    desc:'Big receipt number with three-column info grid',  Component: RFreePreview },
+      { id:'printable', label:'4. Side-by-Side Classic',     desc:'Side-by-side billing blocks with accent top bar', Component: RPrintablePreview },
+      { id:'canva',     label:'5. Soft Divider Layout',      desc:'Soft header, dividers, sender details at base',   Component: RCanvaPreview },
+    ],
+  },
+  {
+    groupLabel: 'Structured',
+    groupDesc: 'Every detail in its place — easy to scan',
+    templates: [
+      { id:'redbold',   label:'7. Field-Labelled From / To', desc:'Field-labelled From/To with numbered line items',     Component: RRedBoldPreview },
+      { id:'blueclean', label:'11. Info Bar with Amount',    desc:'Three-column header, info bar and amount display',    Component: RBlueCleanPreview },
+    ],
+  },
+  {
+    groupLabel: 'Branded',
+    groupDesc: 'Built around your logo and colours',
+    templates: [
+      { id:'custom',        label:'3. Full-Bleed Banner',           desc:'Full-bleed banner header with matching footer',        Component: RCustomPreview },
+      { id:'darkheader',    label:'6. Heavy Header Bar',            desc:'Heavy header bar with three-column info strip',        Component: RDarkHeaderPreview },
+      { id:'greenaccent',   label:'8. Side Panel with Receipt Box', desc:'Inline receipt box, side-by-side totals and client panel', Component: RGreenAccentPreview },
+      { id:'tealgeometric', label:'9. Accent Table Header',         desc:'Accent table header with corner signature block',      Component: RTealGeometricPreview },
+    ],
+  },
+  {
+    groupLabel: 'Statement',
+    groupDesc: 'Bold layouts that leave an impression',
+    templates: [
+      { id:'pinkdiagonal', label:'10. Diagonal Header', desc:'Diagonal full-bleed header with corner signature', Component: RPinkDiagonalPreview },
+    ],
+  },
+]
+
 function TemplateModal({ isOpen, currentTemplate, onClose, onSelect }) {
   const [selected, setSelected] = useState(currentTemplate || 'editable')
+  const [activeTab, setActiveTab] = useState('invoice')
   if (!isOpen) return null
+
+  const groups = activeTab === 'invoice' ? TEMPLATE_GROUPS : RECEIPT_TEMPLATE_GROUPS
+
   return (
     <div className={styles.fullOverlay}>
-      <Header type="back" title="Invoice Templates" onBackClick={onClose} customActions={[{label:'Select',onClick:()=>{onSelect(selected);onClose()}}]} />
+      <Header type="back" title="Templates" onBackClick={onClose} customActions={[{label:'Select',onClick:()=>{onSelect(selected);onClose()}}]} />
+      {/* Tab bar */}
+      <div className={styles.tabBar}>
+        <button className={`${styles.tabBtn} ${activeTab==='invoice'?styles.tabBtnActive:''}`} onClick={()=>setActiveTab('invoice')}>
+          <span className="mi" style={{ fontSize:'1rem' }}>receipt_long</span>
+          Invoice
+        </button>
+        <button className={`${styles.tabBtn} ${activeTab==='receipt'?styles.tabBtnActive:''}`} onClick={()=>setActiveTab('receipt')}>
+          <span className="mi" style={{ fontSize:'1rem' }}>payments</span>
+          Receipt
+        </button>
+      </div>
       <div className={styles.fullContent}>
-        {TEMPLATE_GROUPS.map((group, groupIndex) => (
+        {groups.map((group, groupIndex) => (
           <div key={group.groupLabel}>
             <div className={`${styles.groupHeader} ${groupIndex === 0 ? styles.groupHeaderFirst : ''}`}>
               <div className={styles.groupHeaderInner}>
@@ -917,6 +1274,55 @@ function TemplateModal({ isOpen, currentTemplate, onClose, onSelect }) {
         ))}
       </div>
     </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────
+// Receipt Settings Modal
+// ─────────────────────────────────────────────────────────────
+
+function ReceiptSettingsModal({ onBack, showToast }) {
+  const { settings, updateMany } = useSettings()
+  const [local, setLocal] = useState({
+    receiptPrefix:  settings.receiptPrefix  ?? 'RCP',
+    receiptFooter:  settings.receiptFooter  ?? '',
+    receiptShowTax: settings.receiptShowTax ?? false,
+    receiptTaxRate: settings.receiptTaxRate ?? 0,
+  })
+  const set = key => val => setLocal(p=>({...p,[key]:val}))
+  const save = () => { updateMany(local); showToast('Receipt settings saved'); onBack() }
+  return (
+    <FullModal title="Receipt Settings" onBack={onBack} onSave={save}>
+      <div>
+        <FieldGroup>
+          <Field label="Receipt Number Prefix" hint="Shown before the number, e.g. RCP-0001.">
+            <TextInput value={local.receiptPrefix} onChange={set('receiptPrefix')} placeholder="RCP" />
+          </Field>
+        </FieldGroup>
+        <div style={{ height:12 }} />
+        <FieldGroup>
+          <div className={styles.row} style={{ borderBottom: local.receiptShowTax?'1px solid var(--border)':'none' }}>
+            <div className={styles.rowIcon}><span className="mi" style={{ fontSize:'1.15rem' }}>percent</span></div>
+            <div className={styles.rowText}>
+              <div className={styles.rowLabel}>Show Tax Line</div>
+              <div className={styles.rowSub}>Add a VAT / tax row to receipt totals</div>
+            </div>
+            <div className={styles.rowRight}><Toggle value={local.receiptShowTax} onChange={v=>set('receiptShowTax')(v)} /></div>
+          </div>
+          {local.receiptShowTax && (
+            <Field label="Tax Rate (%)" hint="e.g. 7.5 for 7.5% VAT">
+              <TextInput type="number" value={String(local.receiptTaxRate)} onChange={v=>set('receiptTaxRate')(parseFloat(v)||0)} placeholder="7.5" />
+            </Field>
+          )}
+        </FieldGroup>
+        <div style={{ height:12 }} />
+        <FieldGroup>
+          <Field label="Receipt Footer Text" hint="Printed at the bottom of every receipt.">
+            <Textarea value={local.receiptFooter} onChange={set('receiptFooter')} placeholder="Thank you for your payment 🙏" rows={3} />
+          </Field>
+        </FieldGroup>
+      </div>
+    </FullModal>
   )
 }
 
@@ -986,6 +1392,7 @@ export default function Settings({ onMenuClick, isPremium=false, onUpgrade=()=>{
   const [toastMsg,setToastMsg]=useState('')
   const [templateModal,setTemplateModal]=useState(false)
   const [invoiceModal,setInvoiceModal]=useState(false)
+  const [receiptModal,setReceiptModal]=useState(false)
   const [clearConfirm,setClearConfirm]=useState(false)
   const [resetConfirm,setResetConfirm]=useState(false)
   const toastTimer=useRef(null)
@@ -1001,9 +1408,10 @@ export default function Settings({ onMenuClick, isPremium=false, onUpgrade=()=>{
           <Toggle value={isDark} onChange={v=>updateSetting('theme',v?'dark':'light')} />
         </SettingRow>
 
-        <SectionHeader icon="receipt_long" label="Invoice" />
+        <SectionHeader icon="receipt_long" label="Invoice / Receipt" />
         <SettingRow icon="tune" label="Invoice Settings" sub={`${settings.invoiceCurrency} · ${settings.invoicePrefix} · Due ${settings.invoiceDueDays}d`} onClick={()=>setInvoiceModal(true)} chevron />
-        <SettingRow icon="description" label="Invoice Template" sub="Choose your preferred invoice design" value={settings.invoiceTemplate} onClick={()=>setTemplateModal(true)} chevron />
+        <SettingRow icon="request_quote" label="Receipt Settings" sub="Prefix, footer text and receipt defaults" onClick={()=>setReceiptModal(true)} chevron />
+        <SettingRow icon="description" label="Templates" sub="Choose your preferred invoice & receipt designs" value={settings.invoiceTemplate} onClick={()=>setTemplateModal(true)} chevron />
 
         <SectionHeader icon="notifications" label="Notifications" />
         <SettingRow icon="alarm" label="Overdue Tasks" sub="Alert when tasks pass their due date">
@@ -1024,6 +1432,7 @@ export default function Settings({ onMenuClick, isPremium=false, onUpgrade=()=>{
 
       <TemplateModal isOpen={templateModal} currentTemplate={settings.invoiceTemplate} onClose={()=>setTemplateModal(false)} onSelect={v=>{updateSetting('invoiceTemplate',v);showToast('Template selected')}} />
       {invoiceModal&&<InvoiceSettingsModal onBack={()=>setInvoiceModal(false)} showToast={showToast} />}
+      {receiptModal&&<ReceiptSettingsModal onBack={()=>setReceiptModal(false)} showToast={showToast} />}}
       <ConfirmSheet open={clearConfirm} title="Delete All Data?" onConfirm={()=>{localStorage.clear();setClearConfirm(false);showToast('Cleared')}} onCancel={()=>setClearConfirm(false)} />
       <ConfirmSheet open={resetConfirm} title="Reset All Settings?" onConfirm={()=>{resetSettings();setResetConfirm(false);showToast('Settings reset')}} onCancel={()=>setResetConfirm(false)} />
       <Toast message={toastMsg} />
