@@ -139,7 +139,7 @@
 /* ══════════════════════════════════════════════════════════
    SHARED TEMPLATE BASE STYLES (Templates 1–3)
 ══════════════════════════════════════════════════════════ */
-.pBase { padding:16px;color:#1a1a1a;font-family:'Inter',sans-serif;font-size:8px;min-height:400px;display:flex;flex-direction:column; }
+.pBase { padding:18px;color:#1a1a1a;font-family:'Inter',sans-serif;font-size:8px;min-height:400px;display:flex;flex-direction:column; }
 .pSmallCap { font-size:6.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:#888;margin-bottom:1px; }
 
 .pTHead2 { display:flex;align-items:center;font-weight:800;border-bottom:1.5px solid #1a1a1a;padding-bottom:4px;margin-bottom:6px;font-size:7px; }
@@ -149,8 +149,8 @@
 .pTRow2 span { flex:1;text-align:right; }
 .pTRow2 span:first-child { flex:3;text-align:left; }
 
-.pBody { flex:1;margin:12px 0; }
-.pMetaRow { display:flex;justify-content:space-between;margin-bottom:14px; }
+.pBody { flex:1;margin:14px 0; }
+.pMetaRow { display:flex;justify-content:space-between;margin-bottom:16px; }
 .pSummary { margin-left:auto;width:40%;margin-top:12px; }
 .pSummarySide { margin-left:auto;width:40%;margin-top:12px; }
 .pSumRow { display:flex;justify-content:space-between;padding:2px 0;font-size:7.5px; }
@@ -171,17 +171,17 @@
 .pLogoPlaceholderBig { background:#f3f4f6;border:1px solid #e5e7eb;padding:12px 16px;font-weight:800;color:#9ca3af;font-size:7px; }
 .pHeaderFree { display:flex;justify-content:space-between;align-items:center;margin-bottom:8px; }
 .pTitleBlock { display:flex;flex-direction:column; }
-.pFreeGrid { display:flex;gap:6px;margin-bottom:10px; }
-.pFreeBox { flex:1;border:1px solid #eee;padding:6px;font-size:6.5px;line-height:1.5; }
-.pFooter { display:flex;gap:10px;margin-top:auto;padding-top:8px;border-top:1px solid #eee; }
+.pFreeGrid { display:flex;gap:6px;margin-bottom:12px; }
+.pFreeBox { flex:1;border:1px solid #eee;padding:8px;font-size:6.5px;line-height:1.5; }
+.pFooter { display:flex;gap:10px;margin-top:auto;padding-top:10px;border-top:1px solid #eee; }
 .pFootSection { flex:1;font-size:6.5px;line-height:1.5; }
-.pFooterGray { background:#f2f2f2;padding:8px;text-align:center;font-weight:700;font-size:7.5px;margin-top:auto; }
+.pFooterGray { background:#f2f2f2;padding:10px;text-align:center;font-weight:700;font-size:7.5px;margin-top:auto; }
 
-.pPurpleBanner { background:#b39ddb;color:#fff;padding:18px 16px;display:flex;justify-content:space-between;align-items:center; }
+.pPurpleBanner { background:#c8a96e;color:#fff;padding:18px 16px;display:flex;justify-content:space-between;align-items:center; }
 .pLogoBoxWhite { border:1.5px dashed rgba(255,255,255,0.5);padding:8px 12px;font-size:6.5px;color:rgba(255,255,255,0.9); }
 .pLargeTitleWhite { font-size:18px;font-weight:900; }
 .pWhiteNo { font-size:9px;font-weight:700;opacity:0.85; }
-.pPurpleBottom { background:#b39ddb;padding:12px 16px;margin-top:auto;color:#fff; }
+.pPurpleBottom { background:#c8a96e;padding:14px 18px;margin-top:auto;color:#fff; }
 .pPurpleFootRow { display:flex;gap:12px; }
 .pFootSectionWhite { flex:1;font-size:6.5px;line-height:1.5; }
 
@@ -268,13 +268,13 @@
 ══════════════════════════════════════════════════════════ */
 .t7Base { background:#fff;color:#1a1a1a;font-family:'Arial',sans-serif;font-size:7px;min-height:480px;display:flex;flex-direction:column;padding:0; }
 .t7Header { display:flex;align-items:center;gap:9px;padding:10px 14px 7px; }
-.t7LogoCircle { width:24px;height:24px;border-radius:50%;border:2px solid #cc0000;display:flex;align-items:center;justify-content:center;flex-shrink:0; }
+.t7LogoCircle { width:24px;height:24px;border-radius:50%;border:2px solid #c8a96e;display:flex;align-items:center;justify-content:center;flex-shrink:0; }
 .t7TitleGroup { display:flex;align-items:baseline;gap:5px;flex:1; }
 .t7InvoiceWord { font-size:16px;font-weight:900;letter-spacing:0.05em; }
 .t7InvoiceNum { font-size:12px;font-weight:900;color:#888; }
 .t7DateBlock { text-align:right;font-size:6.5px; }
 .t7DateLabel { font-size:6px;color:#888;text-transform:uppercase; }
-.t7DateVal { font-weight:700;color:#cc0000;font-size:7px; }
+.t7DateVal { font-weight:700;color:#c8a96e;font-size:7px; }
 .t7Divider { height:2px;background:#1a1a1a;margin:0 14px; }
 .t7FromTo { display:flex;padding:7px 14px; }
 .t7FromToBlock { flex:1;font-size:6.5px;line-height:1.5; }
@@ -287,9 +287,9 @@
 .t7TableHead { display:flex;align-items:center;background:#1a1a1a;color:#fff;padding:4px 14px;font-size:6.5px;font-weight:700;gap:4px; }
 .t7TableRow { display:flex;align-items:center;padding:4px 14px;border-bottom:1px solid #eee;font-size:6.5px;gap:4px; }
 .t7NumCol { width:16px;flex-shrink:0;color:#aaa; }
-.t7RedPrice { flex:1;text-align:right;font-weight:900;color:#cc0000; }
+.t7RedPrice { flex:1;text-align:right;font-weight:900;color:#c8a96e; }
 .t7TotalBar { display:flex;justify-content:space-between;align-items:baseline;background:#f0f0f0;padding:6px 14px;margin-top:auto;font-weight:900;font-size:10px;border-top:2px solid #1a1a1a; }
-.t7TotalAmt { font-size:16px;font-weight:900;color:#cc0000; }
+.t7TotalAmt { font-size:16px;font-weight:900;color:#c8a96e; }
 
 /* ══════════════════════════════════════════════════════════
    TEMPLATE 8 — Green Accent Brand
@@ -299,7 +299,7 @@
 .t8LogoArea { display:flex;align-items:center;gap:6px; }
 .t8BrandName { font-size:9.5px;font-weight:700; }
 .t8BrandSub { font-size:5.5px;color:#999;letter-spacing:0.06em; }
-.t8InvoiceBox { background:#00c896;color:#fff;padding:7px 12px;border-radius:2px;text-align:right;min-width:75px; }
+.t8InvoiceBox { background:#c8a96e;color:#fff;padding:7px 12px;border-radius:2px;text-align:right;min-width:75px; }
 .t8InvoiceTitle { font-size:15px;font-weight:900;letter-spacing:0.05em; }
 .t8InvoiceMeta { display:grid;grid-template-columns:1fr 1fr;gap:0 5px;font-size:6px;margin-top:3px; }
 .t8TableHead { display:flex;background:#f5f5f5;padding:5px 14px;font-size:6.5px;font-weight:700;gap:4px;color:#444; }
@@ -309,7 +309,7 @@
 .t8TableRow { display:flex;padding:4px 14px;border-bottom:1px solid #f0f0f0;font-size:7px;gap:4px; }
 .t8Divider { height:1px;background:#eee;margin:4px 14px; }
 .t8Bottom { display:flex;gap:7px;padding:7px 14px 12px;margin-top:auto; }
-.t8GreenBox { background:#00c896;color:#fff;padding:7px 9px;border-radius:2px;width:100px;flex-shrink:0;font-size:6px;line-height:1.5; }
+.t8GreenBox { background:#c8a96e;color:#fff;padding:7px 9px;border-radius:2px;width:100px;flex-shrink:0;font-size:6px;line-height:1.5; }
 .t8GreenBoxTitle { font-weight:700;font-size:7px;margin-bottom:2px; }
 .t8GreenBoxName { font-weight:700;font-size:7.5px; }
 .t8GreenBoxAddr { opacity:0.85;font-size:5.5px;margin-top:1px; }
@@ -332,12 +332,12 @@
 .t9CompanyName { font-size:8.5px;font-weight:900;letter-spacing:0.04em; }
 .t9CompanySub { font-size:5.5px;color:#888;letter-spacing:0.06em;margin-top:1px; }
 .t9CompanyAddr { font-size:6px;color:#555;line-height:1.5;margin-top:2px; }
-.t9InvoiceTitle { font-size:26px;font-weight:300;color:#00b4c8;letter-spacing:0.1em;align-self:center; }
+.t9InvoiceTitle { font-size:26px;font-weight:300;color:#c8a96e;letter-spacing:0.1em;align-self:center; }
 .t9NumBar { background:#1a1a2e;color:#fff;display:flex;gap:10px;padding:4px 14px;font-size:6.5px;font-weight:600; }
 .t9BillShip { display:flex;gap:16px;padding:7px 14px;font-size:6.5px;line-height:1.5; }
 .t9BillShip>div { flex:1; }
 .t9BillLabel { font-weight:700;font-size:7px; }
-.t9TableHead { display:flex;background:#00b4c8;color:#fff;padding:4px 14px;font-size:6.5px;font-weight:700;gap:4px; }
+.t9TableHead { display:flex;background:#c8a96e;color:#fff;padding:4px 14px;font-size:6.5px;font-weight:700;gap:4px; }
 .t9TableHead span,.t9TableRow span { flex:1;text-align:right; }
 .t9TableHead span:nth-child(2),.t9TableRow span:nth-child(2) { flex:3;text-align:left; }
 .t9TableHead span:first-child,.t9TableRow span:first-child { flex:0.5;text-align:left; }
@@ -351,14 +351,14 @@
 .t9SignArea { text-align:center; }
 .t9SignLine { width:55px;height:1px;background:#aaa;margin:0 auto 2px; }
 .t9SignLabel { font-size:6px;color:#666; }
-.t9CornerDeco { position:absolute;bottom:0;right:0;width:48px;height:48px;background:linear-gradient(135deg,transparent 50%,#00b4c8 50%);opacity:0.35; }
+.t9CornerDeco { position:absolute;bottom:0;right:0;width:48px;height:48px;background:linear-gradient(135deg,transparent 50%,#c8a96e 50%);opacity:0.35; }
 
 /* ══════════════════════════════════════════════════════════
    TEMPLATE 10 — Full-Width Diagonal
 ══════════════════════════════════════════════════════════ */
 .t10Base { background: #fff; color: #1a1a1a; font-family: 'Inter', sans-serif; font-size: 7px; min-height: 500px; display: flex; flex-direction: column; padding: 0; position: relative; overflow: hidden; }
 .t10HeaderZone { position: relative; width: 100%; height: 70px; flex-shrink: 0; overflow: hidden; }
-.t10FullBanner { position: absolute; inset: 0; background: #ff5c8a; clip-path: polygon(0 0, 100% 0, 100% 28px, 0 100%); display: flex; align-items: flex-start; padding: 10px 16px 0; }
+.t10FullBanner { position: absolute; inset: 0; background: #c8a96e; clip-path: polygon(0 0, 100% 0, 100% 28px, 0 100%); display: flex; align-items: flex-start; padding: 10px 16px 0; }
 .t10BannerTitle { color: #fff; font-size: 20px; font-weight: 900; letter-spacing: 0.05em; padding-top: 2px; }
 .t10BrandInBanner { position: absolute; top: 6px; right: 12px; display: flex; align-items: center; gap: 6px; }
 .t10BrandName { font-size: 9.5px; font-weight: 700; color: #1a1a1a; }
@@ -388,7 +388,7 @@
 .t10SignBlock { text-align:center; }
 .t10SignLine { height:1px;background:#aaa;margin-bottom:2px; }
 .t10SignLabel { font-size:6px;color:#666; }
-.t10CornerPink { position: absolute; bottom: 0; right: 0; width: 65px; height: 55px; background: #ff5c8a; clip-path: polygon(100% 0, 100% 100%, 0 100%); }
+.t10CornerPink { position: absolute; bottom: 0; right: 0; width: 65px; height: 55px; background: #c8a96e; clip-path: polygon(100% 0, 100% 100%, 0 100%); }
 
 /* ══════════════════════════════════════════════════════════
    TEMPLATE 11 — Blue Clean Corporate
@@ -401,11 +401,11 @@
 .t11CompanySub { font-size:5.5px;color:#888; }
 .t11CompanyInfo { font-size:6px;line-height:1.6;color:#444; }
 .t11InvoiceTitle { font-size:20px;font-weight:400;padding:7px 14px 3px;color:#1a1a1a; }
-.t11BlueBar { background:#dbeeff;display:flex;justify-content:space-between;padding:4px 14px;font-size:6.5px;font-weight:600;color:#1a5a9a; }
+.t11BlueBar { background:#f5eed9;display:flex;justify-content:space-between;padding:4px 14px;font-size:6.5px;font-weight:600;color:#9a7a2e; }
 .t11IssuedRow { display:flex;justify-content:space-between;padding:7px 14px 3px;font-size:6.5px;line-height:1.6; }
 .t11IssuedLabel { font-size:7px;font-weight:700;margin-bottom:2px; }
-.t11AmountLabel { font-size:6.5px;color:#5da0d0;font-weight:700;text-align:right; }
-.t11AmountVal { font-size:18px;font-weight:300;color:#5da0d0;text-align:right; }
+.t11AmountLabel { font-size:6.5px;color:#c8a96e;font-weight:700;text-align:right; }
+.t11AmountVal { font-size:18px;font-weight:300;color:#c8a96e;text-align:right; }
 .t11ProjectName { font-size:9.5px;font-weight:600;padding:3px 14px 2px; }
 .t11TableHead { display:flex;background:#1a1a1a;color:#fff;padding:4px 14px;font-size:6.5px;font-weight:700;gap:4px; }
 .t11TableHead span,.t11TableRow span { flex:1;text-align:right; }
@@ -416,6 +416,6 @@
 .t11TotBold { display:flex;justify-content:space-between;font-weight:900;font-size:7.5px;border-top:1px solid #aaa;padding-top:2px;margin-top:2px; }
 .t11PayTitle { font-size:9.5px;font-weight:600;padding:7px 14px 3px; }
 .t11PayBoxRow { display:flex;gap:5px;padding:0 14px 7px; }
-.t11PayBox { flex:1;background:#dbeeff;padding:5px 7px;font-size:6px;line-height:1.5; }
+.t11PayBox { flex:1;background:#f5eed9;padding:5px 7px;font-size:6px;line-height:1.5; }
 .t11PayBoxTitle { font-weight:700;font-size:7px;margin-bottom:2px; }
-.t11ThankYou { text-align:right;font-size:9.5px;font-weight:700;color:#5da0d0;padding:3px 14px 9px;margin-top:auto;letter-spacing:0.05em; }
+.t11ThankYou { text-align:right;font-size:9.5px;font-weight:700;color:#c8a96e;padding:3px 14px 9px;margin-top:auto;letter-spacing:0.05em; }
