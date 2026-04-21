@@ -2,12 +2,12 @@
 .scrollArea { flex: 1; overflow-y: auto; padding: 8px 0 40px; }
 
 /* ── SECTION HEADER ── */
-.sectionHeader { display: flex; align-items: center; gap: 8px; padding: 32px 16px 12px; }
+.sectionHeader { display: flex; align-items: center; gap: 10px; padding: 32px 16px 10px; }
 .sectionLabel {
-  font-size: 0.8rem;
+  font-size: 1rem;
   font-weight: 900;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   color: var(--text);
 }
 
@@ -236,6 +236,29 @@
   cursor: pointer;
   transition: all 0.15s;
 }
+/* Nationwide / International special buttons */
+.serviceAreaSpecial {
+  display: flex;
+  gap: 8px;
+}
+.serviceAreaSpecialBtn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1.5px solid var(--border);
+  background: var(--surface2);
+  color: var(--text2);
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.serviceAreaSpecialBtn:active { opacity: 0.8; }
 .serviceAreaSearch {
   display: flex;
   align-items: center;
@@ -358,16 +381,12 @@
 }
 .ccFlag { font-size: 1.1rem; line-height: 1; }
 .ccCode { font-size: 0.85rem; font-weight: 700; color: var(--text); }
+/* dropdown position is set via inline style (position:fixed) to escape overflow:hidden parents */
 .ccDropdown {
-  position: absolute;
-  top: calc(100% + 6px);
-  left: 0;
-  z-index: 9999;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 14px;
-  width: 280px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.22);
   overflow: hidden;
 }
 .ccSearchWrap {
