@@ -1561,6 +1561,14 @@ export default function Profile({ onMenuClick, isPremium = false, onUpgrade = ()
           </div>
         )}
 
+        <TappableRow
+          icon="receipt_long"
+          label="Billing History"
+          sub="See past payments, plan renewals & expiry dates"
+          onClick={() => {}}
+          divider={false}
+        />
+
         {/* ── Account ── */}
         <SectionHeader icon="warning" label="Danger Zone" />
         <TappableRow
