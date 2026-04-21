@@ -1420,7 +1420,7 @@ export default function Settings({ onMenuClick, isPremium=false, onUpgrade=()=>{
           <Toggle value={isDark} onChange={v=>updateSetting('theme',v?'dark':'light')} />
         </SettingRow>
 
-        <SectionHeader icon="receipt_long" label="Invoice / Receipt" />
+        <SectionHeader icon="receipt_long" label="Invoice & Receipt" />
         <SettingRow icon="tune" label="Invoice Settings" sub={`${settings.invoiceCurrency} · ${settings.invoicePrefix} · Due ${settings.invoiceDueDays}d`} onClick={()=>setInvoiceModal(true)} chevron />
         <SettingRow icon="request_quote" label="Receipt Settings" sub="Prefix, footer text and receipt defaults" onClick={()=>setReceiptModal(true)} chevron />
         <SettingRow icon="description" label="Templates" sub="Choose your preferred invoice & receipt designs" value={settings.invoiceTemplate} onClick={()=>setTemplateModal(true)} chevron />
