@@ -3,7 +3,7 @@
 
 /* ── SECTION HEADER ── */
 .sectionHeader { display: flex; align-items: center; gap: 10px; padding: 32px 16px 10px; }
-.sectionLabel { font-size: 1.2rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text); }
+.sectionLabel { font-size: 1.1rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text); }
 
 /* ── GROUP HEADER (template picker) ── */
 .groupHeader {
