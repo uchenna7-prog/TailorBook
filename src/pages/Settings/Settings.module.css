@@ -2,8 +2,8 @@
 .scrollArea { flex: 1; overflow-y: auto; padding: 8px 0 40px; }
 
 /* ── SECTION HEADER ── */
-.sectionHeader { display: flex; align-items: center; gap: 7px; padding: 28px 16px 12px; }
-.sectionLabel { font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text3); }
+.sectionHeader { display: flex; align-items: center; gap: 10px; padding: 32px 16px 10px; }
+.sectionLabel { font-size: 1.2rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text); }
 
 /* ── GROUP HEADER (template picker) ── */
 .groupHeader {
