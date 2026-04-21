@@ -463,7 +463,7 @@ function PersonalModal({ personal, onBack, onSave, authUser }) {
             <option value="Prefer not to say">Prefer not to say</option>
           </select>
         </Field>
-        <Field label="Birthday" hint="Day and month only — no year needed">
+        <Field label="Birthday">
           <div className={styles.turnaroundRow}>
             <select
               className={styles.turnaroundSelect}
@@ -1517,7 +1517,7 @@ export default function Profile({ onMenuClick, isPremium = false, onUpgrade = ()
         )}
 
         {/* ── Account ── */}
-        <SectionHeader icon="manage_accounts" label="Account" />
+        <SectionHeader icon="settings_account_box" label="Danger Zone" />
         <TappableRow
           icon="logout"
           label="Log Out"
