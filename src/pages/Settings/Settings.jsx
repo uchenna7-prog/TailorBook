@@ -782,7 +782,7 @@ function SettingRow({ icon, label, sub, value, children, onClick, chevron, divid
       <div className={styles.rowIcon}><span className="mi" style={{ fontSize:'1.15rem', color: danger ? '#ef4444' : undefined }}>{icon}</span></div>
       <div className={styles.rowText}>
         <div className={styles.rowLabel} style={{ color: danger ? '#ef4444' : undefined }}>{label}</div>
-        {sub&&<div className={styles.rowSub} style={{ color: danger ? '#ef4444' : undefined }}>{sub}</div>}
+        {sub&&<div className={styles.rowSub}>{sub}</div>}
       </div>
       <div className={styles.rowRight}>
         {locked
