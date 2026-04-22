@@ -1,4 +1,4 @@
-/* ── OVERLAY ── */
+/* ── OVERLAY — mobile only ── */
 .overlay {
   position: fixed;
   inset: 0;
@@ -21,7 +21,7 @@
   top: 0;
   left: 0;
   bottom: 0;
-  width: var(--sidebar-width);
+  width: var(--sidebar-width, 240px);
   background: var(--surface);
   border-right: 1px solid var(--border);
   z-index: 500;
@@ -33,26 +33,30 @@
   will-change: transform;
 }
 
-/* ✅ OPEN STATE */
+/* Open state (mobile drawer) */
 .open {
   transform: translateX(0);
 }
 
-/* Desktop */
+/* ── Desktop: always visible, no overlay ── */
 @media (min-width: 769px) {
   .sidebar {
     transform: translateX(0);
+    /* Ensure it sits behind page content z-order but always shows */
+    z-index: 300;
   }
 
   .overlay {
-    display: none;
+    display: none !important;
   }
 }
 
-/* Mobile tweaks */
+/* ── Mobile tweaks ── */
 @media (max-width: 768px) {
   .sidebar {
-    width: 80%;
+    width: min(80%, 320px);
+    /* On mobile it floats above everything */
+    z-index: 500;
   }
 }
 
@@ -107,11 +111,14 @@
   flex-shrink: 0;
 }
 
-/* User name */
 .userName {
   font-weight: 700;
   font-size: 1.1rem;
   color: var(--text);
+  /* Truncate long names */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* ── SCROLLABLE CONTENT ── */
@@ -121,7 +128,14 @@
   display: flex;
   flex-direction: column;
   padding-bottom: 20px;
+  /* Custom scrollbar for desktop */
+  scrollbar-width: thin;
+  scrollbar-color: var(--border2) transparent;
 }
+
+.scrollArea::-webkit-scrollbar { width: 4px; }
+.scrollArea::-webkit-scrollbar-track { background: transparent; }
+.scrollArea::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
 
 /* ── NAVIGATION ── */
 .nav {
@@ -148,26 +162,23 @@
   cursor: pointer;
 }
 
-.navItem:hover {
-  background: var(--surface2);
-}
-
-.navItem:active {
-  background: var(--border);
-}
+.navItem:hover  { background: var(--surface2); }
+.navItem:active { background: var(--border); }
 
 .active {
   background: var(--surface2);
   color: var(--accent);
 }
 
-/* Increased icon size for better visibility */
+/* Icon size */
 .navItem span {
-  font-size: 1.5rem; 
+  font-size: 1.5rem;
+  flex-shrink: 0;
 }
 
-/* ✅ Logout styling - Force color on both text and icon span */
-.danger, .danger span {
+/* Logout styling */
+.danger,
+.danger span {
   color: var(--danger) !important;
 }
 
@@ -192,10 +203,9 @@
   cursor: pointer;
 }
 
-.footerLink:hover {
-  color: var(--accent);
-}
+.footerLink:hover { color: var(--accent); }
 
+/* ── BADGE ── */
 .badge {
   margin-left: auto;
   background: #f5a623;
