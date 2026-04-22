@@ -41,6 +41,35 @@ const TABS = [
   { id: 'receipts', label: 'Receipts'           },
 ]
 
+// ─────────────────────────────────────────────────────────────
+// Helper: read a fresh brand snapshot from localStorage.
+// Called at the moment a receipt or invoice is generated so the
+// snapshot is frozen to the brand settings active RIGHT NOW.
+// Never reads from the live React context — that way changing the
+// brand colour later never mutates already-generated documents.
+// ─────────────────────────────────────────────────────────────
+function readBrandSnapshot(settingsSnap, invoiceBrand) {
+  // Priority: localStorage brand fields > context (fallback only)
+  return {
+    name:     settingsSnap.brandName      || invoiceBrand?.name    || '',
+    tagline:  settingsSnap.brandTagline   || invoiceBrand?.tagline || '',
+    // Colour MUST come from localStorage first — it is the source of truth
+    // for what the user had set at generation time.
+    colour:   settingsSnap.brandColour    || invoiceBrand?.colour  || '#D4AF37',
+    colourId: settingsSnap.brandColourId  || invoiceBrand?.colourId || '',
+    phone:    settingsSnap.brandPhone     || invoiceBrand?.phone   || '',
+    email:    settingsSnap.brandEmail     || invoiceBrand?.email   || '',
+    address:  settingsSnap.brandAddress   || invoiceBrand?.address || '',
+    logo:     settingsSnap.brandLogo      || invoiceBrand?.logo    || '',
+    website:  settingsSnap.brandWebsite   || invoiceBrand?.website || '',
+    footer:   settingsSnap.invoiceFooter  || 'Thank you for your patronage 🙏',
+    currency: settingsSnap.invoiceCurrency || '₦',
+    showTax:  settingsSnap.invoiceShowTax  || false,
+    taxRate:  settingsSnap.invoiceTaxRate  || 0,
+    dueDays:  settingsSnap.invoiceDueDays  || 7,
+  }
+}
+
 // ── Edit Customer Modal ───────────────────────────────────────
 function EditCustomerModal({ customer, onSave, onClose }) {
   const [form, setForm] = useState({
@@ -68,7 +97,6 @@ function EditCustomerModal({ customer, onSave, onClose }) {
     }
   }
 
-  // Close on backdrop click
   const handleBackdrop = (e) => {
     if (e.target === e.currentTarget) onClose()
   }
@@ -76,7 +104,6 @@ function EditCustomerModal({ customer, onSave, onClose }) {
   return (
     <div className={styles.modalOverlay} onClick={handleBackdrop}>
       <div className={styles.modalSheet}>
-        {/* Header */}
         <div className={styles.modalHeader}>
           <button className={styles.modalCloseBtn} onClick={onClose}>
             <span className="mi">close</span>
@@ -91,9 +118,7 @@ function EditCustomerModal({ customer, onSave, onClose }) {
           </button>
         </div>
 
-        {/* Body */}
         <div className={styles.modalBody}>
-          {/* Name */}
           <div className={styles.modalGroup}>
             <label className={styles.modalLabel}>Full Name *</label>
             <input
@@ -104,7 +129,6 @@ function EditCustomerModal({ customer, onSave, onClose }) {
             />
           </div>
 
-          {/* Phone */}
           <div className={styles.modalGroup}>
             <label className={styles.modalLabel}>Phone Number *</label>
             <input
@@ -116,7 +140,6 @@ function EditCustomerModal({ customer, onSave, onClose }) {
             />
           </div>
 
-          {/* Sex chips */}
           <div className={styles.modalGroup}>
             <label className={styles.modalLabel}>Gender</label>
             <div className={styles.modalSexRow}>
@@ -133,7 +156,6 @@ function EditCustomerModal({ customer, onSave, onClose }) {
             </div>
           </div>
 
-          {/* Email */}
           <div className={styles.modalGroup}>
             <label className={styles.modalLabel}>Email Address</label>
             <input
@@ -145,7 +167,6 @@ function EditCustomerModal({ customer, onSave, onClose }) {
             />
           </div>
 
-          {/* Birthday */}
           <div className={styles.modalGroup}>
             <label className={styles.modalLabel}>Birthday</label>
             <input
@@ -157,7 +178,6 @@ function EditCustomerModal({ customer, onSave, onClose }) {
             />
           </div>
 
-          {/* Address */}
           <div className={styles.modalGroup}>
             <label className={styles.modalLabel}>Address</label>
             <input
@@ -168,7 +188,6 @@ function EditCustomerModal({ customer, onSave, onClose }) {
             />
           </div>
 
-          {/* Notes */}
           <div className={styles.modalGroup}>
             <label className={styles.modalLabel}>Notes</label>
             <textarea
@@ -192,15 +211,12 @@ function DeleteConfirmModal({ customer, onConfirm, onCancel }) {
   return (
     <div className={styles.modalOverlay} onClick={(e) => e.target === e.currentTarget && onCancel()}>
       <div className={styles.deleteSheet}>
-        {/* Icon */}
         <div className={styles.deleteIconWrap}>
           <span className="mi" style={{ fontSize: '2rem', color: 'var(--danger)' }}>person_remove</span>
         </div>
 
-        {/* Heading */}
         <h4 className={styles.deleteTitle}>Remove This Customer?</h4>
 
-        {/* Message */}
         <p className={styles.deleteMessage}>
           You're about to permanently remove{' '}
           <strong>{customer.name}</strong> from your customer list.
@@ -211,7 +227,6 @@ function DeleteConfirmModal({ customer, onConfirm, onCancel }) {
           ⚠️ Are you absolutely sure you want to continue?
         </p>
 
-        {/* Actions */}
         <div className={styles.deleteActions}>
           <button className={styles.deleteCancelBtn} onClick={onCancel}>
             No, Keep Customer
@@ -242,7 +257,6 @@ export default function CustomerDetail({ onMenuClick }) {
   const [receipts,      setReceipts]      = useState([])
   const [isScrolled,    setIsScrolled]    = useState(false)
 
-  // ── Modal state ───────────────────────────────────────────────
   const [editModalOpen,   setEditModalOpen]   = useState(false)
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
 
@@ -322,7 +336,6 @@ export default function CustomerDetail({ onMenuClick }) {
     toastTimer.current = setTimeout(() => setToastMsg(''), 2400)
   }, [])
 
-  // ── Edit handler ──────────────────────────────────────────────
   const handleEditSave = useCallback(async (updates) => {
     try {
       await updateCustomer(id, updates)
@@ -333,7 +346,6 @@ export default function CustomerDetail({ onMenuClick }) {
     }
   }, [id, updateCustomer, showToast])
 
-  // ── Delete handler ────────────────────────────────────────────
   const handleDeleteConfirm = useCallback(async () => {
     try {
       await deleteCustomer(id)
@@ -352,6 +364,7 @@ export default function CustomerDetail({ onMenuClick }) {
     const order = orders.find(o => String(o.id) === String(orderId))
     if (!order) return
 
+    // Read settings fresh from localStorage at this exact moment
     let settingsSnap = {}
     try { settingsSnap = JSON.parse(localStorage.getItem('tailorbook_settings') || '{}') } catch {}
 
@@ -360,6 +373,9 @@ export default function CustomerDetail({ onMenuClick }) {
     const ids         = order.measurementIds?.length ? order.measurementIds : (order.measurementId ? [order.measurementId] : [])
     const linkedNames = ids.map(mid => data.measurements.find(m => String(m.id) === String(mid))?.name).filter(Boolean)
     const items       = Array.isArray(order.items) ? order.items : []
+
+    // FIX: brand snapshot is frozen from localStorage at generation time only
+    const brandSnapshot = readBrandSnapshot(settingsSnap, invoiceBrand)
 
     const newInvoice = {
       id:        Date.now() + Math.random(),
@@ -375,19 +391,7 @@ export default function CustomerDetail({ onMenuClick }) {
       status:    'unpaid',
       date:      today,
       template:  invoiceTemplate || settingsSnap.invoiceTemplate || 'editable',
-      brandSnapshot: {
-        name:     invoiceBrand?.name    || settingsSnap.brandName      || '',
-        tagline:  invoiceBrand?.tagline || settingsSnap.brandTagline   || '',
-        colour:   invoiceBrand?.colour  || settingsSnap.brandColour    || '#D4AF37',
-        phone:    invoiceBrand?.phone   || settingsSnap.brandPhone     || '',
-        email:    invoiceBrand?.email   || settingsSnap.brandEmail     || '',
-        address:  invoiceBrand?.address || settingsSnap.brandAddress   || '',
-        footer:   settingsSnap.invoiceFooter   || 'Thank you for your patronage 🙏',
-        currency: settingsSnap.invoiceCurrency || '₦',
-        showTax:  settingsSnap.invoiceShowTax  || false,
-        taxRate:  settingsSnap.invoiceTaxRate  || 0,
-        dueDays:  settingsSnap.invoiceDueDays  || 7,
-      },
+      brandSnapshot,
     }
 
     try {
@@ -425,6 +429,9 @@ export default function CustomerDetail({ onMenuClick }) {
   const handleGenerateReceipt = useCallback(async (payment) => {
     if (!user) return
 
+    // Read settings fresh from localStorage at this exact moment
+    // This freezes the brand at generation time — changes to the brand
+    // profile AFTER this point will not affect this receipt.
     let settingsSnap = {}
     try { settingsSnap = JSON.parse(localStorage.getItem('tailorbook_settings') || '{}') } catch {}
 
@@ -436,6 +443,7 @@ export default function CustomerDetail({ onMenuClick }) {
       return
     }
 
+    // Work out which installments are genuinely new (not on any prior receipt)
     const usedInstallmentIds = new Set(
       receipts
         .filter(r => String(r.paymentId) === String(payment.id))
@@ -446,12 +454,16 @@ export default function CustomerDetail({ onMenuClick }) {
       inst => !usedInstallmentIds.has(String(inst.id))
     )
 
+    // If there are new installments use them; otherwise fall back to all
+    // (handles edge case where IDs aren't tracked yet)
     const installmentsForReceipt = newInstallments.length > 0
       ? newInstallments
       : allInstallments
 
     const receiptInstallmentIds = new Set(installmentsForReceipt.map(i => String(i.id)))
-    const previousInstallments  = allInstallments
+
+    // Everything NOT on this receipt = historical previous payments
+    const previousInstallments = allInstallments
       .filter(inst => !receiptInstallmentIds.has(String(inst.id)))
       .map(inst => ({
         id:     inst.id,
@@ -471,6 +483,13 @@ export default function CustomerDetail({ onMenuClick }) {
     const perPaymentCount = receipts.filter(r => String(r.paymentId) === String(payment.id)).length + 1
     const globalCount     = receipts.length + 1
     const rcptNumber      = `RCP-${String(perPaymentCount).padStart(2, '0')}-${String(globalCount).padStart(3, '0')}`
+
+    // FIX: brand snapshot is frozen from localStorage at generation time only
+    const brandSnapshot = {
+      ...readBrandSnapshot(settingsSnap, invoiceBrand),
+      // Override footer for receipts specifically
+      footer: settingsSnap.receiptFooter || settingsSnap.invoiceFooter || 'Thank you for your payment 🙏',
+    }
 
     const newReceipt = {
       paymentId:  payment.id,
@@ -493,19 +512,8 @@ export default function CustomerDetail({ onMenuClick }) {
       isFullPayment: isFullPay,
       balance,
       notes: payment.notes || '',
-      brandSnapshot: {
-        name:     invoiceBrand?.name    || settingsSnap.brandName      || '',
-        tagline:  invoiceBrand?.tagline || settingsSnap.brandTagline   || '',
-        colour:   invoiceBrand?.colour  || settingsSnap.brandColour    || '#D4AF37',
-        phone:    invoiceBrand?.phone   || settingsSnap.brandPhone     || '',
-        email:    invoiceBrand?.email   || settingsSnap.brandEmail     || '',
-        address:  invoiceBrand?.address || settingsSnap.brandAddress   || '',
-        footer:   settingsSnap.invoiceFooter   || 'Thank you for your payment 🙏',
-        currency: settingsSnap.invoiceCurrency || '₦',
-        showTax:  settingsSnap.invoiceShowTax  || false,
-        taxRate:  settingsSnap.invoiceTaxRate  || 0,
-        dueDays:  settingsSnap.invoiceDueDays  || 7,
-      },
+      template: settingsSnap.invoiceTemplate || 'editable',
+      brandSnapshot,
     }
 
     try {
@@ -515,7 +523,7 @@ export default function CustomerDetail({ onMenuClick }) {
     } catch {
       showToast('Failed to generate receipt. Try again.')
     }
-  }, [user, id, receipts, orders, showToast, invoiceTemplate, invoiceBrand])
+  }, [user, id, receipts, orders, showToast, invoiceBrand])
 
   const handleDeleteReceipt = useCallback(async (receiptId) => {
     if (!user) return
@@ -720,7 +728,8 @@ export default function CustomerDetail({ onMenuClick }) {
           <ReceiptTab
             receipts={receipts}
             customer={customer}
-            orders={orders} onDelete={handleDeleteReceipt}
+            orders={orders}
+            onDelete={handleDeleteReceipt}
             showToast={showToast}
           />
         )}
@@ -734,7 +743,6 @@ export default function CustomerDetail({ onMenuClick }) {
 
       <Toast message={toastMsg} />
 
-      {/* ── Edit Modal ── */}
       {editModalOpen && (
         <EditCustomerModal
           customer={customer}
@@ -743,7 +751,6 @@ export default function CustomerDetail({ onMenuClick }) {
         />
       )}
 
-      {/* ── Delete Confirm Modal ── */}
       {deleteModalOpen && (
         <DeleteConfirmModal
           customer={customer}
