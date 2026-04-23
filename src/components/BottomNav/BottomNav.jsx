@@ -6,7 +6,7 @@ const NAV_ITEMS = [
   { icon: 'dashboard',     label: 'Dashboard',    route: '/'             },
   { icon: 'groups',        label: 'Customers',    route: '/customers'    },
   { icon: 'event',         label: 'Appointments', route: '/appointments' },
-  { icon: 'shopping_cart', label: 'Orders',       route: '/orders'       },
+  { icon: 'shopping_cart', label: 'All Orders',       route: '/orders'       },
   { icon: 'assignment',    label: 'Tasks',        route: '/tasks'        },
 ]
 

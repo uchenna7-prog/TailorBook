@@ -134,7 +134,8 @@ body,
 
 @media (max-width: 768px) {
   .app-content {
-    margin-left: 0;
+    margin-left: 0px;
+    max-width:100vw ;
   }
 }
 
