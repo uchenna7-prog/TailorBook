@@ -71,6 +71,7 @@ const STATUS_META = {
 // show one row so it's visible in the feed.
 // ─────────────────────────────────────────────────────────────
 
+
 function flattenPayments(allPayments) {
   const rows = []
 
