@@ -1,6 +1,6 @@
 import styles from "../styles/Template11.module.css"
 import { TAILOR_ROWS } from "../../datas/sampleDatas";
-import { RPreviewSummary } from "../../components/RpreviewSummary/RPreviewSummary";
+import { RPreviewSummary } from "../../components/RPreviewSummary/RPreviewSummary";
 import { RECEIPT_BRAND_SAMPLE,RECEIPT_SAMPLE,RECEIPT_SAMPLE_CUSTOMER } from "../../datas/sampleDatas";
 import { rFmt,rResolvePaid } from "../../utils/receiptUtils";
 

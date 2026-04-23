@@ -1,6 +1,6 @@
 import styles from "../styles/Template8.module.css"
 import {RECEIPT_SAMPLE,RECEIPT_SAMPLE_CUSTOMER,RECEIPT_BRAND_SAMPLE,TAILOR_ROWS} from "../../datas/sampleDatas";
-import { RPreviewSummary } from "../../components/RpreviewSummary/RPreviewSummary";
+import { RPreviewSummary } from "../../components/RPreviewSummary/RPreviewSummary";
 import { rFmt,rResolvePaid } from "../../utils/receiptUtils";
 
 export function RTemplate8() {

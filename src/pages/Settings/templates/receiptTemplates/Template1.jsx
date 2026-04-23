@@ -1,6 +1,6 @@
 import styles from "../styles/Template1.module.css";
 import { RECEIPT_SAMPLE, RECEIPT_SAMPLE_CUSTOMER, RECEIPT_BRAND_SAMPLE } from "../../datas/sampleDatas";
-import { RPreviewSummary } from "../../components/RpreviewSummary/RPreviewSummary";
+import { RPreviewSummary } from "../../components/RPreviewSummary/RPreviewSummary";
 
 export function RTemplate1() {
   const r = RECEIPT_SAMPLE;
