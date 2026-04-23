@@ -1,4 +1,4 @@
-import styles from "../styles/template7.module.css"
+import styles from "../styles/Template7.module.css"
 import { NUMBERED_ROWS } from "../../datas/sampleDatas"
 
 export function Template7() {

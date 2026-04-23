@@ -1,4 +1,4 @@
-import styles from "../styles/template11.module.css"
+import styles from "../styles/Template11.module.css"
 import { TAILOR_ROWS } from "../../datas/sampleDatas";
 import { RPreviewSummary } from "../../components/RpreviewSummary/RPreviewSummary";
 import { RECEIPT_BRAND_SAMPLE,RECEIPT_SAMPLE,RECEIPT_SAMPLE_CUSTOMER } from "../../datas/sampleDatas";

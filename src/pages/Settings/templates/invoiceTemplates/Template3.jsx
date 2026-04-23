@@ -1,4 +1,4 @@
-import styles from "../styles/template3.module.css"
+import styles from "../styles/Template3.module.css"
 import { TAILOR_ROWS } from "../../datas/sampleDatas"
 
 export function Template3() {

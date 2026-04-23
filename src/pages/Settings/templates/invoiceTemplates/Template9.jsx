@@ -1,4 +1,4 @@
-import styles from "../styles/template9.module.css"
+import styles from "../styles/Template9.module.css"
 
 export function Template9() {
   return (

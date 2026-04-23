@@ -1,4 +1,4 @@
-import styles from "../styles/template10.module.css"
+import styles from "../styles/Template10.module.css"
 import { TAILOR_ROWS } from "../../datas/sampleDatas"
 
 export function Template10() {

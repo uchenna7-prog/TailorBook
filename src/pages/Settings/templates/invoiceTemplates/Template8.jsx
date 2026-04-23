@@ -1,4 +1,4 @@
-import styles from "../styles/template8.module.css"
+import styles from "../styles/Template8.module.css"
 import { TAILOR_ROWS } from "../../datas/sampleDatas"
 
 export function Template8() {

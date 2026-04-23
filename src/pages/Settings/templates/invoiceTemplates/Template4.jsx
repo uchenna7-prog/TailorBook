@@ -1,4 +1,4 @@
-import styles from "../styles/template4.module.css"
+import styles from "../styles/Template4.module.css"
 import { items } from "../../datas/sampleDatas"
 
 export function Template4() {

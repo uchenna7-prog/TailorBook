@@ -1,4 +1,4 @@
-import styles from "../styles/template7.module.css"
+import styles from "../styles/Template7.module.css"
 import {RECEIPT_SAMPLE,RECEIPT_SAMPLE_CUSTOMER,RECEIPT_BRAND_SAMPLE,NUMBERED_ROWS} from "../../datas/sampleDatas";
 import { RPreviewSummary } from "../../components/RpreviewSummary/RPreviewSummary";
 import { rFmt,rResolvePaid } from "../../utils/receiptUtils";
