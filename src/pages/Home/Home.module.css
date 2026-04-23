@@ -3,25 +3,9 @@
   min-height: 100dvh;
 }
 
-/* ── Desktop: offset content to the right of the fixed sidebar ── */
-@media (min-width: 769px) {
-  .pageWrapper {
-    margin-left: var(--sidebar-width, 240px);
-  }
-}
-
 .main {
   padding: 16px 20px calc(40px + var(--sb));
-  max-width: 700px;
   margin: auto;
-}
-
-/* On desktop give a bit more breathing room */
-@media (min-width: 769px) {
-  .main {
-    padding: 24px 32px 48px;
-    max-width: 800px;
-  }
 }
 
 /* ══════════════════════════════════════════
@@ -144,21 +128,13 @@
 }
 
 /* ══════════════════════════════════════════
-   STAT CARDS — 2-col grid (4-col on desktop)
+   STAT CARDS — 2-col grid
    ══════════════════════════════════════════ */
 .statsGrid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 10px;
   margin-bottom: 12px;
-}
-
-@media (min-width: 769px) {
-  .statsGrid {
-    grid-template-columns: repeat(4, 1fr);
-    gap: 14px;
-    margin-bottom: 16px;
-  }
 }
 
 .statCard {
@@ -176,11 +152,7 @@
 }
 .statCard:active { background: var(--surface2); }
 
-@media (min-width: 769px) {
-  .statCard:hover { background: var(--surface2); }
-}
-
-/* Icon box */
+/* Icon box — square-ish, no colour, matches reference */
 .statIconWrap {
   width: 38px; height: 38px;
   border-radius: 8px;
@@ -232,7 +204,10 @@
   background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.22);
   border-radius: 5px; padding: 2px 5px; margin-top: 5px; width: fit-content;
 }
-.deltaNeutral { display: none; }
+/* deltaNeutral is no longer rendered — kept as safety fallback */
+.deltaNeutral {
+  display: none;
+}
 
 /* ── Status pill ── */
 .statusPill {
@@ -258,9 +233,6 @@
   transition: background 0.15s;
 }
 .revenueCard:active { background: var(--surface2); }
-@media (min-width: 769px) {
-  .revenueCard:hover { background: var(--surface2); }
-}
 
 .revenueCardLeft  { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .revenueLabel     { font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text3); }
@@ -291,9 +263,6 @@
   transition: background 0.15s;
 }
 .customerCard:active { background: var(--surface2); }
-@media (min-width: 769px) {
-  .customerCard:hover { background: var(--surface2); }
-}
 
 .customerCardHeader {
   display: flex;
@@ -309,7 +278,10 @@
   color: var(--text3);
 }
 
-.customerHeroBlock { margin-bottom: 12px; }
+/* Hero: number then label stacked underneath */
+.customerHeroBlock {
+  margin-bottom: 12px;
+}
 .customerHeroNumber {
   font-size: 2.6rem;
   font-weight: 800;
@@ -330,6 +302,7 @@
   margin: 0 0 11px;
 }
 
+/* Stacked rows: label left, value right */
 .customerStatStack {
   display: flex;
   flex-direction: column;
@@ -358,6 +331,7 @@
   min-width: 0;
 }
 
+/* Top customer — stacked name + meta, wraps freely */
 .customerTopVal {
   display: flex;
   flex-direction: column;
@@ -392,25 +366,11 @@
   width: 100%; max-width: 600px;
   animation: slideUp 0.28s cubic-bezier(0.32,0.72,0,1);
 }
-
-/* On desktop show as a centred card instead of a bottom sheet */
-@media (min-width: 769px) {
-  .modalOverlay {
-    align-items: center;
-  }
-  .modalSheet {
-    border-radius: 18px;
-    max-width: 480px;
-    padding: 24px 28px 32px;
-  }
-}
-
 @keyframes slideUp {
   from { transform: translateY(60px); opacity: 0; }
   to   { transform: translateY(0);    opacity: 1; }
 }
 .modalHandle { width: 36px; height: 4px; border-radius: 2px; background: var(--border2); margin: 0 auto 18px; }
-@media (min-width: 769px) { .modalHandle { display: none; } }
 .modalHeader { margin-bottom: 22px; }
 .modalTitle  { font-size: 1.15rem; font-weight: 800; color: var(--text); margin: 0 0 4px; }
 .modalSub    { font-size: 0.78rem; color: var(--text3); margin: 0; }
@@ -464,21 +424,9 @@
 }
 
 /* ══════════════════════════════════════════
-   QUICK ACTIONS
-   Desktop: visible 4-col grid
-   Mobile:  hidden (bottom nav handles navigation)
+   QUICK ACTIONS — desktop
    ══════════════════════════════════════════ */
-.quickActionsDesktop {
-  display: none; /* hidden on mobile */
-  margin-bottom: 22px;
-}
-
-@media (min-width: 769px) {
-  .quickActionsDesktop {
-    display: block;
-  }
-}
-
+.quickActionsDesktop { display: block; margin-bottom: 22px; }
 .actionCard {
   background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
   padding: 16px 10px; display: flex; flex-direction: column; gap: 10px;
@@ -486,7 +434,6 @@
   cursor: pointer; transition: background 0.15s;
 }
 .actionCard:active { background: var(--surface2); }
-@media (min-width: 769px) { .actionCard:hover { background: var(--surface2); } }
 .actionCardText { display: flex; flex-direction: column; align-items: center; }
 .actionLabel    { font-size: 0.75rem; font-weight: 700; color: var(--text); }
 
@@ -509,23 +456,13 @@
    ══════════════════════════════════════════ */
 .listSection { position: relative; }
 .listDivider { height: 1px; background: var(--border); width: calc(100% + 40px); margin-left: -20px; }
-
-@media (min-width: 769px) {
-  .listDivider { width: 100%; margin-left: 0; }
-}
-
 .listItem {
   display: flex; align-items: center; gap: 12px; padding: 12px 0;
   background: var(--bg); position: relative; cursor: pointer;
-  transition: background 0.15s;
 }
 .listItem::after {
   content: ''; position: absolute; bottom: 0; left: 0; right: -20px;
   height: 1px; background: var(--border);
-}
-@media (min-width: 769px) {
-  .listItem::after { right: 0; }
-  .listItem:hover  { background: var(--surface); border-radius: 8px; }
 }
 .listItemLast::after { display: none; }
 .listItem:active { background: var(--surface); }
@@ -566,7 +503,11 @@
 
 /* ══════════════════════════════════════════
    HOME ORDER MOSAIC
+   Lives inside listOuter (80px) → listInner (58px).
+   Prefixed hm- to avoid any collision with Tabs.module.css.
    ══════════════════════════════════════════ */
+
+/* Overrides listInner's padding/centering so mosaic fills it edge-to-edge */
 .hmMosaicInner {
   padding: 0 !important;
   display: flex !important;
@@ -576,6 +517,7 @@
   border-radius: 10px;
 }
 
+/* Left cell — ~60% width, full height */
 .hmMosaicLeft {
   flex: 0 0 60%;
   display: flex;
@@ -586,6 +528,7 @@
   height: 100%;
 }
 
+/* Right column — remaining ~40%, two stacked cells */
 .hmMosaicRight {
   flex: 1;
   display: flex;
@@ -625,7 +568,9 @@
   display: block;
 }
 
-.hmMosaicOverlayWrap { position: relative; }
+.hmMosaicOverlayWrap {
+  position: relative;
+}
 
 .hmMosaicOverlay {
   position: absolute;
@@ -653,53 +598,25 @@
 .emptyStateSub  { font-size: 0.75rem; color: var(--text3); font-weight: 400; margin: 0; line-height: 1.4; opacity: 0.8; }
 
 /* ══════════════════════════════════════════
-   MOBILE BOTTOM NAV
-   Shown ONLY on mobile (≤ 768px)
-   Hidden on desktop (sidebar handles navigation)
+   MOBILE
    ══════════════════════════════════════════ */
 .mobileQuickNav { display: none; }
 
-@media (max-width: 768px) {
-  .main {
-    padding-bottom: calc(90px + var(--sb, 0px));
-  }
+@media (max-width: 600px) {
+  .main { padding-bottom: calc(90px + var(--sb,0px)); }
 
-  .mobileQuickNav {
-    display: flex;
-    align-items: center;
-    justify-content: space-around;
-    position: fixed;
-    bottom: 0; left: 0; right: 0;
-    z-index: 100;
-    background: var(--surface);
-    border-top: 1px solid var(--border);
-    padding: 10px 4px calc(10px + var(--sb, 0px));
-    box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.07);
-  }
+  .statsGrid  { grid-template-columns: repeat(2,1fr); gap: 10px; margin-bottom: 12px; }
 
-  .mobileQuickBtn {
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    gap: 4px; background: none; border: none; cursor: pointer; padding: 4px 2px 0;
-    color: var(--text3); font-family: inherit; transition: color 0.15s; flex: 1;
-  }
-  .mobileQuickBtn:active    { color: var(--accent); }
-  .mobileQuickBtnActive     { color: var(--accent) !important; }
-  .mobileQuickLabel {
-    font-size: 0.56rem; font-weight: 600; line-height: 1.3;
-    text-align: center; color: inherit; white-space: nowrap;
-  }
+  .statCard     { padding: 14px 12px 12px; min-height: 120px; border-radius: 10px; }
+  .statIconWrap { width: 34px; height: 34px; border-radius: 8px; margin-bottom: 12px; }
+  .statValue    { font-size: 1.85rem; letter-spacing: -1px; margin-bottom: 5px; }
+  .statLabel    { font-size: 0.58rem; }
+  .statSub      { font-size: 0.63rem; margin-top: 5px; }
 
-  /* Mobile stat card tweaks */
-  .statsGrid        { grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 12px; }
-  .statCard         { padding: 14px 12px 12px; min-height: 120px; border-radius: 10px; }
-  .statIconWrap     { width: 34px; height: 34px; border-radius: 8px; margin-bottom: 12px; }
-  .statValue        { font-size: 1.85rem; letter-spacing: -1px; margin-bottom: 5px; }
-  .statLabel        { font-size: 0.58rem; }
-  .statSub          { font-size: 0.63rem; margin-top: 5px; }
+  .revenueCard   { padding: 16px 18px; margin-bottom: 12px; }
+  .revenueAmount { font-size: 1.5rem; }
 
-  .revenueCard      { padding: 16px 18px; margin-bottom: 12px; }
-  .revenueAmount    { font-size: 1.5rem; }
-
+  /* Customer card — mobile */
   .customerCard             { padding: 12px 14px; }
   .customerHeroNumber       { font-size: 2.2rem; letter-spacing: -1px; }
   .customerHeroLabel        { font-size: 0.7rem; }
@@ -707,5 +624,23 @@
   .customerStatVal          { font-size: 0.8rem; }
   .customerStatLbl          { font-size: 0.73rem; }
 
-  .modalSheet { padding-bottom: calc(32px + var(--sb, 0px)); }
+  .modalSheet { border-radius: 22px 22px 0 0; padding-bottom: calc(32px + var(--sb,0px)); }
+
+  .quickActionsDesktop { display: none; }
+
+  .mobileQuickNav {
+    display: flex; align-items: center; justify-content: space-around;
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+    background: var(--surface); border-top: 1px solid var(--border);
+    padding: 10px 4px calc(10px + var(--sb,0px));
+    box-shadow: 0 -4px 24px rgba(0,0,0,0.07);
+  }
+  .mobileQuickBtn {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 4px; background: none; border: none; cursor: pointer; padding: 4px 2px 0;
+    color: var(--text3); font-family: inherit; transition: color 0.15s; flex: 1;
+  }
+  .mobileQuickBtn:active { color: var(--accent); }
+  .mobileQuickBtnActive  { color: var(--accent) !important; }
+  .mobileQuickLabel { font-size: 0.56rem; font-weight: 600; line-height: 1.3; text-align: center; color: inherit; white-space: nowrap; }
 }

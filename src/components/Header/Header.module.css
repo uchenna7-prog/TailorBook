@@ -410,3 +410,9 @@
   margin-top: 4px;
   margin-bottom: 2px;
 }
+
+@media (min-width: 769px) {
+  .iconBtn:has(.hamburgerLines) {
+    display: none;
+  }
+}

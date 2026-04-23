@@ -1,0 +1,19 @@
+/* ══════════════════════════════════════════════════════════
+   TEMPLATE 5 — Canva Warm Beige  (uses gradient as full bg)
+══════════════════════════════════════════════════════════ */
+.t5Base { padding:18px;background:var(--brand-gradient);color:var(--brand-on-primary);font-family:'Inter',sans-serif;font-size:7.5px;min-height:420px;display:flex;flex-direction:column;gap:7px; }
+.t5Top { display:flex;justify-content:space-between;align-items:flex-start; }
+.t5Title { font-size:30px;font-weight:900;letter-spacing:-1px;line-height:1;color:var(--brand-on-primary); }
+.t5TopRight { text-align:right;font-size:7px;line-height:1.6;opacity:0.9; }
+.t5Divider { height:1px;background:rgba(255,255,255,0.35);margin:2px 0; }
+.t5BilledTo { font-size:7px;line-height:1.5; }
+.t5BilledLabel { font-weight:700;font-size:6.5px;margin-bottom:2px;opacity:0.75;text-transform:uppercase;letter-spacing:0.05em; }
+.t5TableHead { display:flex;font-weight:700;font-size:6.5px;padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.4); }
+.t5TableHead span,.t5TableRow span { flex:1;text-align:right; }
+.t5TableHead span:first-child,.t5TableRow span:first-child { text-align:left; }
+.t5TableRow { display:flex;font-size:7px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.2); }
+.t5Totals { margin-left:auto;width:38%; }
+.t5TotRow { display:flex;justify-content:space-between;padding:2px 0;font-size:7px; }
+.t5TotBold { font-weight:900;font-size:8.5px;border-top:1px solid rgba(255,255,255,0.5);padding-top:3px;margin-top:2px; }
+.t5Footer { display:flex;justify-content:space-between;font-size:6.5px;line-height:1.5;margin-top:auto;padding-top:8px;border-top:1px solid rgba(255,255,255,0.35); }
+.t5FootLabel { font-weight:700;margin-bottom:2px; }

@@ -1,0 +1,59 @@
+/* ── BASE ── */
+.pBase {
+  padding: 18px;
+  color: #1a1a1a;
+  font-family: 'Inter', sans-serif;
+  font-size: 8px;
+  min-height: 400px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── BRAND HEADER ── */
+.pBrandCenter { text-align: center; }
+.pBrandName { font-size: 13px; font-weight: 800; }
+.pBrandSub { color: #666; font-size: 7px; margin-top: 1px; }
+
+/* ── TITLE DIVIDER ── */
+.pInvoiceCentred { display: flex; align-items: center; gap: 8px; margin: 10px 0 8px; }
+.pInvoiceLine { flex: 1; height: 1.5px; background: var(--brand-primary); }
+.pInvoiceWordCentre { font-size: 16px; font-weight: 900; letter-spacing: 0.12em; white-space: nowrap; padding: 0 6px; }
+
+/* ── BODY ── */
+.pBody { flex: 1; margin: 14px 0; }
+
+/* ── META ROW ── */
+.pMetaRow { display: flex; justify-content: space-between; margin-bottom: 16px; }
+.pSmallCap { font-size: 6.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: #888; margin-bottom: 1px; }
+
+/* ── INVOICE TABLE ── */
+.pTHead2 {
+  display: flex;
+  align-items: center;
+  font-weight: 800;
+  border-bottom: 1.5px solid var(--brand-primary);
+  padding-bottom: 4px;
+  margin-bottom: 6px;
+  font-size: 7px;
+}
+.pTHead2 span { flex: 1; text-align: right; }
+.pTHead2 span:first-child { flex: 3; text-align: left; }
+
+.pTRow2 {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #eee;
+  padding: 5px 0;
+  font-size: 7.5px;
+}
+.pTRow2 span { flex: 1; text-align: right; }
+.pTRow2 span:first-child { flex: 3; text-align: left; }
+
+/* ── SUMMARY TOTALS ── */
+.pSummary { margin-left: auto; width: 40%; margin-top: 12px; }
+.pSumRow { display: flex; justify-content: space-between; padding: 2px 0; font-size: 7.5px; }
+.pBold { font-weight: 900; font-size: 9px; border-top: 1px solid var(--brand-primary); margin-top: 4px; padding-top: 3px; }
+
+/* ── FOOTER ── */
+.pFooter { display: flex; gap: 10px; margin-top: auto; padding-top: 10px; border-top: 1px solid var(--brand-muted); }
+.pFootSection { flex: 1; font-size: 6.5px; line-height: 1.5; }

@@ -1,4 +1,3 @@
-// src/App.jsx
 import { useState } from 'react'
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import RequireAuth    from './components/RequireAuth/RequireAuth'
@@ -32,42 +31,41 @@ function AppShell() {
   const navigate  = useNavigate()
 
   return (
-    <>
+    <div className="app-shell">
       <SideBar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      <Routes>
-        <Route path="/"                                    element={<Home                     onMenuClick={menuClick} />} />
-        <Route path="/appointments"                        element={<Appointments             onMenuClick={menuClick} />} />
-        <Route path="/customers"                           element={<Customers                onMenuClick={menuClick} />} />
-        <Route path="/customers/:id"                       element={<CustomerDetail           onMenuClick={menuClick} />} />
-        <Route path="/customers/:id/body-measurements"     element={<CustomerBodyMeasurements onMenuClick={menuClick} />} />
-        <Route path="/tasks"                               element={<Tasks                    onMenuClick={menuClick} />} />
-        <Route path="/orders"                              element={<Orders                   onMenuClick={menuClick} onGoToCustomer={id => navigate(`/customers/${id}`)} />} />
-        <Route path="/invoices"                            element={<Invoices                 onMenuClick={menuClick} />} />
-        <Route path="/payments"                            element={<AllPayments              onMenuClick={menuClick} />} />
-        <Route path="/inventory"                           element={<Inventory                onMenuClick={menuClick} />} />
-        <Route path="/reports"                             element={<Reports                  onMenuClick={menuClick} />} />
-        <Route path="/gallery"                             element={<Gallery                  onMenuClick={menuClick} />} />
-        <Route path="/settings"                            element={<Settings                 onMenuClick={menuClick} />} />
-        <Route path="/profile"                             element={<Profile                  onMenuClick={menuClick} />} />
-        <Route path="/contact"                             element={<Contact                  onMenuClick={menuClick} />} />
-        <Route path="/faq"                                 element={<FAQ                      onMenuClick={menuClick} />} />
-        <Route path="/reviews"                             element={<Reviews                  onMenuClick={menuClick} />} />
-        <Route path="*"                                    element={<Navigate to="/" replace />} />
-      </Routes>
-    </>
+      <div className="app-content">
+        <Routes>
+          <Route path="/"                                element={<Home                     onMenuClick={menuClick} />} />
+          <Route path="/appointments"                    element={<Appointments             onMenuClick={menuClick} />} />
+          <Route path="/customers"                       element={<Customers                onMenuClick={menuClick} />} />
+          <Route path="/customers/:id"                   element={<CustomerDetail           onMenuClick={menuClick} />} />
+          <Route path="/customers/:id/body-measurements" element={<CustomerBodyMeasurements onMenuClick={menuClick} />} />
+          <Route path="/tasks"                           element={<Tasks                    onMenuClick={menuClick} />} />
+          <Route path="/orders"                          element={<Orders                   onMenuClick={menuClick} onGoToCustomer={id => navigate(`/customers/${id}`)} />} />
+          <Route path="/invoices"                        element={<Invoices                 onMenuClick={menuClick} />} />
+          <Route path="/payments"                        element={<AllPayments              onMenuClick={menuClick} />} />
+          <Route path="/inventory"                       element={<Inventory                onMenuClick={menuClick} />} />
+          <Route path="/reports"                         element={<Reports                  onMenuClick={menuClick} />} />
+          <Route path="/gallery"                         element={<Gallery                  onMenuClick={menuClick} />} />
+          <Route path="/settings"                        element={<Settings                 onMenuClick={menuClick} />} />
+          <Route path="/profile"                         element={<Profile                  onMenuClick={menuClick} />} />
+          <Route path="/contact"                         element={<Contact                  onMenuClick={menuClick} />} />
+          <Route path="/faq"                             element={<FAQ                      onMenuClick={menuClick} />} />
+          <Route path="/reviews"                         element={<Reviews                  onMenuClick={menuClick} />} />
+          <Route path="*"                                element={<Navigate to="/" replace />} />
+        </Routes>
+      </div>
+    </div>
   )
 }
 
 export default function App() {
   return (
     <Routes>
-      {/* ── Public routes (no auth) ── */}
       <Route path="/login"               element={<Login />} />
       <Route path="/signup"              element={<Signup />} />
       <Route path="/portfolio/:handle"   element={<Portfolio />} />
       <Route path="/review/:uid/:token"  element={<ReviewPage />} />
-
-      {/* ── Protected routes ── */}
       <Route
         path="/*"
         element={
