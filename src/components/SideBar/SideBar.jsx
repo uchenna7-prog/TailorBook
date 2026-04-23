@@ -16,7 +16,7 @@ const NAV_ITEMS = [
   { path: '/reviews',      label: 'Reviews',      icon: 'rate_review'   },
   { path: '/gallery',      label: 'Gallery',      icon: 'photo_library' },
   { path: '/settings',     label: 'Settings',     icon: 'settings'      },
-  { path: '/profile',      label: 'Account',   icon: 'person'        },
+  { path: '/profile',      label: 'Account',      icon: 'person'        },
   { path: '/contact',      label: 'Contact Us',   icon: 'call'          },
   { path: '/faq',          label: 'FAQs',         icon: 'help_outline'  },
   { path: '/login',        label: 'Log out',      icon: 'logout'        },
@@ -49,7 +49,10 @@ function SideBar({ isOpen, onClose }) {
           <div className={styles.tagline}>Smart tailoring workflow</div>
           <div className={styles.user}>
             <div className={styles.avatar}>{initials}</div>
-            <div className={styles.userName}>{displayName}</div>
+            <div className={styles.userInfo}>
+              <div className={styles.userName}>{displayName}</div>
+              <div className={styles.userEmail}>{user?.email}</div>
+            </div>
           </div>
         </div>
 
@@ -62,7 +65,7 @@ function SideBar({ isOpen, onClose }) {
                 onClick={() => handleNav(item.path)}
               >
                 <span className="mi">{item.icon}</span>
-                {item.label}
+                <span className={styles.navLabel}>{item.label}</span>
                 {item.path === '/reviews' && pendingCount > 0 && (
                   <span className={styles.badge}>{pendingCount}</span>
                 )}

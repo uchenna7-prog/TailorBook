@@ -1,5 +1,3 @@
-// src/components/Header/Header.jsx
-
 import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useNotifications } from '../../contexts/NotificationContext'
@@ -56,7 +54,7 @@ function NotifItem({ n, onRead, onNavigate }) {
   )
 }
 
-function Header({ onMenuClick, onBackClick, type = 'default', title, customActions = [] }) {
+function Header({ onMenuClick, onBackClick, type = 'default', title, customActions = [], backIcon = 'arrow_back' }) {
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [notifOpen,    setNotifOpen]    = useState(false)
   const [notifTab,     setNotifTab]     = useState('all')
@@ -72,7 +70,6 @@ function Header({ onMenuClick, onBackClick, type = 'default', title, customActio
     '/settings':  'Settings',
   }
 
-  // UPDATED: Prioritize passed title prop strictly for dynamic updates (e.g. scrolling names)
   const pageTitle = title || PAGE_TITLES[location.pathname] || 'TailorFlow'
 
   const PAGE_DROPDOWN = {
@@ -147,10 +144,9 @@ function Header({ onMenuClick, onBackClick, type = 'default', title, customActio
           )}
           {type === 'back' && (
             <button className={styles.iconBtn} onClick={handleBackAction} aria-label="Go back">
-              <span className="mi" style={{ fontSize: '1.4rem' }}>arrow_back</span>
+              <span className="mi" style={{ fontSize: '1.4rem' }}>{backIcon}</span>
             </button>
           )}
-          {/* Added 'header-title' class for CSS targeting */}
           <div className={`${styles.title} header-title`}>{pageTitle}</div>
         </div>
 

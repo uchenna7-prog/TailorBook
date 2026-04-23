@@ -60,9 +60,8 @@
   cursor: pointer;
 }
 
-.iconBtn:active {
-  background: var(--surface2);
-}
+.iconBtn:hover  { background: var(--surface2); }
+.iconBtn:active { background: var(--surface2); }
 
 .textBtn {
   background: var(--accent);
@@ -105,6 +104,13 @@
   border-radius: 2px;
 }
 
+/* Hide hamburger button entirely on desktop */
+@media (min-width: 769px) {
+  .iconBtn:has(.hamburgerLines) {
+    display: none;
+  }
+}
+
 .notifDot {
   position: absolute;
   top: 4px;
@@ -145,10 +151,10 @@
   z-index: 300;
   overflow: hidden;
   box-shadow: 0 6px 24px rgba(0,0,0,0.45);
-  animation: fadeIn 0.15s ease;
+  animation: dropIn 0.15s ease;
 }
 
-@keyframes fadeIn {
+@keyframes dropIn {
   from { opacity: 0; transform: translateY(-6px); }
   to   { opacity: 1; transform: translateY(0); }
 }
@@ -170,13 +176,10 @@
   font-family: 'DM Sans', sans-serif;
 }
 
-.dropdownItem:active {
-  background: var(--surface2);
-}
+.dropdownItem:hover  { background: var(--surface2); }
+.dropdownItem:active { background: var(--surface2); }
 
-.dropdownItem.danger {
-  color: var(--danger);
-}
+.dropdownItem.danger { color: var(--danger); }
 
 .dropdownSeparator {
   height: 1px;
@@ -184,6 +187,7 @@
   margin: 0 8px;
 }
 
+/* ── NOTIFICATION OVERLAY — mobile full screen ── */
 .notifOverlay {
   position: fixed;
   inset: 0;
@@ -210,12 +214,43 @@
   to   { transform: translateY(0); }
 }
 
+/* ── NOTIFICATION PANEL — desktop dropdown ── */
+@media (min-width: 769px) {
+  .notifOverlay {
+    background: transparent;
+    backdrop-filter: none;
+    pointer-events: none;
+  }
+
+  .notifPanel {
+    position: fixed;
+    top: 56px;
+    right: 16px;
+    left: auto;
+    bottom: auto;
+    width: 380px;
+    max-height: 560px;
+    border-radius: 16px;
+    border: 1px solid var(--border2);
+    box-shadow: 0 16px 48px rgba(0,0,0,0.25);
+    animation: dropIn 0.2s ease;
+    pointer-events: all;
+    overflow: hidden;
+  }
+
+  @keyframes dropIn {
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+}
+
 .notifHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 16px 20px;
   border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
 }
 
 .notifTitle {
@@ -391,9 +426,9 @@
   transition: background 0.15s;
 }
 
-.markAllBtn:active {
-  background: var(--surface);
-}
+.markAllBtn:hover  { background: var(--surface2); }
+.markAllBtn:active { background: var(--surface); }
+
 /* ── Review notification item ── */
 .notifItemReview {
   border-color: rgba(245, 158, 11, 0.3) !important;
@@ -411,8 +446,7 @@
   margin-bottom: 2px;
 }
 
-@media (min-width: 769px) {
-  .iconBtn:has(.hamburgerLines) {
-    display: none;
-  }
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
