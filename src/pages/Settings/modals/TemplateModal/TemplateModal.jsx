@@ -6,7 +6,7 @@ import { TEMPLATE_GROUPS } from "../../datas/invoiceTemplateGroups"
 import { RECEIPT_TEMPLATE_GROUPS } from "../../datas/receiptTemplateGroups"
 
 export function TemplateModal({ isOpen, currentTemplate, colourId, onClose, onSelect }) {
-  const [selected, setSelected] = useState(currentTemplate || 'editable')
+  const [selected, setSelected] = useState(currentTemplate || 'template1')
   const [activeTab, setActiveTab] = useState('invoice')
   const modalRef = useRef(null)
   useBrandTokens(colourId, modalRef)

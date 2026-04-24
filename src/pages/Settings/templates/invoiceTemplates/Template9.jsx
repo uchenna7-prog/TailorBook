@@ -1,6 +1,6 @@
 import styles from "../styles/Template9.module.css"
 
-export function Template9() {
+export function InvoiceTemplate9() {
   return (
     <div className={styles.t9Base}>
       <div className={styles.t9Header}>

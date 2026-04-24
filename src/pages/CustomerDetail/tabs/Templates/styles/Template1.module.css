@@ -1,0 +1,97 @@
+
+.template { 
+  padding:18px;
+  color:#1a1a1a;
+  font-family:'DM Sans',sans-serif;
+  font-size:8px;
+  min-height:520px;
+  display:flex;
+  flex-direction:column; 
+}
+
+.header{ 
+  text-align: center; 
+  margin-bottom: 20px;
+  padding-bottom: 12px; 
+}
+
+.brandName{
+  font-size: 14px; 
+  font-weight: 800; 
+  white-space: nowrap; 
+}
+
+.tagline{ 
+  font-size: 8px; 
+  color: #888; 
+  margin-top: 3px; 
+}
+
+.address{ 
+  font-size: 8px; 
+  color: #666; 
+  margin-top: 2px; 
+}
+
+.titleRow { 
+  display: flex; 
+  align-items: center; 
+  gap: 8px;
+  margin: 12px 0 4px; 
+}
+
+.titleLine { 
+  flex: 1; 
+  height: 1.5px; 
+  background: var(--brand-primary); 
+}
+
+.title { 
+  font-size: 18px; 
+  font-weight: 900; 
+  letter-spacing: 0.08em; 
+  white-space: nowrap; 
+  padding: 0 6px; 
+}
+
+.metaRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.metaLabel{
+  font-size: 10px;
+  font-weight: 900;  
+  margin-top: 1px; 
+  line-height: 1.4; 
+}
+
+.metaKey { 
+  font-size: 8px; 
+  font-weight: 800;
+  color: #767575;  
+}
+
+.metaValue { 
+  font-size: 8px;
+  font-weight: 900;  
+  margin-top: 1px; 
+  line-height: 1.4; 
+}
+
+.footer{ 
+  margin-top: auto; 
+  padding-top: 12px; 
+  border-top: 1px solid var(--brand-muted); 
+  display: flex; 
+  gap: 16px; 
+}
+
+.footerLeft,.footerRight{ 
+  flex: 1; 
+  font-size: 8px; 
+  line-height: 1.6; 
+}
+

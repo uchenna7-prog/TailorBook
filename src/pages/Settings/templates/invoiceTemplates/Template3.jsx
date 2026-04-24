@@ -1,7 +1,7 @@
 import styles from "../styles/Template3.module.css"
 import { TAILOR_ROWS } from "../../datas/sampleDatas"
 
-export function Template3() {
+export function InvoiceTemplate3() {
   return (
     <div className={styles.pBase} style={{ padding: 0 }}>
       <div className={styles.pPurpleBanner}>

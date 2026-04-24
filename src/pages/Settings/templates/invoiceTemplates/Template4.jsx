@@ -1,7 +1,7 @@
 import styles from "../styles/Template4.module.css"
 import { items } from "../../datas/sampleDatas"
 
-export function Template4() {
+export function InvoiceTemplate4() {
 
   return (
     <div className={styles.p4Base}>

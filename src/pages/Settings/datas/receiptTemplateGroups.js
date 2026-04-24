@@ -15,7 +15,11 @@ export const RECEIPT_TEMPLATE_GROUPS = [
     groupLabel: 'Simple and Clean',
     groupDesc: 'Light, open layouts that are easy to read',
     templates: [
-      { id:'Centered Balance',  label:'1. Centered Balance',    desc:'Business name in the middle with a line on each side',  Component: RTemplate1 },
+      { 
+        id:'Centered Balance',
+        label:'1. Centered Balance',
+        desc:'Business name in the middle with a line on each side',
+        Component: RTemplate1 },
       { id:'Triple-Box Info Bar',      label:'2. Triple-Box Info Bar', desc:'Three side-by-side boxes showing contact details',       Component:RTemplate2 },
       { id:'Dual-Column Compact', label:'3. Dual-Column Compact', desc:'From and To details placed side by side',                Component: RTemplate4 },
     ],

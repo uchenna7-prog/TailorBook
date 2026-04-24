@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import InvoiceView from './InvoiceView'
+import InvoiceView from './InvoiceView/InvoiceView'
 import ConfirmSheet from '../../../components/ConfirmSheet/ConfirmSheet'
 import Header from '../../../components/Header/Header'
 import styles from './InvoiceTab.module.css'

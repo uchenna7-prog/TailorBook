@@ -1,0 +1,66 @@
+.template { 
+  padding:18px;
+  color:#1a1a1a;
+  font-family:'DM Sans',sans-serif;
+  font-size:8px;
+  min-height:520px;
+  display:flex;
+  flex-direction:column; 
+}
+
+.header{ 
+  display: flex; 
+  justify-content: space-between; 
+  margin-bottom: 14px; 
+}
+
+.title{ 
+  font-size:20px;
+  font-weight:900; 
+}
+
+.invoiceNumber{ 
+  font-size: 9px; 
+  color: #666; 
+  margin-top: 2px; 
+}
+
+.logoBox{ 
+  display: flex; 
+  align-items: center; 
+}
+
+.grid{ 
+  display:flex;
+  gap:6px;
+  margin-bottom:12px; 
+}
+
+.gridBox{ 
+  flex:1;
+  border:1px solid var(--brand-muted);
+  padding:8px;
+  font-size:6.5px;
+  line-height:1.5; 
+}
+
+.paymentInfo{
+  margin-top: auto; 
+  font-size: 8px; 
+  color: #555; 
+  padding: 8px 0 4px; 
+  border-top: 1px solid var(--brand-muted); 
+}
+
+.footerCenteredText { 
+  background:var(--brand-muted) ;
+  font-weight:900;
+  color:var(--brand-primary-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center; 
+  padding: 10px;
+  font-size: 9px; 
+  width: 100%; 
+}

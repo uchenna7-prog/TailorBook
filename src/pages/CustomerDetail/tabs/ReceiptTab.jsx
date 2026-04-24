@@ -1,7 +1,7 @@
 // src/pages/CustomerDetail/tabs/ReceiptTab.jsx
 
 import { useState } from 'react'
-import ReceiptView from './ReceiptView'
+import ReceiptView from './ReceiptView/ReceiptView'
 import ConfirmSheet from '../../../components/ConfirmSheet/ConfirmSheet'
 import styles from './InvoiceTab.module.css'   // reuse InvoiceTab styles — identical card design
 

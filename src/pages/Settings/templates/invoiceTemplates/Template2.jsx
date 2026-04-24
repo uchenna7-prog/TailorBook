@@ -1,7 +1,7 @@
 import styles from "../styles/Template2.module.css"
 import { TAILOR_ROWS } from "../../datas/sampleDatas"
 
-export function Template2() {
+export function InvoiceTemplate2() {
   return (
     <div className={styles.pBase}>
       <div className={styles.pHeaderFree}>

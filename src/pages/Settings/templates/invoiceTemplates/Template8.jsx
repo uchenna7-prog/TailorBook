@@ -1,7 +1,7 @@
 import styles from "../styles/Template8.module.css"
 import { TAILOR_ROWS } from "../../datas/sampleDatas"
 
-export function Template8() {
+export function InvoiceTemplate8() {
   return (
     <div className={styles.t8Base}>
       <div className={styles.t8Header}>

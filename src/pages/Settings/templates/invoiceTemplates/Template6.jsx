@@ -1,7 +1,7 @@
 import styles from "../styles/Template6.module.css"
 import { TAILOR_ROWS } from "../../datas/sampleDatas"
 
-export function Template6() {
+export function InvoiceTemplate6() {
   return (
     <div className={styles.Base}>
       <div className={styles.Header}>

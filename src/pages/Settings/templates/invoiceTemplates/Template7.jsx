@@ -1,7 +1,7 @@
 import styles from "../styles/Template7.module.css"
 import { NUMBERED_ROWS } from "../../datas/sampleDatas"
 
-export function Template7() {
+export function InvoiceTemplate7() {
   return (
     <div className={styles.t7Base}>
       <div className={styles.t7Header}>

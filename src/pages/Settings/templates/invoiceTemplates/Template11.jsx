@@ -1,7 +1,7 @@
 import styles from "../styles/Template11.module.css"
 import { TAILOR_ROWS } from "../../datas/sampleDatas"
 
-export function Template11() {
+export function InvoiceTemplate11() {
   return (
     <div className={styles.t11Base}>
       <div className={styles.t11TopBar}>

@@ -19,7 +19,7 @@ import BottomNav from '../../components/BottomNav/BottomNav'
 
 
 export default function Settings({ onMenuClick, isPremium=false, onUpgrade=()=>{} }) {
-  const { settings, updateSetting, resetSettings } = useSettings()
+  const { settings, updateSetting, updateMany, resetSettings } = useSettings()
   const { brand } = useBrand()
   const [toastMsg,setToastMsg]=useState('')
   const [templateModal,setTemplateModal]=useState(false)
@@ -66,8 +66,11 @@ export default function Settings({ onMenuClick, isPremium=false, onUpgrade=()=>{
         isOpen={templateModal}
         currentTemplate={settings.invoiceTemplate}
         colourId={brand.colourId}
-        onClose={()=>setTemplateModal(false)}
-        onSelect={v=>{updateSetting('invoiceTemplate',v);showToast('Template selected')}}
+        onClose={() => setTemplateModal(false)}
+        onSelect={v => {
+          updateMany({ invoiceTemplate: v, receiptTemplate: v })  // ← saves to both
+          showToast('Template selected')
+        }}
       />
       {invoiceModal&&<InvoiceSettingsModal onBack={()=>setInvoiceModal(false)} showToast={showToast} />}
       {receiptModal&&<ReceiptSettingsModal onBack={()=>setReceiptModal(false)} showToast={showToast} />}

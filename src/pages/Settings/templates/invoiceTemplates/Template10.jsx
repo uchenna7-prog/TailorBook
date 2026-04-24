@@ -1,7 +1,7 @@
 import styles from "../styles/Template10.module.css"
 import { TAILOR_ROWS } from "../../datas/sampleDatas"
 
-export function Template10() {
+export function InvoiceTemplate10() {
   return (
     <div className={styles.t10Base}>
       <div className={styles.t10HeaderZone}>

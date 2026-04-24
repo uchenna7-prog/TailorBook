@@ -391,7 +391,7 @@ export default function CustomerDetail({ onMenuClick }) {
       notes:     order.notes,
       status:    'unpaid',
       date:      today,
-      template:  invoiceTemplate || settingsSnap.invoiceTemplate || 'editable',
+      template: settingsSnap.invoiceTemplate || 'invoiceTemplate1',
       brandSnapshot,
     }
 
@@ -513,7 +513,7 @@ export default function CustomerDetail({ onMenuClick }) {
       isFullPayment: isFullPay,
       balance,
       notes: payment.notes || '',
-      template: settingsSnap.invoiceTemplate || 'editable',
+      template: settingsSnap.invoiceTemplate || 'receiptTemplate1',
       brandSnapshot,
     }
 

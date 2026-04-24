@@ -1,7 +1,7 @@
 import styles from "../styles/Template5.module.css"
 import { TAILOR_ROWS } from "../../datas/sampleDatas"
 
-export function Template5() {
+export function InvoiceTemplate5() {
   return (
     <div className={styles.t5Base}>
       <div className={styles.t5Top}>

@@ -1,7 +1,7 @@
 import styles from "../styles/Template1.module.css";
 import { TAILOR_ROWS } from "../../datas/sampleDatas";
 
-export function Template1() {
+export function InvoiceTemplate1() {
   return (
     <div className={styles.pBase}>
       <div className={styles.pBrandCenter}>

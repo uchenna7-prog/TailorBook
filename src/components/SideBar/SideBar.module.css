@@ -37,19 +37,16 @@
   transform: translateX(0);
 }
 
-/* ── Desktop: always visible ── */
 @media (min-width: 769px) {
   .sidebar {
     transform: translateX(0);
     z-index: 300;
   }
-
   .overlay {
     display: none !important;
   }
 }
 
-/* ── Mobile ── */
 @media (max-width: 768px) {
   .sidebar {
     width: min(80%, 320px);
@@ -146,12 +143,34 @@
 
 /* ── NAVIGATION ── */
 .nav {
-  padding: 14px 12px 18px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── SECTIONS ── */
+.section {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  padding: 10px 0 6px;
 }
 
+.sectionBordered {
+  border-top: 1px solid var(--border);
+}
+
+.sectionLabel {
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text3);
+  padding: 2px 14px 6px;
+  user-select: none;
+}
+
+/* ── NAV ITEMS ── */
 .navItem {
   font-family: 'DM Sans', sans-serif;
   display: flex;
@@ -171,8 +190,7 @@
   position: relative;
 }
 
-/* hover — subtle tint, not filled */
-.navItem:not(.active):hover {
+.navItem:not(.active):not(.danger):hover {
   background: var(--surface2);
   color: var(--text);
 }
@@ -181,7 +199,6 @@
   background: var(--border);
 }
 
-/* active — strong filled */
 .active {
   background: var(--accent);
   color: var(--bg);
@@ -192,7 +209,6 @@
   color: var(--bg);
 }
 
-/* active hover — stay filled, just slightly lighter */
 .active:hover {
   background: var(--accent);
   color: var(--bg);
@@ -208,12 +224,17 @@
   flex: 1;
 }
 
+/* ── DANGER (Log out) ── */
 .danger {
   color: var(--danger) !important;
 }
 
 .danger .mi {
   color: var(--danger) !important;
+}
+
+.danger:hover {
+  background: color-mix(in srgb, var(--danger) 10%, transparent) !important;
 }
 
 /* ── LEGAL LINKS ── */

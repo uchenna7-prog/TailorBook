@@ -48,7 +48,7 @@ export const DEFAULTS = {
   // ── Invoice ──
   invoicePrefix: 'INV',
   invoiceCurrency: '₦',
-  invoiceTemplate: 'editable',
+  invoiceTemplate: 'invoiceTemplate1',
   invoiceDueDays: 7,
   invoiceShowTax: false,
   invoiceTaxRate: 0,

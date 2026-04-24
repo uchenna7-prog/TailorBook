@@ -1,61 +1,50 @@
-
-import { Template1 } from "../templates/invoiceTemplates/Template1"
-import { Template2 } from "../templates/invoiceTemplates/Template2"
-import { Template3 } from "../templates/invoiceTemplates/Template3"
-import { Template4 } from "../templates/invoiceTemplates/Template4"
-import { Template5 } from "../templates/invoiceTemplates/Template5"
-import { Template6 } from "../templates/invoiceTemplates/Template6"
-import { Template7 } from "../templates/invoiceTemplates/Template7"
-import { Template8 } from "../templates/invoiceTemplates/Template8"
-import { Template9 } from "../templates/invoiceTemplates/Template9"
-import { Template10 } from "../templates/invoiceTemplates/Template10"
-import { Template11 } from "../templates/invoiceTemplates/Template11"
+import { InvoiceTemplate1 } from "../templates/invoiceTemplates/Template1"
+import { InvoiceTemplate2 } from "../templates/invoiceTemplates/Template2"
+import { InvoiceTemplate3 } from "../templates/invoiceTemplates/Template3"
+import { InvoiceTemplate4 } from "../templates/invoiceTemplates/Template4"
+import { InvoiceTemplate5 } from "../templates/invoiceTemplates/Template5"
+import { InvoiceTemplate6 } from "../templates/invoiceTemplates/Template6"
+import { InvoiceTemplate7 } from "../templates/invoiceTemplates/Template7"
+import { InvoiceTemplate8 } from "../templates/invoiceTemplates/Template8"
+import { InvoiceTemplate9 } from "../templates/invoiceTemplates/Template9"
+import { InvoiceTemplate10 } from "../templates/invoiceTemplates/Template10"
+import { InvoiceTemplate11 } from "../templates/invoiceTemplates/Template11"
 
 export const TEMPLATE_GROUPS = [
   {
     groupLabel: 'Simple and Clean',
-    groupDesc: 'Light, open layouts that are easy to read',
-    groupIcon: 'article',
     templates: [
-      { id:'Centered Balance',  label:'1. Centered Balance',    desc:'Business name in the middle with a line on each side',  Component:Template1 },
-      { id:'Triple-Box Info Bar',      label:'2. Triple-Box Info Bar', desc:'Three side-by-side boxes showing contact details',       Component:Template2 },
-      { id:'Dual-Column Compact', label:'3. Dual-Column Compact', desc:'From and To details placed side by side',                Component:Template4 },
+      { id: 'invoiceTemplate1',  label: '1. Centered Balance',    desc: 'Business name in the middle with a line on each side',  Component: InvoiceTemplate1 },
+      { id: 'invoiceTemplate2',  label: '2. Triple-Box Info Bar', desc: 'Three side-by-side boxes showing contact details',       Component: InvoiceTemplate2 },
+      { id: 'invoiceTemplate3',  label: '3. Dual-Column Compact', desc: 'From and To details placed side by side',                Component: InvoiceTemplate3 },
     ],
   },
   {
     groupLabel: 'Bold Blocks',
-    groupDesc: 'Strong designs that use solid colour sections',
-    groupIcon: 'widgets',
     templates: [
-      { id:'Full-Bleed Banner',       label:'4. Full-Bleed Banner',    desc:'Big colour header at the top with a logo space',     Component:Template3},
-      { id:'Solid Top and Bottom',        label:'5. Solid Top and Bottom', desc:'Colour fills both the top header and the base',      Component:Template5 },
-      { id:'Slanted Header', label:'6. Slanted Header',      desc:'Header cuts diagonally with a matching corner fill', Component:Template10 },
+      { id: 'invoiceTemplate4',  label: '4. Full-Bleed Banner',    desc: 'Big colour header at the top with a logo space',     Component: InvoiceTemplate4 },
+      { id: 'invoiceTemplate5',  label: '5. Solid Top and Bottom', desc: 'Colour fills both the top header and the base',      Component: InvoiceTemplate5 },
+      { id: 'invoiceTemplate6',  label: '6. Slanted Header',       desc: 'Header cuts diagonally with a matching corner fill', Component: InvoiceTemplate6 },
     ],
   },
   {
     groupLabel: 'Clear Labels',
-    groupDesc: 'Every section has a bold label so nothing is confusing',
-    groupIcon: 'format_list_bulleted',
     templates: [
-      { id:'Full Field Labels',     label:'7. Full Field Labels',     desc:'Sender and receiver details listed with bold labels',  Component:Template7 },
-      { id:'Side Summary Box', label:'8. Side Summary Box',      desc:'A dedicated box on the side holds totals and client details', Component:Template8 },
+      { id: 'invoiceTemplate7',  label: '7. Full Field Labels',  desc: 'Sender and receiver details listed with bold labels',         Component: InvoiceTemplate7 },
+      { id: 'invoiceTemplate8',  label: '8. Side Summary Box',   desc: 'A dedicated box on the side holds totals and client details', Component: InvoiceTemplate8 },
     ],
   },
   {
     groupLabel: 'Info Strip',
-    groupDesc: 'Packs in your business details without clutter',
-    groupIcon: 'table_rows',
     templates: [
-      { id:'Three-Column Details',    label:'9. Three-Column Details', desc:'Payment, delivery, and billing info in one row',      Component:Template6 },
-      { id:'Strip and Signature', label:'10. Strip and Signature',  desc:'Slim info bar at the top with a sign line at the base', Component:Template9 },
+      { id: 'invoiceTemplate9',  label: '9. Three-Column Details', desc: 'Payment, delivery, and billing info in one row',         Component: InvoiceTemplate9  },
+      { id: 'invoiceTemplate10', label: '10. Strip and Signature', desc: 'Slim info bar at the top with a sign line at the base',  Component: InvoiceTemplate10 },
     ],
   },
   {
     groupLabel: 'Payment Options',
-    groupDesc: 'Shows all the ways your customer can pay you',
-    groupIcon: 'payments',
     templates: [
-      { id:'Payment Tiles', label:'11. Payment Tiles', desc:'Separate boxes for bank transfer, mobile money, and cash', Component:Template11 },
+      { id: 'invoiceTemplate11', label: '11. Payment Tiles', desc: 'Separate boxes for bank transfer, mobile money, and cash', Component: InvoiceTemplate11 },
     ],
   },
 ]
