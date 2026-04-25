@@ -152,16 +152,16 @@
   z-index: 50;
   flex-shrink: 0;
   overflow-x: auto;
-  scroll-behavior: smooth;          /* smooth programmatic scrolls */
+  scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;            /* Firefox */
-  -ms-overflow-style: none;         /* IE/Edge */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
-.tabs::-webkit-scrollbar { display: none; } /* Chrome/Safari */
+.tabs::-webkit-scrollbar { display: none; }
 
 .tab {
-  flex: 0 0 auto;               /* don't shrink — let them scroll */
+  flex: 0 0 auto;
   padding: 14px 16px;
   text-align: center;
   font-size: 0.68rem;
@@ -297,7 +297,7 @@
   border-radius: 10px;
 }
 
-/* Info */
+/* Info (left column) */
 .info {
   flex: 1;
   min-width: 0;
@@ -349,34 +349,36 @@
   text-overflow: ellipsis;
 }
 
-/* Mini progress bar */
-.progressWrap {
-  height: 3px;
-  background: var(--border);
-  border-radius: 2px;
-  margin-top: 6px;
-  overflow: hidden;
-}
-
-.progressBar {
-  height: 100%;
-  border-radius: 2px;
-  transition: width 0.4s ease;
-}
-
-/* Amount column */
+/* ── Amount column (right) ── */
 .amountCol {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 5px;
+  gap: 6px;
   flex-shrink: 0;
+  min-width: 80px;
 }
 
 .amount {
   font-size: 1rem;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Progress bar — right column, under the amount */
+.progressWrapRight {
+  width: 100%;
+  height: 3px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progressBarRight {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.4s ease;
 }
 
 .statusPill {

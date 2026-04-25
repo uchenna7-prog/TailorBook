@@ -259,6 +259,7 @@ function PaymentRow({ row, isLast, onTap, orderItems }) {
 
   const isPartInstall = row.totalInstallments > 1
   const isPending     = row.amount === null
+  const showProgress  = fullPrice > 0 && row.totalInstallments > 0
 
   return (
     <div
@@ -276,7 +277,7 @@ function PaymentRow({ row, isLast, onTap, orderItems }) {
         <PaymentMosaic orderItems={orderItems} isPending={isPending} sm={sm} />
       </div>
 
-      {/* ── Info ── */}
+      {/* ── Info (left column) ── */}
       <div className={styles.info}>
         <div className={styles.titleRow}>
           <span className={styles.desc}>{row.orderDesc || 'Payment'}</span>
@@ -293,7 +294,7 @@ function PaymentRow({ row, isLast, onTap, orderItems }) {
           <span className={styles.metaText}>{row.customerName}</span>
         </div>
 
-        {/* Status pill — sits under customer name like inventory */}
+        {/* Status pill */}
         <span
           className={styles.statusPill}
           style={{ background: sm.bg, color: sm.color, borderColor: sm.border }}
@@ -308,19 +309,9 @@ function PaymentRow({ row, isLast, onTap, orderItems }) {
             <span className={styles.metaText}>{mLabel}</span>
           </div>
         )}
-
-        {/* Progress bar */}
-        {fullPrice > 0 && row.totalInstallments > 0 && (
-          <div className={styles.progressWrap}>
-            <div
-              className={styles.progressBar}
-              style={{ width: `${pct}%`, background: sm.color }}
-            />
-          </div>
-        )}
       </div>
 
-      {/* ── Amount (right column — amount only) ── */}
+      {/* ── Amount + progress bar (right column) ── */}
       <div className={styles.amountCol}>
         <div
           className={styles.amount}
@@ -328,6 +319,16 @@ function PaymentRow({ row, isLast, onTap, orderItems }) {
         >
           {isPending ? '—' : fmt(row.amount)}
         </div>
+
+        {/* Progress bar sits directly under the amount */}
+        {showProgress && (
+          <div className={styles.progressWrapRight}>
+            <div
+              className={styles.progressBarRight}
+              style={{ width: `${pct}%`, background: pct >= 100 ? '#15803d' : sm.color }}
+            />
+          </div>
+        )}
       </div>
     </div>
   )

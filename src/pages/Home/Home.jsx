@@ -33,6 +33,12 @@ function formatDate(dateStr) {
   return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
+// Short format without year — used on order cards to save space
+function formatDateShort(dateStr) {
+  if (!dateStr) return ''
+  return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+}
+
 function formatApptDate(dateStr, timeStr) {
   if (!dateStr) return ''
   const d = new Date(dateStr + 'T00:00:00')
@@ -1046,29 +1052,38 @@ function Home({ onMenuClick }) {
                 const priceStr = order.price != null ? `₦${Number(order.price).toLocaleString()}` : '—'
                 const itemsList = order.items || []
                 const stageObj = STAGES.find(s => s.value === order.stage)
+                // Resolve the raw due date string → short format (no year)
+                const dueDateRaw = order.dueRaw || order.dueDate
+                const dueDateShort = dueDateRaw
+                  ? `Due ${formatDateShort(dueDateRaw)}`
+                  : order.due
+                  ? `Due ${order.due}`
+                  : null
                 return (
                   <div key={order.id} className={`${styles.listItem} ${isLast ? styles.listItemLast : ''}`}>
                     <HomeMosaic items={itemsList} />
+                    {/* LEFT: title, customer, stage */}
                     <div className={styles.listInfo}>
                       <div className={styles.listDesc}>{order.desc ?? 'Order'}</div>
                       <div className={styles.listMeta}>
                         <span className="mi" style={{ fontSize: '0.78rem', color: 'var(--text3)', verticalAlign: 'middle' }}>person</span>
                         <span className={styles.listMetaText}>{order.customerName || '—'}</span>
                       </div>
-                      <StatusPill status={order.status} />
                       {stageObj && (
                         <div className={styles.listStageLine}>
                           <span className="mi" style={{ fontSize: '0.78rem' }}>{stageObj.icon}</span>
                           {stageObj.label}
                         </div>
                       )}
-                      {(order.due || order.dueRaw) && (
-                        <div className={styles.listDue}>Due {order.due || formatDate(order.dueRaw)}</div>
-                      )}
                     </div>
+                    {/* RIGHT: price, qty, status pill, due date */}
                     <div className={styles.listRight}>
                       <div className={styles.listPrice}>{priceStr}</div>
                       {order.qty > 1 && <div className={styles.listQty}>×{order.qty}</div>}
+                      <StatusPill status={order.status} />
+                      {dueDateShort && (
+                        <div className={styles.listDueRight}>{dueDateShort}</div>
+                      )}
                     </div>
                   </div>
                 )
