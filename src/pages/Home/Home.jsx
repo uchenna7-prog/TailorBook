@@ -158,13 +158,13 @@ function RevenueDonut({ pct }) {
   const r = 36, cx = 44, cy = 44
   const circ    = 2 * Math.PI * r
   const filled  = Math.min(Math.max(pct, 0), 100)
-  const blueDash = (filled / 100) * circ
+  const greenDash = (filled / 100) * circ
   return (
     <svg width="88" height="88" viewBox="0 0 88 88">
-      <circle cx={cx} cy={cy} r={r} fill="none" stroke="#94a3b8" strokeWidth="8" />
+      <circle cx={cx} cy={cy} r={r} fill="none" stroke="#94a3b8" strokeWidth="8" opacity="0.3" />
       {filled > 0 && (
-        <circle cx={cx} cy={cy} r={r} fill="none" stroke="#60a5fa" strokeWidth="8"
-          strokeDasharray={`${blueDash} ${circ}`} strokeLinecap="round"
+        <circle cx={cx} cy={cy} r={r} fill="none" stroke="#22c55e" strokeWidth="8"
+          strokeDasharray={`${greenDash} ${circ}`} strokeLinecap="round"
           transform={`rotate(-90 ${cx} ${cy})`} />
       )}
       <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle"
@@ -294,6 +294,8 @@ function NotifBanner({ onEnable, onDismiss }) {
 
 function StatCard({ card, navigate }) {
   const [showTip, setShowTip] = useState(false)
+  const isEmpty = card.value === 0
+
   return (
     <div className={styles.statCard} onClick={() => navigate(card.route)}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginBottom: 0 }}>
@@ -328,8 +330,19 @@ function StatCard({ card, navigate }) {
           </div>
         )}
       </div>
-      <div className={styles.statValue} style={{ marginTop: '14px' }}>{card.value}</div>
+      {/* Value — grayed out when 0 */}
+      <div
+        className={styles.statValue}
+        style={{
+          marginTop: '14px',
+          color: isEmpty ? 'var(--text3)' : 'var(--text)',
+          opacity: isEmpty ? 0.45 : 1,
+        }}
+      >
+        {card.value}
+      </div>
       <div className={styles.statLabel}>{card.label}</div>
+      {/* Sub message */}
       {card.sub && (
         <div className={styles.statSub} style={{ color: card.subColor }}>{card.sub}</div>
       )}
@@ -566,6 +579,7 @@ function Home({ onMenuClick }) {
 
   // ── Orders ────────────────────────────────────────────────
   const pendingOrders         = allOrders.filter(o => !['completed','delivered','cancelled'].includes(o.status))
+  const ordersDueToday        = pendingOrders.filter(o => (o.dueDate || o.dueRaw) === todayStr).length
   const ordersDueThisWeek     = pendingOrders.filter(o => dueThisWeek(o.dueDate || o.dueRaw)).length
   const ordersCreatedThisWeek = allOrders.filter(o => o.createdAt && new Date(o.createdAt) >= weekAgo).length
   const ordersCreatedLastWeek = allOrders.filter(o => {
@@ -606,13 +620,16 @@ function Home({ onMenuClick }) {
     return d >= twoWksAgo && d < weekAgo
   }).length
   const invoicesDueThisWeek = unpaidInvoices.filter(i => dueThisWeek(getInvDueDate(i))).length
+  const invoicesDueToday    = unpaidInvoices.filter(i => getInvDueDate(i) === todayStr).length
 
   const zeroPaidInvoices    = allInvoices.filter(i => i.status === 'unpaid')
   const zeroPaidDueThisWeek = zeroPaidInvoices.filter(i => dueThisWeek(getInvDueDate(i))).length
+  const zeroPaidDueToday    = zeroPaidInvoices.filter(i => getInvDueDate(i) === todayStr).length
 
   // ── Tasks ─────────────────────────────────────────────────
   const pendingTasks     = tasks.filter(t => !t.done && !isTaskOverdue(t))
   const overdueTasks     = tasks.filter(t => isTaskOverdue(t))
+  const tasksDueToday    = pendingTasks.filter(t => t.dueDate === todayStr).length
   const tasksDueThisWeek = pendingTasks.filter(t => dueThisWeek(t.dueDate)).length
   const tasksThisWeek    = tasks.filter(t => t.createdAt && new Date(t.createdAt) >= weekAgo).length
   const tasksLastWeek    = tasks.filter(t => {
@@ -678,7 +695,6 @@ function Home({ onMenuClick }) {
     text: `${overdueTasks.length} overdue task${overdueTasks.length > 1 ? 's' : ''}`,
     route: '/tasks',
   })
-  const ordersDueToday = pendingOrders.filter(o => (o.dueDate || o.dueRaw) === todayStr).length
   if (ordersDueToday > 0) urgentItems.push({
     icon: 'local_shipping',
     text: `${ordersDueToday} order${ordersDueToday > 1 ? 's' : ''} due today`,
@@ -698,59 +714,80 @@ function Home({ onMenuClick }) {
   const recentAppointments = upcoming.slice(0, 4)
   const pastAppointments   = recentAppts.slice(0, 4)
 
+  // ── Stat card sub messages (priority: today > this week > empty message) ──
+  const ordersSub = (() => {
+    if (pendingOrders.length === 0) return { text: 'All orders sent', color: '#22c55e' }
+    if (ordersDueToday > 0) return { text: `${ordersDueToday} due today`, color: '#ef4444' }
+    if (ordersDueThisWeek > 0) return { text: `${ordersDueThisWeek} due this wk`, color: '#fb923c' }
+    if (ordersCreatedThisWeek > 0) return { text: `${ordersCreatedThisWeek} new this wk`, color: '#818cf8' }
+    return null
+  })()
+
+  const invoicesSub = (() => {
+    if (zeroPaidInvoices.length === 0) return { text: 'Fully paid up', color: '#22c55e' }
+    if (zeroPaidDueToday > 0) return { text: `${zeroPaidDueToday} due today`, color: '#ef4444' }
+    if (zeroPaidDueThisWeek > 0) return { text: `${zeroPaidDueThisWeek} due this wk`, color: '#fb923c' }
+    if (totalOverdue > 0) return { text: `${totalOverdue} overdue`, color: '#ef4444' }
+    return { text: `${zeroPaidInvoices.length} pending`, color: '#fb923c' }
+  })()
+
+  const apptSub = (() => {
+    if (todayCount > 0) return { text: `${todayCount} today`, color: '#06b6d4' }
+    if (missedCount > 0) return { text: `${missedCount} missed`, color: '#ef4444' }
+    if (upcomingThisWeek > 0) return { text: `${upcomingThisWeek} this wk`, color: '#818cf8' }
+    return { text: 'Clear schedule', color: '#22c55e' }
+  })()
+
+  const tasksSub = (() => {
+    if (pendingTasks.length === 0 && overdueTasks.length === 0) return { text: '+ New task', color: '#22c55e' }
+    if (overdueTasks.length > 0) return { text: `${overdueTasks.length} overdue`, color: '#ef4444' }
+    if (tasksDueToday > 0) return { text: `${tasksDueToday} due today`, color: '#ef4444' }
+    if (tasksDueThisWeek > 0) return { text: `${tasksDueThisWeek} due this wk`, color: '#fb923c' }
+    if (tasksThisWeek > 0) return { text: `${tasksThisWeek} new this wk`, color: '#818cf8' }
+    return null
+  })()
+
   const statCards = [
     {
-      desktopIcon: 'shopping_bag',
-      iconColor:   '#f59e0b',      value: pendingOrders.length,
-      label:       'Pending Orders',
-      sub:         ordersDueThisWeek > 0
-                     ? `${ordersDueThisWeek} due this wk`
-                     : ordersCreatedThisWeek > 0
-                       ? `${ordersCreatedThisWeek} this wk`
-                       : null,
-      subColor:    ordersDueThisWeek > 0 ? '#fb923c' : 'var(--text3)',
-      delta:       null,
-      positiveIsGood: true,        route: '/orders',
+      desktopIcon:    'shopping_bag',
+      value:          pendingOrders.length,
+      label:          'Pending Orders',
+      sub:            ordersSub?.text ?? null,
+      subColor:       ordersSub?.color ?? 'var(--text3)',
+      delta:          null,
+      positiveIsGood: true,
+      route:          '/orders',
     },
     {
-      desktopIcon: 'receipt_long',
-      iconColor:   '#ef4444',      value: zeroPaidInvoices.length,
-      label:       'Unpaid Invoices',
-      sub:         zeroPaidDueThisWeek > 0
-                     ? `${zeroPaidDueThisWeek} due this wk`
-                     : zeroPaidInvoices.length > 0
-                       ? `${zeroPaidInvoices.length} due this wk`
-                       : null,
-      subColor:    '#fb923c',
-      delta:       null,
-      positiveIsGood: false,       route: '/invoices',
-      tooltip:     'Only invoices with no payment recorded yet.',
+      desktopIcon:    'receipt_long',
+      value:          zeroPaidInvoices.length,
+      label:          'Unpaid Invoices',
+      sub:            invoicesSub?.text ?? null,
+      subColor:       invoicesSub?.color ?? 'var(--text3)',
+      delta:          null,
+      positiveIsGood: false,
+      route:          '/invoices',
+      tooltip:        'Only invoices with no payment recorded yet.',
     },
     {
-      desktopIcon: 'event',
-      iconColor:   '#06b6d4',      value: todayCount,
-      label:       "Today's Appts",
-      sub:         missedCount > 0
-                     ? `${missedCount} missed`
-                     : upcomingThisWeek > 0
-                       ? `${upcomingThisWeek} this wk`
-                       : null,
-      subColor:    missedCount > 0 ? '#ef4444' : '#fb923c',
-      delta:       null,
-      positiveIsGood: true,        route: '/appointments',
+      desktopIcon:    'event',
+      value:          todayCount,
+      label:          "Today's Appts",
+      sub:            apptSub?.text ?? null,
+      subColor:       apptSub?.color ?? 'var(--text3)',
+      delta:          null,
+      positiveIsGood: true,
+      route:          '/appointments',
     },
     {
-      desktopIcon: 'task_alt',
-      iconColor:   '#15803d',      value: pendingTasks.length,
-      label:       'Pending Tasks',
-      sub:         tasksDueThisWeek > 0
-                     ? `${tasksDueThisWeek} due this wk`
-                     : tasksThisWeek > 0
-                       ? `${tasksThisWeek} this wk`
-                       : null,
-      subColor:    tasksDueThisWeek > 0 ? '#fb923c' : 'var(--text3)',
-      delta:       null,
-      positiveIsGood: false,       route: '/tasks',
+      desktopIcon:    'task_alt',
+      value:          pendingTasks.length,
+      label:          'Pending Tasks',
+      sub:            tasksSub?.text ?? null,
+      subColor:       tasksSub?.color ?? 'var(--text3)',
+      delta:          null,
+      positiveIsGood: false,
+      route:          '/tasks',
     },
   ]
 
