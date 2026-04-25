@@ -157,6 +157,114 @@ const STAGES = [
 ]
 
 // ─────────────────────────────────────────────────────────────
+// SKELETON COMPONENTS
+// ─────────────────────────────────────────────────────────────
+
+function Bone({ w, h, radius, style }) {
+  return (
+    <div
+      className={styles.bone}
+      style={{ width: w, height: h, borderRadius: radius ?? 6, ...style }}
+    />
+  )
+}
+
+function SkeletonPage() {
+  return (
+    <div className={styles.skeletonPage}>
+
+      {/* Hero */}
+      <div className={styles.skHero}>
+        <Bone w="80px" h="12px" radius={4} />
+        <Bone w="160px" h="32px" radius={6} style={{ marginTop: 6 }} />
+        <Bone w="240px" h="11px" radius={4} style={{ marginTop: 8 }} />
+        <Bone w="100px" h="10px" radius={4} style={{ marginTop: 6, opacity: 0.5 }} />
+      </div>
+
+      {/* Stat cards grid */}
+      <div className={styles.skStatsGrid}>
+        {[0,1,2,3].map(i => (
+          <div key={i} className={styles.skStatCard}>
+            <Bone w="34px" h="34px" radius={8} />
+            <Bone w="48px" h="28px" radius={5} style={{ marginTop: 14 }} />
+            <Bone w="72px" h="10px" radius={4} style={{ marginTop: 8 }} />
+            <Bone w="56px" h="9px" radius={4} style={{ marginTop: 6 }} />
+          </div>
+        ))}
+      </div>
+
+      {/* Revenue card */}
+      <div className={styles.skFullCard}>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <Bone w="90px" h="10px" radius={4} />
+          <Bone w="130px" h="28px" radius={5} />
+          <Bone w="80px" h="10px" radius={4} />
+        </div>
+        <Bone w="88px" h="88px" radius={44} />
+      </div>
+
+      {/* Customer card */}
+      <div className={styles.skFullCard} style={{ flexDirection: 'column', gap: 12 }}>
+        <Bone w="110px" h="10px" radius={4} />
+        <Bone w="80px" h="36px" radius={5} />
+        <div className={styles.skDivider} />
+        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <Bone w="80px" h="11px" radius={4} />
+          <Bone w="60px" h="11px" radius={4} />
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <Bone w="90px" h="11px" radius={4} />
+          <Bone w="24px" h="11px" radius={4} />
+        </div>
+      </div>
+
+      {/* List section — Appointments */}
+      <div className={styles.skSection}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
+          <Bone w="140px" h="11px" radius={4} />
+          <Bone w="44px" h="11px" radius={4} />
+        </div>
+        <div className={styles.skListDivider} />
+        {[0,1,2].map(i => (
+          <div key={i} className={styles.skListItem}>
+            <Bone w="80px" h="80px" radius={12} style={{ flexShrink: 0 }} />
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 7 }}>
+              <Bone w="70%" h="13px" radius={4} />
+              <Bone w="50%" h="10px" radius={4} />
+              <Bone w="60%" h="10px" radius={4} />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* List section — Orders */}
+      <div className={styles.skSection}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
+          <Bone w="110px" h="11px" radius={4} />
+          <Bone w="44px" h="11px" radius={4} />
+        </div>
+        <div className={styles.skListDivider} />
+        {[0,1,2].map(i => (
+          <div key={i} className={styles.skListItem}>
+            <Bone w="80px" h="80px" radius={12} style={{ flexShrink: 0 }} />
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 7 }}>
+              <Bone w="65%" h="13px" radius={4} />
+              <Bone w="45%" h="10px" radius={4} />
+              <Bone w="40%" h="10px" radius={4} />
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6, flexShrink: 0 }}>
+              <Bone w="52px" h="13px" radius={4} />
+              <Bone w="44px" h="18px" radius={5} />
+            </div>
+          </div>
+        ))}
+      </div>
+
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────
 // SUB-COMPONENTS
 // ─────────────────────────────────────────────────────────────
 
@@ -494,9 +602,9 @@ function HomeMosaic({ items }) {
 function Home({ onMenuClick }) {
   const navigate = useNavigate()
   const { user }          = useAuth()
-  const { customers }     = useCustomers()
+  const { customers, loading: loadingCustomers } = useCustomers()
   const { allOrders }     = useOrders()
-  const { tasks }         = useTasks()
+  const { tasks, loading: loadingTasks } = useTasks()
   const { allInvoices }   = useInvoices()
   const {
     upcoming, todayAppointments, recent: recentAppts, missedCount, upcomingThisWeek,
@@ -504,6 +612,39 @@ function Home({ onMenuClick }) {
   const { pushEnabled, requestPushPermission } = useNotifications()
   const { settings }    = useSettings()
   const { allPayments } = usePayments()
+
+  // ── Loading state ─────────────────────────────────────────
+  // CustomerContext + TaskContext expose a real `loading` flag.
+  // OrdersContext, InvoiceContext, AppointmentContext, PaymentContext
+  // have no loading flag — they start as [] and populate async from
+  // Firestore. We consider them "settled" once they've produced data,
+  // OR once we know the user has no customers (so nothing will arrive).
+  //
+  // A ref latches true the first time everything is settled so the
+  // skeleton never re-appears on subsequent re-renders.
+  const noCustomersYet  = !loadingCustomers && customers.length === 0
+  const ordersSettled   = allOrders.length   > 0 || noCustomersYet
+  const invoicesSettled = allInvoices.length  > 0 || noCustomersYet
+  const paymentsSettled = allPayments.length  > 0 || noCustomersYet
+  // Appointments don't depend on customers — settle once core loading is done
+  const apptsSettled    =
+    upcoming.length > 0 ||
+    recentAppts.length > 0 ||
+    missedCount > 0 ||
+    (!loadingCustomers && !loadingTasks)
+
+  const allSettled =
+    !loadingCustomers &&
+    !loadingTasks     &&
+    ordersSettled     &&
+    invoicesSettled   &&
+    paymentsSettled   &&
+    apptsSettled
+
+  // Latch: once fully settled, never show skeleton again this session
+  const settledRef = useRef(false)
+  if (allSettled) settledRef.current = true
+  const isLoading = !settledRef.current
 
   const [bannerDismissed, setBannerDismissed] = useState(
     () => localStorage.getItem('tf_notif_dismissed') === 'true'
@@ -816,332 +957,336 @@ function Home({ onMenuClick }) {
 
       <main className={styles.main}>
 
-        {/* ── HERO ── */}
-        <section className={styles.hero}>
-          <p className={styles.welcomeLabel}>
-            {greetingRef.current}
-            <span className={styles.greetingEmoji}>{greetEmojiRef.current}</span>
-          </p>
-          <h1 className={styles.title}>{displayName}</h1>
-          <p className={styles.subtitle}>{subtextRef.current}</p>
-          <p className={styles.updatedAt}>
-            <span className="mi" style={{ fontSize: '0.7rem', verticalAlign: 'middle', marginRight: '3px' }}>update</span>
-            Updated at {formatUpdatedTime(updatedAtRef.current)}
-          </p>
-        </section>
+        {isLoading ? <SkeletonPage /> : (
+          <>
+            {/* ── HERO ── */}
+            <section className={styles.hero}>
+              <p className={styles.welcomeLabel}>
+                {greetingRef.current}
+                <span className={styles.greetingEmoji}>{greetEmojiRef.current}</span>
+              </p>
+              <h1 className={styles.title}>{displayName}</h1>
+              <p className={styles.subtitle}>{subtextRef.current}</p>
+              <p className={styles.updatedAt}>
+                <span className="mi" style={{ fontSize: '0.7rem', verticalAlign: 'middle', marginRight: '3px' }}>update</span>
+                Updated at {formatUpdatedTime(updatedAtRef.current)}
+              </p>
+            </section>
 
-        {/* ── NOTIFICATION BANNER ── */}
-        {showBanner && <NotifBanner onEnable={handleEnable} onDismiss={handleDismiss} />}
+            {/* ── NOTIFICATION BANNER ── */}
+            {showBanner && <NotifBanner onEnable={handleEnable} onDismiss={handleDismiss} />}
 
-        {/* ── URGENT STRIP ── */}
-        <UrgentStrip items={urgentItems} navigate={navigate} />
+            {/* ── URGENT STRIP ── */}
+            <UrgentStrip items={urgentItems} navigate={navigate} />
 
-        {/* 1. STAT CARDS GRID ── */}
-        <section className={styles.statsGrid}>
-          {statCards.map((card, i) => (
-            <StatCard key={i} card={card} navigate={navigate} />
-          ))}
-        </section>
+            {/* 1. STAT CARDS GRID ── */}
+            <section className={styles.statsGrid}>
+              {statCards.map((card, i) => (
+                <StatCard key={i} card={card} navigate={navigate} />
+              ))}
+            </section>
 
-        {/* 2. REVENUE CARD — full width ── */}
-        {!revenueGoal ? (
-          <div className={styles.revenueCard} onClick={() => setShowGoalModal(true)}
-            style={{ justifyContent: 'flex-start', gap: '20px' }}>
-            <div className={styles.revenueEmptyIconWrap}>
-              <span className="mi" style={{ fontSize: '1.6rem', color: 'var(--accent)' }}>ads_click</span>
-            </div>
-            <div className={styles.revenueCardLeft} style={{ gap: '2px' }}>
-              <div className={styles.revenueEmptyTitle}>Set your first goal</div>
-              <div className={styles.revenueEmptySub}>Tap here to track your shop's revenue growth</div>
-            </div>
-          </div>
-        ) : (
-          <div className={styles.revenueCard} onClick={() => setShowGoalModal(true)}>
-            <div className={styles.revenueCardLeft}>
-              <div className={styles.revenueLabel}>{periodLabel(revenueGoal.period)} · Revenue</div>
-              <div className={styles.revenueAmount}>
-                {revenueGoal.currency}{revenueEarned.toLocaleString()}
-              </div>
-              <div className={styles.revenueTarget}>
-                Goal: {revenueGoal.currency}{revenueGoal.goal.toLocaleString()}
-              </div>
-              {revenueDiff !== 0 && (
-                <div className={styles.revenueVs}>
-                  <span className="mi" style={{
-                    fontSize: '0.7rem', verticalAlign: 'middle', marginRight: '3px',
-                    color: revenueUp ? '#15803d' : '#ef4444'
-                  }}>{revenueUp ? 'arrow_upward' : 'arrow_downward'}</span>
-                  <span style={{ color: revenueUp ? '#15803d' : '#ef4444', fontSize: '0.72rem', fontWeight: 700 }}>
-                    {revenueGoal.currency}{Math.abs(revenueDiff).toLocaleString()}
-                  </span>
-                  <span style={{ color: 'var(--text3)', fontSize: '0.7rem', marginLeft: '3px' }}>
-                    vs last {revenueGoal.period === 'weekly' ? 'week' : revenueGoal.period === 'monthly' ? 'month' : 'year'}
-                  </span>
+            {/* 2. REVENUE CARD — full width ── */}
+            {!revenueGoal ? (
+              <div className={styles.revenueCard} onClick={() => setShowGoalModal(true)}
+                style={{ justifyContent: 'flex-start', gap: '20px' }}>
+                <div className={styles.revenueEmptyIconWrap}>
+                  <span className="mi" style={{ fontSize: '1.6rem', color: 'var(--accent)' }}>ads_click</span>
                 </div>
-              )}
-            </div>
-            <div className={styles.revenueDonutWrap}>
-              <RevenueDonut pct={revenuePct} />
-            </div>
-          </div>
-        )}
-
-        {/* 3. CUSTOMER INSIGHTS CARD — full width ── */}
-        <div className={styles.customerCard} onClick={() => navigate('/customers')}>
-          <div className={styles.customerCardHeader}>
-            <span className={styles.customerCardSectionLabel}>Customer Insights</span>
-            <span className="mi" style={{ fontSize: '0.95rem', color: 'var(--text3)' }}>chevron_right</span>
-          </div>
-          <div className={styles.customerHeroBlock}>
-            <div className={styles.customerHeroNumber}>{totalCustomers.toLocaleString()}</div>
-            <div className={styles.customerHeroLabel}>Total Customers</div>
-          </div>
-          <div className={styles.customerCardRule} />
-          <div className={styles.customerStatStack}>
-            <div className={styles.customerStatRow}>
-              <span className={styles.customerStatLbl}>Top Customer</span>
-              <div className={styles.customerTopVal}>
-                <span style={{ color: 'var(--accent)' }}>{topCustomer.name}</span>
-                {topCustomerMeta && (
-                  <span className={styles.customerTopMeta}>{topCustomerMeta}</span>
-                )}
-              </div>
-            </div>
-            <div className={styles.customerStatRow}>
-              <span className={styles.customerStatLbl}>New This Month</span>
-              <span className={styles.customerStatVal}>{newCustThisMonth}</span>
-            </div>
-          </div>
-        </div>
-
-        {showGoalModal && (
-          <RevenueGoalModal onSave={handleSaveGoal} onClose={() => setShowGoalModal(false)} />
-        )}
-
-        {/* ── UPCOMING APPOINTMENTS ── */}
-        {recentAppointments.length > 0 && (
-          <section className={styles.section}>
-            <div className={styles.sectionHeader}>
-              <h3 className={styles.sectionTitle}>Upcoming Appointments</h3>
-              <button className={styles.seeAllBtn} onClick={() => navigate('/appointments')}>See all</button>
-            </div>
-            <div className={styles.listSection}>
-              <div className={styles.listDivider} />
-              {recentAppointments.map((appt, idx) => {
-                const isLast    = idx === recentAppointments.length - 1
-                const icon      = APPT_TYPE_ICONS[appt.type] || 'event'
-                const iconColor = APPT_STATUS_COLORS[appt.status] || '#818cf8'
-                const isToday   = todayAppointments.some(a => a.id === appt.id)
-                return (
-                  <div key={appt.id} className={`${styles.listItem} ${isLast ? styles.listItemLast : ''}`}>
-                    <div className={styles.listOuter}
-                      style={isToday ? { borderColor: 'rgba(6,182,212,0.35)', background: 'rgba(6,182,212,0.05)' } : {}}>
-                      <div className={styles.listInner}>
-                        <span className="mi" style={{ fontSize: '1.3rem', color: iconColor }}>{icon}</span>
-                      </div>
-                    </div>
-                    <div className={styles.listInfo}>
-                      <div className={styles.listDesc}>{appt.title || appt.type || 'Appointment'}</div>
-                      {appt.customerName && (
-                        <div className={styles.listMeta}>
-                          <span className="mi" style={{ fontSize: '0.78rem', color: 'var(--text3)', verticalAlign: 'middle' }}>person</span>
-                          <span className={styles.listMetaText}>{appt.customerName}</span>
-                        </div>
-                      )}
-                      <div className={styles.listMeta}>
-                        <span className="mi" style={{ fontSize: '0.78rem', color: 'var(--text3)', verticalAlign: 'middle' }}>schedule</span>
-                        <span className={styles.listMetaText}>{formatApptDate(appt.date, appt.time)}</span>
-                      </div>
-                      {isToday && <div className={styles.listApptToday}>Today</div>}
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </section>
-        )}
-
-        {/* ── RECENT APPOINTMENTS ── */}
-        {pastAppointments.length > 0 && (
-          <section className={styles.section}>
-            <div className={styles.sectionHeader}>
-              <h3 className={styles.sectionTitle}>Recent Appointments</h3>
-              <button className={styles.seeAllBtn} onClick={() => navigate('/appointments')}>See all</button>
-            </div>
-            <div className={styles.listSection}>
-              <div className={styles.listDivider} />
-              {pastAppointments.map((appt, idx) => {
-                const isLast    = idx === pastAppointments.length - 1
-                const iconColor = appt.status === 'completed' ? '#15803d'
-                  : appt.status === 'cancelled' ? '#94a3b8' : '#ef4444'
-                return (
-                  <div key={appt.id} className={`${styles.listItem} ${isLast ? styles.listItemLast : ''}`}>
-                    <div className={styles.listOuter} style={
-                      appt.status === 'completed'
-                        ? { borderColor: 'rgba(21,128,61,0.3)', background: 'rgba(21,128,61,0.04)' }
-                        : appt.status === 'cancelled'
-                        ? { borderColor: 'rgba(148,163,184,0.3)' }
-                        : { borderColor: 'rgba(239,68,68,0.3)', background: 'rgba(239,68,68,0.04)' }
-                    }>
-                      <div className={styles.listInner}>
-                        <span className="mi" style={{ fontSize: '1.3rem', color: iconColor }}>
-                          {APPT_TYPE_ICONS[appt.type] || 'event'}
-                        </span>
-                      </div>
-                    </div>
-                    <div className={styles.listInfo}>
-                      <div className={styles.listDesc}>{appt.title || appt.type || 'Appointment'}</div>
-                      {appt.customerName && (
-                        <div className={styles.listMeta}>
-                          <span className="mi" style={{ fontSize: '0.78rem', color: 'var(--text3)', verticalAlign: 'middle' }}>person</span>
-                          <span className={styles.listMetaText}>{appt.customerName}</span>
-                        </div>
-                      )}
-                      <div className={styles.listMeta}>
-                        <span className="mi" style={{ fontSize: '0.78rem', color: 'var(--text3)', verticalAlign: 'middle' }}>schedule</span>
-                        <span className={styles.listMetaText}
-                          style={{ color: appt.status === 'missed' ? '#ef4444' : undefined }}>
-                          {formatApptDate(appt.date, appt.time)}
-                        </span>
-                      </div>
-                      <div className={styles.listApptStatus}
-                        style={{ color: iconColor, borderColor: `${iconColor}40`, background: `${iconColor}12` }}>
-                        {appt.status === 'completed' ? 'Completed' : appt.status === 'cancelled' ? 'Cancelled' : 'Missed'}
-                      </div>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </section>
-        )}
-
-        {/* ── QUICK ACTIONS — desktop only (CSS hides on mobile) ── */}
-        <section className={styles.quickActionsDesktop}>
-          <h3 className={styles.sectionTitle}>Quick Actions</h3>
-          <div className={styles.statsGrid}>
-            {[
-              { icon: 'person_add', label: 'Add Customer',     route: '/customers'    },
-              { icon: 'event',      label: 'Book Appointment', route: '/appointments' },
-              { icon: 'assignment', label: 'New Task',         route: '/tasks'        },
-              { icon: 'receipt',    label: 'New Invoice',      route: '/invoices'     },
-            ].map(a => (
-              <div key={a.label} className={styles.actionCard} onClick={() => navigate(a.route)}>
-                <div className={styles.statIconWrap}>
-                  <span className="mi" style={{ fontSize: '1.3rem', color: 'var(--accent)' }}>{a.icon}</span>
-                </div>
-                <div className={styles.actionCardText}>
-                  <div className={styles.actionLabel}>{a.label}</div>
+                <div className={styles.revenueCardLeft} style={{ gap: '2px' }}>
+                  <div className={styles.revenueEmptyTitle}>Set your first goal</div>
+                  <div className={styles.revenueEmptySub}>Tap here to track your shop's revenue growth</div>
                 </div>
               </div>
-            ))}
-          </div>
-        </section>
-
-        {/* ── RECENT ORDERS — hidden when empty ── */}
-        {recentOrders.length > 0 && (
-          <section className={styles.section}>
-            <div className={styles.sectionHeader}>
-              <h3 className={styles.sectionTitle}>Recent Orders</h3>
-              <button className={styles.seeAllBtn} onClick={() => navigate('/orders')}>See all</button>
-            </div>
-            <div className={styles.listSection}>
-              <div className={styles.listDivider} />
-              {recentOrders.map((order, idx) => {
-                const isLast   = idx === recentOrders.length - 1
-                const priceStr = order.price != null ? `₦${Number(order.price).toLocaleString()}` : '—'
-                const itemsList = order.items || []
-                const stageObj = STAGES.find(s => s.value === order.stage)
-                // Resolve the raw due date string → short format (no year)
-                const dueDateRaw = order.dueRaw || order.dueDate
-                const dueDateShort = dueDateRaw
-                  ? `Due ${formatDateShort(dueDateRaw)}`
-                  : order.due
-                  ? `Due ${order.due}`
-                  : null
-                return (
-                  <div key={order.id} className={`${styles.listItem} ${isLast ? styles.listItemLast : ''}`}>
-                    <HomeMosaic items={itemsList} />
-                    {/* LEFT: title, customer, stage */}
-                    <div className={styles.listInfo}>
-                      <div className={styles.listDesc}>{order.desc ?? 'Order'}</div>
-                      <div className={styles.listMeta}>
-                        <span className="mi" style={{ fontSize: '0.78rem', color: 'var(--text3)', verticalAlign: 'middle' }}>person</span>
-                        <span className={styles.listMetaText}>{order.customerName || '—'}</span>
-                      </div>
-                      {stageObj && (
-                        <div className={styles.listStageLine}>
-                          <span className="mi" style={{ fontSize: '0.78rem' }}>{stageObj.icon}</span>
-                          {stageObj.label}
-                        </div>
-                      )}
+            ) : (
+              <div className={styles.revenueCard} onClick={() => setShowGoalModal(true)}>
+                <div className={styles.revenueCardLeft}>
+                  <div className={styles.revenueLabel}>{periodLabel(revenueGoal.period)} · Revenue</div>
+                  <div className={styles.revenueAmount}>
+                    {revenueGoal.currency}{revenueEarned.toLocaleString()}
+                  </div>
+                  <div className={styles.revenueTarget}>
+                    Goal: {revenueGoal.currency}{revenueGoal.goal.toLocaleString()}
+                  </div>
+                  {revenueDiff !== 0 && (
+                    <div className={styles.revenueVs}>
+                      <span className="mi" style={{
+                        fontSize: '0.7rem', verticalAlign: 'middle', marginRight: '3px',
+                        color: revenueUp ? '#15803d' : '#ef4444'
+                      }}>{revenueUp ? 'arrow_upward' : 'arrow_downward'}</span>
+                      <span style={{ color: revenueUp ? '#15803d' : '#ef4444', fontSize: '0.72rem', fontWeight: 700 }}>
+                        {revenueGoal.currency}{Math.abs(revenueDiff).toLocaleString()}
+                      </span>
+                      <span style={{ color: 'var(--text3)', fontSize: '0.7rem', marginLeft: '3px' }}>
+                        vs last {revenueGoal.period === 'weekly' ? 'week' : revenueGoal.period === 'monthly' ? 'month' : 'year'}
+                      </span>
                     </div>
-                    {/* RIGHT: price, qty, status pill, due date */}
-                    <div className={styles.listRight}>
-                      <div className={styles.listPrice}>{priceStr}</div>
-                      {order.qty > 1 && <div className={styles.listQty}>×{order.qty}</div>}
-                      <StatusPill status={order.status} />
-                      {dueDateShort && (
-                        <div className={styles.listDueRight}>{dueDateShort}</div>
-                      )}
+                  )}
+                </div>
+                <div className={styles.revenueDonutWrap}>
+                  <RevenueDonut pct={revenuePct} />
+                </div>
+              </div>
+            )}
+
+            {/* 3. CUSTOMER INSIGHTS CARD — full width ── */}
+            <div className={styles.customerCard} onClick={() => navigate('/customers')}>
+              <div className={styles.customerCardHeader}>
+                <span className={styles.customerCardSectionLabel}>Customer Insights</span>
+                <span className="mi" style={{ fontSize: '0.95rem', color: 'var(--text3)' }}>chevron_right</span>
+              </div>
+              <div className={styles.customerHeroBlock}>
+                <div className={styles.customerHeroNumber}>{totalCustomers.toLocaleString()}</div>
+                <div className={styles.customerHeroLabel}>Total Customers</div>
+              </div>
+              <div className={styles.customerCardRule} />
+              <div className={styles.customerStatStack}>
+                <div className={styles.customerStatRow}>
+                  <span className={styles.customerStatLbl}>Top Customer</span>
+                  <div className={styles.customerTopVal}>
+                    <span style={{ color: 'var(--accent)' }}>{topCustomer.name}</span>
+                    {topCustomerMeta && (
+                      <span className={styles.customerTopMeta}>{topCustomerMeta}</span>
+                    )}
+                  </div>
+                </div>
+                <div className={styles.customerStatRow}>
+                  <span className={styles.customerStatLbl}>New This Month</span>
+                  <span className={styles.customerStatVal}>{newCustThisMonth}</span>
+                </div>
+              </div>
+            </div>
+
+            {showGoalModal && (
+              <RevenueGoalModal onSave={handleSaveGoal} onClose={() => setShowGoalModal(false)} />
+            )}
+
+            {/* ── UPCOMING APPOINTMENTS ── */}
+            {recentAppointments.length > 0 && (
+              <section className={styles.section}>
+                <div className={styles.sectionHeader}>
+                  <h3 className={styles.sectionTitle}>Upcoming Appointments</h3>
+                  <button className={styles.seeAllBtn} onClick={() => navigate('/appointments')}>See all</button>
+                </div>
+                <div className={styles.listSection}>
+                  <div className={styles.listDivider} />
+                  {recentAppointments.map((appt, idx) => {
+                    const isLast    = idx === recentAppointments.length - 1
+                    const icon      = APPT_TYPE_ICONS[appt.type] || 'event'
+                    const iconColor = APPT_STATUS_COLORS[appt.status] || '#818cf8'
+                    const isToday   = todayAppointments.some(a => a.id === appt.id)
+                    return (
+                      <div key={appt.id} className={`${styles.listItem} ${isLast ? styles.listItemLast : ''}`}>
+                        <div className={styles.listOuter}
+                          style={isToday ? { borderColor: 'rgba(6,182,212,0.35)', background: 'rgba(6,182,212,0.05)' } : {}}>
+                          <div className={styles.listInner}>
+                            <span className="mi" style={{ fontSize: '1.3rem', color: iconColor }}>{icon}</span>
+                          </div>
+                        </div>
+                        <div className={styles.listInfo}>
+                          <div className={styles.listDesc}>{appt.title || appt.type || 'Appointment'}</div>
+                          {appt.customerName && (
+                            <div className={styles.listMeta}>
+                              <span className="mi" style={{ fontSize: '0.78rem', color: 'var(--text3)', verticalAlign: 'middle' }}>person</span>
+                              <span className={styles.listMetaText}>{appt.customerName}</span>
+                            </div>
+                          )}
+                          <div className={styles.listMeta}>
+                            <span className="mi" style={{ fontSize: '0.78rem', color: 'var(--text3)', verticalAlign: 'middle' }}>schedule</span>
+                            <span className={styles.listMetaText}>{formatApptDate(appt.date, appt.time)}</span>
+                          </div>
+                          {isToday && <div className={styles.listApptToday}>Today</div>}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </section>
+            )}
+
+            {/* ── RECENT APPOINTMENTS ── */}
+            {pastAppointments.length > 0 && (
+              <section className={styles.section}>
+                <div className={styles.sectionHeader}>
+                  <h3 className={styles.sectionTitle}>Recent Appointments</h3>
+                  <button className={styles.seeAllBtn} onClick={() => navigate('/appointments')}>See all</button>
+                </div>
+                <div className={styles.listSection}>
+                  <div className={styles.listDivider} />
+                  {pastAppointments.map((appt, idx) => {
+                    const isLast    = idx === pastAppointments.length - 1
+                    const iconColor = appt.status === 'completed' ? '#15803d'
+                      : appt.status === 'cancelled' ? '#94a3b8' : '#ef4444'
+                    return (
+                      <div key={appt.id} className={`${styles.listItem} ${isLast ? styles.listItemLast : ''}`}>
+                        <div className={styles.listOuter} style={
+                          appt.status === 'completed'
+                            ? { borderColor: 'rgba(21,128,61,0.3)', background: 'rgba(21,128,61,0.04)' }
+                            : appt.status === 'cancelled'
+                            ? { borderColor: 'rgba(148,163,184,0.3)' }
+                            : { borderColor: 'rgba(239,68,68,0.3)', background: 'rgba(239,68,68,0.04)' }
+                        }>
+                          <div className={styles.listInner}>
+                            <span className="mi" style={{ fontSize: '1.3rem', color: iconColor }}>
+                              {APPT_TYPE_ICONS[appt.type] || 'event'}
+                            </span>
+                          </div>
+                        </div>
+                        <div className={styles.listInfo}>
+                          <div className={styles.listDesc}>{appt.title || appt.type || 'Appointment'}</div>
+                          {appt.customerName && (
+                            <div className={styles.listMeta}>
+                              <span className="mi" style={{ fontSize: '0.78rem', color: 'var(--text3)', verticalAlign: 'middle' }}>person</span>
+                              <span className={styles.listMetaText}>{appt.customerName}</span>
+                            </div>
+                          )}
+                          <div className={styles.listMeta}>
+                            <span className="mi" style={{ fontSize: '0.78rem', color: 'var(--text3)', verticalAlign: 'middle' }}>schedule</span>
+                            <span className={styles.listMetaText}
+                              style={{ color: appt.status === 'missed' ? '#ef4444' : undefined }}>
+                              {formatApptDate(appt.date, appt.time)}
+                            </span>
+                          </div>
+                          <div className={styles.listApptStatus}
+                            style={{ color: iconColor, borderColor: `${iconColor}40`, background: `${iconColor}12` }}>
+                            {appt.status === 'completed' ? 'Completed' : appt.status === 'cancelled' ? 'Cancelled' : 'Missed'}
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </section>
+            )}
+
+            {/* ── QUICK ACTIONS — desktop only (CSS hides on mobile) ── */}
+            <section className={styles.quickActionsDesktop}>
+              <h3 className={styles.sectionTitle}>Quick Actions</h3>
+              <div className={styles.statsGrid}>
+                {[
+                  { icon: 'person_add', label: 'Add Customer',     route: '/customers'    },
+                  { icon: 'event',      label: 'Book Appointment', route: '/appointments' },
+                  { icon: 'assignment', label: 'New Task',         route: '/tasks'        },
+                  { icon: 'receipt',    label: 'New Invoice',      route: '/invoices'     },
+                ].map(a => (
+                  <div key={a.label} className={styles.actionCard} onClick={() => navigate(a.route)}>
+                    <div className={styles.statIconWrap}>
+                      <span className="mi" style={{ fontSize: '1.3rem', color: 'var(--accent)' }}>{a.icon}</span>
+                    </div>
+                    <div className={styles.actionCardText}>
+                      <div className={styles.actionLabel}>{a.label}</div>
                     </div>
                   </div>
-                )
-              })}
-            </div>
-          </section>
-        )}
+                ))}
+              </div>
+            </section>
 
-        {/* ── RECENT TASKS — hidden when empty ── */}
-        {recentTasks.length > 0 && (
-          <section className={styles.section}>
-            <div className={styles.sectionHeader}>
-              <h3 className={styles.sectionTitle}>Recent Tasks</h3>
-              <button className={styles.seeAllBtn} onClick={() => navigate('/tasks')}>See all</button>
-            </div>
-            <div className={styles.listSection}>
-              <div className={styles.listDivider} />
-              {recentTasks.map((task, idx) => {
-                const isLast    = idx === recentTasks.length - 1
-                const overdue   = isTaskOverdue(task)
-                const iconColor = overdue ? '#ef4444' : task.done ? '#15803d' : '#818cf8'
-                const catIcon   = CATEGORY_ICONS[task.category] || 'assignment'
-                return (
-                  <div key={task.id} className={`${styles.listItem} ${isLast ? styles.listItemLast : ''}`}>
-                    <div className={styles.listOuter}
-                      style={overdue ? { borderColor: 'rgba(239,68,68,0.35)', background: 'rgba(239,68,68,0.05)' } : task.done ? { borderColor: 'rgba(21,128,61,0.3)', background: 'rgba(21,128,61,0.04)' } : {}}>
-                      <div className={styles.listInner}>
-                        <span className="mi" style={{ fontSize: '1.3rem', color: iconColor }}>{catIcon}</span>
-                      </div>
-                    </div>
-                    <div className={styles.listInfo}>
-                      <div className={styles.listDesc}>{task.desc}</div>
-                      {task.customerName && (
-                        <div className={styles.listMeta}>
-                          <span className="mi" style={{ fontSize: '0.78rem', color: 'var(--text3)', verticalAlign: 'middle' }}>person</span>
-                          <span className={styles.listMetaText}>{task.customerName}</span>
+            {/* ── RECENT ORDERS — hidden when empty ── */}
+            {recentOrders.length > 0 && (
+              <section className={styles.section}>
+                <div className={styles.sectionHeader}>
+                  <h3 className={styles.sectionTitle}>Recent Orders</h3>
+                  <button className={styles.seeAllBtn} onClick={() => navigate('/orders')}>See all</button>
+                </div>
+                <div className={styles.listSection}>
+                  <div className={styles.listDivider} />
+                  {recentOrders.map((order, idx) => {
+                    const isLast   = idx === recentOrders.length - 1
+                    const priceStr = order.price != null ? `₦${Number(order.price).toLocaleString()}` : '—'
+                    const itemsList = order.items || []
+                    const stageObj = STAGES.find(s => s.value === order.stage)
+                    // Resolve the raw due date string → short format (no year)
+                    const dueDateRaw = order.dueRaw || order.dueDate
+                    const dueDateShort = dueDateRaw
+                      ? `Due ${formatDateShort(dueDateRaw)}`
+                      : order.due
+                      ? `Due ${order.due}`
+                      : null
+                    return (
+                      <div key={order.id} className={`${styles.listItem} ${isLast ? styles.listItemLast : ''}`}>
+                        <HomeMosaic items={itemsList} />
+                        {/* LEFT: title, customer, stage */}
+                        <div className={styles.listInfo}>
+                          <div className={styles.listDesc}>{order.desc ?? 'Order'}</div>
+                          <div className={styles.listMeta}>
+                            <span className="mi" style={{ fontSize: '0.78rem', color: 'var(--text3)', verticalAlign: 'middle' }}>person</span>
+                            <span className={styles.listMetaText}>{order.customerName || '—'}</span>
+                          </div>
+                          {stageObj && (
+                            <div className={styles.listStageLine}>
+                              <span className="mi" style={{ fontSize: '0.78rem' }}>{stageObj.icon}</span>
+                              {stageObj.label}
+                            </div>
+                          )}
                         </div>
-                      )}
-                      {(() => {
-                        const statusKey = overdue ? 'overdue' : task.done ? 'completed' : 'pending'
-                        const sty = TASK_STATUS_STYLES[statusKey]
-                        const label = statusKey.charAt(0).toUpperCase() + statusKey.slice(1)
-                        return (
-                          <span className={styles.statusPill}
-                            style={{ background: sty.bg, color: sty.color, borderColor: sty.border }}>
-                            {label}
-                          </span>
-                        )
-                      })()}
-                      {task.dueDate && (
-                        <div className={styles.listDue}>Due {formatDate(task.dueDate)}</div>
-                      )}
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </section>
+                        {/* RIGHT: price, qty, status pill, due date */}
+                        <div className={styles.listRight}>
+                          <div className={styles.listPrice}>{priceStr}</div>
+                          {order.qty > 1 && <div className={styles.listQty}>×{order.qty}</div>}
+                          <StatusPill status={order.status} />
+                          {dueDateShort && (
+                            <div className={styles.listDueRight}>{dueDateShort}</div>
+                          )}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </section>
+            )}
+
+            {/* ── RECENT TASKS — hidden when empty ── */}
+            {recentTasks.length > 0 && (
+              <section className={styles.section}>
+                <div className={styles.sectionHeader}>
+                  <h3 className={styles.sectionTitle}>Recent Tasks</h3>
+                  <button className={styles.seeAllBtn} onClick={() => navigate('/tasks')}>See all</button>
+                </div>
+                <div className={styles.listSection}>
+                  <div className={styles.listDivider} />
+                  {recentTasks.map((task, idx) => {
+                    const isLast    = idx === recentTasks.length - 1
+                    const overdue   = isTaskOverdue(task)
+                    const iconColor = overdue ? '#ef4444' : task.done ? '#15803d' : '#818cf8'
+                    const catIcon   = CATEGORY_ICONS[task.category] || 'assignment'
+                    return (
+                      <div key={task.id} className={`${styles.listItem} ${isLast ? styles.listItemLast : ''}`}>
+                        <div className={styles.listOuter}
+                          style={overdue ? { borderColor: 'rgba(239,68,68,0.35)', background: 'rgba(239,68,68,0.05)' } : task.done ? { borderColor: 'rgba(21,128,61,0.3)', background: 'rgba(21,128,61,0.04)' } : {}}>
+                          <div className={styles.listInner}>
+                            <span className="mi" style={{ fontSize: '1.3rem', color: iconColor }}>{catIcon}</span>
+                          </div>
+                        </div>
+                        <div className={styles.listInfo}>
+                          <div className={styles.listDesc}>{task.desc}</div>
+                          {task.customerName && (
+                            <div className={styles.listMeta}>
+                              <span className="mi" style={{ fontSize: '0.78rem', color: 'var(--text3)', verticalAlign: 'middle' }}>person</span>
+                              <span className={styles.listMetaText}>{task.customerName}</span>
+                            </div>
+                          )}
+                          {(() => {
+                            const statusKey = overdue ? 'overdue' : task.done ? 'completed' : 'pending'
+                            const sty = TASK_STATUS_STYLES[statusKey]
+                            const label = statusKey.charAt(0).toUpperCase() + statusKey.slice(1)
+                            return (
+                              <span className={styles.statusPill}
+                                style={{ background: sty.bg, color: sty.color, borderColor: sty.border }}>
+                                {label}
+                              </span>
+                            )
+                          })()}
+                          {task.dueDate && (
+                            <div className={styles.listDue}>Due {formatDate(task.dueDate)}</div>
+                          )}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </section>
+            )}
+          </>
         )}
 
       </main>
