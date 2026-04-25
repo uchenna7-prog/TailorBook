@@ -3,34 +3,138 @@
 .emptyState p { font-size: 0.8rem; color: var(--text3); }
 .hint { font-size: 0.7rem; color: var(--text3); opacity: 0.6; }
 
-/* ── PAYMENT GROUP (date-grouped list, same pattern) ── */
+/* ── PAYMENT GROUP (date-grouped list) ── */
 .payGroup { margin-bottom: 16px; }
 .payGroupDate { font-size: 0.72rem; font-weight: 500; color: var(--text3); padding: 10px 0 8px; }
 .payGroupDivider { height: 1px; background: var(--border); width: calc(100% + 32px); margin-left: -16px; }
 
-/* Each row */
-.payListItem { display: flex; align-items: center; gap: 14px; padding: 14px 0; cursor: pointer; transition: background 0.15s; background: var(--bg); position: relative; }
-.payListItem::after { content: ''; position: absolute; bottom: 0; left: 0; right: -16px; height: 1px; background: var(--border); }
+/* ── EACH ROW ── */
+.payListItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 0;
+  cursor: pointer;
+  transition: background 0.15s;
+  background: var(--bg);
+  position: relative;
+}
+.payListItem::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: -16px;
+  height: 1px;
+  background: var(--border);
+}
 .payListItemLast::after { display: none; }
 .payListItem:active { background: var(--surface); }
 
-/* Outer grey box */
-.payListOuter { width: 80px; height: 80px; border-radius: 12px; background: var(--surface); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-/* Inner white box */
-.payListInner { width: 58px; height: 58px; border-radius: 10px; background: #fff; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+/* ── LEFT: mosaic thumbnail ── */
+.payListOuter {
+  width: 68px;
+  height: 68px;
+  border-radius: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.payListInner {
+  width: 50px;
+  height: 50px;
+  border-radius: 9px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.orderImg { width: 100%; height: 100%; object-fit: cover; border-radius: 9px; }
 
-/* Order image inside card icon box */
-.orderImg { width: 100%; height: 100%; object-fit: cover; border-radius: 10px; }
+/* ── CENTRE: description + instalment count ── */
+.payListInfo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.payListDesc {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
-/* Text */
-.payListInfo { flex: 1; min-width: 0; }
-.payListDesc { font-size: 0.95rem; font-weight: 600; color: var(--text); margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.payListMeta { display: flex; align-items: center; gap: 5px; margin-bottom: 3px; }
-.payListMetaText { font-size: 0.78rem; font-weight: 400; color: var(--text2); }
+/* instalment count pill — sits below the title */
+.installCountBadge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.6rem;
+  font-weight: 800;
+  background: rgba(251,146,60,0.13);
+  color: #c2410c;
+  border: 1px solid rgba(251,146,60,0.28);
+  border-radius: 20px;
+  padding: 1px 7px;
+  letter-spacing: 0.02em;
+  align-self: flex-start;
+}
 
-/* Mini progress bar */
-.miniProgressWrap { height: 3px; background: var(--border); border-radius: 2px; margin-top: 6px; overflow: hidden; }
-.miniProgressBar { height: 100%; border-radius: 2px; transition: width 0.4s ease; }
+/* ── RIGHT: amount + progress + status badge ── */
+.payListRight {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  flex-shrink: 0;
+  min-width: 86px;
+}
+.payListAmount {
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: var(--text);
+  white-space: nowrap;
+}
+.payListSubAmount {
+  font-size: 0.65rem;
+  color: var(--text3);
+  font-weight: 500;
+  white-space: nowrap;
+  margin-top: -2px;
+}
+
+/* Mini progress bar — fixed width, right-aligned */
+.miniProgressWrap {
+  width: 100%;
+  height: 3px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.miniProgressBar {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.4s ease;
+}
+
+.payListStatusBadge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.6rem;
+  font-weight: 800;
+  border: 1px solid;
+  border-radius: 6px;
+  padding: 2px 7px;
+  white-space: nowrap;
+  letter-spacing: 0.01em;
+}
 
 /* ── MODAL OVERLAY (full-screen slide-up) ── */
 .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 3000; display: flex; flex-direction: column; animation: slideUp 0.35s cubic-bezier(0.4,0,0.2,1); }
@@ -87,7 +191,6 @@
   padding: 28px 20px 8px;
   gap: 10px;
 }
-
 .duplicateIconWrap {
   width: 60px;
   height: 60px;
@@ -99,21 +202,18 @@
   justify-content: center;
   margin-bottom: 4px;
 }
-
 .duplicateTitle {
   font-size: 1rem;
   font-weight: 800;
   color: var(--text);
   line-height: 1.3;
 }
-
 .duplicateBody {
   font-size: 0.85rem;
   color: var(--text2);
   line-height: 1.6;
   max-width: 300px;
 }
-
 .duplicateDismiss {
   margin-top: 8px;
   padding: 13px 32px;
@@ -127,7 +227,6 @@
   cursor: pointer;
   transition: opacity 0.15s;
 }
-
 .duplicateDismiss:active { opacity: 0.7; }
 
 /* ── DETAIL MODAL ── */
@@ -177,28 +276,18 @@
 .remainingBadge { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.3); border-radius: 10px; padding: 10px 14px; font-size: 0.82rem; color: var(--text2); margin-bottom: 18px; }
 .confirmBtn { width: 100%; padding: 16px; border-radius: 14px; border: none; background: var(--accent); color: var(--bg); font-family: 'DM Sans', sans-serif; font-size: 0.88rem; font-weight: 800; cursor: pointer; margin-top: 8px; }
 .confirmBtn:disabled { opacity: 0.3; cursor: not-allowed; }
-/* ══════════════════════════════════════════════════════════════
-   ORDER MOSAIC THUMBNAIL — shared across Invoice / Receipt tabs
-   Same layout as OrdersTab:
-     1 item  → single full image
-     2 items → left half | right half
-     3+ items → large left (full height) | right column stacked
-     4+ items → bottom-right shows "+N" overlay
-   Lives inside invoiceListOuter → invoiceListInner so card
-   size NEVER changes.
-   ══════════════════════════════════════════════════════════════ */
 
-/* Overrides padding on invoiceListInner and sets row layout */
+/* ══════════════════════════════════════════════════════════════
+   ORDER MOSAIC THUMBNAIL
+   ══════════════════════════════════════════════════════════════ */
 .mosaicInner {
   padding: 0 !important;
   display: flex !important;
   flex-direction: row !important;
   align-items: stretch !important;
   overflow: hidden;
-  border-radius: 10px;
+  border-radius: 9px;
 }
-
-/* Large left cell — 60% width, full height */
 .mosaicLeft {
   flex: 0 0 60%;
   display: flex;
@@ -208,8 +297,6 @@
   background: #fff;
   height: 100%;
 }
-
-/* Right column — remaining 40%, split into two stacked cells */
 .mosaicRight {
   flex: 1;
   display: flex;
@@ -217,8 +304,6 @@
   overflow: hidden;
   background: #fff;
 }
-
-/* Each of the two stacked right cells */
 .mosaicRightCell {
   flex: 1;
   display: flex;
@@ -228,35 +313,25 @@
   position: relative;
   background: #fff;
 }
-
-/* Thin vertical divider between left and right */
 .mosaicDividerV {
   width: 1.5px;
   flex-shrink: 0;
   background: var(--border);
   align-self: stretch;
 }
-
-/* Thin horizontal divider between top-right and bottom-right */
 .mosaicDividerH {
   height: 1.5px;
   flex-shrink: 0;
   background: var(--border);
   width: 100%;
 }
-
 .mosaicImg {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
 }
-
-/* "+N" overlay on last mosaic cell */
-.mosaicOverlayWrap {
-  position: relative;
-}
-
+.mosaicOverlayWrap { position: relative; }
 .mosaicOverlay {
   position: absolute;
   inset: 0;

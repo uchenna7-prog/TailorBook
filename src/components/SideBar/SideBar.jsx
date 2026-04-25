@@ -1,6 +1,11 @@
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { useReviews } from '../../contexts/ReviewContext'
+import { useCustomers } from '../../contexts/CustomerContext'
+import { useOrders } from '../../contexts/OrdersContext'
+import { useAppointments } from '../../contexts/AppointmentContext'
+import { useTasks } from '../../contexts/TaskContext'
+import { useInvoices } from '../../contexts/InvoiceContext'
 import styles from './SideBar.module.css'
 
 
@@ -10,8 +15,8 @@ const NAV_SECTIONS = [
     label: 'Workspace',
     items: [
       { path: '/',           label: 'Dashboard', icon: 'dashboard'     },
-      { path: '/customers',  label: 'Customers', icon: 'groups'        },
-      { path: '/orders',     label: 'Orders',    icon: 'shopping_cart' },
+      { path: '/customers',  label: 'Customers', icon: 'groups',        badgeKey: 'customers'  },
+      { path: '/orders',     label: 'Orders',    icon: 'shopping_cart', badgeKey: 'orders'     },
       { path: '/inventory',  label: 'Inventory', icon: 'inventory_2'   },
       { path: '/gallery',    label: 'Gallery',   icon: 'photo_library' },
     ],
@@ -20,8 +25,8 @@ const NAV_SECTIONS = [
     key: 'schedule',
     label: 'Schedule',
     items: [
-      { path: '/appointments', label: 'Appointments', icon: 'event'      },
-      { path: '/tasks',        label: 'Tasks',        icon: 'assignment' },
+      { path: '/appointments', label: 'Appointments', icon: 'event',      badgeKey: 'appointments' },
+      { path: '/tasks',        label: 'Tasks',        icon: 'assignment', badgeKey: 'tasks'        },
     ],
   },
   {
@@ -29,7 +34,7 @@ const NAV_SECTIONS = [
     label: 'Finance',
     items: [
       { path: '/payments', label: 'Payments', icon: 'payments'     },
-      { path: '/invoices', label: 'Invoices', icon: 'receipt_long' },
+      { path: '/invoices', label: 'Invoices', icon: 'receipt_long', badgeKey: 'invoices' },
     ],
   },
   {
@@ -37,7 +42,7 @@ const NAV_SECTIONS = [
     label: 'Insights',
     items: [
       { path: '/reports', label: 'Reports', icon: 'bar_chart'   },
-      { path: '/reviews', label: 'Reviews', icon: 'rate_review' },
+      { path: '/reviews', label: 'Reviews', icon: 'rate_review', badgeKey: 'reviews' },
     ],
   },
   {
@@ -59,12 +64,54 @@ const NAV_SECTIONS = [
   },
 ]
 
+// Badge variant drives color:
+//   'pending'  → amber/orange  (needs action)
+//   'info'     → blue          (today / time-sensitive info)
+//   'neutral'  → muted gray    (just a count)
+
+function NavBadge({ count, variant = 'neutral' }) {
+  if (!count || count === 0) return null
+  return (
+    <span className={`${styles.badge} ${styles[`badge_${variant}`]}`}>
+      {count > 99 ? '99+' : count}
+    </span>
+  )
+}
+
 function SideBar({ isOpen, onClose }) {
   const location = useLocation()
   const navigate = useNavigate()
   const { user } = useAuth()
-  const { pendingCount } = useReviews()
 
+  // ── Context data ──────────────────────────────────────────
+  const { pendingCount: reviewsPending }         = useReviews()
+  const { customers }                            = useCustomers()
+  const { allOrders }                            = useOrders()
+  const { todayAppointments }                    = useAppointments()
+  const { tasks }                                = useTasks()
+  const { allInvoices }                          = useInvoices()
+
+  // ── Derived badge values ──────────────────────────────────
+  const pendingOrders    = allOrders.filter(o =>
+    o.status === 'pending' || o.status === 'new'
+  ).length
+
+  const incompleteTasks  = tasks.filter(t => !t.done && !t.completed).length
+
+  const unpaidInvoices   = allInvoices.filter(inv =>
+    inv.status === 'unpaid' || inv.status === 'overdue' || inv.status === 'sent'
+  ).length
+
+  const badgeMap = {
+    customers:    { count: customers.length,        variant: 'neutral' },
+    orders:       { count: pendingOrders,            variant: 'pending' },
+    appointments: { count: todayAppointments.length, variant: 'info'    },
+    tasks:        { count: incompleteTasks,          variant: 'pending' },
+    invoices:     { count: unpaidInvoices,           variant: 'pending' },
+    reviews:      { count: reviewsPending,           variant: 'pending' },
+  }
+
+  // ── User display ──────────────────────────────────────────
   const fullName    = user?.displayName || user?.email?.split('@')[0] || 'User'
   const displayName = fullName.split(' ').slice(0, 2).join(' ')
   const initials    = fullName.trim().split(' ').filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('')
@@ -99,19 +146,22 @@ function SideBar({ isOpen, onClose }) {
             {NAV_SECTIONS.map((section, i) => (
               <div key={section.key} className={`${styles.section} ${i > 0 ? styles.sectionBordered : ''}`}>
                 <div className={styles.sectionLabel}>{section.label}</div>
-                {section.items.map((item) => (
-                  <button
-                    key={item.path}
-                    className={`${styles.navItem} ${location.pathname === item.path ? styles.active : ''} ${item.danger ? styles.danger : ''}`}
-                    onClick={() => handleNav(item.path)}
-                  >
-                    <span className="mi">{item.icon}</span>
-                    <span className={styles.navLabel}>{item.label}</span>
-                    {item.path === '/reviews' && pendingCount > 0 && (
-                      <span className={styles.badge}>{pendingCount}</span>
-                    )}
-                  </button>
-                ))}
+                {section.items.map((item) => {
+                  const badge = item.badgeKey ? badgeMap[item.badgeKey] : null
+                  return (
+                    <button
+                      key={item.path}
+                      className={`${styles.navItem} ${location.pathname === item.path ? styles.active : ''} ${item.danger ? styles.danger : ''}`}
+                      onClick={() => handleNav(item.path)}
+                    >
+                      <span className="mi">{item.icon}</span>
+                      <span className={styles.navLabel}>{item.label}</span>
+                      {badge && (
+                        <NavBadge count={badge.count} variant={badge.variant} />
+                      )}
+                    </button>
+                  )
+                })}
               </div>
             ))}
           </div>

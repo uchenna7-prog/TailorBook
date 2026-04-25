@@ -48,8 +48,8 @@ export function InvoiceTemplate6({ invoice, customer, brand }) {
           <span className={styles.invoiceNum}>#{invoice.number}</span>
         </div>
         <div className={styles.invoiceRight}>
-          <div><span className={styles.label}>DATE:</span> {invoice.date}</div>
-          <div><span className={styles.label}>DUE:</span> {dueDate}</div>
+          <div><span className={styles.label}>ISSUE DATE:</span> {invoice.date}</div>
+          <div><span className={styles.label}>DUE DATE:</span> {dueDate}</div>
         </div>
       </div>
       <div className={styles.infoRow}>

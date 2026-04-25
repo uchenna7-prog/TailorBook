@@ -696,17 +696,8 @@ export default function PaymentsTab({ customerId, orders, showToast, onGenerateR
     }
   }
 
-  // ─────────────────────────────────────────────────────────────
-  // FIX: pass the FULL payment object straight to CustomerDetail.
-  // CustomerDetail.handleGenerateReceipt already handles which
-  // installments are new vs previously receipted — we must NOT
-  // strip previous installments here or that logic is bypassed.
-  // ─────────────────────────────────────────────────────────────
   const handleGenerateReceipt = (payment) => {
     setDetailPay(null)
-    // Pass payment as-is; CustomerDetail.handleGenerateReceipt
-    // uses installmentIds stored on existing receipts to work out
-    // which installments are new and which are previous history.
     onGenerateReceipt(payment)
   }
 
@@ -761,44 +752,40 @@ export default function PaymentsTab({ customerId, orders, showToast, onGenerateR
                 className={`${styles.payListItem} ${isLast ? styles.payListItemLast : ''}`}
                 onClick={() => setDetailPay(p)}
               >
+                {/* LEFT: mosaic thumbnail */}
                 <OrderMosaic
                   orderItems={orderItems}
                   fallbackIcon="payments"
                   fallbackColor={sm.color}
                 />
+
+                {/* CENTRE: order name + instalment count only */}
                 <div className={styles.payListInfo}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-                    <span className={styles.payListDesc} style={{ flex: 1 }}>{p.orderDesc || 'Payment'}</span>
-                    {installCount > 1 && (
-                      <span style={{
-                        fontSize: '0.6rem', fontWeight: 800,
-                        background: 'rgba(251,146,60,0.14)', color: '#fb923c',
-                        border: '1px solid rgba(251,146,60,0.3)',
-                        borderRadius: 20, padding: '1px 7px', flexShrink: 0,
-                        letterSpacing: '0.02em',
-                      }}>
-                        {installCount}/{installCount}
-                      </span>
-                    )}
-                  </div>
-                  <span style={{
-                    display: 'inline-block',
-                    marginTop: '4px',
-                    padding: '2px 8px',
-                    borderRadius: '6px',
-                    fontSize: '0.72rem',
-                    fontWeight: 600,
-                    border: `1px solid ${sm.border}`,
-                    background: sm.bg,
-                    color: sm.color,
-                  }}>
+                  <div className={styles.payListDesc}>{p.orderDesc || 'Payment'}</div>
+                  {installCount > 1 && (
+                    <span className={styles.installCountBadge}>
+                      {installCount} payments
+                    </span>
+                  )}
+                </div>
+
+                {/* RIGHT: status badge → amount → sub amount → progress bar */}
+                <div className={styles.payListRight}>
+                  <span
+                    className={styles.payListStatusBadge}
+                    style={{
+                      color: sm.color,
+                      background: sm.bg,
+                      borderColor: sm.border,
+                    }}
+                  >
                     {sm.label}
                   </span>
-                  {fullPrice > 0 && (
-                    <div className={styles.payListMeta}>
-                      <span className="mi" style={{ fontSize: '0.8rem', color: 'var(--text3)', verticalAlign: 'middle' }}>account_balance_wallet</span>
-                      <span className={styles.payListMetaText}>{fmt(totalPaid)} of {fmt(fullPrice)}</span>
-                    </div>
+                  <div className={styles.payListAmount}>
+                    {fullPrice > 0 ? fmt(totalPaid) : fmt(installments[0]?.amount)}
+                  </div>
+                  {fullPrice > 0 && totalPaid < fullPrice && (
+                    <div className={styles.payListSubAmount}>of {fmt(fullPrice)}</div>
                   )}
                   {fullPrice > 0 && (
                     <div className={styles.miniProgressWrap}>
@@ -853,4 +840,3 @@ export default function PaymentsTab({ customerId, orders, showToast, onGenerateR
 PaymentsTab.openModal = () => {
   document.getElementById('__payment_modal_trigger__')?.dispatchEvent(new Event('open'))
 }
-

@@ -55,12 +55,6 @@ const STATUS_STYLES = {
 }
 
 // ── Invoice Mosaic Thumbnail ──────────────────────────────────
-//   Mirrors OrderMosaic from Orders.jsx exactly:
-//   0 images  → receipt icon
-//   1 image   → single full image
-//   2 images  → left half | right half
-//   3+ images → large left | right column (top + bottom stacked)
-//               bottom-right shows "+N" overlay when total > 3
 
 function InvoiceMosaic({ items, overdue }) {
   const covers = (items || []).map(item => item.imgSrc ?? null).filter(Boolean)
@@ -158,7 +152,7 @@ function InvoiceCard({ invoice, currency, onTap, isLast, orderItems }) {
     >
       <InvoiceMosaic items={orderItems} overdue={overdue} />
 
-      {/* Info */}
+      {/* Centre: description, number, customer */}
       <div className={styles.invoiceListInfo}>
         <div className={styles.invoiceListDesc}>{invoice.orderDesc || 'Order'}</div>
         <div className={styles.invoiceListOrdRow}>{invoice.number}</div>
@@ -166,28 +160,22 @@ function InvoiceCard({ invoice, currency, onTap, isLast, orderItems }) {
           <span className="mi" style={{ fontSize: '0.8rem', color: 'var(--text3)', verticalAlign: 'middle' }}>person</span>
           <span className={styles.invoiceListMetaText}>{invoice.customerName || '—'}</span>
         </div>
-        <span style={{
-          display: 'inline-block',
-          marginTop: '4px',
-          padding: '2px 8px',
-          borderRadius: '6px',
-          fontSize: '0.72rem',
-          fontWeight: 600,
+      </div>
+
+      {/* Right: amount + status pill */}
+      <div className={styles.invoiceListRight}>
+        <div className={styles.invoiceListAmount}>{fmt(currency, total)}</div>
+        <span className={styles.invoiceStatusPill} style={{
           background: sty.bg,
           color:      sty.color,
           border:     `1px solid ${sty.border}`,
         }}>
           {STATUS_LABELS[statusKey] ?? statusKey}
         </span>
-        <div className={`${styles.invoiceListAmount}`}>{fmt(currency, total)}</div>
       </div>
     </div>
   )
 }
-
-// ── Full Invoice View — delegated to InvoiceView component ───
-// InvoiceView reads invoice.template + invoice.brandSnapshot to
-// always render with the template active at creation time.
 
 // ── Main Page ─────────────────────────────────────────────────
 
