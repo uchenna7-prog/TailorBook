@@ -1,8 +1,10 @@
-// ─────────────────────────────────────────────────────────────
-// Shared receipt payment summary block (used by templates 1-3)
-// ─────────────────────────────────────────────────────────────
+import styles from "./ReceiptPaymentSummary.module.css"
+import { calcTax } from "../../utils/invoiceUtils"
+import { resolveCumulativePaid, buildPaymentRows } from "../../../ReceiptViewer/utils"
+import { fmt } from "../../utils/receiptUtils"
 
-function ReceiptPaymentSummary({ receipt, brand }) {
+
+export function ReceiptPaymentSummary({ receipt, brand }) {
   const { currency, showTax, taxRate } = brand
 
   const orderTotal = receipt.items?.length > 0
@@ -21,30 +23,7 @@ function ReceiptPaymentSummary({ receipt, brand }) {
 
   return (
     <div className={styles.tableWrapper}>
-      <div style={{ fontWeight: 900, fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 5, color: '#444' }}>Order Details</div>
-      <div className={styles.tHead}>
-        <span style={{ width: 18, flexShrink: 0, fontVariantNumeric: 'tabular-nums' }}>S/N</span>
-        <span className={styles.tColDesc}>Description</span>
-        <span className={styles.tColNum}>Amount</span>
-      </div>
-      {receipt.items?.length > 0 ? (
-        receipt.items.map((item, idx) => (
-          <div key={idx} className={styles.tRowSub} style={{ padding: '5px 0', fontSize: 10, color: '#1a1a1a', borderBottom: '1px solid #f0f0f0' }}>
-            <span style={{ width: 18, flexShrink: 0, color: '#888' }}>{idx + 1}</span>
-            <span className={styles.tColDesc}>{item.name}</span>
-            <span className={styles.tColNum}>{fmt(currency, item.price)}</span>
-          </div>
-        ))
-      ) : (
-        <div className={styles.tRowMain}>
-          <div style={{ width: 18, flexShrink: 0, color: '#888', fontSize: 10 }}>1</div>
-          <div className={styles.tColDesc}>{receipt.orderDesc || 'Garment Order'}</div>
-          <div className={styles.tColNum}>{fmt(currency, orderTotal)}</div>
-        </div>
-      )}
-      <div className={styles.summary} style={{ width: '100%', marginLeft: 0 }}>
-        <div className={styles.sumRow}><span>Order Value</span><span>{fmt(currency, orderTotal)}</span></div>
-      </div>
+
       {/* Payment History */}
       {paymentRows.length > 0 && (
         <div style={{ marginTop: 14 }}>
@@ -52,16 +31,16 @@ function ReceiptPaymentSummary({ receipt, brand }) {
             Payment History
           </div>
           <div className={styles.tHead}>
-            <span style={{ width: 18, flexShrink: 0 }}>S/N</span>
-            <span className={styles.tColDesc}>Payment Date</span>
-            <span className={styles.tColNum}>Amount</span>
+            <span style={{ flex: 1, textAlign: 'left' }}>S/N</span>
+            <span className={styles.tColDesc} style={{ flex: 5, textAlign: 'left' }}>Payment Date</span>
+            <span className={styles.tColNum} style={{ flex: 1, textAlign: 'center' }}>Amount</span>
           </div>
           {paymentRows.map((p, idx) => (
             <div key={p.id ?? idx} className={styles.tRowSub}>
-              <span style={{ width: 18, flexShrink: 0, color: p._isCurrent ? '#1a1a1a' : '#888', fontWeight: p._isCurrent ? 700 : 400 }}>{p._sn}</span>
-              <span className={styles.tColDesc} style={{ color: p._isCurrent ? '#1a1a1a' : '#6b7280', fontWeight: p._isCurrent ? 700 : 400 }}>
+              <span style={{ flex: 1, textAlign: 'left' }}>{p._sn}</span>
+              <span className={styles.tColDesc} style={{ flex: 5, textAlign: 'left' }}>
                 {p.date}{p.method ? (
-                  <span style={{ color: p._isCurrent ? '#16a34a' : '#9ca3af', fontWeight: 700 }}> · {p.method.charAt(0).toUpperCase() + p.method.slice(1)}</span>
+                  <span style={{ flex: 1, textAlign: 'left' }}> · {p.method.charAt(0).toUpperCase() + p.method.slice(1)}</span>
                 ) : null}
               </span>
               <span className={styles.tColNum} style={{ color: p._isCurrent ? '#16a34a' : '#6b7280', fontWeight: p._isCurrent ? 700 : 400 }}>{fmt(currency, p.amount)}</span>

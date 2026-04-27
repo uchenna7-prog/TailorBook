@@ -4,23 +4,21 @@ import { jsPDF } from 'jspdf'
 import { useBrand } from '../../contexts/BrandContext'
 import Header from '../Header/Header'
 import styles from './ReceiptViewer.module.css'
-import { TEMPLATE_MAP } from '../Templates/datas/receiptTemplateMaps'
+import { TEMPLATE_MAPPINGS } from '../Templates/datas/receiptTemplateMaps'
+import { getBrandCSSVars, downloadPDF, resolveCumulativePaid, buildReceiptWhatsAppMessage } from './Utils'
+import ShareSheet from '../ShareSheet/ShareSheet'
 
 
 
-
-
-// ── Main component ────────────────────────────────────────────
-
-export default function ReceiptView({ receipt: initialReceipt, customer, onClose, onDelete, showToast }) {
+export default function ReceiptViewer({ receipt: initialReceipt, customer, onClose, onDelete, showToast }) {
   const { brand: liveBrand } = useBrand()
   const paperRef  = useRef(null)
   const [receipt,    setReceipt]    = useState(initialReceipt)
   const [pdfLoading, setPdfLoading] = useState(false)
   const [showShare,  setShowShare]  = useState(false)
 
-  const templateKey = receipt.template || liveBrand.template || 'editable'
-  const Template    = TEMPLATE_MAP[templateKey] || ReceiptTemplate1
+  const templateKey = receipt.template || liveBrand.template || 'receiptTemplate1'
+  const Template    = TEMPLATE_MAPPINGS[templateKey] || TEMPLATE_MAPPINGS.receiptTemplate1
 
   // FIX: if the receipt has a brandSnapshot, use it exclusively for all brand
   // fields so the frozen-at-generation colours/details are always shown.

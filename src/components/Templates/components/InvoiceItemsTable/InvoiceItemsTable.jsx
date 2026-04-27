@@ -1,5 +1,5 @@
 import { calcTax } from "../../utils/invoiceUtils"
-import styles from "./ItemsTable.module.css"
+import styles from "./InvoiceItemsTable.module.css"
 import { fmt } from "../../utils/invoiceUtils"
 import { useBrandTokens } from "../../../../hooks/useBrandTokens"
 import { useRef } from "react"

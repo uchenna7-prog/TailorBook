@@ -1,4 +1,6 @@
 import styles from "../styles/Template1.module.css"
+import { ReceiptPaymentSummary } from "../components/ReceiptPaymentSummary/ReceiptPaymentSummary"
+import { ItemsTable } from "../components/ReceiptItemsTable/ReceiptItemsTable"
 
 
 export function ReceiptTemplate1({ receipt, customer, brand }) {
@@ -12,7 +14,6 @@ export function ReceiptTemplate1({ receipt, customer, brand }) {
 
         <div className={styles.brandName}>{brand.name || 'Your Brand'}</div>
         {brand.tagline && <div className={styles.tagline}>{brand.tagline}</div>}
-        {brand.address && <div className={styles.address}>{brand.address}</div>}
 
         <div className={styles.titleRow}>
 
@@ -41,19 +42,21 @@ export function ReceiptTemplate1({ receipt, customer, brand }) {
 
         </div>
       </div>
+      <ItemsTable receipt={receipt} brand={brand} />
+      
       <ReceiptPaymentSummary receipt={receipt} brand={brand} />
-      <div className={styles.tplFooterPush} />
+
       {(brand.phone || brand.email || brand.footer) && (
-        <div className={styles.Footer}>
-          {(brand.phone || brand.email || brand.footer) && (
-            <div className={styles.footSection}>
-              <strong>Notes:</strong><br />
-              {brand.phone   && <span>{brand.phone}<br /></span>}
-              {brand.email   && <span>{brand.email}<br /></span>}
-              {brand.footer  && <span>{brand.footer}</span>}
-            </div>
-          )}
+
+        <div className={styles.footRight}>
+
+          <strong style={{fontWeight:900,color:"var(--brand-primary-dark)"}}>Notes:</strong><br />
+          {brand.phone   && <span>{brand.phone}<br /></span>}
+          {brand.email   && <span>{brand.email}<br /></span>}
+          {brand.footer  && <span>{brand.footer}</span>}
+
         </div>
+
       )}
     </div>
   )

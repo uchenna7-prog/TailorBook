@@ -1,0 +1,135 @@
+/* ─────────────────────────────────────────────
+   PaymentHistoryBlock.module.css
+   Tabular receipt layout
+   ───────────────────────────────────────────── */
+
+/* ── Wrapper ──────────────────────────────── */
+.wrapper {
+  margin-top: 12px;
+  width: 100%;
+}
+
+/* ── Section label ────────────────────────── */
+.sectionLabel {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #6b7280;
+  margin-bottom: 5px;
+}
+
+/* ── Table header row ─────────────────────── */
+.head {
+  display: grid;
+  grid-template-columns: 28px 1fr 88px;
+  align-items: center;
+  padding: 4px 6px;
+  background: #f3f4f6;
+  border-top: 1.5px solid #d1d5db;
+  border-bottom: 1px solid #d1d5db;
+}
+
+.headSN,
+.headDate,
+.headAmt {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #9ca3af;
+}
+
+.headAmt { text-align: right; }
+
+/* ── Data rows ────────────────────────────── */
+.row {
+  display: grid;
+  grid-template-columns: 28px 1fr 88px;
+  align-items: baseline;
+  padding: 5px 6px;
+  border-bottom: 1px dashed #e5e7eb;
+}
+
+.row:last-of-type {
+  border-bottom: 1px solid #d1d5db;
+}
+
+.rowSN {
+  font-size: 10.5px;
+  color: #9ca3af;
+  font-variant-numeric: tabular-nums;
+}
+
+.rowDate {
+  font-size: 10.5px;
+  color: #9ca3af;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-right: 6px;
+}
+
+.rowAmt {
+  font-size: 10.5px;
+  text-align: right;
+  color: #9ca3af;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+  white-space: nowrap;
+}
+
+/* ── Totals area ──────────────────────────── */
+.totalsArea {
+  margin-top: 2px;
+  padding: 6px 6px 0;
+}
+
+.totRow {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  font-size: 10.5px;
+  color: #374151;
+  padding: 2.5px 0;
+  column-gap: 12px;
+}
+
+.totPaidAmt {
+  color: #16a34a;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.totBalanceRow {
+  color: #ef4444;
+}
+
+.totBalanceAmt {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Divider ──────────────────────────────── */
+.totDivider {
+  height: 1.5px;
+  background: #1a1a1a;
+  margin: 6px 0 5px;
+}
+
+/* ── Bold summary line ────────────────────── */
+.totBold {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 800;
+  color: #1a1a1a;
+  letter-spacing: 0.04em;
+  column-gap: 12px;
+  padding-bottom: 4px;
+}
+
+.totBoldPaidFull {
+  color: #16a34a;
+}

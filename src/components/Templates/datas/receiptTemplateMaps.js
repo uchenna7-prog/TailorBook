@@ -10,16 +10,16 @@ import { ReceiptTemplate9 } from "../ReceiptTemplates/Template9"
 import { ReceiptTemplate10 } from "../ReceiptTemplates/Template10"
 import { ReceiptTemplate11 } from "../ReceiptTemplates/Template11"
 
-export const TEMPLATE_MAP = {
- template1:      ReceiptTemplate1,
-  template2:          ReceiptTemplate2,
-  template3:        ReceiptTemplate3,
-  template4:     ReceiptTemplate4,
-  template5:         ReceiptTemplate5,
-  template6:    ReceiptTemplate6,
-  template7:       ReceiptTemplate7,
-  template8:   ReceiptTemplate8,
-  template9: ReceiptTemplate9,
-  template10:  ReceiptTemplate10,
-  template11:     ReceiptTemplate11,
+export const TEMPLATE_MAPPINGS = {
+  receiptTemplate1:ReceiptTemplate1,
+  receiptTemplate2:ReceiptTemplate2,
+  receiptTemplate3:ReceiptTemplate3,
+  receiptTemplate4:ReceiptTemplate4,
+  receiptTemplate5:ReceiptTemplate5,
+  receiptTemplate6:ReceiptTemplate6,
+  receiptTemplate7:ReceiptTemplate7,
+  receiptTemplate8:ReceiptTemplate8,
+  receiptTemplate9:ReceiptTemplate9,
+  receiptTemplate10:ReceiptTemplate10,
+  receiptTemplate11:ReceiptTemplate11
 }

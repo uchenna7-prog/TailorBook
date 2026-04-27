@@ -1,21 +1,12 @@
 // ── Helpers ───────────────────────────────────────────────────
 
-function fmt(currency, amount) {
-  const n = parseFloat(amount) || 0
-  return `${currency}${n.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-}
 
-function calcTax(subtotal, taxRate, showTax) {
-  if (!showTax || !taxRate) return 0
-  return subtotal * (taxRate / 100)
-}
-
-function resolveCumulativePaid(receipt) {
+export function resolveCumulativePaid(receipt) {
   if (receipt.cumulativePaid != null) return parseFloat(receipt.cumulativePaid)
   return (receipt.payments || []).reduce((s, p) => s + (parseFloat(p.amount) || 0), 0)
 }
 
-function sanitizePhone(raw) {
+export function sanitizePhone(raw) {
   if (!raw) return ''
   return raw.replace(/\D/g, '').replace(/^0/, '')
 }
@@ -33,7 +24,7 @@ function sanitizePhone(raw) {
 // wrapper — they cascade into every template child element
 // that uses var(--brand-primary) etc., overriding the globals.
 // ─────────────────────────────────────────────────────────────
-function hexToRgb(hex) {
+export function hexToRgb(hex) {
   const h = hex.replace('#', '')
   const full = h.length === 3
     ? h.split('').map(c => c + c).join('')
@@ -42,7 +33,7 @@ function hexToRgb(hex) {
   return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 }
 }
 
-function luminance({ r, g, b }) {
+export function luminance({ r, g, b }) {
   const ch = [r, g, b].map(v => {
     const s = v / 255
     return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4)
@@ -50,7 +41,7 @@ function luminance({ r, g, b }) {
   return 0.2126 * ch[0] + 0.7152 * ch[1] + 0.0722 * ch[2]
 }
 
-function mixHex(hex, white, ratio) {
+export function mixHex(hex, white, ratio) {
   // ratio: 0 = full hex, 1 = full white
   const { r, g, b } = hexToRgb(hex)
   const wr = parseInt(white.slice(1, 3), 16)
@@ -61,14 +52,14 @@ function mixHex(hex, white, ratio) {
   return `#${toHex(mix(r, wr))}${toHex(mix(g, wg))}${toHex(mix(b, wb))}`
 }
 
-function darkenHex(hex, ratio) {
+export function darkenHex(hex, ratio) {
   const { r, g, b } = hexToRgb(hex)
   const d = v => Math.round(v * (1 - ratio))
   const toHex = v => v.toString(16).padStart(2, '0')
   return `#${toHex(d(r))}${toHex(d(g))}${toHex(d(b))}`
 }
 
-function getBrandCSSVars(colour) {
+export function getBrandCSSVars(colour) {
   const hex = colour || '#D4AF37'
   const rgb = hexToRgb(hex)
   const lum = luminance(rgb)
@@ -92,7 +83,7 @@ function getBrandCSSVars(colour) {
 
 // ── Build WhatsApp message for a receipt ─────────────────────
 
-function buildReceiptWhatsAppMessage(receipt, customer, brand) {
+export function buildReceiptWhatsAppMessage(receipt, customer, brand) {
   const currency       = brand?.currency || '₦'
   const firstName      = customer.name?.split(' ')[0] || customer.name
   const thisPayment    = (receipt.payments || []).reduce((s, p) => s + (parseFloat(p.amount) || 0), 0)
@@ -149,7 +140,7 @@ function buildReceiptWhatsAppMessage(receipt, customer, brand) {
 
 // ── PDF generator ─────────────────────────────────────────────
 
-async function downloadPDF(paperEl, filename) {
+export async function downloadPDF(paperEl, filename) {
   const blob = await generatePDFBlob(paperEl)
   const url  = URL.createObjectURL(blob)
   const a    = document.createElement('a')
@@ -159,7 +150,7 @@ async function downloadPDF(paperEl, filename) {
   setTimeout(() => URL.revokeObjectURL(url), 10000)
 }
 
-async function generatePDFBlob(paperEl) {
+export async function generatePDFBlob(paperEl) {
   const PDF_W = 380
   const prevWidth  = paperEl.style.width
   const prevMaxW   = paperEl.style.maxWidth
@@ -198,7 +189,7 @@ async function generatePDFBlob(paperEl) {
 // (previous installments greyed + current ones bold/green)
 // Used by ALL templates for consistent payment history display.
 // ─────────────────────────────────────────────────────────────
-function buildPaymentRows(receipt) {
+export function buildPaymentRows(receipt) {
   const previousInstallments = receipt.previousInstallments || []
   const currentPayments      = receipt.payments || []
   const hasPrevious          = previousInstallments.length > 0 ||

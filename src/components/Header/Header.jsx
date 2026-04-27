@@ -54,10 +54,33 @@ function NotifItem({ n, onRead, onNavigate }) {
   )
 }
 
-function Header({ onMenuClick, onBackClick, type = 'default', title, customActions = [], backIcon = 'arrow_back' }) {
-  const [dropdownOpen, setDropdownOpen] = useState(false)
-  const [notifOpen,    setNotifOpen]    = useState(false)
-  const [notifTab,     setNotifTab]     = useState('all')
+// ── Bot Icon SVG ──────────────────────────────────────────────
+function BotIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <rect x="4" y="11" width="16" height="10" rx="3" fill="currentColor" />
+      <rect x="7" y="14" width="2.5" height="2.5" rx=".5" fill="var(--bg)" />
+      <rect x="14.5" y="14" width="2.5" height="2.5" rx=".5" fill="var(--bg)" />
+      <path d="M9.5 18.5h5" stroke="var(--bg)" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M12 11V8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <circle cx="12" cy="6.5" r="1.8" fill="currentColor" />
+      <line x1="4" y1="15" x2="2" y2="15" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      <line x1="20" y1="15" x2="22" y2="15" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+function Header({
+  onMenuClick,
+  onBackClick,
+  type = 'default',
+  title,
+  customActions = [],
+  backIcon = 'arrow_back',
+  agentPendingCount = 2,
+}) {
+  const [notifOpen, setNotifOpen] = useState(false)
+  const [notifTab,  setNotifTab]  = useState('all')
   const navigate = useNavigate()
   const location = useLocation()
 
@@ -68,50 +91,12 @@ function Header({ onMenuClick, onBackClick, type = 'default', title, customActio
     '/customers': 'Customers',
     '/tasks':     'Tasks',
     '/settings':  'Settings',
+    '/agent':     'Agent',
   }
 
   const pageTitle = title || PAGE_TITLES[location.pathname] || 'TailorFlow'
 
-  const PAGE_DROPDOWN = {
-    '/': [
-      { icon: 'share',   label: 'Share App',       action: () => console.log('Share app') },
-      { icon: 'logout',  label: 'Log Out',          action: () => navigate('/logout'), danger: true },
-    ],
-    '/customers': [
-      { icon: 'download', label: 'Export Clients',  action: () => console.log('Export clients') },
-      { icon: 'logout',   label: 'Log Out',         action: () => navigate('/logout'), danger: true },
-    ],
-    '/tasks': [
-      { icon: 'settings', label: 'Settings',        action: () => navigate('/settings') },
-      { icon: 'logout',   label: 'Log Out',         action: () => navigate('/logout'), danger: true },
-    ],
-    '/orders': [
-      { icon: 'download', label: 'Export Orders',   action: () => console.log('Export orders') },
-      { icon: 'logout',   label: 'Log Out',         action: () => navigate('/logout'), danger: true },
-    ],
-    '/gallery': [
-      { icon: 'upload',   label: 'Upload Image',    action: () => console.log('Upload image') },
-      { icon: 'logout',   label: 'Log Out',         action: () => navigate('/logout'), danger: true },
-    ],
-    '/settings': [
-      { icon: 'logout',   label: 'Log Out',         action: () => navigate('/logout'), danger: true },
-    ],
-    '/account': [
-      { icon: 'edit',     label: 'Edit Profile',    action: () => console.log('Edit profile') },
-      { icon: 'logout',   label: 'Log Out',         action: () => navigate('/logout'), danger: true },
-    ],
-    '/contact': [
-      { icon: 'email',    label: 'Send Message',    action: () => console.log('Send message') },
-      { icon: 'logout',   label: 'Log Out',         action: () => navigate('/logout'), danger: true },
-    ],
-    '/faqs': [
-      { icon: 'help',     label: 'Get Help',        action: () => console.log('Help clicked') },
-      { icon: 'logout',   label: 'Log Out',         action: () => navigate('/logout'), danger: true },
-    ],
-  }
-
-  const toggleDropdown = () => setDropdownOpen(p => !p)
-  const closeDropdown  = () => setDropdownOpen(false)
+  const showBotButton = type === 'default' && location.pathname === '/'
 
   const openNotif  = () => { setNotifTab('all'); setNotifOpen(true) }
   const closeNotif = () => setNotifOpen(false)
@@ -121,6 +106,8 @@ function Header({ onMenuClick, onBackClick, type = 'default', title, customActio
     else navigate(-1)
   }
 
+  const handleBotClick = () => navigate('/agent')
+
   const visibleNotifs = (() => {
     if (notifTab === 'unread') return notifications.filter(n => n.unread)
     if (notifTab === 'read')   return notifications.filter(n => !n.unread)
@@ -129,7 +116,7 @@ function Header({ onMenuClick, onBackClick, type = 'default', title, customActio
 
   const TABS = [
     { id: 'all',    label: 'All',    count: notifications.length },
-    { id: 'unread', label: 'Unread', count: unreadCount          },
+    { id: 'unread', label: 'Unread', count: unreadCount },
     { id: 'read',   label: 'Read',   count: notifications.length - unreadCount },
   ]
 
@@ -150,6 +137,7 @@ function Header({ onMenuClick, onBackClick, type = 'default', title, customActio
           <div className={`${styles.title} header-title`}>{pageTitle}</div>
         </div>
 
+        {/* ── BACK HEADER ACTIONS ── */}
         {type === 'back' && customActions.length > 0 && (
           <div className={styles.rightActions}>
             {customActions.map((action, i) => (
@@ -175,8 +163,11 @@ function Header({ onMenuClick, onBackClick, type = 'default', title, customActio
           </div>
         )}
 
+        {/* ── DEFAULT HEADER ACTIONS ── */}
         {type === 'default' && (
           <div className={styles.rightActions}>
+
+            {/* Notification bell */}
             <button className={styles.iconBtn} onClick={openNotif} aria-label="Notifications">
               <span className="mi" style={{ fontSize: '1.4rem', color: 'var(--text2)' }}>notifications</span>
               {unreadCount > 0 && (
@@ -186,35 +177,29 @@ function Header({ onMenuClick, onBackClick, type = 'default', title, customActio
               )}
             </button>
 
-            <div className={styles.dropdownWrap}>
-              <button className={styles.iconBtn} onClick={toggleDropdown} aria-label="More options">
-                <span className="mi" style={{ fontSize: '1.4rem', color: 'var(--text2)' }}>more_vert</span>
+            {/* ── BOT / AGENT BUTTON ── */}
+            {showBotButton && (
+              <button
+                className={styles.botBtn}
+                onClick={handleBotClick}
+                aria-label="Open Agent"
+                title="TailorFlow Agent"
+              >
+                <BotIcon />
+                {agentPendingCount > 0 && (
+                  <span className={styles.botBadge}>
+                    {agentPendingCount > 9 ? '9+' : agentPendingCount}
+                  </span>
+                )}
+                {agentPendingCount > 0 && <span className={styles.botPulse} />}
               </button>
+            )}
 
-              {dropdownOpen && (
-                <>
-                  <div className={styles.dropdownBackdrop} onClick={closeDropdown} />
-                  <div className={styles.dropdown}>
-                    {(PAGE_DROPDOWN[location.pathname] ?? []).map((item, i, arr) => (
-                      <div key={i}>
-                        <button
-                          className={`${styles.dropdownItem} ${item.danger ? styles.danger : ''}`}
-                          onClick={() => { closeDropdown(); item.action() }}
-                        >
-                          <span className="mi" style={{ fontSize: '1.2rem', color: item.danger ? 'var(--danger)' : 'var(--text2)' }}>{item.icon}</span>
-                          {item.label}
-                        </button>
-                        {i < arr.length - 1 && <div className={styles.dropdownSeparator} />}
-                      </div>
-                    ))}
-                  </div>
-                </>
-              )}
-            </div>
           </div>
         )}
       </header>
 
+      {/* ── NOTIFICATION PANEL ── */}
       {type === 'default' && notifOpen && (
         <div className={styles.notifOverlay} onClick={e => e.target === e.currentTarget && closeNotif()}>
           <div className={styles.notifPanel}>
@@ -256,12 +241,21 @@ function Header({ onMenuClick, onBackClick, type = 'default', title, customActio
                     {notifTab === 'read' ? 'done_all' : 'notifications_none'}
                   </span>
                   <p>
-                    {notifTab === 'unread' ? 'All caught up!' : notifTab === 'read' ? 'No read notifications yet.' : 'No notifications.'}
+                    {notifTab === 'unread'
+                      ? 'All caught up!'
+                      : notifTab === 'read'
+                      ? 'No read notifications yet.'
+                      : 'No notifications.'}
                   </p>
                 </div>
               ) : (
                 visibleNotifs.map(n => (
-                  <NotifItem key={n.id} n={n} onRead={markRead} onNavigate={(path) => { closeNotif(); navigate(path) }} />
+                  <NotifItem
+                    key={n.id}
+                    n={n}
+                    onRead={markRead}
+                    onNavigate={(path) => { closeNotif(); navigate(path) }}
+                  />
                 ))
               )}
             </div>

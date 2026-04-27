@@ -12,6 +12,7 @@ function PaymentHistoryBlock({ receipt, currency, orderTotal, thisPaymentTotal, 
   if (paymentRows.length === 0) return null
 
   return (
+    
     <div style={{ marginTop: 12 }}>
       {sectionLabelStyle && (
         <div style={sectionLabelStyle}>Payment History</div>

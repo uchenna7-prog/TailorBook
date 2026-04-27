@@ -1,6 +1,6 @@
 import styles from "../styles/Template2.module.css"
 import { getDueDate } from "../utils/invoiceUtils"
-import { ItemsTable } from "../components/ItemsTable/ItemsTable"
+import { ItemsTable } from "../components/InvoiceItemsTable/InvoiceItemsTable"
 import { LogoOrName } from "../components/LogoOrBrandName/LogoOrBrandName"
 
 export function InvoiceTemplate2({ invoice, customer, brand }) {
@@ -53,7 +53,7 @@ export function InvoiceTemplate2({ invoice, customer, brand }) {
 
       </div>
 
-      <ItemsTable invoice={invoice} brand={brand} />
+      <InvoiceItemsTable invoice={invoice} brand={brand} />
 
       {brand.accountBank && (
         <div className={styles.paymentInfo}>
