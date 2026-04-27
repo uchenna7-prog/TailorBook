@@ -28,28 +28,3 @@ export function sanitizePhone(raw) {
 }
 
 
-export function luminance({ r, g, b }) {
-  const ch = [r, g, b].map(v => {
-    const s = v / 255
-    return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4)
-  })
-  return 0.2126 * ch[0] + 0.7152 * ch[1] + 0.0722 * ch[2]
-}
-
-export function mixHex(hex, white, ratio) {
-  const { r, g, b } = hexToRgb(hex)
-  const wr = parseInt(white.slice(1, 3), 16)
-  const wg = parseInt(white.slice(3, 5), 16)
-  const wb = parseInt(white.slice(5, 7), 16)
-  const mix = (a, wv) => Math.round(a + (wv - a) * ratio)
-  const toHex = v => v.toString(16).padStart(2, '0')
-  return `#${toHex(mix(r, wr))}${toHex(mix(g, wg))}${toHex(mix(b, wb))}`
-}
-
-export function darkenHex(hex, ratio) {
-  const { r, g, b } = hexToRgb(hex)
-  const d = v => Math.round(v * (1 - ratio))
-  const toHex = v => v.toString(16).padStart(2, '0')
-  return `#${toHex(d(r))}${toHex(d(g))}${toHex(d(b))}`
-}
-

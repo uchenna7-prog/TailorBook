@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
-import { useOrders } from '../../../contexts/OrdersContext'
-import { useAuth }   from '../../../contexts/AuthContext'
-import ConfirmSheet from '../../../components/ConfirmSheet/ConfirmSheet'
-import Header from '../../../components/Header/Header'
-import styles from './Tabs.module.css'
+import { useOrders } from '../../../../contexts/OrdersContext'
+import { useAuth }   from '../../../../contexts/AuthContext'
+import ConfirmSheet from '../../../../components/ConfirmSheet/ConfirmSheet'
+import Header from '../../../../components/Header/Header'
+import styles from './OrdersTab.module.css'
 
 const PRIORITY_COLOR = { normal: 'var(--border2)', urgent: '#fb923c', vip: '#a855f7' }
 const PRIORITY_BANNER = {
@@ -22,10 +22,10 @@ const STATUSES = [
 
 const STAGES = [
   { value: 'measurement_taken', label: 'Measurement Taken', icon: 'straighten'     },
-  { value: 'fabric_ready',      label: 'Fabric Ready',      icon: 'checkroom'   },
+  { value: 'fabric_ready',      label: 'Fabric Ready',      icon: 'checkroom'      },
   { value: 'cutting',           label: 'Cutting',           icon: 'content_cut'    },
   { value: 'weaving',           label: 'Weaving',           icon: 'texture'        },
-  { value: 'sewing',            label: 'Sewing',            icon: 'construction'           },
+  { value: 'sewing',            label: 'Sewing',            icon: 'construction'   },
   { value: 'embroidery',        label: 'Embroidery',        icon: 'auto_awesome'   },
   { value: 'fitting',           label: 'Fitting',           icon: 'accessibility'  },
   { value: 'adjustments',       label: 'Adjustments',       icon: 'tune'           },
@@ -62,7 +62,6 @@ function todayReadable() {
 }
 
 function OrderMosaic({ items }) {
-  // Collect cover images only
   const covers = items
     .map(item => item.imgSrc ?? null)
     .filter(Boolean)
@@ -70,7 +69,6 @@ function OrderMosaic({ items }) {
   const total     = items.length
   const hasImages = covers.length > 0
 
-  // ── No images at all ──
   if (!hasImages) {
     return (
       <div className={styles.orderListOuter}>
@@ -81,7 +79,6 @@ function OrderMosaic({ items }) {
     )
   }
 
-  // ── 1 item → standard single thumb ──
   if (total === 1) {
     return (
       <div className={styles.orderListOuter}>
@@ -92,7 +89,6 @@ function OrderMosaic({ items }) {
     )
   }
 
-  // ── 2 items → two halves side by side ──
   if (total === 2) {
     return (
       <div className={styles.orderListOuter}>
@@ -114,14 +110,11 @@ function OrderMosaic({ items }) {
     )
   }
 
-  // ── 3+ items → large left + two stacked right ──
-  // extra = items beyond the 3 shown slots
   const extra = total > 3 ? total - 3 : 0
 
   return (
     <div className={styles.orderListOuter}>
       <div className={`${styles.orderListInner} ${styles.mosaicInner}`} style={{ padding: 0 }}>
-        {/* Large left image — full height */}
         <div className={styles.mosaicLeft}>
           {covers[0]
             ? <img src={covers[0]} alt="" className={styles.mosaicImg} />
@@ -131,9 +124,7 @@ function OrderMosaic({ items }) {
 
         <div className={styles.mosaicDividerV} />
 
-        {/* Right column: two stacked cells */}
         <div className={styles.mosaicRight}>
-          {/* Top-right */}
           <div className={styles.mosaicRightCell}>
             {covers[1]
               ? <img src={covers[1]} alt="" className={styles.mosaicImg} />
@@ -143,7 +134,6 @@ function OrderMosaic({ items }) {
 
           <div className={styles.mosaicDividerH} />
 
-          {/* Bottom-right — shows "+N" overlay when there are more than 3 */}
           <div className={`${styles.mosaicRightCell} ${extra > 0 ? styles.mosaicOverlayWrap : ''}`}>
             {covers[2]
               ? <img src={covers[2]} alt="" className={styles.mosaicImg} />
@@ -170,30 +160,39 @@ function OrderModal({ isOpen, onClose, measurements, onSave }) {
   const [priority,      setPriority]      = useState('normal')
   const [notes,         setNotes]         = useState('')
   const [stage,         setStage]         = useState('')
+  const [pricingError,  setPricingError]  = useState('')
 
   const reset = () => {
     setSelectedItems([]); setPickerQuery(''); setDesc('')
     setDue(''); setPriority('normal'); setNotes(''); setStage('')
+    setPricingError('')
   }
 
   const toggleId = (m) => {
-    const idStr = String(m.id)
+    const idStr    = String(m.id)
     const coverImg = m.imgSrcs?.[0] ?? m.imgSrc ?? null
     setSelectedItems(prev => {
       const exists = prev.find(item => item.id === idStr)
       if (exists) return prev.filter(item => item.id !== idStr)
-      return [...prev, { id: idStr, price: '', name: m.name, imgSrc: coverImg }]
+      return [...prev, { id: idStr, price: '', qty: '', name: m.name, imgSrc: coverImg }]
     })
+    setPricingError('')
   }
 
-  const updateItemPrice = (id, priceValue) => {
+  const updateItemField = (id, field, value) => {
     setSelectedItems(prev => prev.map(item =>
-      item.id === id ? { ...item, price: priceValue } : item
+      item.id === id ? { ...item, [field]: value } : item
     ))
+    setPricingError('')
   }
 
-  const totalPrice  = selectedItems.reduce((sum, item) => sum + (parseFloat(item.price) || 0), 0)
-  const dynamicQty  = selectedItems.length || 1
+  // Total = sum of (qty × price) per item
+  const totalPrice = selectedItems.reduce((sum, item) => {
+    return sum + ((parseFloat(item.price) || 0) * (parseInt(item.qty, 10) || 0))
+  }, 0)
+
+  // Order-level qty = sum of all item quantities
+  const dynamicQty = selectedItems.reduce((sum, item) => sum + (parseInt(item.qty, 10) || 0), 0) || 1
 
   const filteredMeasurements = pickerQuery.trim()
     ? measurements.filter(m => m.name.toLowerCase().includes(pickerQuery.toLowerCase()))
@@ -201,6 +200,17 @@ function OrderModal({ isOpen, onClose, measurements, onSave }) {
 
   const handleSave = () => {
     if (selectedItems.length === 0 && !desc.trim()) return
+
+    // Validate: every selected item must have both price and qty filled
+    if (selectedItems.length > 0) {
+      const incomplete = selectedItems.find(
+        item => !(parseFloat(item.price) > 0) || !(parseInt(item.qty, 10) > 0)
+      )
+      if (incomplete) {
+        setPricingError(`Please enter both price and quantity for "${incomplete.name}".`)
+        return
+      }
+    }
 
     let dueDisplay = ''
     if (due) {
@@ -213,9 +223,10 @@ function OrderModal({ isOpen, onClose, measurements, onSave }) {
       price:          totalPrice,
       items:          selectedItems.map(i => ({
         id:     i.id,
-        price:  parseFloat(i.price) || 0,
         name:   i.name,
         imgSrc: i.imgSrc || null,
+        price:  parseFloat(i.price) || 0,
+        qty:    parseInt(i.qty, 10) || 1,
       })),
       qty:            dynamicQty,
       due:            dueDisplay,
@@ -287,30 +298,77 @@ function OrderModal({ isOpen, onClose, measurements, onSave }) {
             })}
           </div>
 
-          {/* ── 2. Pricing ── */}
+          {/* ── 2. Pricing & Quantity ── */}
           {selectedItems.length > 0 && (
             <>
-              <p className={styles.sectionHeading} style={{ marginTop: 24 }}>2. Pricing Per Item</p>
+              <p className={styles.sectionHeading} style={{ marginTop: 24 }}>2. Price &amp; Quantity Per Item</p>
               <div className={styles.pricingList}>
                 {selectedItems.map(item => (
                   <div key={item.id} className={styles.priceInputRow}>
-                    <div className={styles.pickerThumb} style={{ width: 40, height: 40 }}>
-                      {item.imgSrc ? <img src={item.imgSrc} alt="" /> : <span className="mi">checkroom</span>}
+                    {/* Thumbnail */}
+                    <div className={styles.pickerThumb} style={{ width: 40, height: 40, flexShrink: 0 }}>
+                      {item.imgSrc
+                        ? <img src={item.imgSrc} alt="" />
+                        : <span className="mi">checkroom</span>}
                     </div>
-                    <div style={{ flex: 1 }}>
-                      <label className={styles.labelTiny} style={{ marginBottom: 2 }}>{item.name} Price (₦)</label>
-                      <input
-                        type="number"
-                        placeholder="0.00"
-                        className={styles.itemPriceInput}
-                        value={item.price}
-                        onChange={(e) => updateItemPrice(item.id, e.target.value)}
-                      />
+
+                    {/* Fields */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div className={styles.priceItemName}>{item.name}</div>
+                      <div className={styles.priceFieldsRow}>
+                        {/* Price */}
+                        <div className={styles.priceFieldWrap}>
+                          <label className={styles.priceFieldLabel}>
+                            Price (₦) <span className={styles.requiredStar}>*</span>
+                          </label>
+                          <input
+                            type="number"
+                            inputMode="numeric"
+                            placeholder="0"
+                            className={styles.itemPriceInput}
+                            value={item.price}
+                            onChange={e => updateItemField(item.id, 'price', e.target.value)}
+                          />
+                        </div>
+
+                        {/* Quantity */}
+                        <div className={styles.priceFieldWrap}>
+                          <label className={styles.priceFieldLabel}>
+                            Qty <span className={styles.requiredStar}>*</span>
+                          </label>
+                          <input
+                            type="number"
+                            inputMode="numeric"
+                            placeholder="1"
+                            min="1"
+                            className={styles.itemPriceInput}
+                            value={item.qty}
+                            onChange={e => updateItemField(item.id, 'qty', e.target.value)}
+                          />
+                        </div>
+
+                        {/* Line total */}
+                        <div className={styles.priceFieldWrap} style={{ alignItems: 'flex-end' }}>
+                          <label className={styles.priceFieldLabel}>Amount</label>
+                          <div className={styles.itemAmountDisplay}>
+                            ₦{((parseFloat(item.price) || 0) * (parseInt(item.qty, 10) || 0)).toLocaleString()}
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 ))}
+
+                {/* Validation error */}
+                {pricingError && (
+                  <div className={styles.pricingError}>
+                    <span className="mi" style={{ fontSize: '0.9rem' }}>error_outline</span>
+                    {pricingError}
+                  </div>
+                )}
+
                 <div className={styles.totalIndicator}>
-                  <span>Total (Qty: {dynamicQty})</span>
+                  <span>Order Total (Qty: {dynamicQty})</span>
                   <span style={{ color: 'var(--accent)' }}>₦{totalPrice.toLocaleString()}</span>
                 </div>
               </div>
@@ -341,7 +399,7 @@ function OrderModal({ isOpen, onClose, measurements, onSave }) {
                 />
               </div>
               <div style={{ flex: 1 }}>
-                <label className={styles.labelTiny}>Calculated Qty</label>
+                <label className={styles.labelTiny}>Total Qty</label>
                 <div className={styles.clothInput} style={{ borderBottomColor: 'var(--border)', opacity: 0.8 }}>{dynamicQty}</div>
               </div>
             </div>
@@ -442,10 +500,10 @@ function OrderDetail({ order, measurements, onClose, onDelete, onStatusChange, o
           </div>
         </div>
 
-        {/* Garments — cover images + prices */}
+        {/* Garments — cover images, qty, prices */}
         {order.items && order.items.length > 0 && (
           <div className={styles.linkedSection}>
-            <div className={styles.linkLabel}>Selected Garments & Prices</div>
+            <div className={styles.linkLabel}>Selected Garments</div>
             {order.items.map((item, idx) => (
               <div key={idx} className={styles.linkedRow} style={{ justifyContent: 'space-between' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -454,10 +512,17 @@ function OrderDetail({ order, measurements, onClose, onDelete, onStatusChange, o
                       ? <img src={item.imgSrc} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       : <span className="mi">checkroom</span>}
                   </div>
-                  <div style={{ fontSize: '0.9rem', fontWeight: 700 }}>{item.name}</div>
+                  <div>
+                    <div style={{ fontSize: '0.9rem', fontWeight: 700 }}>{item.name}</div>
+                    {item.qty > 1 && (
+                      <div style={{ fontSize: '0.72rem', color: 'var(--text3)', fontWeight: 600 }}>
+                        {item.qty} pcs × ₦{Number(item.price || 0).toLocaleString()}
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--accent)' }}>
-                  ₦{Number(item.price || 0).toLocaleString()}
+                  ₦{((item.qty ?? 1) * Number(item.price || 0)).toLocaleString()}
                 </div>
               </div>
             ))}
@@ -527,7 +592,7 @@ function OrderDetail({ order, measurements, onClose, onDelete, onStatusChange, o
           Generate Invoice
         </button>
 
-        {/* Footer dates — always the very last element */}
+        {/* Footer dates */}
         <div className={styles.detailDate}>
           Order Taken: {placedOn}
           {order.due && <> &nbsp;•&nbsp; Due: {order.due}</>}
@@ -602,38 +667,28 @@ export default function OrdersTab({ customerId, orders, measurements, showToast,
     }
   }
 
-  // ── Share Review Link via WhatsApp ──────────────────────────
   const handleShareReviewLink = (order) => {
-    // Build a unique review token scoped to this order
     const token = order.reviewToken || crypto.randomUUID()
-
-    // Public review submission URL — adjust YOUR_DOMAIN to match your deployed URL
     const reviewUrl = `https://tailorflow-62b0a.web.app/review/${user?.uid}/${token}`
-
     const customerName = order.customerName || 'there'
     const message = encodeURIComponent(
       `Hi ${customerName}! 🙏 Thank you for your order.\n\n` +
       `We'd love to hear your feedback — it only takes a minute:\n${reviewUrl}\n\n` +
       `Your review means a lot to us! ⭐`
     )
-
-    // Clean the phone number — strip spaces, dashes, leading zeros, add country code
     const rawPhone   = order.customerPhone || ''
     const cleanPhone = rawPhone.replace(/[\s\-()]/g, '')
     const waPhone    = cleanPhone.startsWith('+')
       ? cleanPhone.replace('+', '')
       : cleanPhone.startsWith('0')
-        ? `234${cleanPhone.slice(1)}`   // Nigerian default — adjust if needed
+        ? `234${cleanPhone.slice(1)}`
         : cleanPhone
-
     const waUrl = waPhone
       ? `https://wa.me/${waPhone}?text=${message}`
       : `https://wa.me/?text=${message}`
-
     window.open(waUrl, '_blank', 'noopener,noreferrer')
   }
 
-  // Group by takenAt (human date) or createdAt
   const grouped = orders.reduce((acc, o) => {
     const key = o.takenAt || formatDate(o.createdAt) || o.date || 'Unknown Date'
     if (!acc[key]) acc[key] = []
@@ -665,7 +720,6 @@ export default function OrdersTab({ customerId, orders, measurements, showToast,
                 className={`${styles.orderListItem} ${idx === dateOrders.length - 1 ? styles.orderListItemLast : ''}`}
                 onClick={() => setDetailOrder(o)}
               >
-                {/* Mosaic thumbnail */}
                 <OrderMosaic items={itemsList} />
 
                 <div className={styles.orderListInfo}>

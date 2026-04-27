@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import ReceiptViewer from '../../../../components/ReceiptViewer/ReceiptViewer'
 import ConfirmSheet from '../../../../components/ConfirmSheet/ConfirmSheet'
-import styles from './ReceiptTab.module.css'   // reuse InvoiceTab styles — identical card design
+import styles from './ReceiptTab.module.css' 
 
 function fmt(currency = '₦', amount) {
   const n = parseFloat(amount) || 0
@@ -236,7 +236,7 @@ export default function ReceiptTab({
       ))}
 
       {viewingReceipt && (
-        <ReceiptView
+        <ReceiptViewer
           receipt={viewingReceipt}
           customer={customer}
           onClose={() => setViewingReceipt(null)}

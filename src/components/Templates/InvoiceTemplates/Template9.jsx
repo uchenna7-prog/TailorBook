@@ -6,7 +6,9 @@ export function InvoiceTemplate9({ invoice, customer, brand }) {
   const dueDate     = getDueDate(invoice, brand.dueDays)
   const accentColor = brand.colour || '#0057D7'
   const { currency, showTax, taxRate } = brand
-  const subtotal = invoice.items?.reduce((s, i) => s + (parseFloat(i.price) || 0), 0) ?? 0
+  const subtotal = invoice.items?.length > 0
+    ? invoice.items.reduce((sum, item) => sum + ((item.qty ?? 1) * (parseFloat(item.price) || 0)), 0)
+    : 0
   const tax      = calcTax(subtotal, taxRate, showTax)
   const total    = subtotal + tax
 
@@ -49,22 +51,30 @@ export function InvoiceTemplate9({ invoice, customer, brand }) {
       </div>
       <div className={styles.tableHeader}>
        
-        <span style={{ flex: 3,textAlign:"left"}}>DESCRIPTION</span>
+        <span style={{ flex: 3,textAlign:"left"}}>ITEM DESCRIPTION</span>
         <span style={{ textAlign:"center"}}>QTY</span>
-        <span style={{ textAlign:"center"}}>PRICE</span>
+        <span style={{ textAlign:"center"}}>UNIT PRICE</span>
         <span style={{ textAlign:"center"}}>TOTAL</span>
 
       </div>
-      {invoice.items?.map((item, i) => (
-        <div key={i} className={styles.tableRow}>
-          
-          <span style={{ flex: 3,textAlign:"left"}}>{item.name}</span>
-          <span style={{ textAlign:"center"}}>1</span>
-          <span style={{ textAlign:"center"}}>{fmt(currency, item.price)}</span>
-          <span style={{ textAlign:"right"}}>{fmt(currency, item.price)}</span>
+      {invoice.items?.map((item, i) => {
+        const qty = item.qty ?? 1;
+        const unitPrice = parseFloat(item.price) || 0;
+        const lineAmount = qty * unitPrice;
 
-        </div>
-      ))}
+        return (
+          <div key={i} className={styles.tableRow}>
+            <span style={{ flex: 3, textAlign: "left" }}>{item.name}</span>
+            <span style={{ textAlign: "center" }}>{qty}</span>
+            <span style={{ textAlign: "center" }}>
+              {fmt(currency, unitPrice)}
+            </span>
+            <span style={{ textAlign: "right" }}>
+              {fmt(currency, lineAmount)}
+            </span>
+          </div>
+        );
+      })}
       <div className={styles.subArea}>
         <div className={styles.subRow}>
           

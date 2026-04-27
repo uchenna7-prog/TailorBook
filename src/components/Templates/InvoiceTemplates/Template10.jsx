@@ -5,7 +5,9 @@ export function InvoiceTemplate10({ invoice, customer, brand }) {
   const dueDate     = getDueDate(invoice, brand.dueDays)
   const accentColor = brand.colour || '#0057D7'
   const { currency, showTax, taxRate } = brand
-  const subtotal = invoice.items?.reduce((s, i) => s + (parseFloat(i.price) || 0), 0) ?? 0
+  const subtotal = invoice.items?.length > 0
+    ? invoice.items.reduce((sum, item) => sum + ((item.qty ?? 1) * (parseFloat(item.price) || 0)), 0)
+    : 0
   const tax      = calcTax(subtotal, taxRate, showTax)
   const total    = subtotal + tax
 
@@ -48,20 +50,30 @@ export function InvoiceTemplate10({ invoice, customer, brand }) {
       </div>
       <div className={styles.tableHeader}>
         <span style={{ textAlign:"left"}}>SN</span>
-        <span style={{ flex: 3,textAlign:"left"}}>Description</span>
-        <span style={{ textAlign:"center"}}>Price</span>
+        <span style={{ flex: 3,textAlign:"left"}}>Item Description</span>
+        <span style={{ textAlign:"center"}}>Unit Price</span>
         <span style={{ textAlign:"center"}}>Qty</span>
         <span style={{ textAlign:"center"}}>Total</span>
       </div>
-      {invoice.items?.map((item, i) => (
-        <div key={i} className={styles.tableRow}>
-          <span style={{ textAlign:"left"}}>{i + 1}</span>
-          <span style={{ flex: 3,textAlign:"left" }}>{item.name}</span>
-          <span style={{ textAlign:"center"}}>{fmt(currency, item.price)}</span>
-          <span style={{ textAlign:"center"}}>1</span>
-          <span style={{ textAlign:"center"}}>{fmt(currency, item.price)}</span>
-        </div>
-      ))}
+      {invoice.items?.map((item, i) => {
+        const qty = item.qty ?? 1;
+        const unitPrice = parseFloat(item.price) || 0;
+        const lineAmount = qty * unitPrice;
+
+        return (
+          <div key={i} className={styles.tableRow}>
+            <span style={{ textAlign: "left" }}>{i + 1}</span>
+            <span style={{ flex: 3, textAlign: "left" }}>{item.name}</span>
+            <span style={{ textAlign: "center" }}>
+              {fmt(currency, unitPrice)}
+            </span>
+            <span style={{ textAlign: "center" }}>{qty}</span>
+            <span style={{ textAlign: "center" }}>
+              {fmt(currency, lineAmount)}
+            </span>
+          </div>
+        );
+      })}
       <div className={styles.divider} />
       <div className={styles.bottom}>
         <div style={{ flex: 1 }}>

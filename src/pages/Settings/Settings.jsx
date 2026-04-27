@@ -1,7 +1,6 @@
 import { useState, useRef, useCallback } from 'react'
 import { useSettings } from '../../contexts/SettingsContext'
 import { useBrand } from '../../contexts/BrandContext'
-import { useBrandTokens } from '../../hooks/useBrandTokens'
 import Header from '../../components/Header/Header'
 import Toast from '../../components/Toast/Toast'
 import ConfirmSheet from '../../components/ConfirmSheet/ConfirmSheet'

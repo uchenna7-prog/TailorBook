@@ -24,6 +24,7 @@ import Reports                  from './pages/Reports/Reports'
 import Portfolio                from './pages/Portfolio/Portfolio'
 import ReviewPage               from './pages/ReviewPage/ReviewPage'
 import Reviews                  from './pages/Reviews/Reviews'
+import Agent from './pages/Agent/Agent'
 
 function AppShell() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -52,6 +53,7 @@ function AppShell() {
           <Route path="/contact"                         element={<Contact                  onMenuClick={menuClick} />} />
           <Route path="/faq"                             element={<FAQ                      onMenuClick={menuClick} />} />
           <Route path="/reviews"                         element={<Reviews                  onMenuClick={menuClick} />} />
+          <Route path="/agent"                           element={<Agent                    onMenuClick={menuClick} />} />
           <Route path="*"                                element={<Navigate to="/" replace />} />
         </Routes>
       </div>

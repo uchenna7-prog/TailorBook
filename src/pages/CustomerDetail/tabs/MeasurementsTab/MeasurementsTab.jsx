@@ -1,9 +1,9 @@
 // src/pages/CustomerDetail/tabs/MeasurementsTab.jsx
 
 import { useState, useEffect, useRef } from 'react'
-import ConfirmSheet from '../../../components/ConfirmSheet/ConfirmSheet'
-import Header from '../../../components/Header/Header'
-import styles from './Tabs.module.css'
+import ConfirmSheet from '../../../../components/ConfirmSheet/ConfirmSheet'
+import Header from '../../../../components/Header/Header'
+import styles from './MeasurementsTab.module.css'
 
 const UNIT_LABELS = { in: '"', cm: 'cm', yd: 'yd' }
 const UNIT_FULL   = { in: 'Inches (")', cm: 'Centimetres (cm)', yd: 'Yards (yd)' }

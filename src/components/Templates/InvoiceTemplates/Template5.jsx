@@ -6,7 +6,9 @@ export function InvoiceTemplate5({ invoice, customer, brand }) {
 
   const dueDate = getDueDate(invoice, brand.dueDays)
   const { currency, showTax, taxRate } = brand
-  const subtotal = invoice.items?.reduce((s, i) => s + (parseFloat(i.price) || 0), 0) ?? 0
+  const subtotal = invoice.items?.length > 0
+    ? invoice.items.reduce((sum, item) => sum + ((item.qty ?? 1) * (parseFloat(item.price) || 0)), 0)
+    : 0
   const tax      = calcTax(subtotal, taxRate, showTax)
   const total    = subtotal + tax
 
@@ -40,21 +42,27 @@ export function InvoiceTemplate5({ invoice, customer, brand }) {
 
       <div className={styles.tableHead}>
 
-        <span style={{ flex: 3 }}>Description</span>
-        <span>Price</span>
+        <span style={{ flex: 3 }}>Item Description</span>
+        <span>Unit Price</span>
         <span>Qty</span>
         <span>Total</span>
 
       </div>
 
-      {invoice.items?.map((item, i) => (
-        <div key={i} className={styles.tableRow}>
-          <span style={{ flex: 3 }}>{item.name}</span>
-          <span>{fmt(currency, item.price)}</span>
-          <span>1</span>
-          <span>{fmt(currency, item.price)}</span>
-        </div>
-      ))}
+      {invoice.items?.map((item, i) => {
+        const qty = item.qty ?? 1;
+        const unitPrice = parseFloat(item.price) || 0;
+        const lineAmount = qty * unitPrice;
+
+        return (
+          <div key={i} className={styles.tableRow}>
+            <span style={{ flex: 3 }}>{item.name}</span>
+            <span>{fmt(currency, unitPrice)}</span>
+            <span>{qty}</span>
+            <span>{fmt(currency, lineAmount)}</span>
+          </div>
+        );
+      })}
 
       <div className={styles.divider} />
 

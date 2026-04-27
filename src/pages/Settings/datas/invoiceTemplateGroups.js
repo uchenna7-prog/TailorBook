@@ -13,6 +13,7 @@ import { InvoiceTemplate11 } from "../../../components/Templates/InvoiceTemplate
 export const INVOICE_TEMPLATE_GROUPS = [
   {
     groupLabel: 'Simple and Clean',
+    groupDescription: 'Light, open layouts that are easy to read',
     templates: [
       { id: 'invoiceTemplate1',  
         label: '1. Centered Balance',    
@@ -34,6 +35,7 @@ export const INVOICE_TEMPLATE_GROUPS = [
   },
   {
     groupLabel: 'Bold Blocks',
+    groupDescription: 'Strong designs that use solid colour sections',
     templates: [
       { 
         id: 'invoiceTemplate4',  
@@ -57,6 +59,7 @@ export const INVOICE_TEMPLATE_GROUPS = [
   },
   {
     groupLabel: 'Clear Labels',
+    groupDescription: 'Every section has a bold label so nothing is confusing',
     templates: [
       { 
         id: 'invoiceTemplate7',  
@@ -74,6 +77,7 @@ export const INVOICE_TEMPLATE_GROUPS = [
   },
   {
     groupLabel: 'Info Strip',
+    groupDescription: 'Packs in your business details without clutter',
     templates: [
       { 
         id: 'invoiceTemplate9',  
@@ -90,6 +94,7 @@ export const INVOICE_TEMPLATE_GROUPS = [
   },
   {
     groupLabel: 'Payment Options',
+    groupDescription: 'Shows all the ways your customer can pay you',
     templates: [
       { 
         id: 'invoiceTemplate11', 

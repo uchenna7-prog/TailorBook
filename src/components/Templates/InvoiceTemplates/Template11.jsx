@@ -6,7 +6,9 @@ export function InvoiceTemplate11({ invoice, customer, brand }) {
   const accentColor = brand.colour || '#0057D7'
   const barBg       = '#dbeeff'
   const { currency, showTax, taxRate } = brand
-  const subtotal = invoice.items?.reduce((s, i) => s + (parseFloat(i.price) || 0), 0) ?? 0
+  const subtotal = invoice.items?.length > 0
+    ? invoice.items.reduce((sum, item) => sum + ((item.qty ?? 1) * (parseFloat(item.price) || 0)), 0)
+    : 0
   const tax      = calcTax(subtotal, taxRate, showTax)
   const total    = subtotal + tax
 
@@ -66,17 +68,29 @@ export function InvoiceTemplate11({ invoice, customer, brand }) {
       </div>
       {invoice.orderDesc && <div className={styles.projectName}>{invoice.orderDesc}</div>}
       <div className={styles.tableHead}>
-        <span style={{ flex: 3 }}>Description</span>
-        <span>Qty</span><span>Price</span><span>Subtotal</span>
+        <span style={{ flex: 3, textAlign: 'left' }}>Item Description</span>
+        <span style={{ flex: 1, textAlign: 'center' }}>Qty</span>
+        <span style={{ flex: 1, textAlign: 'center' }}>Unit Price</span>
+        <span style={{ flex: 1, textAlign: 'center' }}>Amount</span>
       </div>
-      {invoice.items?.map((item, i) => (
-        <div key={i} className={styles.tableRow}>
-          <span style={{ flex: 3 }}>• {item.name}</span>
-          <span>1</span>
-          <span>{fmt(currency, item.price)}</span>
-          <span>{fmt(currency, item.price)}</span>
-        </div>
-      ))}
+      {invoice.items?.map((item, i) => {
+        const qty = item.qty ?? 1;
+        const unitPrice = parseFloat(item.price) || 0;
+        const lineAmount = qty * unitPrice;
+
+        return (
+          <div key={i} className={styles.tableRow}>
+            <span style={{ flex: 3, textAlign: 'left' }}>• {item.name}</span>
+            <span style={{ flex: 1, textAlign: 'center' }}>{qty}</span>
+            <span style={{ flex: 1, textAlign: 'center' }}>
+              {fmt(currency, unitPrice)}
+            </span>
+            <span style={{ flex: 1, textAlign: 'center' }}>
+              {fmt(currency, lineAmount)}
+            </span>
+          </div>
+        );
+      })}
       <div className={styles.totalArea}>
         <div className={styles.totalRow}><span>Subtotal</span><span>{fmt(currency, subtotal)}</span></div>
         {showTax && taxRate > 0 && (

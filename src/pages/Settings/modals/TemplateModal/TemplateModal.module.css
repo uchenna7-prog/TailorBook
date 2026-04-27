@@ -84,7 +84,6 @@
   border-bottom-color: var(--accent);
 }
 
-/* ── TEMPLATE PICKER ── */
 .templateWrapper {
   display: flex;
   flex-direction: column;
@@ -144,10 +143,18 @@
   gap: 2px;
 }
 
-.templateLabel  { font-weight: 700; color: var(--text);  font-size: 0.82rem; }
-.templateDesc   { font-weight: 400; color: var(--text3); font-size: 0.72rem; }
+.templateLabel  { 
+  font-weight: 700; 
+  color: var(--text);  
+  font-size: 0.82rem; 
+}
 
-/* ── GROUP HEADER ── */
+.templateDescription{ 
+  font-weight: 400; 
+  color: var(--text3); 
+  font-size: 0.72rem; 
+}
+
 .groupHeader {
   padding: 56px 0 20px;
   text-align: center;
@@ -178,7 +185,7 @@
   text-transform: uppercase;
 }
 
-.groupDesc {
+.groupDescription {
   font-size: 0.75rem;
   font-weight: 500;
   color: var(--text3);
