@@ -343,6 +343,30 @@
   to   { transform: translateY(0); }
 }
 
+@media (min-width: 769px) {
+  .detailOverlay {
+    left: var(--sidebar-width, 280px);
+    align-items: flex-end;
+    justify-content: flex-end;
+  }
+
+  .detailPanel {
+    width: min(480px, 100%);
+    max-height: 100dvh;
+    border-radius: 0;
+    border-top: none;
+    border-left: 1px solid var(--border);
+    animation: sheetRight 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .detailHandle { display: none; }
+}
+
+@keyframes sheetRight {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+
 .detailHandle {
   width: 36px;
   height: 4px;

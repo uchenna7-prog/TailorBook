@@ -1,13 +1,15 @@
+// src/pages/CustomerDetail/tabs/InvoiceTab/InvoiceTab.jsx
+
 import { useState } from 'react'
 import InvoiceViewer from '../../../../components/InvoiceViewer/InvoiceViewer'
 import ConfirmSheet from '../../../../components/ConfirmSheet/ConfirmSheet'
 import Header from '../../../../components/Header/Header'
 import styles from './InvoiceTab.module.css'
 
-function fmt(currency = '₦', amount) {
-  const n = parseFloat(amount) || 0
-  return `${currency}${n.toLocaleString('en-NG', { minimumFractionDigits: 0 })}`
-}
+
+// ─────────────────────────────────────────────────────────────
+// CONSTANTS
+// ─────────────────────────────────────────────────────────────
 
 const STATUS_LABELS = {
   unpaid:    'Unpaid',
@@ -17,26 +19,76 @@ const STATUS_LABELS = {
 }
 
 const STATUS_STYLES = {
-  paid:      { bg: 'rgba(34,197,94,0.12)',   color: '#15803d', border: 'rgba(34,197,94,0.3)'   },
-  part_paid: { bg: 'rgba(251,146,60,0.12)',  color: '#c2410c', border: 'rgba(251,146,60,0.3)'  },
-  unpaid:    { bg: 'rgba(234,179,8,0.12)',   color: '#a16207', border: 'rgba(234,179,8,0.3)'   },
-  overdue:   { bg: 'rgba(239,68,68,0.12)',   color: '#dc2626', border: 'rgba(239,68,68,0.3)'   },
+  paid:      { background: 'rgba(34,197,94,0.12)',  color: '#15803d', borderColor: 'rgba(34,197,94,0.3)'  },
+  part_paid: { background: 'rgba(251,146,60,0.12)', color: '#c2410c', borderColor: 'rgba(251,146,60,0.3)' },
+  unpaid:    { background: 'rgba(234,179,8,0.12)',  color: '#a16207', borderColor: 'rgba(234,179,8,0.3)'  },
+  overdue:   { background: 'rgba(239,68,68,0.12)',  color: '#dc2626', borderColor: 'rgba(239,68,68,0.3)'  },
 }
+
+
+// ─────────────────────────────────────────────────────────────
+// HELPERS
+// ─────────────────────────────────────────────────────────────
+
+function formatMoney(currency = '₦', amount) {
+  const number = parseFloat(amount) || 0
+  return `${currency}${number.toLocaleString('en-NG', { minimumFractionDigits: 0 })}`
+}
+
+function getCurrency() {
+  try {
+    const settings = JSON.parse(localStorage.getItem('tailorbook_settings') || '{}')
+    return settings.invoiceCurrency || '₦'
+  } catch {
+    return '₦'
+  }
+}
+
+// Groups an array of invoices by their date field
+// Returns: { "Jan 1 2025": [invoice, invoice], ... }
+function groupInvoicesByDate(invoices) {
+  return invoices.reduce((groups, invoice) => {
+    const date = invoice.date || 'Unknown Date'
+    if (!groups[date]) groups[date] = []
+    groups[date].push(invoice)
+    return groups
+  }, {})
+}
+
+// Builds a map of orderId -> order items, for looking up images per invoice
+function buildOrderItemsMap(orders) {
+  const map = {}
+  for (const order of orders) {
+    if (order.id && order.items?.length > 0) {
+      map[order.id] = order.items
+    }
+  }
+  return map
+}
+
+// Calculates the total price for an invoice
+function getInvoiceTotal(invoice) {
+  if (invoice.items?.length > 0) {
+    return invoice.items.reduce((sum, item) => sum + (parseFloat(item.price) || 0), 0)
+  }
+  return parseFloat(invoice.price) || 0
+}
+
 
 // ─────────────────────────────────────────────────────────────
 // ORDER MOSAIC THUMBNAIL
+// Shows 1, 2, or 3+ item images in a tiled thumbnail box
 // ─────────────────────────────────────────────────────────────
+
 function OrderMosaic({ orderItems, fallbackIcon }) {
-  const covers = (orderItems || [])
-    .map(item => item.imgSrc ?? null)
-    .filter(Boolean)
+  const images     = (orderItems || []).map(item => item.imgSrc ?? null).filter(Boolean)
+  const totalItems = (orderItems || []).length
 
-  const total = (orderItems || []).length
-
-  if (covers.length === 0) {
+  // No images — show a fallback icon
+  if (images.length === 0) {
     return (
-      <div className={styles.invoiceListOuter}>
-        <div className={styles.invoiceListInner}>
+      <div className={styles.mosaicOuterBox}>
+        <div className={styles.mosaicInnerBox}>
           <span className="mi" style={{ fontSize: '1.5rem', color: 'var(--text3)' }}>
             {fallbackIcon || 'receipt_long'}
           </span>
@@ -45,28 +97,30 @@ function OrderMosaic({ orderItems, fallbackIcon }) {
     )
   }
 
-  if (total === 1) {
+  // Single image — full bleed
+  if (totalItems === 1) {
     return (
-      <div className={styles.invoiceListOuter}>
-        <div className={styles.invoiceListInner}>
-          <img src={covers[0]} alt="" className={styles.orderImg} />
+      <div className={styles.mosaicOuterBox}>
+        <div className={styles.mosaicInnerBox}>
+          <img src={images[0]} alt="" className={styles.mosaicFullImage} />
         </div>
       </div>
     )
   }
 
-  if (total === 2) {
+  // Two items — left/right split
+  if (totalItems === 2) {
     return (
-      <div className={styles.invoiceListOuter}>
-        <div className={`${styles.invoiceListInner} ${styles.mosaicInner}`}>
-          <div className={styles.mosaicLeft}>
-            <img src={covers[0]} alt="" className={styles.mosaicImg} />
+      <div className={styles.mosaicOuterBox}>
+        <div className={`${styles.mosaicInnerBox} ${styles.mosaicTiled}`}>
+          <div className={styles.mosaicTileLeft}>
+            <img src={images[0]} alt="" className={styles.mosaicTileImage} />
           </div>
-          <div className={styles.mosaicDividerV} />
-          <div className={styles.mosaicRight}>
-            <div className={styles.mosaicRightCell}>
-              {covers[1]
-                ? <img src={covers[1]} alt="" className={styles.mosaicImg} />
+          <div className={styles.mosaicDividerVertical} />
+          <div className={styles.mosaicTileRight}>
+            <div className={styles.mosaicTileCell}>
+              {images[1]
+                ? <img src={images[1]} alt="" className={styles.mosaicTileImage} />
                 : <span className="mi" style={{ fontSize: '0.75rem', color: 'var(--text3)' }}>checkroom</span>
               }
             </div>
@@ -76,102 +130,104 @@ function OrderMosaic({ orderItems, fallbackIcon }) {
     )
   }
 
-  const extra = total > 3 ? total - 3 : 0
+  // Three or more — left + two stacked on right
+  const extraCount = totalItems > 3 ? totalItems - 3 : 0
 
   return (
-    <div className={styles.invoiceListOuter}>
-      <div className={`${styles.invoiceListInner} ${styles.mosaicInner}`}>
-        <div className={styles.mosaicLeft}>
-          {covers[0]
-            ? <img src={covers[0]} alt="" className={styles.mosaicImg} />
+    <div className={styles.mosaicOuterBox}>
+      <div className={`${styles.mosaicInnerBox} ${styles.mosaicTiled}`}>
+
+        <div className={styles.mosaicTileLeft}>
+          {images[0]
+            ? <img src={images[0]} alt="" className={styles.mosaicTileImage} />
             : <span className="mi" style={{ fontSize: '0.9rem', color: 'var(--text3)' }}>checkroom</span>
           }
         </div>
-        <div className={styles.mosaicDividerV} />
-        <div className={styles.mosaicRight}>
-          <div className={styles.mosaicRightCell}>
-            {covers[1]
-              ? <img src={covers[1]} alt="" className={styles.mosaicImg} />
+
+        <div className={styles.mosaicDividerVertical} />
+
+        <div className={styles.mosaicTileRight}>
+
+          <div className={styles.mosaicTileCell}>
+            {images[1]
+              ? <img src={images[1]} alt="" className={styles.mosaicTileImage} />
               : <span className="mi" style={{ fontSize: '0.75rem', color: 'var(--text3)' }}>checkroom</span>
             }
           </div>
-          <div className={styles.mosaicDividerH} />
-          <div className={`${styles.mosaicRightCell} ${extra > 0 ? styles.mosaicOverlayWrap : ''}`}>
-            {covers[2]
-              ? <img src={covers[2]} alt="" className={styles.mosaicImg} />
+
+          <div className={styles.mosaicDividerHorizontal} />
+
+          <div className={`${styles.mosaicTileCell} ${extraCount > 0 ? styles.mosaicTileCellWithOverlay : ''}`}>
+            {images[2]
+              ? <img src={images[2]} alt="" className={styles.mosaicTileImage} />
               : <span className="mi" style={{ fontSize: '0.75rem', color: 'var(--text3)' }}>checkroom</span>
             }
-            {extra > 0 && (
-              <div className={styles.mosaicOverlay}>+{extra}</div>
+            {extraCount > 0 && (
+              <div className={styles.mosaicExtraOverlay}>+{extraCount}</div>
             )}
           </div>
+
         </div>
       </div>
     </div>
   )
 }
 
+
 // ─────────────────────────────────────────────────────────────
-// Invoice card
+// INVOICE CARD — one row in the list
 // ─────────────────────────────────────────────────────────────
 
 function InvoiceCard({ invoice, currency, onTap, isLast, orderItems }) {
-  const total = invoice.items?.length > 0
-    ? invoice.items.reduce((sum, item) => sum + (parseFloat(item.price) || 0), 0)
-    : (parseFloat(invoice.price) || 0)
-
-  const statusKey   = invoice.status || 'unpaid'
-  const statusLabel = STATUS_LABELS[statusKey] || invoice.status
-  const sty         = STATUS_STYLES[statusKey] || STATUS_STYLES.unpaid
-  const pieceCount  = invoice.items?.length > 0 ? invoice.items.length : (invoice.qty || null)
+  const total      = getInvoiceTotal(invoice)
+  const statusKey  = invoice.status || 'unpaid'
+  const badgeLabel = STATUS_LABELS[statusKey] || invoice.status
+  const badgeStyle = STATUS_STYLES[statusKey] || STATUS_STYLES.unpaid
+  const pieceCount = invoice.items?.length > 0 ? invoice.items.length : (invoice.qty || null)
 
   return (
     <div
-      className={`${styles.invoiceListItem} ${isLast ? styles.invoiceListItemLast : ''}`}
+      className={`${styles.invoiceRow} ${isLast ? styles.invoiceRowLast : ''}`}
       onClick={onTap}
     >
       {/* Left: mosaic thumbnail */}
       <OrderMosaic orderItems={orderItems} fallbackIcon="receipt_long" />
 
-      {/* Centre: order name + date */}
-      <div className={styles.invoiceListInfo}>
-        <div className={styles.invoiceListDesc}>{invoice.orderDesc || 'Order'}</div>
-        <div className={styles.invoiceListSub}>Generated {invoice.date}</div>
+      {/* Centre: order name + date + piece count */}
+      <div className={styles.invoiceRowInfo}>
+        <div className={styles.invoiceRowTitle}>{invoice.orderDesc || 'Order'}</div>
+        <div className={styles.invoiceRowDate}>Generated {invoice.date}</div>
         {pieceCount && (
-          <div className={styles.invoiceListPieces}>
+          <div className={styles.invoiceRowPieceCount}>
             {pieceCount} {pieceCount === 1 ? 'piece' : 'pieces'}
           </div>
         )}
       </div>
 
-      {/* Right: status badge + amount */}
-      <div className={styles.invoiceListRight}>
-        <span
-          className={styles.invoiceListStatusBadge}
-          style={{
-            background: sty.bg,
-            color: sty.color,
-            borderColor: sty.border,
-          }}
-        >
-          {statusLabel}
+      {/* Right: status badge + total amount */}
+      <div className={styles.invoiceRowRight}>
+        <span className={styles.invoiceStatusBadge} style={badgeStyle}>
+          {badgeLabel}
         </span>
-        <div className={styles.invoiceListAmount}>{fmt('₦', total)}</div>
+        <div className={styles.invoiceRowAmount}>
+          {formatMoney(currency, total)}
+        </div>
       </div>
     </div>
   )
 }
 
+
 // ─────────────────────────────────────────────────────────────
-// Empty state
+// EMPTY STATE — shown when no invoices exist
 // ─────────────────────────────────────────────────────────────
 
 function EmptyState() {
   return (
-    <div className={styles.empty}>
+    <div className={styles.emptyState}>
       <span className="mi" style={{ fontSize: '2.5rem', color: 'var(--text3)' }}>receipt_long</span>
-      <p className={styles.emptyTitle}>No invoices yet</p>
-      <p className={styles.emptySub}>
+      <p className={styles.emptyStateTitle}>No invoices yet</p>
+      <p className={styles.emptyStateSubtitle}>
         Go to the Orders tab and tap{' '}
         <strong>Generate Invoice</strong> on any order.
       </p>
@@ -179,13 +235,14 @@ function EmptyState() {
   )
 }
 
+
 // ─────────────────────────────────────────────────────────────
-// Main InvoiceTab
+// INVOICE TAB — main export
 // ─────────────────────────────────────────────────────────────
 
 export default function InvoiceTab({
   invoices = [],
-  orders = [],
+  orders   = [],
   customer,
   onStatusChange,
   onDelete,
@@ -194,28 +251,18 @@ export default function InvoiceTab({
   const [viewingInvoice, setViewingInvoice] = useState(null)
   const [deleteTarget,   setDeleteTarget]   = useState(null)
 
-  const currency = (() => {
-    try {
-      const s = JSON.parse(localStorage.getItem('tailorbook_settings') || '{}')
-      return s.invoiceCurrency || '₦'
-    } catch { return '₦' }
-  })()
+  const currency      = getCurrency()
+  const orderItemsMap = buildOrderItemsMap(orders)
+  const groupedByDate = groupInvoicesByDate(invoices)
 
-  const orderItemsMap = {}
-  for (const order of orders) {
-    if (order.id && order.items?.length > 0) {
-      orderItemsMap[order.id] = order.items
-    }
-  }
-
-  const confirmDelete = () => {
+  function handleConfirmDelete() {
     onDelete(deleteTarget)
     showToast('Invoice deleted')
     setDeleteTarget(null)
     if (viewingInvoice?.id === deleteTarget) setViewingInvoice(null)
   }
 
-  const handleStatusChange = (id, newStatus) => {
+  function handleStatusChange(id, newStatus) {
     onStatusChange(id, newStatus)
     showToast(`Marked as ${STATUS_LABELS[newStatus] || newStatus}`)
     if (viewingInvoice?.id === id) {
@@ -223,30 +270,23 @@ export default function InvoiceTab({
     }
   }
 
-  const grouped = invoices.reduce((acc, inv) => {
-    const key = inv.date || 'Unknown Date'
-    if (!acc[key]) acc[key] = []
-    acc[key].push(inv)
-    return acc
-  }, {})
-
   if (invoices.length === 0) return <EmptyState />
 
   return (
     <>
-      {Object.entries(grouped).map(([date, dateInvoices]) => (
-        <div key={date} className={styles.invoiceGroup}>
-          <div className={styles.invoiceGroupDate}>{date}</div>
-          <div className={styles.invoiceGroupDivider} />
+      {Object.entries(groupedByDate).map(([date, dateInvoices]) => (
+        <div key={date} className={styles.dateGroup}>
+          <div className={styles.dateGroupLabel}>{date}</div>
+          <div className={styles.dateGroupDivider} />
 
-          {dateInvoices.map((inv, idx) => (
+          {dateInvoices.map((invoice, index) => (
             <InvoiceCard
-              key={inv.id}
-              invoice={inv}
+              key={invoice.id}
+              invoice={invoice}
               currency={currency}
-              isLast={idx === dateInvoices.length - 1}
-              onTap={() => setViewingInvoice(inv)}
-              orderItems={orderItemsMap[inv.orderId] ?? []}
+              isLast={index === dateInvoices.length - 1}
+              onTap={() => setViewingInvoice(invoice)}
+              orderItems={orderItemsMap[invoice.orderId] ?? []}
             />
           ))}
         </div>
@@ -259,7 +299,12 @@ export default function InvoiceTab({
             title="Invoice Details"
             onBackClick={() => setViewingInvoice(null)}
             customActions={[
-              { icon: 'delete_outline', label: 'Delete', onClick: () => setDeleteTarget(viewingInvoice.id), color: 'var(--danger)' }
+              {
+                icon:    'delete_outline',
+                label:   'Delete',
+                onClick: () => setDeleteTarget(viewingInvoice.id),
+                color:   'var(--danger)',
+              },
             ]}
           />
           <InvoiceViewer
@@ -276,7 +321,7 @@ export default function InvoiceTab({
       <ConfirmSheet
         open={!!deleteTarget}
         title="Delete this invoice?"
-        onConfirm={confirmDelete}
+        onConfirm={handleConfirmDelete}
         onCancel={() => setDeleteTarget(null)}
       />
     </>

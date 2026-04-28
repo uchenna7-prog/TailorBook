@@ -1,40 +1,45 @@
 import { useState, useEffect } from 'react'
 import { useOrders } from '../../../../contexts/OrdersContext'
 import { useAuth }   from '../../../../contexts/AuthContext'
-import ConfirmSheet from '../../../../components/ConfirmSheet/ConfirmSheet'
-import Header from '../../../../components/Header/Header'
-import styles from './OrdersTab.module.css'
+import ConfirmSheet  from '../../../../components/ConfirmSheet/ConfirmSheet'
+import Header        from '../../../../components/Header/Header'
+import styles        from './OrdersTab.module.css'
 
-const PRIORITY_COLOR = { normal: 'var(--border2)', urgent: '#fb923c', vip: '#a855f7' }
-const PRIORITY_BANNER = {
-  normal: { cls: styles.bannerNormal, text: 'Normal Priority' },
-  urgent: { cls: styles.bannerUrgent, text: 'Urgent ★' },
-  vip:    { cls: styles.bannerVip,    text: 'VIP ★' },
+
+// ─────────────────────────────────────────────────────────────
+// CONSTANTS
+// ─────────────────────────────────────────────────────────────
+
+const PRIORITY_BANNER_CONFIG = {
+  normal: { className: styles.priorityBanner_normal, label: 'Normal Priority' },
+  urgent: { className: styles.priorityBanner_urgent, label: 'Urgent ★'        },
+  vip:    { className: styles.priorityBanner_vip,    label: 'VIP ★'           },
 }
 
 const STATUSES = [
-  { value: 'pending',     label: 'Pending'      },
-  { value: 'in-progress', label: 'In Progress'  },
-  { value: 'completed',   label: 'Completed'    },
-  { value: 'delivered',   label: 'Delivered'    },
-  { value: 'cancelled',   label: 'Cancelled'    },
+  { value: 'pending',     label: 'Pending'     },
+  { value: 'in-progress', label: 'In Progress' },
+  { value: 'completed',   label: 'Completed'   },
+  { value: 'delivered',   label: 'Delivered'   },
+  { value: 'cancelled',   label: 'Cancelled'   },
 ]
 
 const STAGES = [
-  { value: 'measurement_taken', label: 'Measurement Taken', icon: 'straighten'     },
-  { value: 'fabric_ready',      label: 'Fabric Ready',      icon: 'checkroom'      },
-  { value: 'cutting',           label: 'Cutting',           icon: 'content_cut'    },
-  { value: 'weaving',           label: 'Weaving',           icon: 'texture'        },
-  { value: 'sewing',            label: 'Sewing',            icon: 'construction'   },
-  { value: 'embroidery',        label: 'Embroidery',        icon: 'auto_awesome'   },
-  { value: 'fitting',           label: 'Fitting',           icon: 'accessibility'  },
-  { value: 'adjustments',       label: 'Adjustments',       icon: 'tune'           },
-  { value: 'finishing',         label: 'Finishing',         icon: 'dry_cleaning'   },
-  { value: 'quality_check',     label: 'Quality Check',     icon: 'fact_check'     },
-  { value: 'ready',             label: 'Ready',             icon: 'check_circle'   },
+  { value: 'measurement_taken', label: 'Measurement Taken', icon: 'straighten'    },
+  { value: 'fabric_ready',      label: 'Fabric Ready',      icon: 'checkroom'     },
+  { value: 'cutting',           label: 'Cutting',           icon: 'content_cut'   },
+  { value: 'weaving',           label: 'Weaving',           icon: 'texture'       },
+  { value: 'sewing',            label: 'Sewing',            icon: 'construction'  },
+  { value: 'embroidery',        label: 'Embroidery',        icon: 'auto_awesome'  },
+  { value: 'fitting',           label: 'Fitting',           icon: 'accessibility' },
+  { value: 'adjustments',       label: 'Adjustments',       icon: 'tune'          },
+  { value: 'finishing',         label: 'Finishing',         icon: 'dry_cleaning'  },
+  { value: 'quality_check',     label: 'Quality Check',     icon: 'fact_check'    },
+  { value: 'ready',             label: 'Ready',             icon: 'check_circle'  },
 ]
 
-const STAGE_TO_STATUS = {
+// When a stage is set, auto-update the order status to match
+const STAGE_AUTO_STATUS = {
   measurement_taken: 'pending',
   fabric_ready:      'pending',
   cutting:           'in-progress',
@@ -48,64 +53,104 @@ const STAGE_TO_STATUS = {
   ready:             'completed',
 }
 
-function formatDate(ts) {
-  if (!ts) return 'Unknown Date'
-  if (typeof ts.toDate === 'function') {
-    return ts.toDate().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+
+// ─────────────────────────────────────────────────────────────
+// DATE HELPERS
+// ─────────────────────────────────────────────────────────────
+
+// Formats a Firestore timestamp or plain date string into "Jan 1, 2024"
+function formatFirestoreDate(timestamp) {
+  if (!timestamp) return 'Unknown Date'
+
+  // Firestore Timestamp object
+  if (typeof timestamp.toDate === 'function') {
+    return timestamp.toDate().toLocaleDateString('en-US', {
+      month: 'short',
+      day:   'numeric',
+      year:  'numeric',
+    })
   }
-  if (typeof ts === 'string') return ts
+
+  // Already a plain string
+  if (typeof timestamp === 'string') return timestamp
+
   return 'Unknown Date'
 }
 
-function formatDateShort(dateStr) {
-  if (!dateStr) return ''
-  return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+// Formats "2024-01-15" into "Jan 15" (no year, for due date display)
+function formatShortDate(dateString) {
+  if (!dateString) return ''
+  return new Date(dateString + 'T00:00:00').toLocaleDateString('en-US', {
+    month: 'short',
+    day:   'numeric',
+  })
 }
 
-function todayReadable() {
-  return new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+// Returns today's date as "Jan 1, 2024"
+function getTodayReadable() {
+  return new Date().toLocaleDateString('en-US', {
+    month: 'short',
+    day:   'numeric',
+    year:  'numeric',
+  })
 }
+
+
+// ─────────────────────────────────────────────────────────────
+// ORDER MOSAIC THUMBNAIL
+// Shows 1, 2, or 3-panel image grid for an order's items
+// ─────────────────────────────────────────────────────────────
 
 function OrderMosaic({ items }) {
-  const covers = items
-    .map(item => item.imgSrc ?? null)
-    .filter(Boolean)
+  // Pull the first image from each item (skip items with no image)
+  const images = items.map(item => item.imgSrc ?? null).filter(Boolean)
 
-  const total     = items.length
-  const hasImages = covers.length > 0
+  const totalItems = items.length
+  const hasImages  = images.length > 0
 
+  const placeholderIcon = (
+    <span className="mi" style={{ fontSize: '1.5rem', color: 'var(--text3)' }}>
+      content_cut
+    </span>
+  )
+
+  // No images at all — show placeholder icon
   if (!hasImages) {
     return (
-      <div className={styles.orderListOuter}>
-        <div className={styles.orderListInner}>
-          <span className="mi" style={{ fontSize: '1.5rem', color: 'var(--text3)' }}>content_cut</span>
+      <div className={styles.mosaicContainer}>
+        <div className={styles.mosaicBox}>
+          {placeholderIcon}
         </div>
       </div>
     )
   }
 
-  if (total === 1) {
+  // Single item — full image
+  if (totalItems === 1) {
     return (
-      <div className={styles.orderListOuter}>
-        <div className={styles.orderListInner}>
-          <img src={covers[0]} alt="" className={styles.orderListThumbImg} />
+      <div className={styles.mosaicContainer}>
+        <div className={styles.mosaicBox}>
+          <img src={images[0]} alt="" className={styles.mosaicSingleImage} />
         </div>
       </div>
     )
   }
 
-  if (total === 2) {
+  // Two items — left/right split
+  if (totalItems === 2) {
     return (
-      <div className={styles.orderListOuter}>
-        <div className={`${styles.orderListInner} ${styles.mosaicInner}`} style={{ padding: 0 }}>
-          <div className={styles.mosaicLeft}>
-            <img src={covers[0]} alt="" className={styles.mosaicImg} />
+      <div className={styles.mosaicContainer}>
+        <div className={`${styles.mosaicBox} ${styles.mosaicBox_split}`}>
+          <div className={styles.mosaicPanel_left}>
+            <img src={images[0]} alt="" className={styles.mosaicPanelImage} />
           </div>
-          <div className={styles.mosaicDividerV} />
-          <div className={styles.mosaicRight}>
-            <div className={styles.mosaicRightCell}>
-              {covers[1]
-                ? <img src={covers[1]} alt="" className={styles.mosaicImg} />
+
+          <div className={styles.mosaicDivider_vertical} />
+
+          <div className={styles.mosaicPanel_right}>
+            <div className={styles.mosaicCell}>
+              {images[1]
+                ? <img src={images[1]} alt="" className={styles.mosaicPanelImage} />
                 : <span className="mi" style={{ fontSize: '0.75rem', color: 'var(--text3)' }}>checkroom</span>
               }
             </div>
@@ -115,37 +160,41 @@ function OrderMosaic({ items }) {
     )
   }
 
-  const extra = total > 3 ? total - 3 : 0
+  // Three or more items — left panel + two stacked right cells
+  const extraCount = totalItems > 3 ? totalItems - 3 : 0
 
   return (
-    <div className={styles.orderListOuter}>
-      <div className={`${styles.orderListInner} ${styles.mosaicInner}`} style={{ padding: 0 }}>
-        <div className={styles.mosaicLeft}>
-          {covers[0]
-            ? <img src={covers[0]} alt="" className={styles.mosaicImg} />
+    <div className={styles.mosaicContainer}>
+      <div className={`${styles.mosaicBox} ${styles.mosaicBox_split}`}>
+        {/* Left large panel */}
+        <div className={styles.mosaicPanel_left}>
+          {images[0]
+            ? <img src={images[0]} alt="" className={styles.mosaicPanelImage} />
             : <span className="mi" style={{ fontSize: '0.9rem', color: 'var(--text3)' }}>checkroom</span>
           }
         </div>
 
-        <div className={styles.mosaicDividerV} />
+        <div className={styles.mosaicDivider_vertical} />
 
-        <div className={styles.mosaicRight}>
-          <div className={styles.mosaicRightCell}>
-            {covers[1]
-              ? <img src={covers[1]} alt="" className={styles.mosaicImg} />
+        {/* Right column — top and bottom cells */}
+        <div className={styles.mosaicPanel_right}>
+          <div className={styles.mosaicCell}>
+            {images[1]
+              ? <img src={images[1]} alt="" className={styles.mosaicPanelImage} />
               : <span className="mi" style={{ fontSize: '0.75rem', color: 'var(--text3)' }}>checkroom</span>
             }
           </div>
 
-          <div className={styles.mosaicDividerH} />
+          <div className={styles.mosaicDivider_horizontal} />
 
-          <div className={`${styles.mosaicRightCell} ${extra > 0 ? styles.mosaicOverlayWrap : ''}`}>
-            {covers[2]
-              ? <img src={covers[2]} alt="" className={styles.mosaicImg} />
+          {/* Bottom cell — shows "+N" overlay if there are more items */}
+          <div className={`${styles.mosaicCell} ${extraCount > 0 ? styles.mosaicCell_hasOverlay : ''}`}>
+            {images[2]
+              ? <img src={images[2]} alt="" className={styles.mosaicPanelImage} />
               : <span className="mi" style={{ fontSize: '0.75rem', color: 'var(--text3)' }}>checkroom</span>
             }
-            {extra > 0 && (
-              <div className={styles.mosaicOverlay}>+{extra}</div>
+            {extraCount > 0 && (
+              <div className={styles.mosaicOverlay}>+{extraCount}</div>
             )}
           </div>
         </div>
@@ -154,60 +203,87 @@ function OrderMosaic({ items }) {
   )
 }
 
+
 // ─────────────────────────────────────────────────────────────
 // ORDER FORM MODAL
+// Slide-up sheet for creating a new order
 // ─────────────────────────────────────────────────────────────
+
 function OrderModal({ isOpen, onClose, measurements, onSave }) {
-  const [selectedItems, setSelectedItems] = useState([])
-  const [pickerQuery,   setPickerQuery]   = useState('')
-  const [desc,          setDesc]          = useState('')
-  const [due,           setDue]           = useState('')
-  const [priority,      setPriority]      = useState('normal')
-  const [notes,         setNotes]         = useState('')
-  const [stage,         setStage]         = useState('')
-  const [pricingError,  setPricingError]  = useState('')
 
-  const reset = () => {
-    setSelectedItems([]); setPickerQuery(''); setDesc('')
-    setDue(''); setPriority('normal'); setNotes(''); setStage('')
+  // ── Form state ──
+  const [selectedItems,  setSelectedItems]  = useState([])
+  const [clothSearchText, setClothSearchText] = useState('')
+  const [orderDesc,      setOrderDesc]      = useState('')
+  const [dueDate,        setDueDate]        = useState('')
+  const [priority,       setPriority]       = useState('normal')
+  const [notes,          setNotes]          = useState('')
+  const [stage,          setStage]          = useState('')
+  const [pricingError,   setPricingError]   = useState('')
+
+  // ── Reset all fields back to defaults ──
+  function resetForm() {
+    setSelectedItems([])
+    setClothSearchText('')
+    setOrderDesc('')
+    setDueDate('')
+    setPriority('normal')
+    setNotes('')
+    setStage('')
     setPricingError('')
   }
 
-  const toggleId = (m) => {
-    const idStr    = String(m.id)
-    const coverImg = m.imgSrcs?.[0] ?? m.imgSrc ?? null
+  // ── Toggle a cloth type on/off in the selection list ──
+  function toggleItemSelection(measurement) {
+    const itemId   = String(measurement.id)
+    const coverImg = measurement.imgSrcs?.[0] ?? measurement.imgSrc ?? null
+
     setSelectedItems(prev => {
-      const exists = prev.find(item => item.id === idStr)
-      if (exists) return prev.filter(item => item.id !== idStr)
-      return [...prev, { id: idStr, price: '', qty: '', name: m.name, imgSrc: coverImg }]
+      const alreadySelected = prev.find(item => item.id === itemId)
+
+      if (alreadySelected) {
+        // Deselect — remove it
+        return prev.filter(item => item.id !== itemId)
+      } else {
+        // Select — add with empty price/qty
+        return [...prev, { id: itemId, price: '', qty: '', name: measurement.name, imgSrc: coverImg }]
+      }
     })
+
     setPricingError('')
   }
 
-  const updateItemField = (id, field, value) => {
-    setSelectedItems(prev => prev.map(item =>
-      item.id === id ? { ...item, [field]: value } : item
-    ))
+  // ── Update a single field (price or qty) for one item ──
+  function updateItemField(itemId, field, value) {
+    setSelectedItems(prev =>
+      prev.map(item => item.id === itemId ? { ...item, [field]: value } : item)
+    )
     setPricingError('')
   }
 
-  // Total = sum of (qty × price) per item
-  const totalPrice = selectedItems.reduce((sum, item) => {
-    return sum + ((parseFloat(item.price) || 0) * (parseInt(item.qty, 10) || 0))
+  // ── Computed totals ──
+  const orderTotal = selectedItems.reduce((sum, item) => {
+    return sum + (parseFloat(item.price) || 0) * (parseInt(item.qty, 10) || 0)
   }, 0)
 
-  // Order-level qty = sum of all item quantities
-  const dynamicQty = selectedItems.reduce((sum, item) => sum + (parseInt(item.qty, 10) || 0), 0) || 1
+  const totalQty = selectedItems.reduce((sum, item) => {
+    return sum + (parseInt(item.qty, 10) || 0)
+  }, 0) || 1
 
-  const filteredMeasurements = pickerQuery.trim()
-    ? measurements.filter(m => m.name.toLowerCase().includes(pickerQuery.toLowerCase()))
+  // ── Filter cloth list by search text ──
+  const visibleMeasurements = clothSearchText.trim()
+    ? measurements.filter(m => m.name.toLowerCase().includes(clothSearchText.toLowerCase()))
     : measurements
 
-  const handleSave = () => {
-    if (selectedItems.length === 0 && !desc.trim()) return
+  // ── Save the order ──
+  function handleSave() {
+    const hasItems    = selectedItems.length > 0
+    const hasDesc     = orderDesc.trim()
 
-    // Validate: every selected item must have both price and qty filled
-    if (selectedItems.length > 0) {
+    if (!hasItems && !hasDesc) return
+
+    // Every selected item must have both price and qty filled
+    if (hasItems) {
       const incomplete = selectedItems.find(
         item => !(parseFloat(item.price) > 0) || !(parseInt(item.qty, 10) > 0)
       )
@@ -217,40 +293,48 @@ function OrderModal({ isOpen, onClose, measurements, onSave }) {
       }
     }
 
-    let dueDisplay = ''
-    if (due) {
-      const d = new Date(due + 'T00:00:00')
-      dueDisplay = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    // Format due date for display
+    let dueDateDisplay = ''
+    if (dueDate) {
+      dueDateDisplay = new Date(dueDate + 'T00:00:00').toLocaleDateString('en-US', {
+        month: 'short',
+        day:   'numeric',
+        year:  'numeric',
+      })
     }
 
     onSave({
-      desc:           desc.trim() || (selectedItems.length > 0 ? selectedItems.map(i => i.name).join(', ') : 'New Order'),
-      price:          totalPrice,
-      items:          selectedItems.map(i => ({
-        id:     i.id,
-        name:   i.name,
-        imgSrc: i.imgSrc || null,
-        price:  parseFloat(i.price) || 0,
-        qty:    parseInt(i.qty, 10) || 1,
+      desc:           orderDesc.trim() || (hasItems ? selectedItems.map(i => i.name).join(', ') : 'New Order'),
+      price:          orderTotal,
+      items:          selectedItems.map(item => ({
+        id:     item.id,
+        name:   item.name,
+        imgSrc: item.imgSrc || null,
+        price:  parseFloat(item.price) || 0,
+        qty:    parseInt(item.qty, 10) || 1,
       })),
-      qty:            dynamicQty,
-      due:            dueDisplay,
-      dueRaw:         due,
+      qty:            totalQty,
+      due:            dueDateDisplay,
+      dueRaw:         dueDate,
       notes:          notes.trim(),
       priority,
       measurementIds: selectedItems.map(i => i.id),
       status:         'pending',
       stage:          stage || null,
-      takenAt:        todayReadable(),
+      takenAt:        getTodayReadable(),
     })
-    reset()
+
+    resetForm()
     onClose()
   }
 
-  const handleClose = () => { reset(); onClose() }
+  function handleClose() {
+    resetForm()
+    onClose()
+  }
 
   return (
-    <div className={`${styles.modalOverlay} ${isOpen ? styles.modalOpen : ''}`}>
+    <div className={`${styles.formOverlay} ${isOpen ? styles.formOverlay_open : ''}`}>
       <Header
         type="back"
         title="New Order"
@@ -258,87 +342,104 @@ function OrderModal({ isOpen, onClose, measurements, onSave }) {
         customActions={[{ label: 'Place Order', onClick: handleSave }]}
       />
 
-      <div className={styles.modalBody}>
+      <div className={styles.formScrollBody}>
         <div style={{ padding: '20px' }}>
 
-          {/* ── 1. Select Clothes ── */}
-          <p className={styles.sectionHeading}>1. Select Clothes</p>
+          {/* ── Step 1: Select Clothes ── */}
+          <p className={styles.stepHeading}>1. Select Clothes</p>
+
+          {/* Search bar — only shown when there are many cloth types */}
           {measurements.length > 5 && (
-            <div className={styles.pickerSearchWrap}>
+            <div className={styles.clothSearchBar}>
               <span className="mi" style={{ fontSize: '1.1rem', color: 'var(--text3)' }}>search</span>
               <input
                 type="text"
                 placeholder="Search cloth type…"
-                value={pickerQuery}
-                onChange={e => setPickerQuery(e.target.value)}
-                className={styles.pickerSearchInput}
+                value={clothSearchText}
+                onChange={e => setClothSearchText(e.target.value)}
+                className={styles.clothSearchInput}
               />
             </div>
           )}
 
-          <div className={styles.pickerList}>
-            {filteredMeasurements.map(m => {
-              const selected  = selectedItems.find(i => i.id === String(m.id))
-              const coverImg  = m.imgSrcs?.[0] ?? m.imgSrc ?? null
+          {/* Cloth type picker list */}
+          <div className={styles.clothPickerList}>
+            {visibleMeasurements.map(measurement => {
+              const isSelected = selectedItems.find(i => i.id === String(measurement.id))
+              const coverImg   = measurement.imgSrcs?.[0] ?? measurement.imgSrc ?? null
+
               return (
                 <div
-                  key={m.id}
-                  className={`${styles.pickerItem} ${selected ? styles.pickerSelected : ''}`}
-                  onClick={() => toggleId(m)}
+                  key={measurement.id}
+                  className={`${styles.clothPickerItem} ${isSelected ? styles.clothPickerItem_selected : ''}`}
+                  onClick={() => toggleItemSelection(measurement)}
                 >
-                  <div className={styles.pickerThumb}>
+                  {/* Thumbnail */}
+                  <div className={styles.clothThumb}>
                     {coverImg
-                      ? <img src={coverImg} alt={m.name} />
-                      : <span className="mi" style={{ fontSize: '1.1rem' }}>checkroom</span>}
+                      ? <img src={coverImg} alt={measurement.name} />
+                      : <span className="mi" style={{ fontSize: '1.1rem' }}>checkroom</span>
+                    }
                   </div>
-                  <div className={styles.pickerInfo}>
-                    <h5>{m.name}</h5>
-                    <span>{m.fields?.length || 0} measurements</span>
+
+                  {/* Name + measurement count */}
+                  <div className={styles.clothInfo}>
+                    <h5>{measurement.name}</h5>
+                    <span>{measurement.fields?.length || 0} measurements</span>
                   </div>
-                  <div className={`${styles.pickerCheck} ${selected ? styles.pickerCheckSelected : ''}`}>
-                    {selected && <span className="mi" style={{ fontSize: '0.9rem' }}>check</span>}
+
+                  {/* Checkmark circle */}
+                  <div className={`${styles.clothCheckCircle} ${isSelected ? styles.clothCheckCircle_checked : ''}`}>
+                    {isSelected && <span className="mi" style={{ fontSize: '0.9rem' }}>check</span>}
                   </div>
                 </div>
               )
             })}
           </div>
 
-          {/* ── 2. Pricing & Quantity ── */}
+
+          {/* ── Step 2: Price & Quantity per Item ── */}
           {selectedItems.length > 0 && (
             <>
-              <p className={styles.sectionHeading} style={{ marginTop: 24 }}>2. Price &amp; Quantity Per Item</p>
-              <div className={styles.pricingList}>
+              <p className={styles.stepHeading} style={{ marginTop: 24 }}>
+                2. Price &amp; Quantity Per Item
+              </p>
+
+              <div className={styles.pricingCard}>
                 {selectedItems.map(item => (
-                  <div key={item.id} className={styles.priceInputRow}>
-                    {/* Thumbnail */}
-                    <div className={styles.pickerThumb} style={{ width: 40, height: 40, flexShrink: 0 }}>
+                  <div key={item.id} className={styles.pricingRow}>
+
+                    {/* Item thumbnail */}
+                    <div className={styles.clothThumb} style={{ width: 40, height: 40, flexShrink: 0 }}>
                       {item.imgSrc
                         ? <img src={item.imgSrc} alt="" />
-                        : <span className="mi">checkroom</span>}
+                        : <span className="mi">checkroom</span>
+                      }
                     </div>
 
-                    {/* Fields */}
+                    {/* Fields: name + price/qty/amount inputs */}
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div className={styles.priceItemName}>{item.name}</div>
-                      <div className={styles.priceFieldsRow}>
+                      <div className={styles.pricingItemName}>{item.name}</div>
+
+                      <div className={styles.pricingInputRow}>
                         {/* Price */}
-                        <div className={styles.priceFieldWrap}>
-                          <label className={styles.priceFieldLabel}>
+                        <div className={styles.pricingField}>
+                          <label className={styles.fieldLabel}>
                             Price (₦) <span className={styles.requiredStar}>*</span>
                           </label>
                           <input
                             type="number"
                             inputMode="numeric"
                             placeholder="0"
-                            className={styles.itemPriceInput}
+                            className={styles.pricingInput}
                             value={item.price}
                             onChange={e => updateItemField(item.id, 'price', e.target.value)}
                           />
                         </div>
 
                         {/* Quantity */}
-                        <div className={styles.priceFieldWrap}>
-                          <label className={styles.priceFieldLabel}>
+                        <div className={styles.pricingField}>
+                          <label className={styles.fieldLabel}>
                             Qty <span className={styles.requiredStar}>*</span>
                           </label>
                           <input
@@ -346,16 +447,16 @@ function OrderModal({ isOpen, onClose, measurements, onSave }) {
                             inputMode="numeric"
                             placeholder="1"
                             min="1"
-                            className={styles.itemPriceInput}
+                            className={styles.pricingInput}
                             value={item.qty}
                             onChange={e => updateItemField(item.id, 'qty', e.target.value)}
                           />
                         </div>
 
-                        {/* Line total */}
-                        <div className={styles.priceFieldWrap} style={{ alignItems: 'flex-end' }}>
-                          <label className={styles.priceFieldLabel}>Amount</label>
-                          <div className={styles.itemAmountDisplay}>
+                        {/* Computed line total (read-only) */}
+                        <div className={styles.pricingField} style={{ alignItems: 'flex-end' }}>
+                          <label className={styles.fieldLabel}>Amount</label>
+                          <div className={styles.pricingAmount}>
                             ₦{((parseFloat(item.price) || 0) * (parseInt(item.qty, 10) || 0)).toLocaleString()}
                           </div>
                         </div>
@@ -364,7 +465,7 @@ function OrderModal({ isOpen, onClose, measurements, onSave }) {
                   </div>
                 ))}
 
-                {/* Validation error */}
+                {/* Error message if price/qty missing */}
                 {pricingError && (
                   <div className={styles.pricingError}>
                     <span className="mi" style={{ fontSize: '0.9rem' }}>error_outline</span>
@@ -372,49 +473,58 @@ function OrderModal({ isOpen, onClose, measurements, onSave }) {
                   </div>
                 )}
 
-                <div className={styles.totalIndicator}>
-                  <span>Order Total (Qty: {dynamicQty})</span>
-                  <span style={{ color: 'var(--accent)' }}>₦{totalPrice.toLocaleString()}</span>
+                {/* Order total row */}
+                <div className={styles.orderTotalRow}>
+                  <span>Order Total (Qty: {totalQty})</span>
+                  <span style={{ color: 'var(--accent)' }}>₦{orderTotal.toLocaleString()}</span>
                 </div>
               </div>
             </>
           )}
 
-          {/* ── 3. Final Details ── */}
-          <p className={styles.sectionHeading} style={{ marginTop: 24 }}>3. Final Details</p>
-          <div className={styles.orderFormCard}>
-            <label className={styles.labelTiny}>Order Description</label>
+
+          {/* ── Step 3: Final Details ── */}
+          <p className={styles.stepHeading} style={{ marginTop: 24 }}>3. Final Details</p>
+
+          <div className={styles.detailsCard}>
+
+            {/* Description */}
+            <label className={styles.fieldLabel}>Order Description</label>
             <input
               type="text"
-              className={styles.clothInput}
+              className={styles.underlineInput}
               placeholder="e.g. Full Native Set"
-              value={desc}
-              onChange={e => setDesc(e.target.value)}
+              value={orderDesc}
+              onChange={e => setOrderDesc(e.target.value)}
             />
 
+            {/* Due date + total qty side by side */}
             <div style={{ display: 'flex', gap: 14, marginBottom: 20 }}>
               <div style={{ flex: 1 }}>
-                <label className={styles.labelTiny}>Due Date</label>
+                <label className={styles.fieldLabel}>Due Date</label>
                 <input
                   type="date"
-                  className={styles.clothInput}
+                  className={styles.underlineInput}
                   style={{ marginBottom: 0 }}
-                  value={due}
-                  onChange={e => setDue(e.target.value)}
+                  value={dueDate}
+                  onChange={e => setDueDate(e.target.value)}
                 />
               </div>
               <div style={{ flex: 1 }}>
-                <label className={styles.labelTiny}>Total Qty</label>
-                <div className={styles.clothInput} style={{ borderBottomColor: 'var(--border)', opacity: 0.8 }}>{dynamicQty}</div>
+                <label className={styles.fieldLabel}>Total Qty</label>
+                <div className={styles.underlineInput} style={{ borderBottomColor: 'var(--border)', opacity: 0.8 }}>
+                  {totalQty}
+                </div>
               </div>
             </div>
 
-            <label className={styles.labelTiny}>Priority</label>
-            <div className={styles.priorityRow}>
+            {/* Priority chips */}
+            <label className={styles.fieldLabel}>Priority</label>
+            <div className={styles.priorityChipRow}>
               {['normal', 'urgent', 'vip'].map(p => (
                 <button
                   key={p}
-                  className={`${styles.priorityChip} ${priority === p ? styles[`priority_${p}`] : ''}`}
+                  className={`${styles.priorityChip} ${priority === p ? styles[`priorityChip_${p}`] : ''}`}
                   onClick={() => setPriority(p)}
                 >
                   {p.charAt(0).toUpperCase() + p.slice(1)}
@@ -422,23 +532,25 @@ function OrderModal({ isOpen, onClose, measurements, onSave }) {
               ))}
             </div>
 
-            <label className={styles.labelTiny} style={{ marginTop: 20 }}>Current Stage</label>
+            {/* Stage chips */}
+            <label className={styles.fieldLabel} style={{ marginTop: 20 }}>Current Stage</label>
             <div className={styles.stageChipRow}>
-              {STAGES.map(s => (
+              {STAGES.map(stageItem => (
                 <button
-                  key={s.value}
-                  className={`${styles.stageChip} ${stage === s.value ? styles.stageChipActive : ''}`}
-                  onClick={() => setStage(prev => prev === s.value ? '' : s.value)}
+                  key={stageItem.value}
+                  className={`${styles.stageChip} ${stage === stageItem.value ? styles.stageChip_active : ''}`}
+                  onClick={() => setStage(prev => prev === stageItem.value ? '' : stageItem.value)}
                 >
-                  <span className="mi" style={{ fontSize: '0.85rem' }}>{s.icon}</span>
-                  {s.label}
+                  <span className="mi" style={{ fontSize: '0.85rem' }}>{stageItem.icon}</span>
+                  {stageItem.label}
                 </button>
               ))}
             </div>
 
-            <label className={styles.labelTiny} style={{ marginTop: 20 }}>Notes</label>
+            {/* Notes */}
+            <label className={styles.fieldLabel} style={{ marginTop: 20 }}>Notes</label>
             <textarea
-              className={styles.orderTextarea}
+              className={styles.notesTextarea}
               placeholder="Fabric color, styles, etc..."
               value={notes}
               onChange={e => setNotes(e.target.value)}
@@ -451,17 +563,21 @@ function OrderModal({ isOpen, onClose, measurements, onSave }) {
   )
 }
 
+
 // ─────────────────────────────────────────────────────────────
-// ORDER DETAIL
+// ORDER DETAIL PANEL
+// Slides in from the right when an order is tapped
 // ─────────────────────────────────────────────────────────────
+
 function OrderDetail({ order, measurements, onClose, onDelete, onStatusChange, onStageChange, onGenerateInvoice, onShareReviewLink }) {
   if (!order) return null
-  const banner   = PRIORITY_BANNER[order.priority] ?? PRIORITY_BANNER.normal
-  const placedOn = order.takenAt || order.date || formatDate(order.createdAt)
-  const stageObj = STAGES.find(s => s.value === order.stage)
+
+  const priorityBanner = PRIORITY_BANNER_CONFIG[order.priority] ?? PRIORITY_BANNER_CONFIG.normal
+  const placedOnDate   = order.takenAt || order.date || formatFirestoreDate(order.createdAt)
+  const currentStage   = STAGES.find(s => s.value === order.stage)
 
   return (
-    <div className={`${styles.detailModal} ${styles.detailOpen}`}>
+    <div className={`${styles.detailPanel} ${styles.detailPanel_open}`}>
       <Header
         type="back"
         title={order.desc}
@@ -471,51 +587,65 @@ function OrderDetail({ order, measurements, onClose, onDelete, onStatusChange, o
         ]}
       />
 
-      <div className={styles.detailBody}>
-        <span className={`${styles.priorityBanner} ${banner.cls}`}>{banner.text}</span>
+      <div className={styles.detailScrollBody}>
 
-        {/* Meta grid */}
-        <div className={styles.orderMetaGrid}>
-          <div className={styles.orderMetaCell}>
-            <div className={styles.cellLabel}>Total Price</div>
-            <div className={styles.cellValue}>₦{Number(order.price || 0).toLocaleString()}</div>
+        {/* Priority label */}
+        <span className={`${styles.priorityBanner} ${priorityBanner.className}`}>
+          {priorityBanner.label}
+        </span>
+
+        {/* 2×2 info grid: price, status, stage, due date */}
+        <div className={styles.infoGrid}>
+          <div className={styles.infoGridCell}>
+            <div className={styles.infoGridLabel}>Total Price</div>
+            <div className={styles.infoGridValue}>₦{Number(order.price || 0).toLocaleString()}</div>
           </div>
-          <div className={styles.orderMetaCell}>
-            <div className={styles.cellLabel}>Status</div>
-            <div className={styles.cellValue} style={{ textTransform: 'capitalize' }}>
+
+          <div className={styles.infoGridCell}>
+            <div className={styles.infoGridLabel}>Status</div>
+            <div className={styles.infoGridValue} style={{ textTransform: 'capitalize' }}>
               {STATUSES.find(s => s.value === order.status)?.label ?? 'Pending'}
             </div>
           </div>
-          <div className={styles.orderMetaCell}>
-            <div className={styles.cellLabel}>Current Stage</div>
-            <div className={styles.cellValue} style={{ fontSize: '0.85rem' }}>
-              {stageObj
-                ? <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                    <span className="mi" style={{ fontSize: '1rem' }}>{stageObj.icon}</span>
-                    {stageObj.label}
+
+          <div className={styles.infoGridCell}>
+            <div className={styles.infoGridLabel}>Current Stage</div>
+            <div className={styles.infoGridValue} style={{ fontSize: '0.85rem' }}>
+              {currentStage
+                ? (
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                    <span className="mi" style={{ fontSize: '1rem' }}>{currentStage.icon}</span>
+                    {currentStage.label}
                   </span>
-                : <span style={{ color: 'var(--text3)', fontWeight: 500, fontSize: '0.8rem' }}>Not set</span>}
+                )
+                : <span style={{ color: 'var(--text3)', fontWeight: 500, fontSize: '0.8rem' }}>Not set</span>
+              }
             </div>
           </div>
-          <div className={styles.orderMetaCell}>
-            <div className={styles.cellLabel}>Due</div>
-            <div className={styles.cellValue} style={{ fontSize: '0.85rem', color: order.due ? 'var(--danger)' : 'var(--text3)' }}>
+
+          <div className={styles.infoGridCell}>
+            <div className={styles.infoGridLabel}>Due</div>
+            <div className={styles.infoGridValue} style={{ fontSize: '0.85rem', color: order.due ? 'var(--danger)' : 'var(--text3)' }}>
               {order.due || '—'}
             </div>
           </div>
         </div>
 
-        {/* Garments — cover images, qty, prices */}
+
+        {/* Selected garments list */}
         {order.items && order.items.length > 0 && (
-          <div className={styles.linkedSection}>
-            <div className={styles.linkLabel}>Selected Garments</div>
-            {order.items.map((item, idx) => (
-              <div key={idx} className={styles.linkedRow} style={{ justifyContent: 'space-between' }}>
+          <div className={styles.sectionCard}>
+            <div className={styles.sectionCardLabel}>Selected Garments</div>
+
+            {order.items.map((item, index) => (
+              <div key={index} className={styles.garmentRow}>
+                {/* Left: thumbnail + name */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <div className={styles.linkedThumb}>
+                  <div className={styles.garmentThumb}>
                     {item.imgSrc
                       ? <img src={item.imgSrc} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      : <span className="mi">checkroom</span>}
+                      : <span className="mi">checkroom</span>
+                    }
                   </div>
                   <div>
                     <div style={{ fontSize: '0.9rem', fontWeight: 700 }}>{item.name}</div>
@@ -526,6 +656,8 @@ function OrderDetail({ order, measurements, onClose, onDelete, onStatusChange, o
                     )}
                   </div>
                 </div>
+
+                {/* Right: line total */}
                 <div style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--accent)' }}>
                   ₦{((item.qty ?? 1) * Number(item.price || 0)).toLocaleString()}
                 </div>
@@ -534,51 +666,55 @@ function OrderDetail({ order, measurements, onClose, onDelete, onStatusChange, o
           </div>
         )}
 
+
         {/* Notes */}
         {order.notes && (
-          <div className={styles.notesSection}>
-            <div className={styles.linkLabel}>Notes</div>
+          <div className={styles.notesCard}>
+            <div className={styles.sectionCardLabel}>Notes</div>
             <p>{order.notes}</p>
           </div>
         )}
 
-        {/* Change Stage */}
-        <div className={styles.linkedSection} style={{ marginTop: 16 }}>
-          <div className={styles.linkLabel}>Change Stage</div>
+
+        {/* Change Stage chips */}
+        <div className={styles.sectionCard} style={{ marginTop: 16 }}>
+          <div className={styles.sectionCardLabel}>Change Stage</div>
           <div className={styles.stageChipRow}>
-            {STAGES.map(s => (
+            {STAGES.map(stageItem => (
               <button
-                key={s.value}
-                className={`${styles.stageChip} ${order.stage === s.value ? styles.stageChipActive : ''}`}
-                onClick={() => onStageChange(order.id, order.stage === s.value ? null : s.value)}
+                key={stageItem.value}
+                className={`${styles.stageChip} ${order.stage === stageItem.value ? styles.stageChip_active : ''}`}
+                onClick={() => onStageChange(order.id, order.stage === stageItem.value ? null : stageItem.value)}
               >
-                <span className="mi" style={{ fontSize: '0.85rem' }}>{s.icon}</span>
-                {s.label}
+                <span className="mi" style={{ fontSize: '0.85rem' }}>{stageItem.icon}</span>
+                {stageItem.label}
               </button>
             ))}
           </div>
         </div>
 
-        {/* Change Status */}
-        <div className={styles.linkedSection}>
-          <div className={styles.linkLabel}>Change Status</div>
+
+        {/* Change Status buttons */}
+        <div className={styles.sectionCard}>
+          <div className={styles.sectionCardLabel}>Change Status</div>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            {STATUSES.map(s => (
+            {STATUSES.map(statusItem => (
               <button
-                key={s.value}
-                className={`${styles.statusToggleBtn} ${order.status === s.value ? styles.statusActive : ''}`}
-                onClick={() => onStatusChange(order.id, s.value)}
+                key={statusItem.value}
+                className={`${styles.statusButton} ${order.status === statusItem.value ? styles.statusButton_active : ''}`}
+                onClick={() => onStatusChange(order.id, statusItem.value)}
               >
-                {s.label}
+                {statusItem.label}
               </button>
             ))}
           </div>
         </div>
 
-        {/* Share Review Link — only when completed or delivered */}
+
+        {/* Share Review Link — only show for completed/delivered orders */}
         {(order.status === 'completed' || order.status === 'delivered') && (
           <button
-            className={styles.shareReviewBtn}
+            className={styles.shareReviewButton}
             onClick={() => onShareReviewLink(order)}
           >
             <span className="material-icons" style={{ fontSize: '1.15rem' }}>rate_review</span>
@@ -587,9 +723,10 @@ function OrderDetail({ order, measurements, onClose, onDelete, onStatusChange, o
           </button>
         )}
 
+
         {/* Generate Invoice */}
         <button
-          className={styles.generateInvoiceBtn}
+          className={styles.generateInvoiceButton}
           onClick={() => onGenerateInvoice(order.id)}
           style={{ marginTop: 16 }}
         >
@@ -597,34 +734,41 @@ function OrderDetail({ order, measurements, onClose, onDelete, onStatusChange, o
           Generate Invoice
         </button>
 
-        {/* Footer dates */}
-        <div className={styles.detailDate}>
-          Order Taken: {placedOn}
+
+        {/* Footer: placed on, due, qty */}
+        <div className={styles.detailFooterDates}>
+          Order Taken: {placedOnDate}
           {order.due && <> &nbsp;•&nbsp; Due: {order.due}</>}
           &nbsp;•&nbsp; Qty: {order.qty}
         </div>
+
       </div>
     </div>
   )
 }
 
+
 // ─────────────────────────────────────────────────────────────
-// MAIN TAB
+// MAIN ORDERS TAB
 // ─────────────────────────────────────────────────────────────
+
 export default function OrdersTab({ customerId, orders, measurements, showToast, onGenerateInvoice }) {
   const { addOrder, deleteOrder, updateOrderStatus, updateOrderStage } = useOrders()
   const { user } = useAuth()
-  const [modalOpen,   setModalOpen]   = useState(false)
-  const [detailOrder, setDetailOrder] = useState(null)
-  const [confirmDel,  setConfirmDel]  = useState(null)
 
+  const [isModalOpen,    setIsModalOpen]    = useState(false)
+  const [selectedOrder,  setSelectedOrder]  = useState(null)
+  const [orderToDelete,  setOrderToDelete]  = useState(null)
+
+  // Allow other parts of the app to open the order modal via a custom event
   useEffect(() => {
-    const handler = () => setModalOpen(true)
-    document.addEventListener('openOrderModal', handler)
-    return () => document.removeEventListener('openOrderModal', handler)
+    const openModal = () => setIsModalOpen(true)
+    document.addEventListener('openOrderModal', openModal)
+    return () => document.removeEventListener('openOrderModal', openModal)
   }, [])
 
-  const handleSave = async (orderData) => {
+  // ── Save a new order to Firestore ──
+  async function handleSaveOrder(orderData) {
     try {
       await addOrder(customerId, orderData)
       showToast('Order placed ✓')
@@ -633,38 +777,58 @@ export default function OrdersTab({ customerId, orders, measurements, showToast,
     }
   }
 
-  const handleDeleteConfirm = async () => {
-    if (!confirmDel) return
+  // ── Confirm and delete the order ──
+  async function handleDeleteConfirm() {
+    if (!orderToDelete) return
+
     try {
-      await deleteOrder(customerId, confirmDel.id)
+      await deleteOrder(customerId, orderToDelete.id)
       showToast('Order deleted')
     } catch {
       showToast('Failed to delete order')
     }
-    setConfirmDel(null); setDetailOrder(null)
+
+    setOrderToDelete(null)
+    setSelectedOrder(null)
   }
 
-  const handleStatusChange = async (id, status) => {
+  // ── Update order status ──
+  async function handleStatusChange(orderId, newStatus) {
     try {
-      await updateOrderStatus(customerId, id, status)
-      setDetailOrder(prev => prev && String(prev.id) === String(id) ? { ...prev, status } : prev)
+      await updateOrderStatus(customerId, orderId, newStatus)
+
+      // Keep the detail panel in sync
+      setSelectedOrder(prev =>
+        prev && String(prev.id) === String(orderId)
+          ? { ...prev, status: newStatus }
+          : prev
+      )
     } catch {
       showToast('Failed to update status')
     }
   }
 
-  const handleStageChange = async (id, stage) => {
+  // ── Update order stage and auto-update status to match ──
+  async function handleStageChange(orderId, newStage) {
     try {
-      await updateOrderStage(customerId, id, stage)
-      const autoStatus = stage ? STAGE_TO_STATUS[stage] : null
+      await updateOrderStage(customerId, orderId, newStage)
+
+      const autoStatus = newStage ? STAGE_AUTO_STATUS[newStage] : null
+
       if (autoStatus) {
-        await updateOrderStatus(customerId, id, autoStatus)
-        setDetailOrder(prev =>
-          prev && String(prev.id) === String(id) ? { ...prev, stage, status: autoStatus } : prev
+        // Stage implies a status — update both
+        await updateOrderStatus(customerId, orderId, autoStatus)
+        setSelectedOrder(prev =>
+          prev && String(prev.id) === String(orderId)
+            ? { ...prev, stage: newStage, status: autoStatus }
+            : prev
         )
       } else {
-        setDetailOrder(prev =>
-          prev && String(prev.id) === String(id) ? { ...prev, stage } : prev
+        // Stage cleared — only update stage
+        setSelectedOrder(prev =>
+          prev && String(prev.id) === String(orderId)
+            ? { ...prev, stage: newStage }
+            : prev
         )
       }
     } catch {
@@ -672,37 +836,50 @@ export default function OrdersTab({ customerId, orders, measurements, showToast,
     }
   }
 
-  const handleShareReviewLink = (order) => {
-    const token = order.reviewToken || crypto.randomUUID()
-    const reviewUrl = `https://tailorflow-62b0a.web.app/review/${user?.uid}/${token}`
+  // ── Build and open a WhatsApp review link for the customer ──
+  function handleShareReviewLink(order) {
+    const reviewToken = order.reviewToken || crypto.randomUUID()
+    const reviewUrl   = `https://tailorflow-62b0a.web.app/review/${user?.uid}/${reviewToken}`
     const customerName = order.customerName || 'there'
+
     const message = encodeURIComponent(
       `Hi ${customerName}! 🙏 Thank you for your order.\n\n` +
       `We'd love to hear your feedback — it only takes a minute:\n${reviewUrl}\n\n` +
       `Your review means a lot to us! ⭐`
     )
+
+    // Normalize phone number to international format (Nigerian: 0XX -> 234XX)
     const rawPhone   = order.customerPhone || ''
     const cleanPhone = rawPhone.replace(/[\s\-()]/g, '')
-    const waPhone    = cleanPhone.startsWith('+')
-      ? cleanPhone.replace('+', '')
-      : cleanPhone.startsWith('0')
-        ? `234${cleanPhone.slice(1)}`
-        : cleanPhone
+    let waPhone = cleanPhone
+
+    if (cleanPhone.startsWith('+')) {
+      waPhone = cleanPhone.replace('+', '')
+    } else if (cleanPhone.startsWith('0')) {
+      waPhone = `234${cleanPhone.slice(1)}`
+    }
+
     const waUrl = waPhone
       ? `https://wa.me/${waPhone}?text=${message}`
       : `https://wa.me/?text=${message}`
+
     window.open(waUrl, '_blank', 'noopener,noreferrer')
   }
 
-  const grouped = orders.reduce((acc, o) => {
-    const key = o.takenAt || formatDate(o.createdAt) || o.date || 'Unknown Date'
-    if (!acc[key]) acc[key] = []
-    acc[key].push(o)
-    return acc
+  // ── Group orders by the date they were taken ──
+  const ordersByDate = orders.reduce((groups, order) => {
+    const dateKey = order.takenAt || formatFirestoreDate(order.createdAt) || order.date || 'Unknown Date'
+
+    if (!groups[dateKey]) groups[dateKey] = []
+    groups[dateKey].push(order)
+
+    return groups
   }, {})
+
 
   return (
     <>
+      {/* Empty state */}
       {orders.length === 0 && (
         <div className={styles.emptyState}>
           <span className="mi" style={{ fontSize: '2.8rem', opacity: 0.4 }}>shopping_basket</span>
@@ -710,54 +887,60 @@ export default function OrdersTab({ customerId, orders, measurements, showToast,
         </div>
       )}
 
-      {Object.entries(grouped).map(([date, dateOrders]) => (
+      {/* Orders grouped by date */}
+      {Object.entries(ordersByDate).map(([date, ordersInGroup]) => (
         <div key={date} className={styles.orderGroup}>
           <div className={styles.orderGroupDate}>{date}</div>
           <div className={styles.orderGroupDivider} />
-          {dateOrders.map((o, idx) => {
-            const statusObj  = STATUSES.find(s => s.value === o.status) ?? STATUSES[0]
-            const stageObj   = STAGES.find(s => s.value === o.stage)
-            const itemsList  = o.items || []
-            const itemCount  = itemsList.length
-            const priceStr   = o.price != null ? `₦${Number(o.price).toLocaleString()}` : '—'
-            const dueDateRaw = o.dueRaw || o.dueDate
+
+          {ordersInGroup.map((order, index) => {
+            const statusInfo  = STATUSES.find(s => s.value === order.status) ?? STATUSES[0]
+            const stageInfo   = STAGES.find(s => s.value === order.stage)
+            const items       = order.items || []
+            const itemCount   = items.length
+            const priceText   = order.price != null ? `₦${Number(order.price).toLocaleString()}` : '—'
+            const dueDateRaw  = order.dueRaw || order.dueDate
+            const isLastInGroup = index === ordersInGroup.length - 1
 
             return (
               <div
-                key={o.id}
-                className={`${styles.orderListItem} ${idx === dateOrders.length - 1 ? styles.orderListItemLast : ''}`}
-                onClick={() => setDetailOrder(o)}
+                key={order.id}
+                className={`${styles.orderRow} ${isLastInGroup ? styles.orderRow_last : ''}`}
+                onClick={() => setSelectedOrder(order)}
               >
-                <OrderMosaic items={itemsList} />
+                {/* Mosaic thumbnail */}
+                <OrderMosaic items={items} />
 
-                {/* LEFT: desc, item count, stage */}
-                <div className={styles.orderListInfo}>
-                  <div className={styles.orderListDesc}>{o.desc}</div>
+                {/* Left: description, item count, stage */}
+                <div className={styles.orderRowInfo}>
+                  <div className={styles.orderRowDescription}>{order.desc}</div>
+
                   {itemCount > 0 && (
-                    <div className={styles.orderListMeta}>
+                    <div className={styles.orderRowMeta}>
                       <span className="mi" style={{ fontSize: '0.78rem', color: 'var(--text3)', verticalAlign: 'middle' }}>checkroom</span>
-                      <span className={styles.orderListMetaText}>
+                      <span className={styles.orderRowMetaText}>
                         {itemCount} {itemCount === 1 ? 'item' : 'items'}
                       </span>
                     </div>
                   )}
-                  {stageObj && (
-                    <div className={styles.orderListStageLine}>
-                      <span className="mi" style={{ fontSize: '0.78rem' }}>{stageObj.icon}</span>
-                      {stageObj.label}
+
+                  {stageInfo && (
+                    <div className={styles.orderRowStage}>
+                      <span className="mi" style={{ fontSize: '0.78rem' }}>{stageInfo.icon}</span>
+                      {stageInfo.label}
                     </div>
                   )}
                 </div>
 
-                {/* RIGHT: price, status pill, due date */}
-                <div className={styles.orderListRight}>
-                  <div className={styles.orderListPrice}>{priceStr}</div>
-                  <span className={`${styles.orderListStatusBadge} ${styles[`statusBadge_${(o.status || 'pending').replace('-', '_')}`]}`}>
-                    {statusObj.label}
+                {/* Right: price, status badge, due date */}
+                <div className={styles.orderRowRight}>
+                  <div className={styles.orderRowPrice}>{priceText}</div>
+                  <span className={`${styles.orderStatusBadge} ${styles[`orderStatusBadge_${(order.status || 'pending').replace('-', '_')}`]}`}>
+                    {statusInfo.label}
                   </span>
                   {dueDateRaw && (
-                    <div className={styles.orderListDueRight}>
-                      Due {formatDateShort(dueDateRaw)}
+                    <div className={styles.orderRowDueDate}>
+                      Due {formatShortDate(dueDateRaw)}
                     </div>
                   )}
                 </div>
@@ -767,35 +950,39 @@ export default function OrdersTab({ customerId, orders, measurements, showToast,
         </div>
       ))}
 
+
+      {/* New order modal */}
       <OrderModal
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
         measurements={measurements}
-        onSave={handleSave}
+        onSave={handleSaveOrder}
       />
 
-      {detailOrder && (
+      {/* Order detail panel */}
+      {selectedOrder && (
         <OrderDetail
-          order={detailOrder}
+          order={selectedOrder}
           measurements={measurements}
-          onClose={() => setDetailOrder(null)}
-          onDelete={() => setConfirmDel(detailOrder)}
+          onClose={() => setSelectedOrder(null)}
+          onDelete={() => setOrderToDelete(selectedOrder)}
           onStatusChange={handleStatusChange}
           onStageChange={handleStageChange}
           onShareReviewLink={handleShareReviewLink}
           onGenerateInvoice={(orderId) => {
-            setDetailOrder(null)
+            setSelectedOrder(null)
             onGenerateInvoice(orderId)
           }}
         />
       )}
 
+      {/* Delete confirmation sheet */}
       <ConfirmSheet
-        open={!!confirmDel}
+        open={!!orderToDelete}
         title="Delete Order?"
         message="This can't be undone."
         onConfirm={handleDeleteConfirm}
-        onCancel={() => setConfirmDel(null)}
+        onCancel={() => setOrderToDelete(null)}
       />
     </>
   )

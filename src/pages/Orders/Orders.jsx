@@ -10,9 +10,10 @@ import BottomNav from '../../components/BottomNav/BottomNav'
 // ── Helpers ───────────────────────────────────────────────────
 
 function isOverdue(order) {
-  if (!order.dueDate) return false
+  const raw = order.dueRaw || order.dueDate
+  if (!raw) return false
   if (['completed', 'delivered', 'cancelled'].includes(order.status)) return false
-  return new Date(order.dueDate + 'T23:59:59') < new Date()
+  return new Date(raw + 'T23:59:59') < new Date()
 }
 
 function daysUntil(dateStr) {
@@ -140,7 +141,7 @@ function OrderDetailPanel({ order, onClose, onGoToCustomer }) {
   const [confirmDelete, setConfirmDelete] = useState(false)
 
   const overdue  = isOverdue(localOrder)
-  const due      = daysUntil(localOrder.dueDate)
+  const due      = daysUntil(localOrder.dueRaw || localOrder.dueDate)
   const sc       = overdue
     ? { color: '#ef4444', bg: 'rgba(239,68,68,0.12)', border: 'rgba(239,68,68,0.35)' }
     : STATUS_COLORS[localOrder.status] ?? STATUS_COLORS.pending
@@ -268,32 +269,6 @@ function OrderDetailPanel({ order, onClose, onGoToCustomer }) {
 
         <div className={styles.detailBody}>
 
-          {/* Garment images */}
-          {items.length > 0 && (
-            <div style={{ display: 'flex', gap: 10, marginBottom: 16, flexWrap: 'wrap' }}>
-              {items.map((item, idx) => (
-                <div key={idx} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-                  <div style={{
-                    width: 56, height: 56, borderRadius: 12,
-                    background: 'var(--surface2)', border: '1px solid var(--border)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    overflow: 'hidden', flexShrink: 0,
-                  }}>
-                    {item.imgSrc
-                      ? <img src={item.imgSrc} alt={item.name || ''} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 12 }} />
-                      : <span className="material-icons" style={{ fontSize: '1.6rem', color: 'var(--text3)' }}>checkroom</span>
-                    }
-                  </div>
-                  {item.name && (
-                    <span style={{ fontSize: '0.6rem', fontWeight: 600, color: 'var(--text3)', textAlign: 'center', maxWidth: 60, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {item.name}
-                    </span>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-
           {/* Title + customer */}
           <div className={styles.detailTitle}>{localOrder.desc || localOrder.name || 'Order'}</div>
 
@@ -322,52 +297,67 @@ function OrderDetailPanel({ order, onClose, onGoToCustomer }) {
             )}
           </div>
 
-          {/* Per-item prices + total */}
+          {/* Per-item prices + total — matches OrdersTab detail layout */}
           {items.length > 0 && (
             <div style={{
-              background: 'var(--bg)',
+              background: 'var(--surface)',
               border: '1px solid var(--border)',
-              borderRadius: 12,
-              padding: '2px 0',
+              borderRadius: 14,
+              padding: 14,
               marginBottom: 14,
             }}>
-              {items.map((item, idx) => (
-                <div key={idx} style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                  padding: '10px 14px',
-                  borderBottom: idx < items.length - 1 ? '1px solid var(--border)' : 'none',
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <div style={{
-                      width: 32, height: 32, borderRadius: 8,
-                      background: 'var(--surface2)', border: '1px solid var(--border)',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      overflow: 'hidden', flexShrink: 0,
-                    }}>
-                      {item.imgSrc
-                        ? <img src={item.imgSrc} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 8 }} />
-                        : <span className="material-icons" style={{ fontSize: '1rem', color: 'var(--text3)' }}>checkroom</span>
-                      }
+              <div style={{ fontSize: '0.6rem', fontWeight: 800, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 10 }}>
+                Selected Garments
+              </div>
+              {items.map((item, idx) => {
+                const qty      = parseInt(item.qty, 10) || 1
+                const price    = Number(item.price) || 0
+                const lineTotal = qty * price
+                return (
+                  <div key={idx} style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    gap: 10, marginBottom: idx < items.length - 1 ? 10 : 0,
+                    paddingBottom: idx < items.length - 1 ? 10 : 0,
+                    borderBottom: idx < items.length - 1 ? '1px solid var(--border)' : 'none',
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <div style={{
+                        width: 36, height: 36, borderRadius: 8,
+                        background: 'var(--surface2)', border: '1px solid var(--border2)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        overflow: 'hidden', flexShrink: 0,
+                      }}>
+                        {item.imgSrc
+                          ? <img src={item.imgSrc} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          : <span className="material-icons" style={{ fontSize: '1rem', color: 'var(--text3)' }}>checkroom</span>
+                        }
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text)' }}>{item.name || 'Item'}</div>
+                        {qty > 1 && (
+                          <div style={{ fontSize: '0.72rem', color: 'var(--text3)', fontWeight: 600 }}>
+                            {qty} pcs × ₦{price.toLocaleString()}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                    <span style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--text)' }}>{item.name || 'Item'}</span>
+                    <div style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--accent)', flexShrink: 0 }}>
+                      ₦{lineTotal.toLocaleString()}
+                    </div>
                   </div>
-                  <span style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--accent)' }}>
-                    {fmt(item.price)}
-                  </span>
-                </div>
-              ))}
+                )
+              })}
               <div style={{
                 display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                padding: '10px 14px',
-                borderTop: '1px solid var(--border)',
-                background: 'var(--surface)',
-                borderRadius: '0 0 12px 12px',
+                marginTop: 12, paddingTop: 12,
+                borderTop: '2px dashed var(--border)',
+                fontSize: '0.85rem', fontWeight: 800, color: 'var(--text2)',
               }}>
-                <span style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                  Total (Qty: {items.length})
+                <span style={{ textTransform: 'uppercase', fontSize: '0.72rem', letterSpacing: '0.5px' }}>
+                  Total (Qty: {items.reduce((s, i) => s + (parseInt(i.qty, 10) || 1), 0)})
                 </span>
-                <span style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--accent)' }}>
-                  {fmt(items.reduce((sum, i) => sum + (Number(i.price) || 0), 0))}
+                <span style={{ color: 'var(--accent)', fontSize: '1rem' }}>
+                  {fmt(items.reduce((sum, i) => sum + ((Number(i.price) || 0) * (parseInt(i.qty, 10) || 1)), 0))}
                 </span>
               </div>
             </div>
@@ -670,6 +660,7 @@ function OrderMosaic({ items, overdue }) {
 
 function OrderCard({ order, isLast, onTap }) {
   const overdue  = isOverdue(order)
+  const dueDateRaw = order.dueRaw || order.dueDate
   const stageObj = STAGES.find(s => s.value === order.stage)
   const sc       = overdue
     ? { color: '#ef4444', bg: 'rgba(239,68,68,0.12)', border: 'rgba(239,68,68,0.3)' }
@@ -714,9 +705,9 @@ function OrderCard({ order, isLast, onTap }) {
         >
           {statusLabel}
         </span>
-        {order.dueDate && (
+        {dueDateRaw && (
           <div className={styles.orderListDueRight}>
-            Due {formatDateShort(order.dueDate)}
+            Due {formatDateShort(dueDateRaw)}
           </div>
         )}
       </div>
@@ -770,8 +761,8 @@ export default function Orders({ onMenuClick, onGoToCustomer }) {
 
   const grouped = [...searchFiltered]
     .sort((a, b) => {
-      const da = a.dueDate || a.date || ''
-      const db = b.dueDate || b.date || ''
+      const da = a.dueRaw || a.dueDate || a.date || ''
+      const db = b.dueRaw || b.dueDate || b.date || ''
       return db.localeCompare(da)
     })
     .reduce((acc, o) => {

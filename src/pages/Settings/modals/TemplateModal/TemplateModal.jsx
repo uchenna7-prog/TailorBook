@@ -1,150 +1,160 @@
-import { useState, useRef } from "react"
-import { useBrandTokens } from "../../../../hooks/useBrandTokens"
-import { useBrand } from "../../../../contexts/BrandContext"
-import Header from "../../../../components/Header/Header"
-import styles from "./TemplateModal.module.css"
-import { INVOICE_TEMPLATE_GROUPS } from "../../datas/invoiceTemplateGroups"
-import { RECEIPT_TEMPLATE_GROUPS } from "../../datas/receiptTemplateGroups"
-import { CUSTOMER_SAMPLE_DATA,INVOICE_SAMPLE_DATA,getBrandSampleData,RECEIPT_SAMPLE_DATA } from "../../datas/sampleDatas"
+import { useState, useRef } from 'react'
+import { useBrandTokens } from '../../../../hooks/useBrandTokens'
+import { useBrand } from '../../../../contexts/BrandContext'
 
-export function TemplateModal({ 
-  isOpen, 
+import Header from '../../../../components/Header/Header'
+
+import { INVOICE_TEMPLATE_GROUPS } from '../../datas/invoiceTemplateGroups'
+import { RECEIPT_TEMPLATE_GROUPS } from '../../datas/receiptTemplateGroups'
+import {
+  CUSTOMER_SAMPLE_DATA,
+  INVOICE_SAMPLE_DATA,
+  RECEIPT_SAMPLE_DATA,
+  getBrandSampleData,
+} from '../../datas/sampleDatas'
+
+import styles from './TemplateModal.module.css'
+
+
+export function TemplateModal({
+  isOpen,
   currentInvoiceTemplate,
-  currentReceiptTemplate, 
-  colourId, 
-  onClose, 
-  onSelect 
+  currentReceiptTemplate,
+  colourId,
+  onClose,
+  onSelect,
 }) {
-
-  const [selectedInvoice, setSelectedInvoice] = useState(currentInvoiceTemplate || 'invoiceTemplate1')
-  const [selectedReceipt, setSelectedReceipt] = useState(currentReceiptTemplate || 'receiptTemplate1')
-  const [activeTab, setActiveTab] = useState('invoice')
+  const { brand } = useBrand()
   const modalRef = useRef(null)
-  const {brand} = useBrand()
+
+  const [selectedInvoiceTemplate, setSelectedInvoiceTemplate] = useState(
+    currentInvoiceTemplate || 'invoiceTemplate1'
+  )
+  const [selectedReceiptTemplate, setSelectedReceiptTemplate] = useState(
+    currentReceiptTemplate || 'receiptTemplate1'
+  )
+  const [activeTab, setActiveTab] = useState('invoice')
 
   useBrandTokens(colourId, modalRef)
 
   if (!isOpen) return null
 
-  const templateGroups = activeTab === 'invoice' ? INVOICE_TEMPLATE_GROUPS : RECEIPT_TEMPLATE_GROUPS
+  // ── Tab config ─────────────────────────────────────────────────────────────
+  // Everything tab-specific lives here. Adding a new tab = add one entry.
+  const tabs = {
+    invoice: {
+      label: 'Invoice',
+      icon: 'receipt_long',
+      templateGroups: INVOICE_TEMPLATE_GROUPS,
+      selectedId: selectedInvoiceTemplate,
+      onSelectTemplate: setSelectedInvoiceTemplate,
+      getSampleProps: () => ({
+        invoice: INVOICE_SAMPLE_DATA,
+        customer: CUSTOMER_SAMPLE_DATA,
+        brand: getBrandSampleData(brand),
+      }),
+    },
+    receipt: {
+      label: 'Receipt',
+      icon: 'payments',
+      templateGroups: RECEIPT_TEMPLATE_GROUPS,
+      selectedId: selectedReceiptTemplate,
+      onSelectTemplate: setSelectedReceiptTemplate,
+      getSampleProps: () => ({
+        receipt: RECEIPT_SAMPLE_DATA,
+        customer: CUSTOMER_SAMPLE_DATA,
+        brand: getBrandSampleData(brand),
+      }),
+    },
+  }
+
+  const currentTab = tabs[activeTab]
+
+  // ── Handlers ──────────────────────────────────────────────────────────────
+  function handleConfirmSelection() {
+    onSelect({
+      invoiceTemplate: selectedInvoiceTemplate,
+      receiptTemplate: selectedReceiptTemplate,
+    })
+    onClose()
+  }
+
 
   return (
-
-    <div className={styles.modalContainer} ref={modalRef}>
+    <div className={styles.templateModalContainer} ref={modalRef}>
 
       <Header
         type="back"
         title="Templates"
         onBackClick={onClose}
-        customActions={[
-          { 
-            label: 'Select',
-            onClick: () => { 
-              onSelect({ invoiceTemplate: selectedInvoice, receiptTemplate: selectedReceipt }); 
-              onClose() 
-            } 
-          }
-        ]}
+        customActions={[{ label: 'Select', onClick: handleConfirmSelection }]}
       />
-      
-      <div className={styles.tabsContainer}>
 
-        <button
-          className={`${styles.tabBtn} ${activeTab === 'invoice' ? styles.tabBtnActive : ''}`}
-          onClick={() => setActiveTab('invoice')}
-        >
-
-          <span className="mi" style={{ fontSize: '1rem' }}>receipt_long</span>
-          Invoice
-
-        </button>
-
-        <button
-          className={`${styles.tabBtn} ${activeTab === 'receipt' ? styles.tabBtnActive : ''}`}
-          onClick={() => setActiveTab('receipt')}
-        >
-
-          <span className="mi" style={{ fontSize: '1rem' }}>payments</span>
-          Receipt
-
-        </button>
-
+      {/* ── Tab Switcher ──────────────────────────────────────────────────── */}
+      <div className={styles.tabRow}>
+        {Object.entries(tabs).map(([tabKey, tab]) => (
+          <button
+            key={tabKey}
+            className={`${styles.tabButton} ${activeTab === tabKey ? styles.tabButtonActive : ''}`}
+            onClick={() => setActiveTab(tabKey)}
+          >
+            <span className="mi" style={{ fontSize: '1rem' }}>{tab.icon}</span>
+            {tab.label}
+          </button>
+        ))}
       </div>
 
-      <div className={styles.templatesContainer}>
-
-        {templateGroups.map((group, groupIndex) => (
-
+      {/* ── Template List ─────────────────────────────────────────────────── */}
+      <div className={styles.templateList}>
+        {currentTab.templateGroups.map((group, groupIndex) => (
           <div key={group.groupLabel}>
 
-            <div className={`${styles.groupHeaderContainer} ${groupIndex === 0 ? styles.groupHeaderFirstContainer : ''}`}>
-
-              <div className={styles.groupHeaderTextsContainer}>
-
-                <span className={styles.groupLabel}>{group.groupLabel}</span>
-                {group.groupDescription && <span className={styles.groupDescription}>{group.groupDescription}</span>}
-
+            {/* Group header */}
+            <div className={`${styles.groupHeader} ${groupIndex === 0 ? styles.groupHeaderFirst : ''}`}>
+              <div className={styles.groupHeaderText}>
+                <span className={styles.groupName}>{group.groupLabel}</span>
+                {group.groupDescription && (
+                  <span className={styles.groupSubtitle}>{group.groupDescription}</span>
+                )}
               </div>
-              
             </div>
 
-            <div className={styles.groupTemplates}>
+            {/* Templates in this group */}
+            <div className={styles.groupTemplateGrid}>
+              {group.templates.map(template => {
+                const isSelected = currentTab.selectedId === template.id
 
-
-              {activeTab === "invoice" && group.templates.map(template => (
-
-                  <div key={template.id} className={styles.templateContainer} onClick={() => setSelectedInvoice(template.id)}>
-
-                    <div className={`${styles.fullPreviewContainer} ${selectedInvoice === template.id ? styles.fullPreviewActive : ''}`}>
-                      
-                      <template.Component 
-                      invoice ={INVOICE_SAMPLE_DATA} 
-                      customer={CUSTOMER_SAMPLE_DATA} 
-                      brand={getBrandSampleData(brand)}/>
-
+                return (
+                  <div
+                    key={template.id}
+                    className={styles.templateCard}
+                    onClick={() => currentTab.onSelectTemplate(template.id)}
+                  >
+                    {/* Preview */}
+                    <div className={`${styles.templatePreview} ${isSelected ? styles.templatePreviewSelected : ''}`}>
+                      <template.Component {...currentTab.getSampleProps()} />
                     </div>
 
-                    <div className={styles.templateInfo}>
-                      
-                      <div className={`${styles.radio} ${selectedInvoice === template.id ? styles.radioActive : ''}`} />
-
-                      <div className={styles.templateLabelGroup}>
-                        <span className={styles.templateLabel}>{template.label}</span>
-                        {template.description && <span className={styles.templateDescription}>{template.description}</span>}
+                    {/* Label row */}
+                    <div className={styles.templateLabelRow}>
+                      <div className={`${styles.radioCircle} ${isSelected ? styles.radioCircleSelected : ''}`} />
+                      <div className={styles.templateTextGroup}>
+                        <span className={styles.templateName}>{template.label}</span>
+                        {template.description && (
+                          <span className={styles.templateSubtitle}>{template.description}</span>
+                        )}
                       </div>
-
                     </div>
+
                   </div>
-                )) }
-
-                {activeTab === "receipt" && group.templates.map(template => (
-
-                  <div key={template.id} className={styles.templateContainer} onClick={() => setSelectedReceipt(template.id)}>
-
-                    <div className={`${styles.fullPreviewContainer} ${selectedReceipt === template.id ? styles.fullPreviewActive : ''}`}>
-                      <template.Component 
-                      receipt ={RECEIPT_SAMPLE_DATA} 
-                      customer={CUSTOMER_SAMPLE_DATA} 
-                      brand={getBrandSampleData(brand)}/>
-                    </div>
-
-                    <div className={styles.templateInfo}>
-
-                      <div className={`${styles.radio} ${selectedReceipt === template.id ? styles.radioActive : ''}`} />
-
-                      <div className={styles.templateLabelGroup}>
-                        <span className={styles.templateLabel}>{template.label}</span>
-                        {template.description && <span className={styles.templateDescription}>{template.description}</span>}
-                      </div>
-
-                    </div>
-                  </div>
-                )) }
-            
+                )
+              })}
             </div>
+
           </div>
         ))}
       </div>
+
     </div>
   )
 }

@@ -1,29 +1,90 @@
-/* ── INVOICE GROUP (date-grouped list, same pattern as orders) ── */
-.invoiceGroup { margin-bottom: 16px; }
-.invoiceGroupDate { font-size: 0.72rem; font-weight: 500; color: var(--text3); padding: 10px 16px 8px; }
-.invoiceGroupDivider { height: 1px; background: var(--border); width: calc(100% + 32px); margin-left: -16px; }
+/* ─────────────────────────────────────────────────────────────
+   ReceiptTab.module.css
+   All class names are prefixed with the concept they style.
+   No shared/generic names — safe to use alongside other tabs.
+   ───────────────────────────────────────────────────────────── */
 
-/* Each row */
-.invoiceListItem { display: flex; align-items: center; gap: 14px; padding: 14px 0; cursor: pointer; transition: background 0.15s; background: var(--bg); position: relative; }
-.invoiceListItem::after { content: ''; position: absolute; bottom: 0; left: 3.5%; right: 0; height: 1px; background: var(--border); }
-.invoiceListItemLast::after { display: none; }
-.invoiceListItem:active { background: var(--surface); }
 
-/* Outer grey box */
-.invoiceListOuter { width: 68px; height: 68px; border-radius: 12px; background: var(--surface); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-/* Inner white box */
-.invoiceListInner { width: 50px; height: 50px; border-radius: 9px; background: #fff; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+/* ── DATE GROUP (wrapper for all receipts on the same date) ── */
 
-/* Order image */
-.orderImg { width: 100%; height: 100%; object-fit: cover; border-radius: 9px; }
+.dateGroup {
+  margin-bottom: 16px;
+}
 
-/* ── CENTRE: description + date ── */
-.invoiceListInfo { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
-.invoiceListDesc { font-size: 0.9rem; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.invoiceListSub { font-size: 0.72rem; font-weight: 400; color: var(--text3); }
+.dateGroupLabel {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--text3);
+  padding: 10px 16px 8px;
+}
 
-/* ── RIGHT: status badge + amount ── */
-.invoiceListRight {
+.dateGroupDivider {
+  height: 1px;
+  background: var(--border);
+  width: calc(100% + 32px);
+  margin-left: -16px;
+}
+
+
+/* ── RECEIPT ROW (one receipt in the list) ── */
+
+.receiptRow {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 0;
+  cursor: pointer;
+  background: var(--bg);
+  position: relative;
+  transition: background 0.15s;
+}
+
+/* Bottom border line under each row */
+.receiptRow::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 3.5%;
+  right: 0;
+  height: 1px;
+  background: var(--border);
+}
+
+/* Last row in a group — no bottom border */
+.receiptRowLast::after {
+  display: none;
+}
+
+.receiptRow:active {
+  background: var(--surface);
+}
+
+/* Centre column: title + date */
+.receiptRowInfo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.receiptRowTitle {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.receiptRowDate {
+  font-size: 0.72rem;
+  font-weight: 400;
+  color: var(--text3);
+}
+
+/* Right column: badge + amount */
+.receiptRowRight {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
@@ -31,7 +92,8 @@
   flex-shrink: 0;
   min-width: 86px;
 }
-.invoiceListStatusBadge {
+
+.receiptStatusBadge {
   display: inline-flex;
   align-items: center;
   font-size: 0.6rem;
@@ -42,66 +104,73 @@
   white-space: nowrap;
   letter-spacing: 0.01em;
 }
-.invoiceListAmount {
+
+.receiptRowAmount {
   font-size: 0.92rem;
   font-weight: 800;
   color: var(--text);
   white-space: nowrap;
 }
 
-/* Empty state */
-.empty { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 48px 20px; text-align: center; }
-.emptyTitle { font-size: 0.95rem; font-weight: 800; color: var(--text); margin: 0; }
-.emptySub { font-size: 0.8rem; color: var(--text3); margin: 0; line-height: 1.5; }
 
-/* ── TABLE STYLES ── */
-.tHead {
+/* ── EMPTY STATE ── */
+
+.emptyState {
   display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 48px 20px;
+  text-align: center;
+}
+
+.emptyStateTitle {
+  font-size: 0.95rem;
   font-weight: 800;
-  font-size: 8px;
-  border-bottom: 2px solid #1a1a1a;
-  padding-bottom: 5px;
-  margin-bottom: 6px;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  color: var(--text);
+  margin: 0;
 }
-.tRowMain {
-  display: flex;
-  padding: 8px 0;
-  font-size: 10px;
-  font-weight: 900;
-  color: #000;
-  border-bottom: 1px solid #f0f0f0;
-}
-.itemizedSection {
-  padding: 4px 0 10px 0;
-  border-bottom: 1px solid #eee;
-}
-.itemizedLabel {
-  font-size: 7px;
-  font-weight: 800;
-  color: #888;
-  text-transform: uppercase;
-  margin-bottom: 4px;
-}
-.tRowSub {
-  display: flex;
-  padding: 3px 0;
-  font-size: 8.5px;
-  color: #444;
-  font-style: normal;
-}
-.tColDesc { flex: 2; }
-.tColNum  { flex: 1; text-align: right; }
 
-/* ── MODAL OVERLAY ── */
-.modalOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 3000; display: flex; flex-direction: column; animation: slideUp 0.35s cubic-bezier(0.4,0,0.2,1); }
-@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.emptyStateSubtitle {
+  font-size: 0.8rem;
+  color: var(--text3);
+  margin: 0;
+  line-height: 1.5;
+}
 
-/* ══════════════════════════════════════════════════════════════
+
+/* ─────────────────────────────────────────────────────────────
    ORDER MOSAIC THUMBNAIL
-   ══════════════════════════════════════════════════════════════ */
-.mosaicInner {
+   A small tiled image box showing up to 3 order item images.
+   ───────────────────────────────────────────────────────────── */
+
+/* Grey outer box */
+.mosaicOuterBox {
+  width: 68px;
+  height: 68px;
+  border-radius: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* White inner box — default centered (used for icon + single image) */
+.mosaicInnerBox {
+  width: 50px;
+  height: 50px;
+  border-radius: 9px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* Modifier: tiled layout (2 or 3 images side by side) */
+.mosaicTiled {
   padding: 0 !important;
   display: flex !important;
   flex-direction: row !important;
@@ -109,7 +178,17 @@
   overflow: hidden;
   border-radius: 9px;
 }
-.mosaicLeft {
+
+/* Single full-bleed image */
+.mosaicFullImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 9px;
+}
+
+/* Left tile (larger, 60% width) */
+.mosaicTileLeft {
   flex: 0 0 60%;
   display: flex;
   align-items: center;
@@ -118,14 +197,18 @@
   background: #fff;
   height: 100%;
 }
-.mosaicRight {
+
+/* Right tile column (stacks two cells vertically) */
+.mosaicTileRight {
   flex: 1;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   background: #fff;
 }
-.mosaicRightCell {
+
+/* One cell inside the right column */
+.mosaicTileCell {
   flex: 1;
   display: flex;
   align-items: center;
@@ -134,26 +217,38 @@
   position: relative;
   background: #fff;
 }
-.mosaicDividerV {
-  width: 1.5px;
-  flex-shrink: 0;
-  background: var(--border);
-  align-self: stretch;
-}
-.mosaicDividerH {
-  height: 1.5px;
-  flex-shrink: 0;
-  background: var(--border);
-  width: 100%;
-}
-.mosaicImg {
+
+/* Image inside any tile */
+.mosaicTileImage {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
 }
-.mosaicOverlayWrap { position: relative; }
-.mosaicOverlay {
+
+/* Thin vertical divider between left and right tiles */
+.mosaicDividerVertical {
+  width: 1.5px;
+  flex-shrink: 0;
+  background: var(--border);
+  align-self: stretch;
+}
+
+/* Thin horizontal divider between top and bottom right cells */
+.mosaicDividerHorizontal {
+  height: 1.5px;
+  flex-shrink: 0;
+  background: var(--border);
+  width: 100%;
+}
+
+/* Cell that has an overlay (used when there are 4+ items) */
+.mosaicTileCellWithOverlay {
+  position: relative;
+}
+
+/* Dark overlay showing "+N" extra item count */
+.mosaicExtraOverlay {
   position: absolute;
   inset: 0;
   background: rgba(0, 0, 0, 0.52);
@@ -165,4 +260,81 @@
   font-weight: 800;
   letter-spacing: 0.3px;
   pointer-events: none;
+}
+
+
+/* ─────────────────────────────────────────────────────────────
+   RECEIPT TABLE STYLES
+   (used inside ReceiptViewer, kept here for co-location)
+   ───────────────────────────────────────────────────────────── */
+
+.tableHead {
+  display: flex;
+  font-weight: 800;
+  font-size: 8px;
+  border-bottom: 2px solid #1a1a1a;
+  padding-bottom: 5px;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.tableRowMain {
+  display: flex;
+  padding: 8px 0;
+  font-size: 10px;
+  font-weight: 900;
+  color: #000;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.tableItemizedSection {
+  padding: 4px 0 10px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.tableItemizedLabel {
+  font-size: 7px;
+  font-weight: 800;
+  color: #888;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.tableRowSub {
+  display: flex;
+  padding: 3px 0;
+  font-size: 8.5px;
+  color: #444;
+  font-style: normal;
+}
+
+.tableColDescription {
+  flex: 2;
+}
+
+.tableColNumber {
+  flex: 1;
+  text-align: right;
+}
+
+
+/* ── MODAL OVERLAY (full-screen receipt viewer) ── */
+
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--bg);
+  z-index: 3000;
+  display: flex;
+  flex-direction: column;
+  animation: receiptSlideUp 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes receiptSlideUp {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0);    }
 }

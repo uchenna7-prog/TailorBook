@@ -1,25 +1,69 @@
+/* ─────────────────────────────────────────────────────────────
+   PaymentsTab.module.css
+   All class names are prefixed with the concept they style.
+   No shared/generic names — safe to use alongside other tabs.
+   ───────────────────────────────────────────────────────────── */
+
+
 /* ── EMPTY STATE ── */
-.emptyState { text-align: center; padding-top: 60px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
-.emptyState p { font-size: 0.8rem; color: var(--text3); }
-.hint { font-size: 0.7rem; color: var(--text3); opacity: 0.6; }
 
-/* ── PAYMENT GROUP (date-grouped list) ── */
-.payGroup { margin-bottom: 16px; }
-.payGroupDate { font-size: 0.72rem; font-weight: 500; color: var(--text3); padding: 10px 0 8px; }
-.payGroupDivider { height: 1px; background: var(--border); width: calc(100% + 32px); margin-left: -16px; }
+.emptyState {
+  text-align: center;
+  padding-top: 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
 
-/* ── EACH ROW ── */
-.payListItem {
+.emptyState p {
+  font-size: 0.8rem;
+  color: var(--text3);
+}
+
+.emptyStateHint {
+  font-size: 0.7rem;
+  color: var(--text3);
+  opacity: 0.6;
+}
+
+
+/* ── DATE GROUP (wrapper for all payments on the same date) ── */
+
+.dateGroup {
+  margin-bottom: 16px;
+}
+
+.dateGroupLabel {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--text3);
+  padding: 10px 0 8px;
+}
+
+.dateGroupDivider {
+  height: 1px;
+  background: var(--border);
+  width: calc(100% + 32px);
+  margin-left: -16px;
+}
+
+
+/* ── PAYMENT ROW (one payment in the list) ── */
+
+.paymentRow {
   display: flex;
   align-items: center;
   gap: 12px;
   padding: 14px 0;
   cursor: pointer;
-  transition: background 0.15s;
   background: var(--bg);
   position: relative;
+  transition: background 0.15s;
 }
-.payListItem::after {
+
+/* Bottom border line under each row */
+.paymentRow::after {
   content: '';
   position: absolute;
   bottom: 0;
@@ -28,42 +72,26 @@
   height: 1px;
   background: var(--border);
 }
-.payListItemLast::after { display: none; }
-.payListItem:active { background: var(--surface); }
 
-/* ── LEFT: mosaic thumbnail ── */
-.payListOuter {
-  width: 68px;
-  height: 68px;
-  border-radius: 12px;
+/* Last row in a group — no bottom border */
+.paymentRowLast::after {
+  display: none;
+}
+
+.paymentRow:active {
   background: var(--surface);
-  border: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
 }
-.payListInner {
-  width: 50px;
-  height: 50px;
-  border-radius: 9px;
-  background: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-}
-.orderImg { width: 100%; height: 100%; object-fit: cover; border-radius: 9px; }
 
-/* ── CENTRE: description + meta row (status badge + instalment count) ── */
-.payListInfo {
+/* Centre column: title + meta row */
+.paymentRowInfo {
   flex: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
-.payListDesc {
+
+.paymentRowTitle {
   font-size: 0.9rem;
   font-weight: 600;
   color: var(--text);
@@ -72,16 +100,16 @@
   text-overflow: ellipsis;
 }
 
-/* row that holds status badge + instalment pill together */
-.payListMeta {
+/* Row holding the status badge + instalment count pill */
+.paymentRowMeta {
   display: flex;
   align-items: center;
   gap: 6px;
   flex-wrap: wrap;
 }
 
-/* status badge — now lives in the centre column */
-.payListStatusBadge {
+/* Status badge in the centre column */
+.paymentStatusBadge {
   display: inline-flex;
   align-items: center;
   font-size: 0.6rem;
@@ -93,22 +121,22 @@
   letter-spacing: 0.01em;
 }
 
-/* instalment count pill */
-.installCountBadge {
+/* Instalment count pill e.g. "3 payments" */
+.installmentCountBadge {
   display: inline-flex;
   align-items: center;
   font-size: 0.6rem;
   font-weight: 800;
-  background: rgba(251,146,60,0.13);
+  background: rgba(251, 146, 60, 0.13);
   color: #c2410c;
-  border: 1px solid rgba(251,146,60,0.28);
+  border: 1px solid rgba(251, 146, 60, 0.28);
   border-radius: 20px;
   padding: 1px 7px;
   letter-spacing: 0.02em;
 }
 
-/* ── RIGHT: amount + progress only ── */
-.payListRight {
+/* Right column: amount + sub-amount + progress bar */
+.paymentRowRight {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
@@ -116,13 +144,15 @@
   flex-shrink: 0;
   min-width: 80px;
 }
-.payListAmount {
+
+.paymentRowAmount {
   font-size: 0.92rem;
   font-weight: 800;
   color: var(--text);
   white-space: nowrap;
 }
-.payListSubAmount {
+
+.paymentRowSubAmount {
   font-size: 0.65rem;
   color: var(--text3);
   font-weight: 500;
@@ -130,68 +160,396 @@
   margin-top: -2px;
 }
 
-/* Mini progress bar — fixed width, right-aligned */
-.miniProgressWrap {
+/* Mini progress bar showing how much of the order has been paid */
+.miniProgressTrack {
   width: 100%;
   height: 3px;
   background: var(--border);
   border-radius: 2px;
   overflow: hidden;
 }
-.miniProgressBar {
+
+.miniProgressFill {
   height: 100%;
   border-radius: 2px;
   transition: width 0.4s ease;
 }
 
-/* ── MODAL OVERLAY (full-screen slide-up) ── */
-.overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 3000; display: flex; flex-direction: column; animation: slideUp 0.35s cubic-bezier(0.4,0,0.2,1); }
-@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 
-.modalHeader { padding: calc(10px + var(--st)) 20px 10px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); flex-shrink: 0; }
-.modalTitle { font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text2); }
-.saveBtn { background: var(--accent); color: var(--bg); border: none; padding: 8px 16px; border-radius: 10px; font-weight: 800; font-size: 0.75rem; text-transform: uppercase; cursor: pointer; font-family: 'DM Sans', sans-serif; }
-.saveBtn:disabled { opacity: 0.3; cursor: not-allowed; }
-.deleteIconBtn { background: none; border: none; cursor: pointer; display: flex; align-items: center; padding: 4px; }
+/* ─────────────────────────────────────────────────────────────
+   ORDER MOSAIC THUMBNAIL
+   A small tiled image box showing up to 3 order item images.
+   ───────────────────────────────────────────────────────────── */
 
-.modalBody { flex: 1; overflow-y: auto; padding: 20px; padding-bottom: 100px; -webkit-overflow-scrolling: touch; }
+/* Grey outer box */
+.mosaicOuterBox {
+  width: 68px;
+  height: 68px;
+  border-radius: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
 
-/* ── FIELDS ── */
-.fieldGroup { margin-bottom: 20px; }
-.fieldLabel { font-size: 0.62rem; font-weight: 800; color: var(--text2); text-transform: uppercase; margin-bottom: 8px; display: block; letter-spacing: 0.5px; }
-.optional { color: var(--text3); font-weight: 600; text-transform: none; letter-spacing: 0; }
-.input { width: 100%; background: transparent; border: none; color: var(--text); font-size: 1.05rem; font-weight: 700; outline: none; border-bottom: 1px solid var(--border2); padding-bottom: 10px; font-family: 'DM Sans', sans-serif; }
-.input::placeholder { color: var(--text3); }
-.textarea { width: 100%; background: transparent; border: none; border-bottom: 1px solid var(--border2); color: var(--text); font-size: 0.9rem; outline: none; resize: none; min-height: 60px; font-family: 'DM Sans', sans-serif; padding-bottom: 8px; }
-.textarea::placeholder { color: var(--text3); }
+/* White inner box — default centered (used for icon + single image) */
+.mosaicInnerBox {
+  width: 50px;
+  height: 50px;
+  border-radius: 9px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
 
-/* Status chips */
-.statusRow { display: flex; gap: 8px; }
-.statusChip { flex: 1; padding: 10px 4px; border-radius: 10px; border: 1px solid var(--border2); font-size: 0.68rem; font-weight: 800; color: var(--text3); cursor: pointer; transition: all 0.2s; font-family: 'DM Sans', sans-serif; background: transparent; text-align: center; }
-.statusChipActive { font-weight: 800; }
+/* Modifier: tiled layout (2 or 3 images side by side) */
+.mosaicTiled {
+  padding: 0 !important;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: stretch !important;
+  overflow: hidden;
+  border-radius: 9px;
+}
 
-/* Method chips */
-.methodRow { display: flex; gap: 8px; flex-wrap: wrap; }
-.methodChip { padding: 8px 14px; border-radius: 10px; border: 1px solid var(--border2); font-size: 0.72rem; font-weight: 700; color: var(--text3); cursor: pointer; font-family: 'DM Sans', sans-serif; background: transparent; transition: all 0.2s; }
-.methodActive { background: var(--surface2); border-color: var(--accent); color: var(--accent); }
+/* Single full-bleed image */
+.mosaicFullImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 9px;
+}
 
-/* Order dropdown */
-.orderDropWrap { position: relative; }
-.orderDropBtn { width: 100%; display: flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--border2); border-radius: 12px; padding: 13px 14px; color: var(--text3); font-size: 0.88rem; cursor: pointer; font-family: 'DM Sans', sans-serif; }
-.dropdown { position: absolute; top: calc(100% + 4px); left: 0; right: 0; background: var(--surface); border: 1px solid var(--border2); border-radius: 12px; z-index: 100; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
-.dropItem { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border: none; background: none; width: 100%; text-align: left; cursor: pointer; font-family: 'DM Sans', sans-serif; }
-.dropItem:active { background: var(--surface2); }
-.dropName { font-size: 0.88rem; font-weight: 700; color: var(--text); }
-.dropMeta { font-size: 0.7rem; color: var(--text3); margin-top: 2px; }
+/* Left tile (larger, 60% width) */
+.mosaicTileLeft {
+  flex: 0 0 60%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #fff;
+  height: 100%;
+}
 
-/* Selected chip */
-.selectedChip { display: flex; align-items: center; gap: 10px; background: var(--surface); border: 1px solid var(--accent); border-radius: 12px; padding: 12px 14px; }
-.chipName { font-size: 0.88rem; font-weight: 700; color: var(--text); }
-.chipSub { font-size: 0.72rem; color: var(--text3); margin-top: 2px; }
-.chipRemove { background: none; border: none; color: var(--text3); cursor: pointer; display: flex; align-items: center; margin-left: auto; }
+/* Right tile column (stacks two cells vertically) */
+.mosaicTileRight {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #fff;
+}
+
+/* One cell inside the right column */
+.mosaicTileCell {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+  background: #fff;
+}
+
+/* Image inside any tile */
+.mosaicTileImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Thin vertical divider between left and right tiles */
+.mosaicDividerVertical {
+  width: 1.5px;
+  flex-shrink: 0;
+  background: var(--border);
+  align-self: stretch;
+}
+
+/* Thin horizontal divider between top and bottom right cells */
+.mosaicDividerHorizontal {
+  height: 1.5px;
+  flex-shrink: 0;
+  background: var(--border);
+  width: 100%;
+}
+
+/* Cell that has an overlay (used when there are 4+ items) */
+.mosaicTileCellWithOverlay {
+  position: relative;
+}
+
+/* Dark overlay showing "+N" extra item count */
+.mosaicExtraOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.52);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  pointer-events: none;
+}
+
+
+/* ─────────────────────────────────────────────────────────────
+   FULL-SCREEN MODAL (Add Payment + Payment Detail)
+   ───────────────────────────────────────────────────────────── */
+
+.fullScreenModal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--bg);
+  z-index: 3000;
+  display: flex;
+  flex-direction: column;
+  animation: paymentsSlideUp 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes paymentsSlideUp {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0);    }
+}
+
+/* Scrollable body area inside any full-screen modal */
+.modalBody {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  padding-bottom: 100px;
+  -webkit-overflow-scrolling: touch;
+}
+
+
+/* ── FORM FIELDS ── */
+
+.fieldGroup {
+  margin-bottom: 20px;
+}
+
+.fieldLabel {
+  font-size: 0.62rem;
+  font-weight: 800;
+  color: var(--text2);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  display: block;
+  letter-spacing: 0.5px;
+}
+
+/* "(optional)" text inside a field label */
+.fieldLabelOptional {
+  color: var(--text3);
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.textInput {
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  font-size: 1.05rem;
+  font-weight: 700;
+  outline: none;
+  border-bottom: 1px solid var(--border2);
+  padding-bottom: 10px;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.textInput::placeholder {
+  color: var(--text3);
+}
+
+.textareaInput {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border2);
+  color: var(--text);
+  font-size: 0.9rem;
+  outline: none;
+  resize: none;
+  min-height: 60px;
+  font-family: 'DM Sans', sans-serif;
+  padding-bottom: 8px;
+}
+
+.textareaInput::placeholder {
+  color: var(--text3);
+}
+
+
+/* ── TYPE / STATUS CHIPS (Full Payment / Part Payment) ── */
+
+/* Row holding the chips side by side */
+.chipRow {
+  display: flex;
+  gap: 8px;
+}
+
+.typeChip {
+  flex: 1;
+  padding: 10px 4px;
+  border-radius: 10px;
+  border: 1px solid var(--border2);
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: var(--text3);
+  cursor: pointer;
+  background: transparent;
+  text-align: center;
+  transition: all 0.2s;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.typeChipActive {
+  font-weight: 800;
+}
+
+
+/* ── PAYMENT METHOD CHIPS (Cash / Transfer / Card / Other) ── */
+
+.methodChipRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.methodChip {
+  padding: 8px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border2);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text3);
+  cursor: pointer;
+  background: transparent;
+  transition: all 0.2s;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.methodChipActive {
+  background: var(--surface2);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+
+/* ── ORDER DROPDOWN (inside Add Payment modal) ── */
+
+.orderDropdownWrap {
+  position: relative;
+}
+
+.orderDropdownBtn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 12px;
+  padding: 13px 14px;
+  color: var(--text3);
+  font-size: 0.88rem;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.orderDropdownList {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 12px;
+  z-index: 100;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.orderDropdownItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.orderDropdownItem:active {
+  background: var(--surface2);
+}
+
+.orderDropdownItemName {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.orderDropdownItemMeta {
+  font-size: 0.7rem;
+  color: var(--text3);
+  margin-top: 2px;
+}
+
+
+/* ── SELECTED ORDER CHIP (shown after an order is picked) ── */
+
+.selectedOrderChip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--surface);
+  border: 1px solid var(--accent);
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+
+.selectedOrderName {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.selectedOrderMeta {
+  font-size: 0.72rem;
+  color: var(--text3);
+  margin-top: 2px;
+}
+
+.selectedOrderRemoveBtn {
+  background: none;
+  border: none;
+  color: var(--text3);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+}
+
 
 /* ── DUPLICATE PAYMENT NOTICE ── */
-.duplicateNotice {
+
+.duplicatePaymentNotice {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -199,7 +557,8 @@
   padding: 28px 20px 8px;
   gap: 10px;
 }
-.duplicateIconWrap {
+
+.duplicatePaymentIconCircle {
   width: 60px;
   height: 60px;
   border-radius: 50%;
@@ -210,19 +569,22 @@
   justify-content: center;
   margin-bottom: 4px;
 }
-.duplicateTitle {
+
+.duplicatePaymentTitle {
   font-size: 1rem;
   font-weight: 800;
   color: var(--text);
   line-height: 1.3;
 }
-.duplicateBody {
+
+.duplicatePaymentBody {
   font-size: 0.85rem;
   color: var(--text2);
   line-height: 1.6;
   max-width: 300px;
 }
-.duplicateDismiss {
+
+.duplicatePaymentDismissBtn {
   margin-top: 8px;
   padding: 13px 32px;
   border-radius: 12px;
@@ -235,121 +597,313 @@
   cursor: pointer;
   transition: opacity 0.15s;
 }
-.duplicateDismiss:active { opacity: 0.7; }
 
-/* ── DETAIL MODAL ── */
-.detailCard { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 16px; }
-.detailRow { display: flex; justify-content: space-between; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid var(--border); }
-.detailRow:last-child { border-bottom: none; padding-bottom: 0; }
-.detailLabel { font-size: 0.65rem; font-weight: 800; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; }
-.detailVal { font-size: 0.88rem; font-weight: 600; color: var(--text); text-align: right; max-width: 60%; }
-
-/* Summary card */
-.summaryCard { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 16px; margin-top: 12px; }
-.summaryRow { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: var(--text2); margin-bottom: 10px; }
-.summaryRow:last-child { margin-bottom: 0; }
-
-/* Progress bar */
-.progressWrap { height: 6px; background: var(--border); border-radius: 3px; margin-top: 14px; overflow: hidden; }
-.progressBar { height: 100%; background: #22c55e; border-radius: 3px; transition: width 0.5s ease; }
-
-/* Installment list */
-.installmentList { display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
-.installmentRow { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-bottom: 1px solid var(--border); }
-.installmentRow:last-child { border-bottom: none; }
-.installmentOuter { width: 40px; height: 40px; border-radius: 10px; background: var(--surface2); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.installmentInner { width: 30px; height: 30px; border-radius: 7px; background: #fff; display: flex; align-items: center; justify-content: center; }
-.installmentInfo { flex: 1; }
-.installmentAmount { font-size: 0.9rem; font-weight: 700; color: var(--text); }
-.installmentDate { font-size: 0.7rem; color: var(--text3); margin-top: 2px; }
-.installmentBadge { font-size: 0.6rem; font-weight: 800; color: #22c55e; border: 1px solid rgba(34,197,94,0.4); background: rgba(34,197,94,0.08); padding: 2px 7px; border-radius: 6px; }
-.installmentMethodBadge { font-size: 0.58rem; font-weight: 700; color: var(--text3); border: 1px solid var(--border2); background: var(--surface2); padding: 2px 6px; border-radius: 5px; }
-
-/* Add installment button */
-.addInstallmentBtn { width: 100%; margin-top: 16px; padding: 14px; border-radius: 14px; border: 1.5px dashed var(--border2); background: transparent; color: var(--text2); font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; transition: border-color 0.2s; }
-.addInstallmentBtn:active { border-color: var(--accent); color: var(--accent); }
-
-/* Generate invoice button */
-.generateInvoiceBtn { width: 100%; margin-top: 12px; padding: 16px; border-radius: 14px; border: 1px solid var(--border2); background: var(--surface); color: var(--text2); font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; transition: border-color 0.2s, color 0.2s; text-transform: uppercase; letter-spacing: 0.8px; }
-.generateInvoiceBtn:active { border-color: var(--accent); color: var(--accent); }
-
-/* ── INSTALLMENT BOTTOM SHEET ── */
-.sheetOverlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 4000; display: flex; align-items: flex-end; }
-.sheet { width: 100%; background: var(--surface); border-radius: 20px 20px 0 0; border-top: 1px solid var(--border); padding-bottom: calc(20px + var(--sb)); animation: sheetUp 0.3s cubic-bezier(0.4,0,0.2,1); }
-@keyframes sheetUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-.sheetHandle { width: 36px; height: 4px; border-radius: 2px; background: var(--border2); margin: 10px auto 0; }
-.sheetHeader { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px 12px; border-bottom: 1px solid var(--border); }
-.sheetTitle { font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1.2px; color: var(--text2); }
-.sheetBody { padding: 20px; }
-.remainingBadge { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.3); border-radius: 10px; padding: 10px 14px; font-size: 0.82rem; color: var(--text2); margin-bottom: 18px; }
-.confirmBtn { width: 100%; padding: 16px; border-radius: 14px; border: none; background: var(--accent); color: var(--bg); font-family: 'DM Sans', sans-serif; font-size: 0.88rem; font-weight: 800; cursor: pointer; margin-top: 8px; }
-.confirmBtn:disabled { opacity: 0.3; cursor: not-allowed; }
-
-/* ══════════════════════════════════════════════════════════════
-   ORDER MOSAIC THUMBNAIL
-   ══════════════════════════════════════════════════════════════ */
-.mosaicInner {
-  padding: 0 !important;
-  display: flex !important;
-  flex-direction: row !important;
-  align-items: stretch !important;
-  overflow: hidden;
-  border-radius: 9px;
+.duplicatePaymentDismissBtn:active {
+  opacity: 0.7;
 }
-.mosaicLeft {
-  flex: 0 0 60%;
+
+
+/* ── PAYMENT DETAIL INFO CARD ── */
+
+.detailInfoCard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 16px;
+}
+
+.detailInfoRow {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  background: #fff;
-  height: 100%;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
 }
-.mosaicRight {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  background: #fff;
+
+.detailInfoRow:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
 }
-.mosaicRightCell {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  position: relative;
-  background: #fff;
-}
-.mosaicDividerV {
-  width: 1.5px;
-  flex-shrink: 0;
-  background: var(--border);
-  align-self: stretch;
-}
-.mosaicDividerH {
-  height: 1.5px;
-  flex-shrink: 0;
-  background: var(--border);
-  width: 100%;
-}
-.mosaicImg {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-.mosaicOverlayWrap { position: relative; }
-.mosaicOverlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.52);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
+
+.detailInfoLabel {
   font-size: 0.65rem;
   font-weight: 800;
-  letter-spacing: 0.3px;
-  pointer-events: none;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.detailInfoValue {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text);
+  text-align: right;
+  max-width: 60%;
+}
+
+
+/* ── PAYMENT BREAKDOWN CARD ── */
+
+.breakdownCard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 16px;
+  margin-top: 16px;
+}
+
+.breakdownRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+  color: var(--text2);
+  margin-bottom: 10px;
+}
+
+.breakdownRow:last-child {
+  margin-bottom: 0;
+}
+
+/* Full-width progress bar showing total payment progress */
+.paymentProgressTrack {
+  height: 6px;
+  background: var(--border);
+  border-radius: 3px;
+  margin-top: 14px;
+  overflow: hidden;
+}
+
+.paymentProgressFill {
+  height: 100%;
+  background: #22c55e;
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+
+
+/* ── INSTALLMENT LIST (simple list when no order price is known) ── */
+
+.installmentList {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.installmentRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.installmentRow:last-child {
+  border-bottom: none;
+}
+
+.installmentIconOuter {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.installmentIconInner {
+  width: 30px;
+  height: 30px;
+  border-radius: 7px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.installmentRowInfo {
+  flex: 1;
+}
+
+.installmentAmount {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.installmentDate {
+  font-size: 0.7rem;
+  color: var(--text3);
+  margin-top: 2px;
+}
+
+.installmentReceivedBadge {
+  font-size: 0.6rem;
+  font-weight: 800;
+  color: #22c55e;
+  border: 1px solid rgba(34, 197, 94, 0.4);
+  background: rgba(34, 197, 94, 0.08);
+  padding: 2px 7px;
+  border-radius: 6px;
+}
+
+.installmentMethodBadge {
+  font-size: 0.58rem;
+  font-weight: 700;
+  color: var(--text3);
+  border: 1px solid var(--border2);
+  background: var(--surface2);
+  padding: 2px 6px;
+  border-radius: 5px;
+}
+
+
+/* ── ACTION BUTTONS at the bottom of Payment Detail ── */
+
+/* Dashed button to record another payment / instalment */
+.addInstallmentBtn {
+  width: 100%;
+  margin-top: 16px;
+  padding: 14px;
+  border-radius: 14px;
+  border: 1.5px dashed var(--border2);
+  background: transparent;
+  color: var(--text2);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.addInstallmentBtn:active {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* Solid button to generate a receipt */
+.generateReceiptBtn {
+  width: 100%;
+  margin-top: 12px;
+  padding: 16px;
+  border-radius: 14px;
+  border: 1px solid var(--border2);
+  background: var(--surface);
+  color: var(--text2);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.generateReceiptBtn:active {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+
+/* ─────────────────────────────────────────────────────────────
+   BOTTOM SHEET (Add Installment modal)
+   ───────────────────────────────────────────────────────────── */
+
+/* Dark backdrop behind the sheet */
+.sheetOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 4000;
+  display: flex;
+  align-items: flex-end;
+}
+
+/* The sheet itself slides up from the bottom */
+.bottomSheet {
+  width: 100%;
+  background: var(--surface);
+  border-radius: 20px 20px 0 0;
+  border-top: 1px solid var(--border);
+  padding-bottom: calc(20px + var(--sb));
+  animation: paymentsSheetUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes paymentsSheetUp {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0);    }
+}
+
+/* Drag handle at the top of the sheet */
+.bottomSheetHandle {
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--border2);
+  margin: 10px auto 0;
+}
+
+.bottomSheetHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.bottomSheetTitle {
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: var(--text2);
+}
+
+.bottomSheetBody {
+  padding: 20px;
+}
+
+/* Red badge showing the remaining balance */
+.remainingBalanceBadge {
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 0.82rem;
+  color: var(--text2);
+  margin-bottom: 18px;
+}
+
+/* Primary confirm button inside the sheet */
+.confirmActionBtn {
+  width: 100%;
+  padding: 16px;
+  border-radius: 14px;
+  border: none;
+  background: var(--accent);
+  color: var(--bg);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.88rem;
+  font-weight: 800;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+.confirmActionBtn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
 }

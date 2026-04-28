@@ -1,325 +1,1159 @@
-/* ═══════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════════════════
    OrdersTab.module.css
-   All styles that belong to the Orders tab ONLY.
-   Import this in OrdersTab.jsx as styles from './OrdersTab.module.css'
-   ═══════════════════════════════════════════════════════════ */
+   Styles for the Orders tab — list, modal form, and detail panel.
+   ═══════════════════════════════════════════════════════════════ */
 
-/* ── EMPTY STATE ── */
-.emptyState { text-align: center; padding-top: 60px; padding-bottom: 20px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
-.emptyState p { font-size: 0.8rem; color: var(--text3); }
-.hint { font-size: 0.7rem; color: var(--text3); opacity: 0.6; }
 
-/* ── ORDER LIST ── */
-.orderGroup { margin-bottom: 16px; }
-.orderGroupDate { font-size: 0.65rem; font-weight: 600; color: var(--text3); padding: 10px 16px 8px; }
-.orderGroupDivider { height: 1px; background: var(--border); width: calc(100% + 32px); margin-left: -16px; }
+/* ─────────────────────────────────────────────────────────────
+   EMPTY STATE
+   Shown when the customer has no orders yet
+   ───────────────────────────────────────────────────────────── */
 
-/* Each row */
-.orderListItem { display: flex; align-items: center; gap: 12px; padding: 12px 0; cursor: pointer; transition: background 0.15s; background: var(--bg); position: relative; }
-.orderListItem::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 1px; background: var(--border); }
-.orderListItemLast::after { display: none; }
-.orderListItem:active { background: var(--surface); }
-
-/* Outer grey box */
-.orderListOuter { width: 80px; height: 80px; border-radius: 12px; background: var(--surface); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-/* Inner white box */
-.orderListInner { width: 58px; height: 58px; border-radius: 10px; background: #fff; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-.orderListThumbImg { width: 100%; height: 100%; object-fit: cover; border-radius: 10px; }
-
-/* LEFT info column */
-.orderListInfo { flex: 1; min-width: 0; }
-.orderListDesc { font-size: 0.9rem; font-weight: 600; color: var(--text); margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-/* Customer meta row */
-.orderListMeta { display: flex; align-items: center; gap: 4px; margin-bottom: 2px; }
-.orderListMetaText { font-size: 0.75rem; font-weight: 400; color: var(--text2); }
-
-/* Stage line */
-.orderListStageLine {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: var(--accent);
-  margin-top: 3px;
+.emptyState {
+  text-align:      center;
+  padding-top:     60px;
+  padding-bottom:  20px;
+  display:         flex;
+  flex-direction:  column;
+  align-items:     center;
+  gap:             10px;
 }
 
-/* RIGHT column */
-.orderListRight { text-align: right; flex-shrink: 0; }
-.orderListPrice { font-size: 0.88rem; font-weight: 700; color: var(--text); white-space: nowrap; }
-.orderListQty   { font-size: 0.65rem; color: var(--text3); margin-top: 2px; }
-
-/* Due date — compact, red, no year */
-.orderListDueRight {
-  font-size: 0.6rem;
-  font-weight: 700;
-  color: #ef4444;
-  margin-top: 4px;
-  letter-spacing: 0.1px;
-  white-space: nowrap;
-}
-
-/* ── STATUS BADGE on order list cards ── */
-.orderListStatusBadge {
-  display: inline-block;
-  font-size: 0.6rem;
-  font-weight: 700;
-  text-transform: capitalize;
-  letter-spacing: 0.2px;
-  border: 1px solid;
-  border-radius: 5px;
-  padding: 2px 7px;
-  margin-top: 3px;
-}
-.statusBadge_pending      { color: #a16207; background: rgba(234,179,8,0.12);   border-color: rgba(234,179,8,0.3);   }
-.statusBadge_in_progress  { color: #2563eb; background: rgba(59,130,246,0.12);  border-color: rgba(59,130,246,0.3);  }
-.statusBadge_completed    { color: #15803d; background: rgba(21,128,61,0.12);   border-color: rgba(21,128,61,0.3);   }
-.statusBadge_delivered    { color: #4f46e5; background: rgba(129,140,248,0.12); border-color: rgba(129,140,248,0.3); }
-.statusBadge_cancelled    { color: #dc2626; background: rgba(239,68,68,0.12);   border-color: rgba(239,68,68,0.3);   }
-
-/* ── MODAL OVERLAY ── */
-.modalOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 2000; transform: translateY(100%); transition: transform 0.38s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; }
-.modalOpen { transform: translateY(0); }
-.modalBody { flex: 1; overflow-y: auto; padding-bottom: 100px; -webkit-overflow-scrolling: touch; }
-
-/* ── DETAIL MODAL (slides from right) ── */
-.detailModal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 3000; transform: translateX(100%); transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; overflow: hidden; }
-.detailOpen { transform: translateX(0); }
-.detailBody { flex: 1; overflow-y: auto; padding: 20px; -webkit-overflow-scrolling: touch; }
-.detailDate { font-size: 0.7rem; color: var(--text3); margin-top: 20px; text-align: center; }
-
-/* ── ORDER DETAIL SPECIFIC ── */
-.priorityBanner { font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; padding: 7px 12px; border-radius: 8px; display: inline-block; margin-bottom: 18px; }
-.bannerNormal { color: var(--text2); background: var(--surface); border: 1px solid var(--border2); }
-.bannerUrgent { color: var(--warning); background: rgba(251,146,60,0.1); border: 1px solid rgba(251,146,60,0.3); }
-.bannerVip    { color: #a855f7; background: rgba(168,85,247,0.1); border: 1px solid rgba(168,85,247,0.3); }
-
-.orderMetaGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
-.orderMetaCell { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 12px 14px; }
-.cellLabel { font-size: 0.6rem; font-weight: 800; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
-.cellValue { font-size: 1rem; font-weight: 800; color: var(--text); }
-
-.linkedSection { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 14px; margin-bottom: 16px; }
-.linkLabel { font-size: 0.6rem; font-weight: 800; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
-.linkedRow { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-.linkedRow:last-child { margin-bottom: 0; }
-.linkedThumb { width: 36px; height: 36px; border-radius: 8px; background: var(--surface2); border: 1px solid var(--border2); display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; }
-
-.notesSection { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 14px; margin-bottom: 16px; }
-.notesSection p { font-size: 0.85rem; color: var(--text2); line-height: 1.5; }
-
-.statusToggleBtn { flex: 1; padding: 11px; border-radius: 10px; border: 1px solid var(--border2); font-size: 0.72rem; font-weight: 800; font-family: 'DM Sans', sans-serif; cursor: pointer; transition: all 0.2s; color: var(--text3); background: transparent; }
-.statusActive { background: var(--surface2); border-color: var(--success); color: var(--success); }
-
-.generateInvoiceBtn { width: 100%; margin-top: 20px; padding: 16px; border-radius: 14px; border: 1px solid var(--border2); background: var(--surface); color: var(--text2); font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; transition: border-color 0.2s, color 0.2s; text-transform: uppercase; letter-spacing: 0.8px; }
-.generateInvoiceBtn:active { border-color: var(--accent); color: var(--accent); }
-
-/* ── ORDER FORM ── */
-.sectionHeading { font-size: 0.65rem; font-weight: 800; color: var(--text2); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
-
-.pickerSearchWrap { display: flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--border2); border-radius: 12px; padding: 0 12px; margin-bottom: 10px; }
-.pickerSearchInput { flex: 1; background: transparent; border: none; outline: none; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 0.85rem; font-weight: 600; padding: 12px 0; }
-
-.pickerList { display: flex; flex-direction: column; gap: 8px; margin-bottom: 4px; }
-.pickerItem { display: flex; align-items: center; gap: 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 12px 14px; cursor: pointer; transition: border-color 0.2s; }
-.pickerSelected { border-color: var(--accent); background: var(--surface2); }
-.pickerThumb { width: 38px; height: 38px; border-radius: 9px; background: var(--surface2); border: 1px solid var(--border2); display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; }
-.pickerThumb img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; }
-.pickerInfo { flex: 1; }
-.pickerInfo h5 { font-size: 0.9rem; font-weight: 700; color: var(--text); }
-.pickerInfo span { font-size: 0.65rem; color: var(--text3); font-weight: 600; }
-.pickerCheck { width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--border2); display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.2s; }
-.pickerCheckSelected { background: var(--accent); border-color: var(--accent); color: var(--bg); }
-
-.labelTiny { font-size: 0.62rem; font-weight: 800; color: var(--text2); text-transform: uppercase; margin-bottom: 6px; display: block; letter-spacing: 0.5px; }
-.clothInput { width: 100%; background: transparent; border: none; color: var(--text); font-size: 1.05rem; font-weight: 700; outline: none; border-bottom: 1px solid var(--border2); padding-bottom: 10px; margin-bottom: 20px; font-family: 'DM Sans', sans-serif; }
-.clothInput::placeholder { color: var(--text3); }
-
-.orderFormCard { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 20px; }
-.orderTextarea { width: 100%; background: transparent; border: none; border-bottom: 1px solid var(--border2); color: var(--text); font-size: 0.9rem; font-weight: 500; outline: none; resize: none; min-height: 70px; font-family: 'DM Sans', sans-serif; padding-bottom: 8px; }
-.orderTextarea::placeholder { color: var(--text3); }
-
-.priorityRow { display: flex; gap: 8px; margin-bottom: 4px; }
-.priorityChip { flex: 1; text-align: center; padding: 9px 4px; border-radius: 10px; border: 1px solid var(--border2); font-size: 0.7rem; font-weight: 800; color: var(--text3); cursor: pointer; transition: all 0.2s; font-family: 'DM Sans', sans-serif; }
-.priority_normal { background: var(--surface2); border-color: var(--text2); color: var(--text); }
-.priority_urgent { background: rgba(251,146,60,0.15); border-color: var(--warning); color: var(--warning); }
-.priority_vip    { background: rgba(168,85,247,0.15); border-color: #a855f7; color: #a855f7; }
-
-.stageChipRow { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
-.stageChip { display: flex; align-items: center; gap: 5px; padding: 8px 12px; border-radius: 20px; border: 1px solid var(--border2); background: transparent; color: var(--text3); font-size: 0.7rem; line-height: 1.4; font-weight: 800; font-family: 'DM Sans', sans-serif; cursor: pointer; transition: all 0.18s; white-space: nowrap; flex-shrink: 0; }
-.stageChip:active { opacity: 0.7; }
-.stageChipActive { background: rgba(99,102,241,0.1); border-color: var(--accent); color: var(--accent); }
-
-/* ── PER-ITEM PRICING IN MODAL ── */
-.pricingList {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 18px;
-  padding: 16px;
-  margin-bottom: 20px;
-}
-
-.priceInputRow {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding-bottom: 14px;
-  border-bottom: 1px solid var(--border);
-}
-.priceInputRow:last-of-type { border-bottom: none; padding-bottom: 0; }
-
-/* Item name above the fields */
-.priceItemName {
+.emptyState p {
   font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--text);
-  margin-bottom: 8px;
+  color:     var(--text3);
 }
 
-/* Row containing price + qty + amount */
-.priceFieldsRow {
-  display: flex;
-  gap: 10px;
-  align-items: flex-end;
+
+/* ─────────────────────────────────────────────────────────────
+   ORDER LIST — grouped by date
+   ───────────────────────────────────────────────────────────── */
+
+.orderGroup {
+  margin-bottom: 16px;
 }
 
-.priceFieldWrap {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
+.orderGroupDate {
+  font-size:   0.65rem;
+  font-weight: 600;
+  color:       var(--text3);
+  padding:     10px 16px 8px;
+}
+
+.orderGroupDivider {
+  height:      1px;
+  background:  var(--border);
+  /* stretch beyond the parent's padding */
+  width:       calc(100% + 32px);
+  margin-left: -16px;
+}
+
+
+/* ─────────────────────────────────────────────────────────────
+   ORDER ROW
+   Each individual order in the list
+   ───────────────────────────────────────────────────────────── */
+
+.orderRow {
+  display:         flex;
+  align-items:     center;
+  gap:             12px;
+  padding:         12px 0;
+  cursor:          pointer;
+  transition:      background 0.15s;
+  background:      var(--bg);
+  position:        relative;
+}
+
+/* Thin divider line below each row */
+.orderRow::after {
+  content:    '';
+  position:   absolute;
+  bottom:     0;
+  left:       0;
+  right:      0;
+  height:     1px;
+  background: var(--border);
+}
+
+/* Last row in a group — no bottom divider */
+.orderRow_last::after {
+  display: none;
+}
+
+.orderRow:active {
+  background: var(--surface);
+}
+
+/* Left info column: description, item count, stage */
+.orderRowInfo {
+  flex:      1;
   min-width: 0;
 }
 
-.priceFieldLabel {
-  font-size: 0.58rem;
-  font-weight: 800;
-  color: var(--text3);
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-  margin-bottom: 5px;
-  display: block;
-}
-
-/* Red asterisk for required fields */
-.requiredStar {
-  color: var(--danger, #ef4444);
-  margin-left: 1px;
-}
-
-.itemPriceInput {
-  width: 100%;
-  background: var(--bg);
-  border: 1px solid var(--border2);
-  border-radius: 8px;
-  padding: 8px 10px;
-  color: var(--text);
-  font-size: 0.9rem;
-  font-weight: 700;
-  outline: none;
-  font-family: 'DM Sans', sans-serif;
-  -moz-appearance: textfield;
-}
-.itemPriceInput::-webkit-outer-spin-button,
-.itemPriceInput::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-.itemPriceInput:focus { border-color: var(--accent); }
-
-/* Read-only computed amount */
-.itemAmountDisplay {
-  width: 100%;
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 8px 10px;
-  color: var(--accent);
-  font-size: 0.9rem;
-  font-weight: 800;
-  font-family: 'DM Sans', sans-serif;
-  white-space: nowrap;
-  overflow: hidden;
+.orderRowDescription {
+  font-size:     0.9rem;
+  font-weight:   600;
+  color:         var(--text);
+  margin-bottom: 3px;
+  white-space:   nowrap;
+  overflow:      hidden;
   text-overflow: ellipsis;
 }
 
-/* Validation error message */
-.pricingError {
-  display: flex;
+/* "X items" meta line */
+.orderRowMeta {
+  display:       flex;
+  align-items:   center;
+  gap:           4px;
+  margin-bottom: 2px;
+}
+
+.orderRowMetaText {
+  font-size:   0.75rem;
+  font-weight: 400;
+  color:       var(--text2);
+}
+
+/* Current stage line (e.g. "✂ Cutting") */
+.orderRowStage {
+  display:     flex;
   align-items: center;
-  gap: 6px;
-  font-size: 0.72rem;
+  gap:         4px;
+  font-size:   0.72rem;
+  font-weight: 600;
+  color:       var(--accent);
+  margin-top:  3px;
+}
+
+/* Right column: price, status badge, due date */
+.orderRowRight {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.orderRowPrice {
+  font-size:   0.88rem;
   font-weight: 700;
-  color: var(--danger, #ef4444);
-  background: rgba(239, 68, 68, 0.08);
-  border: 1px solid rgba(239, 68, 68, 0.25);
+  color:       var(--text);
+  white-space: nowrap;
+}
+
+/* Due date shown in red below the status badge */
+.orderRowDueDate {
+  font-size:      0.6rem;
+  font-weight:    700;
+  color:          #ef4444;
+  margin-top:     4px;
+  letter-spacing: 0.1px;
+  white-space:    nowrap;
+}
+
+
+/* ─────────────────────────────────────────────────────────────
+   ORDER STATUS BADGE
+   Coloured pill shown on each order row
+   ───────────────────────────────────────────────────────────── */
+
+.orderStatusBadge {
+  display:        inline-block;
+  font-size:      0.6rem;
+  font-weight:    700;
+  text-transform: capitalize;
+  letter-spacing: 0.2px;
+  border:         1px solid;
+  border-radius:  5px;
+  padding:        2px 7px;
+  margin-top:     3px;
+}
+
+.orderStatusBadge_pending {
+  color:        #a16207;
+  background:   rgba(234, 179, 8, 0.12);
+  border-color: rgba(234, 179, 8, 0.3);
+}
+
+.orderStatusBadge_in_progress {
+  color:        #2563eb;
+  background:   rgba(59, 130, 246, 0.12);
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+.orderStatusBadge_completed {
+  color:        #15803d;
+  background:   rgba(21, 128, 61, 0.12);
+  border-color: rgba(21, 128, 61, 0.3);
+}
+
+.orderStatusBadge_delivered {
+  color:        #4f46e5;
+  background:   rgba(129, 140, 248, 0.12);
+  border-color: rgba(129, 140, 248, 0.3);
+}
+
+.orderStatusBadge_cancelled {
+  color:        #dc2626;
+  background:   rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+
+/* ─────────────────────────────────────────────────────────────
+   ORDER MOSAIC THUMBNAIL
+   Shows 1–3 garment images in a tiled layout
+   ───────────────────────────────────────────────────────────── */
+
+/* Outer grey rounded box */
+.mosaicContainer {
+  width:        80px;
+  height:       80px;
+  border-radius: 12px;
+  background:   var(--surface);
+  border:       1px solid var(--border);
+  display:      flex;
+  align-items:  center;
+  justify-content: center;
+  flex-shrink:  0;
+}
+
+/* Inner white rounded box */
+.mosaicBox {
+  width:           58px;
+  height:          58px;
+  border-radius:   10px;
+  background:      #fff;
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  overflow:        hidden;
+}
+
+/* Single image — fills the whole box */
+.mosaicSingleImage {
+  width:         100%;
+  height:        100%;
+  object-fit:    cover;
   border-radius: 10px;
-  padding: 8px 12px;
+}
+
+/* Split layout: left panel + right column side by side */
+.mosaicBox_split {
+  padding:        0 !important;
+  display:        flex !important;
+  flex-direction: row !important;
+  align-items:    stretch !important;
+  overflow:       hidden;
+  border-radius:  10px;
+}
+
+/* Left side — takes 60% width */
+.mosaicPanel_left {
+  flex:            0 0 60%;
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  overflow:        hidden;
+  background:      #fff;
+  height:          100%;
+}
+
+/* Right side — takes remaining 40%, split into two cells vertically */
+.mosaicPanel_right {
+  flex:           1;
+  display:        flex;
+  flex-direction: column;
+  overflow:       hidden;
+  background:     #fff;
+}
+
+/* Each cell in the right column */
+.mosaicCell {
+  flex:            1;
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  overflow:        hidden;
+  position:        relative;
+  background:      #fff;
+}
+
+/* Thin vertical divider between left and right panels */
+.mosaicDivider_vertical {
+  width:       1.5px;
+  flex-shrink: 0;
+  background:  var(--border);
+  align-self:  stretch;
+}
+
+/* Thin horizontal divider between the two right cells */
+.mosaicDivider_horizontal {
+  height:      1.5px;
+  flex-shrink: 0;
+  background:  var(--border);
+  width:       100%;
+}
+
+/* Any image inside a mosaic panel */
+.mosaicPanelImage {
+  width:      100%;
+  height:     100%;
+  object-fit: cover;
+  display:    block;
+}
+
+/* Cell with "+N more" overlay */
+.mosaicCell_hasOverlay {
+  position: relative;
+}
+
+/* Dark "+N" count overlay on the last mosaic cell */
+.mosaicOverlay {
+  position:        absolute;
+  inset:           0;
+  background:      rgba(0, 0, 0, 0.52);
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  color:           #fff;
+  font-size:       0.65rem;
+  font-weight:     800;
+  letter-spacing:  0.3px;
+  pointer-events:  none;
+}
+
+
+/* ─────────────────────────────────────────────────────────────
+   NEW ORDER FORM MODAL
+   Full-screen overlay that slides up from the bottom
+   ───────────────────────────────────────────────────────────── */
+
+.formOverlay {
+  position:       fixed;
+  top:            0;
+  left:           0;
+  width:          100%;
+  height:         100%;
+  background:     var(--bg);
+  z-index:        2000;
+  transform:      translateY(100%);
+  transition:     transform 0.38s cubic-bezier(0.4, 0, 0.2, 1);
+  display:        flex;
+  flex-direction: column;
+}
+
+.formOverlay_open {
+  transform: translateY(0);
+}
+
+/* Scrollable area below the header */
+.formScrollBody {
+  flex:                      1;
+  overflow-y:                auto;
+  padding-bottom:            100px;
+  -webkit-overflow-scrolling: touch;
+}
+
+
+/* ─────────────────────────────────────────────────────────────
+   FORM SECTIONS — Shared within OrderModal
+   ───────────────────────────────────────────────────────────── */
+
+/* Step heading: "1. Select Clothes" etc. */
+.stepHeading {
+  font-size:      0.65rem;
+  font-weight:    800;
+  color:          var(--text2);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom:  12px;
+}
+
+/* Cloth search input bar */
+.clothSearchBar {
+  display:       flex;
+  align-items:   center;
+  gap:           8px;
+  background:    var(--surface);
+  border:        1px solid var(--border2);
+  border-radius: 12px;
+  padding:       0 12px;
+  margin-bottom: 10px;
+}
+
+.clothSearchInput {
+  flex:        1;
+  background:  transparent;
+  border:      none;
+  outline:     none;
+  color:       var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size:   0.85rem;
+  font-weight: 600;
+  padding:     12px 0;
+}
+
+/* List of cloth type options to pick from */
+.clothPickerList {
+  display:        flex;
+  flex-direction: column;
+  gap:            8px;
+  margin-bottom:  4px;
+}
+
+/* Single cloth type option row */
+.clothPickerItem {
+  display:       flex;
+  align-items:   center;
+  gap:           12px;
+  background:    var(--surface);
+  border:        1px solid var(--border);
+  border-radius: 14px;
+  padding:       12px 14px;
+  cursor:        pointer;
+  transition:    border-color 0.2s;
+}
+
+.clothPickerItem_selected {
+  border-color: var(--accent);
+  background:   var(--surface2);
+}
+
+/* Small square thumbnail for a cloth type */
+.clothThumb {
+  width:           38px;
+  height:          38px;
+  border-radius:   9px;
+  background:      var(--surface2);
+  border:          1px solid var(--border2);
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  flex-shrink:     0;
+  overflow:        hidden;
+}
+
+.clothThumb img {
+  width:         100%;
+  height:        100%;
+  object-fit:    cover;
+  border-radius: 8px;
+}
+
+/* Cloth name + measurement count text */
+.clothInfo {
+  flex: 1;
+}
+
+.clothInfo h5 {
+  font-size:   0.9rem;
+  font-weight: 700;
+  color:       var(--text);
+}
+
+.clothInfo span {
+  font-size:   0.65rem;
+  color:       var(--text3);
+  font-weight: 600;
+}
+
+/* Circle checkmark on the right of each cloth item */
+.clothCheckCircle {
+  width:           22px;
+  height:          22px;
+  border-radius:   50%;
+  border:          1.5px solid var(--border2);
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  flex-shrink:     0;
+  transition:      all 0.2s;
+}
+
+.clothCheckCircle_checked {
+  background:   var(--accent);
+  border-color: var(--accent);
+  color:        var(--bg);
+}
+
+
+/* ─────────────────────────────────────────────────────────────
+   PRICING SECTION — Price & Qty per selected item
+   ───────────────────────────────────────────────────────────── */
+
+/* Card wrapping all item pricing rows */
+.pricingCard {
+  display:        flex;
+  flex-direction: column;
+  gap:            14px;
+  background:     var(--surface);
+  border:         1px solid var(--border);
+  border-radius:  18px;
+  padding:        16px;
+  margin-bottom:  20px;
+}
+
+/* One row per selected item */
+.pricingRow {
+  display:        flex;
+  align-items:    flex-start;
+  gap:            12px;
+  padding-bottom: 14px;
+  border-bottom:  1px solid var(--border);
+}
+
+.pricingRow:last-of-type {
+  border-bottom:  none;
+  padding-bottom: 0;
+}
+
+/* Item name above the price/qty inputs */
+.pricingItemName {
+  font-size:     0.8rem;
+  font-weight:   700;
+  color:         var(--text);
+  margin-bottom: 8px;
+}
+
+/* Row containing price + qty + computed amount side by side */
+.pricingInputRow {
+  display:     flex;
+  gap:         10px;
+  align-items: flex-end;
+}
+
+/* Each field column (price, qty, amount) */
+.pricingField {
+  display:        flex;
+  flex-direction: column;
+  flex:           1;
+  min-width:      0;
+}
+
+/* Small uppercase label above each input */
+.fieldLabel {
+  font-size:      0.58rem;
+  font-weight:    800;
+  color:          var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin-bottom:  5px;
+  display:        block;
+}
+
+/* Red asterisk on required fields */
+.requiredStar {
+  color:       var(--danger, #ef4444);
+  margin-left: 1px;
+}
+
+/* Number input for price and qty */
+.pricingInput {
+  width:        100%;
+  background:   var(--bg);
+  border:       1px solid var(--border2);
+  border-radius: 8px;
+  padding:      8px 10px;
+  color:        var(--text);
+  font-size:    0.9rem;
+  font-weight:  700;
+  outline:      none;
+  font-family:  'DM Sans', sans-serif;
+  /* Hide the native number spinners */
+  -moz-appearance: textfield;
+}
+
+.pricingInput::-webkit-outer-spin-button,
+.pricingInput::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.pricingInput:focus {
+  border-color: var(--accent);
+}
+
+/* Read-only computed line total (qty × price) */
+.pricingAmount {
+  width:         100%;
+  background:    var(--surface2);
+  border:        1px solid var(--border);
+  border-radius: 8px;
+  padding:       8px 10px;
+  color:         var(--accent);
+  font-size:     0.9rem;
+  font-weight:   800;
+  font-family:   'DM Sans', sans-serif;
+  white-space:   nowrap;
+  overflow:      hidden;
+  text-overflow: ellipsis;
+}
+
+/* Inline validation error for missing price/qty */
+.pricingError {
+  display:       flex;
+  align-items:   center;
+  gap:           6px;
+  font-size:     0.72rem;
+  font-weight:   700;
+  color:         var(--danger, #ef4444);
+  background:    rgba(239, 68, 68, 0.08);
+  border:        1px solid rgba(239, 68, 68, 0.25);
+  border-radius: 10px;
+  padding:       8px 12px;
+  margin-top:    4px;
+}
+
+/* Dashed total row at the bottom of the pricing card */
+.orderTotalRow {
+  margin-top:      10px;
+  padding-top:     12px;
+  border-top:      2px dashed var(--border);
+  display:         flex;
+  justify-content: space-between;
+  align-items:     center;
+  font-size:       0.85rem;
+  font-weight:     800;
+  text-transform:  uppercase;
+  color:           var(--text2);
+}
+
+
+/* ─────────────────────────────────────────────────────────────
+   DETAILS CARD — Step 3 of the order form
+   ───────────────────────────────────────────────────────────── */
+
+.detailsCard {
+  background:    var(--surface);
+  border:        1px solid var(--border);
+  border-radius: 20px;
+  padding:       20px;
+}
+
+/* Underline-style text input (no visible box border) */
+.underlineInput {
+  width:             100%;
+  background:        transparent;
+  border:            none;
+  color:             var(--text);
+  font-size:         1.05rem;
+  font-weight:       700;
+  outline:           none;
+  border-bottom:     1px solid var(--border2);
+  padding-bottom:    10px;
+  margin-bottom:     20px;
+  font-family:       'DM Sans', sans-serif;
+}
+
+.underlineInput::placeholder {
+  color: var(--text3);
+}
+
+/* Notes textarea */
+.notesTextarea {
+  width:         100%;
+  background:    transparent;
+  border:        none;
+  border-bottom: 1px solid var(--border2);
+  color:         var(--text);
+  font-size:     0.9rem;
+  font-weight:   500;
+  outline:       none;
+  resize:        none;
+  min-height:    70px;
+  font-family:   'DM Sans', sans-serif;
+  padding-bottom: 8px;
+}
+
+.notesTextarea::placeholder {
+  color: var(--text3);
+}
+
+
+/* ─────────────────────────────────────────────────────────────
+   PRIORITY CHIPS — Normal / Urgent / VIP
+   ───────────────────────────────────────────────────────────── */
+
+.priorityChipRow {
+  display:       flex;
+  gap:           8px;
+  margin-bottom: 4px;
+}
+
+.priorityChip {
+  flex:          1;
+  text-align:    center;
+  padding:       9px 4px;
+  border-radius: 10px;
+  border:        1px solid var(--border2);
+  font-size:     0.7rem;
+  font-weight:   800;
+  color:         var(--text3);
+  cursor:        pointer;
+  transition:    all 0.2s;
+  font-family:   'DM Sans', sans-serif;
+}
+
+.priorityChip_normal {
+  background:   var(--surface2);
+  border-color: var(--text2);
+  color:        var(--text);
+}
+
+.priorityChip_urgent {
+  background:   rgba(251, 146, 60, 0.15);
+  border-color: var(--warning);
+  color:        var(--warning);
+}
+
+.priorityChip_vip {
+  background:   rgba(168, 85, 247, 0.15);
+  border-color: #a855f7;
+  color:        #a855f7;
+}
+
+
+/* ─────────────────────────────────────────────────────────────
+   STAGE CHIPS — Measurement Taken / Cutting / Sewing etc.
+   ───────────────────────────────────────────────────────────── */
+
+.stageChipRow {
+  display:    flex;
+  flex-wrap:  wrap;
+  gap:        8px;
   margin-top: 4px;
 }
 
-.totalIndicator {
-  margin-top: 10px;
-  padding-top: 12px;
-  border-top: 2px dashed var(--border);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 0.85rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  color: var(--text2);
+.stageChip {
+  display:       flex;
+  align-items:   center;
+  gap:           5px;
+  padding:       8px 12px;
+  border-radius: 20px;
+  border:        1px solid var(--border2);
+  background:    transparent;
+  color:         var(--text3);
+  font-size:     0.7rem;
+  line-height:   1.4;
+  font-weight:   800;
+  font-family:   'DM Sans', sans-serif;
+  cursor:        pointer;
+  transition:    all 0.18s;
+  white-space:   nowrap;
+  flex-shrink:   0;
 }
 
-/* ── SHARE REVIEW BUTTON ── */
-.shareReviewBtn {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 14px 16px;
+.stageChip:active {
+  opacity: 0.7;
+}
+
+.stageChip_active {
+  background:   rgba(99, 102, 241, 0.1);
+  border-color: var(--accent);
+  color:        var(--accent);
+}
+
+
+/* ─────────────────────────────────────────────────────────────
+   ORDER DETAIL PANEL
+   Slides in from the right when an order is tapped
+   ───────────────────────────────────────────────────────────── */
+
+.detailPanel {
+  position:       fixed;
+  top:            0;
+  left:           0;
+  width:          100%;
+  height:         100%;
+  background:     var(--bg);
+  z-index:        3000;
+  transform:      translateX(100%);
+  transition:     transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  display:        flex;
+  flex-direction: column;
+  overflow:       hidden;
+}
+
+.detailPanel_open {
+  transform: translateX(0);
+}
+
+/* Scrollable content area below the header */
+.detailScrollBody {
+  flex:                      1;
+  overflow-y:                auto;
+  padding:                   20px;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Dates line at the very bottom of the detail panel */
+.detailFooterDates {
+  font-size:  0.7rem;
+  color:      var(--text3);
+  margin-top: 20px;
+  text-align: center;
+}
+
+
+/* ─────────────────────────────────────────────────────────────
+   PRIORITY BANNER
+   Coloured label at the top of the detail panel
+   ───────────────────────────────────────────────────────────── */
+
+.priorityBanner {
+  font-size:      0.65rem;
+  font-weight:    800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding:        7px 12px;
+  border-radius:  8px;
+  display:        inline-block;
+  margin-bottom:  18px;
+}
+
+.priorityBanner_normal {
+  color:      var(--text2);
+  background: var(--surface);
+  border:     1px solid var(--border2);
+}
+
+.priorityBanner_urgent {
+  color:      var(--warning);
+  background: rgba(251, 146, 60, 0.1);
+  border:     1px solid rgba(251, 146, 60, 0.3);
+}
+
+.priorityBanner_vip {
+  color:      #a855f7;
+  background: rgba(168, 85, 247, 0.1);
+  border:     1px solid rgba(168, 85, 247, 0.3);
+}
+
+
+/* ─────────────────────────────────────────────────────────────
+   INFO GRID — 2×2 summary cells (price, status, stage, due)
+   ───────────────────────────────────────────────────────────── */
+
+.infoGrid {
+  display:       grid;
+  grid-template-columns: 1fr 1fr;
+  gap:           12px;
+  margin-bottom: 20px;
+}
+
+.infoGridCell {
+  background:    var(--surface);
+  border:        1px solid var(--border);
   border-radius: 14px;
-  border: 1px solid rgba(34, 197, 94, 0.4);
-  background: rgba(34, 197, 94, 0.07);
-  color: #22c55e;
-  font-family: 'DM Sans', sans-serif;
-  font-size: 0.72rem;
-  font-weight: 800;
+  padding:       12px 14px;
+}
+
+.infoGridLabel {
+  font-size:      0.6rem;
+  font-weight:    800;
+  color:          var(--text3);
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  cursor: pointer;
-  margin-bottom: 16px;
-  transition: opacity 0.15s, background 0.15s;
+  margin-bottom:  4px;
 }
-.shareReviewBtn:active { opacity: 0.75; background: rgba(34, 197, 94, 0.14); }
 
-/* ── ORDER MOSAIC THUMBNAIL ── */
-.mosaicInner { padding: 0 !important; display: flex !important; flex-direction: row !important; align-items: stretch !important; overflow: hidden; border-radius: 10px; }
-.mosaicLeft { flex: 0 0 60%; display: flex; align-items: center; justify-content: center; overflow: hidden; background: #fff; height: 100%; }
-.mosaicRight { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: #fff; }
-.mosaicRightCell { flex: 1; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; background: #fff; }
-.mosaicDividerV { width: 1.5px; flex-shrink: 0; background: var(--border); align-self: stretch; }
-.mosaicDividerH { height: 1.5px; flex-shrink: 0; background: var(--border); width: 100%; }
-.mosaicImg { width: 100%; height: 100%; object-fit: cover; display: block; }
-.mosaicOverlayWrap { position: relative; }
-.mosaicOverlay { position: absolute; inset: 0; background: rgba(0,0,0,0.52); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 0.65rem; font-weight: 800; letter-spacing: 0.3px; pointer-events: none; }
+.infoGridValue {
+  font-size:   1rem;
+  font-weight: 800;
+  color:       var(--text);
+}
 
-/* ── LIGHTBOX ── */
-.lightboxOverlay { position: fixed; inset: 0; z-index: 9000; background: rgba(0,0,0,0.96); display: flex; align-items: center; justify-content: center; animation: lightboxFadeIn 0.2s ease; }
-@keyframes lightboxFadeIn { from { opacity: 0; } to { opacity: 1; } }
-.lightboxImgWrap { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; padding: 60px 16px 80px; box-sizing: border-box; }
-.lightboxImg { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 10px; user-select: none; -webkit-user-drag: none; }
-.lightboxClose { position: absolute; top: calc(14px + var(--st,0px)); right: 16px; width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.15); border: none; color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10; font-size: 1.3rem; -webkit-tap-highlight-color: transparent; transition: background 0.15s; }
-.lightboxClose:active { background: rgba(255,255,255,0.3); }
-.lightboxCounter { position: absolute; top: calc(18px + var(--st,0px)); left: 16px; background: rgba(255,255,255,0.18); color: #fff; font-size: 0.72rem; font-weight: 800; padding: 5px 12px; border-radius: 20px; pointer-events: none; letter-spacing: 0.3px; }
-.lightboxArrow { position: absolute; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,0.15); border: none; color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10; font-size: 1.5rem; -webkit-tap-highlight-color: transparent; transition: background 0.15s; }
-.lightboxArrow:active { background: rgba(255,255,255,0.35); }
-.lightboxArrowLeft  { left: 12px; }
-.lightboxArrowRight { right: 12px; }
-.lightboxDots { position: absolute; bottom: 28px; left: 0; right: 0; display: flex; justify-content: center; gap: 7px; pointer-events: none; }
-.lightboxDot { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,0.4); border: none; padding: 0; cursor: pointer; pointer-events: all; transition: background 0.2s, transform 0.2s; flex-shrink: 0; }
-.lightboxDotActive { background: #fff; transform: scale(1.35); }
-.carouselImgTappable { cursor: zoom-in; }
-.carouselExpandHint { position: absolute; bottom: 10px; right: 10px; width: 28px; height: 28px; border-radius: 50%; background: rgba(0,0,0,0.45); color: #fff; display: flex; align-items: center; justify-content: center; pointer-events: none; z-index: 5; }
 
-@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+/* ─────────────────────────────────────────────────────────────
+   SECTION CARD — Reusable card used for garments, stage, status
+   ───────────────────────────────────────────────────────────── */
+
+.sectionCard {
+  background:    var(--surface);
+  border:        1px solid var(--border);
+  border-radius: 14px;
+  padding:       14px;
+  margin-bottom: 16px;
+}
+
+/* Small uppercase label at the top of a section card */
+.sectionCardLabel {
+  font-size:      0.6rem;
+  font-weight:    800;
+  color:          var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom:  10px;
+}
+
+/* One garment row inside the garments section */
+.garmentRow {
+  display:         flex;
+  align-items:     center;
+  justify-content: space-between;
+  gap:             10px;
+  margin-bottom:   10px;
+}
+
+.garmentRow:last-child {
+  margin-bottom: 0;
+}
+
+/* Small square garment image thumbnail */
+.garmentThumb {
+  width:           36px;
+  height:          36px;
+  border-radius:   8px;
+  background:      var(--surface2);
+  border:          1px solid var(--border2);
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  overflow:        hidden;
+  flex-shrink:     0;
+}
+
+
+/* ─────────────────────────────────────────────────────────────
+   NOTES CARD
+   ───────────────────────────────────────────────────────────── */
+
+.notesCard {
+  background:    var(--surface);
+  border:        1px solid var(--border);
+  border-radius: 14px;
+  padding:       14px;
+  margin-bottom: 16px;
+}
+
+.notesCard p {
+  font-size:   0.85rem;
+  color:       var(--text2);
+  line-height: 1.5;
+}
+
+
+/* ─────────────────────────────────────────────────────────────
+   STATUS BUTTONS — Change Status section in detail panel
+   ───────────────────────────────────────────────────────────── */
+
+.statusButton {
+  flex:          1;
+  padding:       11px;
+  border-radius: 10px;
+  border:        1px solid var(--border2);
+  font-size:     0.72rem;
+  font-weight:   800;
+  font-family:   'DM Sans', sans-serif;
+  cursor:        pointer;
+  transition:    all 0.2s;
+  color:         var(--text3);
+  background:    transparent;
+}
+
+.statusButton_active {
+  background:   var(--surface2);
+  border-color: var(--success);
+  color:        var(--success);
+}
+
+
+/* ─────────────────────────────────────────────────────────────
+   ACTION BUTTONS — Share Review, Generate Invoice
+   ───────────────────────────────────────────────────────────── */
+
+/* Green WhatsApp share review link button */
+.shareReviewButton {
+  width:          100%;
+  display:        flex;
+  align-items:    center;
+  gap:            10px;
+  padding:        14px 16px;
+  border-radius:  14px;
+  border:         1px solid rgba(34, 197, 94, 0.4);
+  background:     rgba(34, 197, 94, 0.07);
+  color:          #22c55e;
+  font-family:    'DM Sans', sans-serif;
+  font-size:      0.72rem;
+  font-weight:    800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor:         pointer;
+  margin-bottom:  16px;
+  transition:     opacity 0.15s, background 0.15s;
+}
+
+.shareReviewButton:active {
+  opacity:    0.75;
+  background: rgba(34, 197, 94, 0.14);
+}
+
+/* Invoice generation button */
+.generateInvoiceButton {
+  width:          100%;
+  margin-top:     20px;
+  padding:        16px;
+  border-radius:  14px;
+  border:         1px solid var(--border2);
+  background:     var(--surface);
+  color:          var(--text2);
+  font-family:    'DM Sans', sans-serif;
+  font-size:      0.82rem;
+  font-weight:    800;
+  display:        flex;
+  align-items:    center;
+  justify-content: center;
+  gap:            8px;
+  cursor:         pointer;
+  transition:     border-color 0.2s, color 0.2s;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+.generateInvoiceButton:active {
+  border-color: var(--accent);
+  color:        var(--accent);
+}
+
+
+/* ─────────────────────────────────────────────────────────────
+   LIGHTBOX — Full-screen image viewer (structure kept for future use)
+   ───────────────────────────────────────────────────────────── */
+
+.lightboxOverlay {
+  position:   fixed;
+  inset:      0;
+  z-index:    9000;
+  background: rgba(0, 0, 0, 0.96);
+  display:    flex;
+  align-items: center;
+  justify-content: center;
+  animation:  lightboxFadeIn 0.2s ease;
+}
+
+@keyframes lightboxFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.lightboxImageWrapper {
+  width:       100%;
+  height:      100%;
+  display:     flex;
+  align-items: center;
+  justify-content: center;
+  padding:     60px 16px 80px;
+  box-sizing:  border-box;
+}
+
+.lightboxImage {
+  max-width:        100%;
+  max-height:       100%;
+  object-fit:       contain;
+  border-radius:    10px;
+  user-select:      none;
+  -webkit-user-drag: none;
+}
+
+.lightboxCloseButton {
+  position:        absolute;
+  top:             calc(14px + var(--st, 0px));
+  right:           16px;
+  width:           40px;
+  height:          40px;
+  border-radius:   50%;
+  background:      rgba(255, 255, 255, 0.15);
+  border:          none;
+  color:           #fff;
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  cursor:          pointer;
+  z-index:         10;
+  font-size:       1.3rem;
+  -webkit-tap-highlight-color: transparent;
+  transition:      background 0.15s;
+}
+
+.lightboxCloseButton:active {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.lightboxCounter {
+  position:    absolute;
+  top:         calc(18px + var(--st, 0px));
+  left:        16px;
+  background:  rgba(255, 255, 255, 0.18);
+  color:       #fff;
+  font-size:   0.72rem;
+  font-weight: 800;
+  padding:     5px 12px;
+  border-radius: 20px;
+  pointer-events: none;
+  letter-spacing: 0.3px;
+}
+
+.lightboxArrow {
+  position:        absolute;
+  top:             50%;
+  transform:       translateY(-50%);
+  width:           44px;
+  height:          44px;
+  border-radius:   50%;
+  background:      rgba(255, 255, 255, 0.15);
+  border:          none;
+  color:           #fff;
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  cursor:          pointer;
+  z-index:         10;
+  font-size:       1.5rem;
+  -webkit-tap-highlight-color: transparent;
+  transition:      background 0.15s;
+}
+
+.lightboxArrow:active {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.lightboxArrow_left  { left: 12px;  }
+.lightboxArrow_right { right: 12px; }
+
+.lightboxDots {
+  position:        absolute;
+  bottom:          28px;
+  left:            0;
+  right:           0;
+  display:         flex;
+  justify-content: center;
+  gap:             7px;
+  pointer-events:  none;
+}
+
+.lightboxDot {
+  width:           7px;
+  height:          7px;
+  border-radius:   50%;
+  background:      rgba(255, 255, 255, 0.4);
+  border:          none;
+  padding:         0;
+  cursor:          pointer;
+  pointer-events:  all;
+  transition:      background 0.2s, transform 0.2s;
+  flex-shrink:     0;
+}
+
+.lightboxDot_active {
+  background: #fff;
+  transform:  scale(1.35);
+}
+
+
+/* ─────────────────────────────────────────────────────────────
+   ANIMATIONS
+   ───────────────────────────────────────────────────────────── */
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0);   }
+}

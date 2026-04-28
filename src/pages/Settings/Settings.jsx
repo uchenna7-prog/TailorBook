@@ -1,92 +1,224 @@
 import { useState, useRef, useCallback } from 'react'
 import { useSettings } from '../../contexts/SettingsContext'
 import { useBrand } from '../../contexts/BrandContext'
+
 import Header from '../../components/Header/Header'
 import Toast from '../../components/Toast/Toast'
 import ConfirmSheet from '../../components/ConfirmSheet/ConfirmSheet'
-import styles from './Settings.module.css'
+import BottomNav from '../../components/BottomNav/BottomNav'
 
 import { Toggle } from './components/Toggle/Toggle'
 import { SettingRow } from './components/SettingRow/SettingRow'
-import { SegmentControl } from './components/SegmentControl/SegmentControl'
 import { SectionHeader } from './components/SectionHeader/SectionHeader'
 
 import { TemplateModal } from './modals/TemplateModal/TemplateModal'
 import { ReceiptSettingsModal } from './modals/ReceiptSettingsModal/ReceiptSettingsModal'
 import { InvoiceSettingsModal } from './modals/InvoiceSettingsModal/InvoiceSettingsModal'
-import BottomNav from '../../components/BottomNav/BottomNav'
+
+import styles from './Settings.module.css'
 
 
-export default function Settings({ onMenuClick, isPremium=false, onUpgrade=()=>{} }) {
+export default function Settings({ onMenuClick }) {
   const { settings, updateSetting, updateMany, resetSettings } = useSettings()
   const { brand } = useBrand()
-  const [toastMsg,setToastMsg]=useState('')
-  const [templateModalOpen,setTemplateModalOpen]=useState(false)
-  const [invoiceModal,setInvoiceModal]=useState(false)
-  const [receiptModal,setReceiptModal]=useState(false)
-  const [clearConfirm,setClearConfirm]=useState(false)
-  const [resetConfirm,setResetConfirm]=useState(false)
-  const toastTimer=useRef(null)
-  const showToast=useCallback(msg=>{setToastMsg(msg);clearTimeout(toastTimer.current);toastTimer.current=setTimeout(()=>setToastMsg(''),2400)},[])
-  const isDark=settings.theme==='dark'
+
+  // ── Toast ──────────────────────────────────────────────────────────────────
+  const [toastMessage, setToastMessage] = useState('')
+  const toastTimerRef = useRef(null)
+
+  function showToast(message) {
+    setToastMessage(message)
+    clearTimeout(toastTimerRef.current)
+    toastTimerRef.current = setTimeout(() => setToastMessage(''), 2400)
+  }
+
+  // ── Modal visibility ───────────────────────────────────────────────────────
+  const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false)
+  const [isInvoiceModalOpen,  setIsInvoiceModalOpen]  = useState(false)
+  const [isReceiptModalOpen,  setIsReceiptModalOpen]  = useState(false)
+
+  // ── Confirm sheet visibility ───────────────────────────────────────────────
+  const [isClearDataConfirmOpen,   setIsClearDataConfirmOpen]   = useState(false)
+  const [isResetSettingsConfirmOpen, setIsResetSettingsConfirmOpen] = useState(false)
+
+  // ── Derived values ─────────────────────────────────────────────────────────
+  const isDarkMode = settings.theme === 'dark'
+
+  // ── Handlers ──────────────────────────────────────────────────────────────
+  function handleTemplateSelect(selectedTemplates) {
+    updateMany({
+      invoiceTemplate: selectedTemplates.invoiceTemplate,
+      receiptTemplate: selectedTemplates.receiptTemplate,
+    })
+    showToast('Template selected')
+  }
+
+  function handleClearAllData() {
+    localStorage.clear()
+    setIsClearDataConfirmOpen(false)
+    showToast('Cleared')
+  }
+
+  function handleResetAllSettings() {
+    resetSettings()
+    setIsResetSettingsConfirmOpen(false)
+    showToast('Settings reset')
+  }
+
 
   return (
-    <div className={styles.page}>
+    <div className={styles.settingsPage}>
+
       <Header onMenuClick={onMenuClick} />
-      <div className={styles.scrollArea}>
+
+      <div className={styles.settingsScrollArea}>
+
+        {/* ── Appearance ──────────────────────────────────────────────────── */}
         <SectionHeader icon="palette" label="Appearance" />
-        <SettingRow icon="dark_mode" label="Dark Mode" sub={isDark?'Dark theme active':'Light theme active'}>
-          <Toggle value={isDark} onChange={v=>updateSetting('theme',v?'dark':'light')} />
+
+        <SettingRow
+          icon="dark_mode"
+          label="Dark Mode"
+          sub={isDarkMode ? 'Dark theme active' : 'Light theme active'}
+        >
+          <Toggle
+            value={isDarkMode}
+            onChange={isOn => updateSetting('theme', isOn ? 'dark' : 'light')}
+          />
         </SettingRow>
 
+        {/* ── Invoice & Receipt ────────────────────────────────────────────── */}
         <SectionHeader icon="receipt_long" label="Invoice & Receipt" />
-        <SettingRow icon="tune" label="Invoice Settings" sub={`${settings.invoiceCurrency} · ${settings.invoicePrefix} · Due ${settings.invoiceDueDays}d`} onClick={()=>setInvoiceModal(true)} chevron />
-        <SettingRow icon="request_quote" label="Receipt Settings" sub="Prefix, footer text and receipt defaults" onClick={()=>setReceiptModal(true)} chevron />
-        
-        <SettingRow 
-          icon="description" 
-          label="Templates" 
-          sub="Choose your preferred invoice and receipt designs" 
-          value={`${settings.invoiceTemplate} · ${settings.receiptTemplate}`}
-          onClick={()=>setTemplateModalOpen(true)} 
-          chevron 
+
+        <SettingRow
+          icon="tune"
+          label="Invoice Settings"
+          sub={`${settings.invoiceCurrency} · ${settings.invoicePrefix} · Due ${settings.invoiceDueDays}d`}
+          onClick={() => setIsInvoiceModalOpen(true)}
+          chevron
         />
 
+        <SettingRow
+          icon="request_quote"
+          label="Receipt Settings"
+          sub="Prefix, footer text and receipt defaults"
+          onClick={() => setIsReceiptModalOpen(true)}
+          chevron
+        />
+
+        <SettingRow
+          icon="description"
+          label="Templates"
+          sub="Choose your preferred invoice and receipt designs"
+          value={`${settings.invoiceTemplate} · ${settings.receiptTemplate}`}
+          onClick={() => setIsTemplateModalOpen(true)}
+          chevron
+        />
+
+        {/* ── Notifications ────────────────────────────────────────────────── */}
         <SectionHeader icon="notifications" label="Notifications" />
-        <SettingRow icon="alarm" label="Overdue Tasks" sub="Alert when tasks pass their due date">
-          <Toggle value={settings.notifyOverdueTasks} onChange={v=>updateSetting('notifyOverdueTasks',v)} />
-        </SettingRow>
-        <SettingRow icon="cake" label="Customer Birthdays" sub="Remind you a day before">
-          <Toggle value={settings.notifyUpcomingBirthdays} onChange={v=>updateSetting('notifyUpcomingBirthdays',v)} />
-        </SettingRow>
-        <SettingRow icon="money_off" label="Unpaid Invoices" sub="Alert for invoices past due date">
-          <Toggle value={settings.notifyUnpaidInvoices} onChange={v=>updateSetting('notifyUnpaidInvoices',v)} />
+
+        <SettingRow
+          icon="alarm"
+          label="Overdue Tasks"
+          sub="Alert when tasks pass their due date"
+        >
+          <Toggle
+            value={settings.notifyOverdueTasks}
+            onChange={isOn => updateSetting('notifyOverdueTasks', isOn)}
+          />
         </SettingRow>
 
+        <SettingRow
+          icon="cake"
+          label="Customer Birthdays"
+          sub="Remind you a day before"
+        >
+          <Toggle
+            value={settings.notifyUpcomingBirthdays}
+            onChange={isOn => updateSetting('notifyUpcomingBirthdays', isOn)}
+          />
+        </SettingRow>
+
+        <SettingRow
+          icon="money_off"
+          label="Unpaid Invoices"
+          sub="Alert for invoices past due date"
+        >
+          <Toggle
+            value={settings.notifyUnpaidInvoices}
+            onChange={isOn => updateSetting('notifyUnpaidInvoices', isOn)}
+          />
+        </SettingRow>
+
+        {/* ── Data ─────────────────────────────────────────────────────────── */}
         <SectionHeader icon="storage" label="Data" />
-        <SettingRow icon="restart_alt" label="Reset All Settings" sub="Restore defaults. Your customers and orders are safe." onClick={()=>setResetConfirm(true)} chevron danger />
-        <SettingRow icon="delete_forever" label="Clear All Data" sub="Permanently delete everything" onClick={()=>setClearConfirm(true)} chevron divider={false} danger />
-        <div style={{ height:32 }} />
+
+        <SettingRow
+          icon="restart_alt"
+          label="Reset All Settings"
+          sub="Restore defaults. Your customers and orders are safe."
+          onClick={() => setIsResetSettingsConfirmOpen(true)}
+          chevron
+          danger
+        />
+
+        <SettingRow
+          icon="delete_forever"
+          label="Clear All Data"
+          sub="Permanently delete everything"
+          onClick={() => setIsClearDataConfirmOpen(true)}
+          chevron
+          divider={false}
+          danger
+        />
+
+        <div style={{ height: 32 }} />
+
       </div>
 
+      {/* ── Modals ────────────────────────────────────────────────────────── */}
       <TemplateModal
-        isOpen={templateModalOpen}
+        isOpen={isTemplateModalOpen}
         currentInvoiceTemplate={settings.invoiceTemplate || 'invoiceTemplate1'}
         currentReceiptTemplate={settings.receiptTemplate || 'receiptTemplate1'}
         colourId={brand.colourId}
-        onClose={() => setTemplateModalOpen(false)}
-        onSelect={obj => {
-   
-          updateMany({ invoiceTemplate: obj.invoiceTemplate, receiptTemplate: obj.receiptTemplate })  // ← saves to both
-          showToast('Template selected')
-        }}
+        onClose={() => setIsTemplateModalOpen(false)}
+        onSelect={handleTemplateSelect}
       />
-      {invoiceModal&&<InvoiceSettingsModal onBack={()=>setInvoiceModal(false)} showToast={showToast} />}
-      {receiptModal&&<ReceiptSettingsModal onBack={()=>setReceiptModal(false)} showToast={showToast} />}
-      <ConfirmSheet open={clearConfirm} title="Delete All Data?" onConfirm={()=>{localStorage.clear();setClearConfirm(false);showToast('Cleared')}} onCancel={()=>setClearConfirm(false)} />
-      <ConfirmSheet open={resetConfirm} title="Reset All Settings?" onConfirm={()=>{resetSettings();setResetConfirm(false);showToast('Settings reset')}} onCancel={()=>setResetConfirm(false)} />
-      <Toast message={toastMsg} />
-      <BottomNav></BottomNav>
+
+      {isInvoiceModalOpen && (
+        <InvoiceSettingsModal
+          onBack={() => setIsInvoiceModalOpen(false)}
+          showToast={showToast}
+        />
+      )}
+
+      {isReceiptModalOpen && (
+        <ReceiptSettingsModal
+          onBack={() => setIsReceiptModalOpen(false)}
+          showToast={showToast}
+        />
+      )}
+
+      {/* ── Confirm Sheets ────────────────────────────────────────────────── */}
+      <ConfirmSheet
+        open={isClearDataConfirmOpen}
+        title="Delete All Data?"
+        onConfirm={handleClearAllData}
+        onCancel={() => setIsClearDataConfirmOpen(false)}
+      />
+
+      <ConfirmSheet
+        open={isResetSettingsConfirmOpen}
+        title="Reset All Settings?"
+        onConfirm={handleResetAllSettings}
+        onCancel={() => setIsResetSettingsConfirmOpen(false)}
+      />
+
+      <Toast message={toastMessage} />
+      <BottomNav />
+
     </div>
   )
 }
