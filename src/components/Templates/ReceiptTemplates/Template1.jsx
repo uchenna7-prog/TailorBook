@@ -5,26 +5,6 @@ import { ItemsTable } from "../components/ReceiptItemsTable/ReceiptItemsTable"
 
 export function ReceiptTemplate1({ receipt, customer, brand }) {
 
-  const format = (str) => 
-  str.charAt(0).toUpperCase() + str.slice(1);
-
-  const getPaymentMethod = (receipt) => {
-    if (!receipt.payments?.length) return "N/A";
-
-    const uniqueMethods = [
-      ...new Set(
-        receipt.payments
-          .map(p => p.method?.toLowerCase())
-          .filter(Boolean)
-      )
-    ];
-
-    if (uniqueMethods.length === 0) return "N/A";
-
-    return uniqueMethods.map(format).join(" + ");
-  };
-  const paymentMethods = getPaymentMethod(receipt)
-
   const lineColor = brand.colour || '#0057D7'
 
   return (
@@ -91,10 +71,6 @@ export function ReceiptTemplate1({ receipt, customer, brand }) {
 
               <div>
                 <div>
-
-                  {receipt.payments && (
-                    <div>Payment Method(s) : {paymentMethods}</div>
-                  )}
 
                   {brand.name && (
                     <div>Received By : {brand.name}</div>

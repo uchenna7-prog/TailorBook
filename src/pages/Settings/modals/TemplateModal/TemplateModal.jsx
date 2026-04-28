@@ -5,7 +5,7 @@ import Header from "../../../../components/Header/Header"
 import styles from "./TemplateModal.module.css"
 import { INVOICE_TEMPLATE_GROUPS } from "../../datas/invoiceTemplateGroups"
 import { RECEIPT_TEMPLATE_GROUPS } from "../../datas/receiptTemplateGroups"
-import { CUSTOMER_SAMPLE_DATA,INVOICE_SAMPLE_DATA,getBrandSampleData } from "../../datas/sampleDatas"
+import { CUSTOMER_SAMPLE_DATA,INVOICE_SAMPLE_DATA,getBrandSampleData,RECEIPT_SAMPLE_DATA } from "../../datas/sampleDatas"
 
 export function TemplateModal({ isOpen, currentTemplate, colourId, onClose, onSelect }) {
 
@@ -18,11 +18,11 @@ export function TemplateModal({ isOpen, currentTemplate, colourId, onClose, onSe
 
   if (!isOpen) return null
 
-  const groups = activeTab === 'invoice' ? INVOICE_TEMPLATE_GROUPS : RECEIPT_TEMPLATE_GROUPS
+  const templateGroups = activeTab === 'invoice' ? INVOICE_TEMPLATE_GROUPS : RECEIPT_TEMPLATE_GROUPS
 
   return (
 
-    <div className={styles.fullOverlay} ref={modalRef}>
+    <div className={styles.modalContainer} ref={modalRef}>
 
       <Header
         type="back"
@@ -30,7 +30,8 @@ export function TemplateModal({ isOpen, currentTemplate, colourId, onClose, onSe
         onBackClick={onClose}
         customActions={[{ label: 'Select', onClick: () => { onSelect(selected); onClose() } }]}
       />
-      <div className={styles.tabBar}>
+      
+      <div className={styles.tabsContainer}>
 
         <button
           className={`${styles.tabBtn} ${activeTab === 'invoice' ? styles.tabBtnActive : ''}`}
@@ -54,36 +55,64 @@ export function TemplateModal({ isOpen, currentTemplate, colourId, onClose, onSe
 
       </div>
 
-      <div className={styles.fullContent}>
+      <div className={styles.templatesContainer}>
 
-        {groups.map((group, groupIndex) => (
+        {templateGroups.map((group, groupIndex) => (
 
           <div key={group.groupLabel}>
 
-            <div className={`${styles.groupHeader} ${groupIndex === 0 ? styles.groupHeaderFirst : ''}`}>
-              <div className={styles.groupHeaderInner}>
+            <div className={`${styles.groupHeaderContainer} ${groupIndex === 0 ? styles.groupHeaderFirstContainer : ''}`}>
+
+              <div className={styles.groupHeaderTextsContainer}>
+
                 <span className={styles.groupLabel}>{group.groupLabel}</span>
                 {group.groupDescription && <span className={styles.groupDescription}>{group.groupDescription}</span>}
+
               </div>
+              
             </div>
+
             <div className={styles.groupTemplates}>
-              {group.templates.map(t => (
-                <div key={t.id} className={styles.templateWrapper} onClick={() => setSelected(t.id)}>
-                  <div className={`${styles.fullPreviewContainer} ${selected === t.id ? styles.fullPreviewActive : ''}`}>
-                    <t.Component 
-                    invoice={INVOICE_SAMPLE_DATA} 
-                    customer={CUSTOMER_SAMPLE_DATA} 
-                    brand={getBrandSampleData(brand)}/>
-                  </div>
-                  <div className={styles.templateInfo}>
-                    <div className={`${styles.radio} ${selected === t.id ? styles.radioActive : ''}`} />
-                    <div className={styles.templateLabelGroup}>
-                      <span className={styles.templateLabel}>{t.label}</span>
-                      {t.description && <span className={styles.templateDescription}>{t.description}</span>}
+
+
+              {activeTab === "invoice" && group.templates.map(template => (
+
+                  <div key={t.id} className={styles.templateContainer} onClick={() => setSelected(template.id)}>
+
+                    <div className={`${styles.fullPreviewContainer} ${selected === template.id ? styles.fullPreviewActive : ''}`}>
+                      <template.Component 
+                      invoice ={INVOICE_SAMPLE_DATA} 
+                      customer={CUSTOMER_SAMPLE_DATA} 
+                      brand={getBrandSampleData(brand)}/>
+                    </div>
+                    <div className={styles.templateInfo}>
+                      <div className={`${styles.radio} ${selected === t.id ? styles.radioActive : ''}`} />
+                      <div className={styles.templateLabelGroup}>
+                        <span className={styles.templateLabel}>{t.label}</span>
+                        {t.description && <span className={styles.templateDescription}>{t.description}</span>}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                )) }
+
+                {activeTab === "receipt" && group.templates.map(t => (
+                  <div key={t.id} className={styles.templateContainer} onClick={() => setSelected(t.id)}>
+                    <div className={`${styles.fullPreviewContainer} ${selected === t.id ? styles.fullPreviewActive : ''}`}>
+                      <t.Component 
+                      receipt ={RECEIPT_SAMPLE_DATA} 
+                      customer={CUSTOMER_SAMPLE_DATA} 
+                      brand={getBrandSampleData(brand)}/>
+                    </div>
+                    <div className={styles.templateInfo}>
+                      <div className={`${styles.radio} ${selected === t.id ? styles.radioActive : ''}`} />
+                      <div className={styles.templateLabelGroup}>
+                        <span className={styles.templateLabel}>{t.label}</span>
+                        {t.description && <span className={styles.templateDescription}>{t.description}</span>}
+                      </div>
+                    </div>
+                  </div>
+                )) }
+            
             </div>
           </div>
         ))}

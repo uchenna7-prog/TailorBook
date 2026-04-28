@@ -34,6 +34,13 @@ function formatDate(dateStr) {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
+function formatDateShort(dateStr) {
+  if (!dateStr) return ''
+  const d = new Date(dateStr + 'T00:00:00')
+  if (isNaN(d)) return ''
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+}
+
 function getOrderGroupDate(o) {
   if (o.date && o.date !== 'Unknown Date') return o.date
   if (o.createdAt) {
@@ -74,11 +81,11 @@ const EMPTY_CONFIG = {
 }
 
 const STATUS_COLORS = {
-  pending:       { color: '#f59e0b', bg: 'rgba(245,158,11,0.12)', border: 'rgba(245,158,11,0.35)' },
-  'in-progress': { color: '#3b82f6', bg: 'rgba(59,130,246,0.12)', border: 'rgba(59,130,246,0.35)' },
-  completed:     { color: '#22c55e', bg: 'rgba(34,197,94,0.12)',  border: 'rgba(34,197,94,0.35)'  },
-  delivered:     { color: '#a855f7', bg: 'rgba(168,85,247,0.12)', border: 'rgba(168,85,247,0.35)' },
-  cancelled:     { color: '#94a3b8', bg: 'rgba(148,163,184,0.12)',border: 'rgba(148,163,184,0.35)'},
+  pending:       { color: '#a16207', bg: 'rgba(234,179,8,0.12)',   border: 'rgba(234,179,8,0.3)'   },
+  'in-progress': { color: '#2563eb', bg: 'rgba(59,130,246,0.12)',  border: 'rgba(59,130,246,0.3)'  },
+  completed:     { color: '#15803d', bg: 'rgba(21,128,61,0.12)',   border: 'rgba(21,128,61,0.3)'   },
+  delivered:     { color: '#4f46e5', bg: 'rgba(129,140,248,0.12)', border: 'rgba(129,140,248,0.3)' },
+  cancelled:     { color: '#dc2626', bg: 'rgba(239,68,68,0.12)',   border: 'rgba(239,68,68,0.3)'   },
 }
 
 const PRIORITY_COLORS = {
@@ -659,15 +666,21 @@ function OrderMosaic({ items, overdue }) {
   )
 }
 
-// ── Order List Item ───────────────────────────────────────────
+// ── Order Card ────────────────────────────────────────────────
 
 function OrderCard({ order, isLast, onTap }) {
   const overdue  = isOverdue(order)
-  const due      = daysUntil(order.dueDate)
-  const sc       = overdue
-    ? { color: '#ef4444', bg: 'rgba(239,68,68,0.1)', border: 'rgba(239,68,68,0.3)' }
-    : STATUS_COLORS[order.status] ?? STATUS_COLORS.pending
   const stageObj = STAGES.find(s => s.value === order.stage)
+  const sc       = overdue
+    ? { color: '#ef4444', bg: 'rgba(239,68,68,0.12)', border: 'rgba(239,68,68,0.3)' }
+    : STATUS_COLORS[order.status] ?? STATUS_COLORS.pending
+  const statusLabel = overdue
+    ? 'Overdue'
+    : order.status
+      ? order.status === 'in-progress' ? 'In Progress' : order.status.charAt(0).toUpperCase() + order.status.slice(1)
+      : 'Pending'
+  const priceStr = order.price != null ? `₦${Number(order.price).toLocaleString()}` : '—'
+  const totalQty = (order.items || []).reduce((s, i) => s + (parseInt(i.qty, 10) || 0), 0) || order.qty || 0
 
   return (
     <div
@@ -676,42 +689,34 @@ function OrderCard({ order, isLast, onTap }) {
     >
       <OrderMosaic items={order.items || []} overdue={overdue} />
 
+      {/* LEFT: desc, customer name, stage */}
       <div className={styles.orderListInfo}>
         <div className={styles.orderListDesc}>{order.desc || order.name || 'Order'}</div>
-
         <div className={styles.orderListMeta}>
-          <span className="material-icons" style={{ fontSize: '0.8rem', color: 'var(--text3)', verticalAlign: 'middle' }}>person</span>
+          <span className="material-icons" style={{ fontSize: '0.78rem', color: 'var(--text3)', verticalAlign: 'middle' }}>person</span>
           <span className={styles.orderListMetaText}>{order.customerName || '—'}</span>
         </div>
-
-        {order.status && (
-          <div style={{ marginBottom: 4 }}>
-            <span style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              fontSize: '0.75rem',
-              fontWeight: 600,
-              padding: '2px 10px',
-              borderRadius: 6,
-              color: sc.color,
-              background: sc.bg,
-              border: `1px solid ${sc.border}`,
-            }}>
-              {overdue ? 'Overdue' : order.status.replace('-', ' ').replace(/\b\w/g, c => c.toUpperCase())}
-            </span>
-          </div>
-        )}
-
         {stageObj && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 3 }}>
-            <span className="material-icons" style={{ fontSize: '0.85rem', color: 'var(--text3)' }}>{stageObj.icon}</span>
-            <span style={{ fontSize: '0.78rem', fontWeight: 500, color: 'var(--text2)' }}>{stageObj.label}</span>
+          <div className={styles.orderListStageLine}>
+            <span className="material-icons" style={{ fontSize: '0.78rem' }}>{stageObj.icon}</span>
+            {stageObj.label}
           </div>
         )}
+      </div>
 
-        {(order.dueDate || order.due) && (
-          <div style={{ fontSize: '0.78rem', fontWeight: 600, color: '#ef4444', marginTop: 1 }}>
-            Due {order.dueDate ? formatDate(order.dueDate) : order.due}{order.dueDate && due ? ` · ${due}` : ''}
+      {/* RIGHT: price, qty, status pill, due date */}
+      <div className={styles.orderListRight}>
+        <div className={styles.orderListPrice}>{priceStr}</div>
+        {totalQty > 1 && <div className={styles.orderListQty}>×{totalQty}</div>}
+        <span
+          className={styles.orderListStatusBadge}
+          style={{ color: sc.color, background: sc.bg, borderColor: sc.border }}
+        >
+          {statusLabel}
+        </span>
+        {order.dueDate && (
+          <div className={styles.orderListDueRight}>
+            Due {formatDateShort(order.dueDate)}
           </div>
         )}
       </div>
@@ -879,7 +884,7 @@ export default function Orders({ onMenuClick, onGoToCustomer }) {
           onGoToCustomer={onGoToCustomer}
         />
       )}
-      <BottomNav></BottomNav>
+      <BottomNav />
     </div>
   )
 }

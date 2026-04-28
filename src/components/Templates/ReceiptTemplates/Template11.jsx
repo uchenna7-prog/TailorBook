@@ -1,119 +1,138 @@
 import styles from "../styles/Template11.module.css"
-
+import { calcTax,fmt } from "../utils/receiptUtils"
 
 export function ReceiptTemplate11({ receipt, customer, brand }) {
-  const accentColor = brand.colour || '#5da0d0'
+ 
+  const accentColor = brand.colour || '#0057D7'
   const barBg       = '#dbeeff'
-  const { currency } = brand
-  const orderTotal       = receipt.items?.reduce((s, i) => s + (parseFloat(i.price) || 0), 0) ?? (parseFloat(receipt.orderPrice) || 0)
-  const cumulativePaid   = resolveCumulativePaid(receipt)
-  const thisPaymentTotal = (receipt.payments || []).reduce((s, p) => s + (parseFloat(p.amount) || 0), 0)
-  const balanceRemaining = Math.max(0, orderTotal - cumulativePaid)
-  const isFullPayment    = balanceRemaining <= 0
-  const paymentRows      = buildPaymentRows(receipt)
+  const { currency, showTax, taxRate } = brand
+  const subtotal = receipt.items?.length > 0
+    ? receipt.items.reduce((sum, item) => sum + ((item.qty ?? 1) * (parseFloat(item.price) || 0)), 0)
+    : 0
+  const tax      = calcTax(subtotal, taxRate, showTax)
+  const total    = subtotal + tax
 
   return (
-    <div className={styles.t11Wrap}>
-      <div className={styles.t11TopBar}>
-        <div className={styles.t11LogoArea}>
-          <div className={styles.t11LogoHex}>
+    <div className={styles.template}>
+
+      <div className={styles.topBar}>
+
+        <div className={styles.logoArea}>
+
+          <div className={styles.logoCircle}>
             {brand.logo
-              ? <img src={brand.logo} alt="" style={{ width: 14, height: 14, objectFit: 'contain', borderRadius: 2 }} />
+              ? <img src={brand.logo} alt="" style={{ width: "45px", height: "45px", objectFit: 'contain', borderRadius: 2 }} />
               : <span className="mi" style={{ fontSize: 11, color: '#fff' }}>checkroom</span>
             }
           </div>
+
           <div>
-            <div className={styles.t11CompanyName}>{(brand.name || brand.ownerName || '').toUpperCase()}</div>
-            {brand.tagline && <div className={styles.t11CompanySub}>{brand.tagline}</div>}
+            <div className={styles.companyName}>{(brand.name || brand.ownerName || '').toUpperCase()}</div>
+            {brand.tagline && <div className={styles.companySub}>{brand.tagline}</div>}
           </div>
+
         </div>
-        {brand.address && <div className={styles.t11CompanyInfo}>{brand.address}</div>}
-        <div className={styles.t11CompanyInfo} style={{ textAlign: 'right' }}>
+
+        {brand.address && <div className={styles.companyInfo}>{brand.address}</div>}
+
+        <div className={styles.companyInfo} style={{ textAlign: 'right' }}>
           {brand.website && <div>{brand.website}</div>}
           {brand.email   && <div>{brand.email}</div>}
           {brand.phone   && <div>{brand.phone}</div>}
         </div>
+
       </div>
-      <div className={styles.t11InvoiceTitle}>Receipt</div>
-      <div className={styles.t11BlueBar} style={{ background: barBg, color: accentColor }}>
-        <span>RECEIPT: #{receipt.number}</span>
-        <span>DATE: {receipt.date}</span>
-        <span>AMOUNT: {fmt(currency, thisPaymentTotal)}</span>
+
+      <div className={styles.receiptTitle}>receipt</div>
+
+      <div className={styles.bar} style={{ background: "var(--brand-muted)", color: accentColor }}>
+        <span>receipt: #{receipt.number}</span>
+        <span>DATE ISSUED: {receipt.date}</span>
+
       </div>
-      <div className={styles.t11IssuedRow}>
+
+      <div className={styles.issuedRow}>
+
         <div>
-          <div className={styles.t11IssuedLabel}>RECEIVED FROM</div>
+          <div className={styles.issuedLabel}>ISSUED TO</div>
           <div>{customer.name}</div>
           {customer.phone   && <div>{customer.phone}</div>}
           {customer.address && <div>{customer.address}</div>}
         </div>
+
         <div style={{ textAlign: 'right' }}>
-          <div className={styles.t11AmountLabel} style={{ color: accentColor }}>AMOUNT PAID</div>
-          <div className={styles.t11AmountVal} style={{ color: accentColor }}>{fmt(currency, thisPaymentTotal)}</div>
+          <div className={styles.amountLabel} style={{ color: accentColor }}>AMOUNT</div>
+          <div className={styles.amountVal} style={{ color: accentColor }}>{fmt(currency, total)}</div>
         </div>
+
       </div>
-      {receipt.orderDesc && <div className={styles.t11ProjectName}>{receipt.orderDesc}</div>}
-      <div className={styles.t11PayTitle}>Order Details</div>
-      <div className={styles.t11TableHead}>
-        <span style={{ flex: 3 }}>Description</span>
-        <span>S/N</span><span>Amount</span>
+      {receipt.orderDesc && <div className={styles.projectName}>{receipt.orderDesc}</div>}
+      <div className={styles.tableHead}>
+        <span style={{ flex: 3, textAlign: 'left' }}>Item Description</span>
+        <span style={{ flex: 1, textAlign: 'center' }}>Qty</span>
+        <span style={{ flex: 1, textAlign: 'center' }}>Unit Price</span>
+        <span style={{ flex: 1, textAlign: 'center' }}>Amount</span>
       </div>
-      {receipt.items?.map((item, i) => (
-        <div key={i} className={styles.t11TableRow}>
-          <span style={{ flex: 3 }}>• {item.name}</span>
-          <span>{i + 1}</span>
-          <span>{fmt(currency, item.price)}</span>
-        </div>
-      ))}
-      {!receipt.items?.length && (
-        <div className={styles.t11TableRow}>
-          <span style={{ flex: 3 }}>• {receipt.orderDesc || 'Garment Order'}</span>
-          <span>1</span>
-          <span>{fmt(currency, orderTotal)}</span>
-        </div>
-      )}
-      <div className={styles.t11TotArea}>
-        <div className={styles.t11TotRow}><span>Order Value</span><span>{fmt(currency, orderTotal)}</span></div>
-      </div>
-      {paymentRows.length > 0 && (
-        <div style={{ marginTop: 10 }}>
-          <div className={styles.t11PayTitle}>Payment History</div>
-          <div className={styles.t11TableHead} style={{ background: barBg, color: accentColor }}>
-            <span style={{ flex: 3 }}>Payment Date</span>
-            <span>S/N</span><span>Amount</span>
+      {receipt.items?.map((item, i) => {
+        const qty = item.qty ?? 1;
+        const unitPrice = parseFloat(item.price) || 0;
+        const lineAmount = qty * unitPrice;
+
+        return (
+          <div key={i} className={styles.tableRow}>
+            <span style={{ flex: 3, textAlign: 'left' }}>• {item.name}</span>
+            <span style={{ flex: 1, textAlign: 'center' }}>{qty}</span>
+            <span style={{ flex: 1, textAlign: 'center' }}>
+              {fmt(currency, unitPrice)}
+            </span>
+            <span style={{ flex: 1, textAlign: 'center' }}>
+              {fmt(currency, lineAmount)}
+            </span>
           </div>
-          {paymentRows.map((p, idx) => (
-            <div key={p.id ?? idx} className={styles.t11TableRow}>
-              <span style={{ flex: 3, color: p._isCurrent ? '#1a1a1a' : '#9ca3af', fontWeight: p._isCurrent ? 600 : 400 }}>
-                {p.date}
-                {p.method && (
-                  <span style={{ color: p._isCurrent ? '#16a34a' : '#b0b8c1', fontWeight: 700 }}> · {p.method.charAt(0).toUpperCase() + p.method.slice(1)}</span>
+        );
+      })}
+      <div className={styles.totalArea}>
+        <div className={styles.totalRow}><span>Subtotal</span><span>{fmt(currency, subtotal)}</span></div>
+        {showTax && taxRate > 0 && (
+          <div className={styles.totalRow}><span>Tax ({taxRate}%)</span><span>{fmt(currency, tax)}</span></div>
+        )}
+        <div className={styles.totalRow}><span>TOTAL</span><span>{fmt(currency, total)}</span></div>
+      </div>
+      {(brand.accountBank || brand.phone) && (
+        <>
+          <div className={styles.paymentTitle}>Payment Details</div>
+          <div className={styles.paymentBoxRow}>
+            {brand.accountBank && (
+              <div className={styles.paymentBox} style={{background: "var(--brand-muted)"}}>
+                <div className={styles.paymentBoxTitle}>Bank Transfer</div>
+                <div>
+
+                  {brand.name && (
+                  <div>Received By : {brand.name}</div>
                 )}
-              </span>
-              <span style={{ color: p._isCurrent ? '#1a1a1a' : '#9ca3af', fontWeight: p._isCurrent ? 700 : 400 }}>{p._sn}</span>
-              <span style={{ color: p._isCurrent ? '#16a34a' : '#9ca3af', fontWeight: p._isCurrent ? 700 : 400 }}>{fmt(currency, p.amount)}</span>
-            </div>
-          ))}
-          <div className={styles.t11TotArea}>
-            <div className={styles.t11TotRow}><span>Total Paid</span><span style={{ color: '#16a34a', fontWeight: 700 }}>{fmt(currency, thisPaymentTotal)}</span></div>
-            {!isFullPayment && <div className={styles.t11TotRow} style={{ color: '#ef4444' }}><span>Balance</span><span style={{ fontWeight: 700 }}>{fmt(currency, balanceRemaining)}</span></div>}
-            <div className={styles.t11TotBold}>
-              <span>{isFullPayment ? 'PAID IN FULL' : 'RECEIVED'}</span>
-              <span style={{ color: isFullPayment ? '#16a34a' : accentColor }}>{fmt(currency, thisPaymentTotal)}</span>
-            </div>
+
+                </div>
+              </div>
+            )}
+            {brand.phone && (
+              <div className={styles.paymentBox} style={{background: "var(--brand-muted)"}}>
+                <div className={styles.paymentBoxTitle}>Contact</div>
+                <div>
+                  {brand.phone}<br />
+                  {brand.email && <span>{brand.email}</span>}
+                </div>
+              </div>
+            )}
+            {brand.address && (
+              <div className={styles.paymentBox} style={{ background: "var(--brand-muted)"}}>
+                <div className={styles.paymentBoxTitle}>Visit Us</div>
+                <div>{brand.address}</div>
+              </div>
+            )}
           </div>
-        </div>
+        </>
       )}
-      {paymentRows.length === 0 && (
-        <div className={styles.t11TotArea}>
-          {!isFullPayment && <div className={styles.t11TotRow} style={{ color: '#ef4444' }}><span>Balance</span><span style={{ fontWeight: 700 }}>{fmt(currency, balanceRemaining)}</span></div>}
-          <div className={styles.t11TotBold}>
-            <span>{isFullPayment ? 'PAID IN FULL' : 'RECEIVED'}</span>
-            <span style={{ color: isFullPayment ? '#16a34a' : accentColor }}>{fmt(currency, thisPaymentTotal)}</span>
-          </div>
-        </div>
-      )}
-      <div className={styles.t11ThankYou} style={{ color: accentColor }}>{brand.footer || 'THANK YOU!'}</div>
+      <div className={styles.thankYou} style={{ color: accentColor }}>{brand.footer || 'THANK YOU!'}</div>
     </div>
   )
 }

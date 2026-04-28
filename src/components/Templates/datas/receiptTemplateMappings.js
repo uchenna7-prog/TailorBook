@@ -11,6 +11,7 @@ import { ReceiptTemplate10 } from "../ReceiptTemplates/Template10"
 import { ReceiptTemplate11 } from "../ReceiptTemplates/Template11"
 
 export const TEMPLATE_MAPPINGS = {
+  
   receiptTemplate1:ReceiptTemplate1,
   receiptTemplate2:ReceiptTemplate2,
   receiptTemplate3:ReceiptTemplate3,

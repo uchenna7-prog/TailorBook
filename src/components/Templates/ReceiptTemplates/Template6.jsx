@@ -1,122 +1,106 @@
 import styles from "../styles/Template6.module.css"
-
+import { calcTax,fmt } from "../utils/receiptUtils"
 
 export function ReceiptTemplate6({ receipt, customer, brand }) {
-  const { currency } = brand
-  const orderTotal       = receipt.items?.reduce((s, i) => s + (parseFloat(i.price) || 0), 0) ?? (parseFloat(receipt.orderPrice) || 0)
-  const cumulativePaid   = resolveCumulativePaid(receipt)
-  const thisPaymentTotal = (receipt.payments || []).reduce((s, p) => s + (parseFloat(p.amount) || 0), 0)
-  const balanceRemaining = Math.max(0, orderTotal - cumulativePaid)
-  const isFullPayment    = balanceRemaining <= 0
-  const paymentRows      = buildPaymentRows(receipt)
+
+  const { currency, showTax, taxRate } = brand
+  const subtotal = receipt.items?.length > 0
+    ? receipt.items.reduce((sum, item) => sum + ((item.qty ?? 1) * (parseFloat(item.price) || 0)), 0)
+    : 0
+  const tax      = calcTax(subtotal, taxRate, showTax)
+  const total    = subtotal + tax
 
   return (
-    <div className={styles.t6Wrap}>
-      <div className={styles.t6Header}>
-        <div className={styles.t6LogoArea}>
-          <div className={styles.t6LogoCircle}>
+
+    <div className={styles.template}>
+
+      <div className={styles.header}>
+
+        <div className={styles.logoArea}>
+
+          <div className={styles.logoCircle}>
             {brand.logo
-              ? <img src={brand.logo} alt="" style={{ width: 20, height: 20, objectFit: 'contain' }} />
+              ? <img src={brand.logo} alt="" style={{ width: "45px", height: "45px", objectFit: 'contain' }} />
               : <span className="mi" style={{ fontSize: 13, color: 'var(--brand-on-primary)' }}>checkroom</span>
             }
           </div>
+
           <div>
-            <div className={styles.t6CompanyName}>{(brand.name || brand.ownerName || 'YOUR BRAND').toUpperCase()}</div>
-            {brand.tagline && <div className={styles.t6CompanySub}>{brand.tagline.toUpperCase()}</div>}
+            <div className={styles.companyName}>{(brand.name || brand.ownerName || 'YOUR BRAND').toUpperCase()}</div>
+            {brand.tagline && <div className={styles.companySub}>{brand.tagline}</div>}
           </div>
+
         </div>
-        <div className={styles.t6HeaderRight}>
+        
+        <div className={styles.headerRight}>
           {brand.address && <div>{brand.address}</div>}
         </div>
-        <div className={styles.t6HeaderRight}>
-          {brand.phone   && <div>{brand.phone}</div>}
-          {brand.email   && <div>{brand.email}</div>}
+
+        <div className={styles.headerRight}>
+          {brand.phone && <div>{brand.phone}</div>}
+          {brand.email && <div>{brand.email}</div>}
           {brand.website && <div>{brand.website}</div>}
         </div>
+
       </div>
-      <div className={styles.t6InvoiceRow}>
-        <div className={styles.t6InvoiceLeft}>
-          <span className={styles.t6InvoiceWord}>RECEIPT </span>
-          <span className={styles.t6InvoiceNum}>#{receipt.number}</span>
+
+      <div className={styles.receiptRow}>
+        <div className={styles.receiptLeft}>
+          <span className={styles.receiptWord}>receipt </span>
+          <span className={styles.receiptNum}>#{receipt.number}</span>
         </div>
-        <div className={styles.t6InvoiceRight}>
-          <div><span className={styles.t6Label}>DATE:</span> {receipt.date}</div>
+        <div className={styles.receiptRight}>
+          <div><span className={styles.label}>ISSUE DATE:</span> {receipt.date}</div>
+
         </div>
       </div>
-      <div className={styles.t6InfoRow}>
+      <div className={styles.infoRow}>
+        {brand.accountBank && (
+          <div>
+            <div className={styles.infoLabel}>PAYMENT:</div>
+            <strong>{brand.accountBank}</strong><br />
+            {brand.accountName && <span>{brand.accountName}<br /></span>}
+            {brand.accountNumber && <span>Acct: {brand.accountNumber}</span>}
+          </div>
+        )}
         <div>
-          <div className={styles.t6InfoLabel}>FROM:</div>
+          <div className={styles.infoLabel}>RECEIVED BY:</div>
           {brand.name || brand.ownerName}<br />
+          {brand.phone   && <div>{brand.phone}</div>}
           {brand.address}
         </div>
         <div>
-          <div className={styles.t6InfoLabel}>RECEIVED FROM:</div>
+          <div className={`${styles.infoLabel} ${styles.infoLabelRight}`}>RECEIVED FROM:</div>
           {customer.name}<br />
           {customer.phone}<br />
           {customer.address}
         </div>
       </div>
-      <div style={{ fontWeight: 800, fontSize: 7, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '4px 16px 3px', color: '#555' }}>Order Details</div>
-      <div className={styles.t6TableHead}>
-        <span style={{ flex: 0.5 }}>S/N</span>
-        <span style={{ flex: 3 }}>DESCRIPTION</span><span>AMOUNT</span>
+      <div className={styles.tableHead}>
+        <span style={{ flex: 3 }}>ITEM DESCRIPTION</span><span>UNIT PRICE</span><span>QTY</span><span>TOTAL</span>
       </div>
-      {receipt.items?.map((item, i) => (
-        <div key={i} className={styles.t6TableRow}>
-          <span style={{ flex: 0.5 }}>{i + 1}</span>
-          <span style={{ flex: 3 }}>{item.name}</span>
-          <span>{fmt(currency, item.price)}</span>
-        </div>
-      ))}
-      {!receipt.items?.length && (
-        <div className={styles.t6TableRow}>
-          <span style={{ flex: 0.5 }}>1</span>
-          <span style={{ flex: 3 }}>{receipt.orderDesc || 'Garment Order'}</span>
-          <span>{fmt(currency, orderTotal)}</span>
-        </div>
-      )}
-      <div className={styles.t6TotalsArea}>
-        <div className={styles.t6TotRow}><span>ORDER VALUE</span><span>{fmt(currency, orderTotal)}</span></div>
+
+      {receipt.items?.map((item, i) => {
+        const qty = item.qty ?? 1;
+        const unitPrice = parseFloat(item.price) || 0;
+        const lineAmount = qty * unitPrice;
+
+        return (
+          <div key={i} className={styles.tableRow}>
+            <span style={{ flex: 3 }}>{item.name}</span>
+            <span>{fmt(currency, unitPrice)}</span>
+            <span>{qty}</span>
+            <span>{fmt(currency, lineAmount)}</span>
+          </div>
+        );
+      })}
+      
+      <div className={styles.totalsArea}>
+        <div className={styles.totalRow}><span>SUBTOTAL</span><span>{fmt(currency, subtotal)}</span></div>
+        {showTax && taxRate > 0 && <div className={styles.totalRow}><span>TAX ({taxRate}%)</span><span>{fmt(currency, tax)}</span></div>}
+        <div className={styles.total}><span>TOTAL</span><span>{fmt(currency, total)}</span></div>
       </div>
-      {paymentRows.length > 0 && (
-        <div style={{ marginTop: 10 }}>
-          <div style={{ fontWeight: 800, fontSize: 7, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '4px 16px 4px', color: '#555' }}>Payment History</div>
-          <div className={styles.t6TableHead}>
-            <span style={{ flex: 0.5 }}>S/N</span>
-            <span style={{ flex: 3 }}>PAYMENT DATE</span><span>AMOUNT</span>
-          </div>
-          {paymentRows.map((p, idx) => (
-            <div key={p.id ?? idx} className={styles.t6TableRow}>
-              <span style={{ flex: 0.5, color: p._isCurrent ? '#1a1a1a' : '#9ca3af', fontWeight: p._isCurrent ? 700 : 400 }}>{p._sn}</span>
-              <span style={{ flex: 3, color: p._isCurrent ? '#1a1a1a' : '#9ca3af', fontWeight: p._isCurrent ? 600 : 400 }}>
-                {p.date}
-                {p.method && (
-                  <span style={{ color: p._isCurrent ? '#16a34a' : '#b0b8c1', fontWeight: 700 }}> · {p.method.charAt(0).toUpperCase() + p.method.slice(1)}</span>
-                )}
-              </span>
-              <span style={{ color: p._isCurrent ? '#16a34a' : '#9ca3af', fontWeight: p._isCurrent ? 700 : 400 }}>{fmt(currency, p.amount)}</span>
-            </div>
-          ))}
-          <div className={styles.t6TotalsArea}>
-            <div className={styles.t6TotRow}><span>TOTAL PAID</span><span style={{ color: '#16a34a', fontWeight: 700 }}>{fmt(currency, thisPaymentTotal)}</span></div>
-            {!isFullPayment && <div className={styles.t6TotRow} style={{ color: '#ef4444' }}><span>BALANCE</span><span style={{ fontWeight: 700 }}>{fmt(currency, balanceRemaining)}</span></div>}
-            <div className={styles.t6TotTotal}>
-              <span>{isFullPayment ? 'PAID IN FULL' : 'RECEIVED'}</span>
-              <span style={{ color: isFullPayment ? '#16a34a' : 'var(--brand-on-primary)' }}>{fmt(currency, thisPaymentTotal)}</span>
-            </div>
-          </div>
-        </div>
-      )}
-      {paymentRows.length === 0 && (
-        <div className={styles.t6TotalsArea}>
-          {!isFullPayment && <div className={styles.t6TotRow} style={{ color: '#ef4444' }}><span>BALANCE</span><span style={{ fontWeight: 700 }}>{fmt(currency, balanceRemaining)}</span></div>}
-          <div className={styles.t6TotTotal}>
-            <span>{isFullPayment ? 'PAID IN FULL' : 'RECEIVED'}</span>
-            <span style={{ color: isFullPayment ? '#16a34a' : 'var(--brand-on-primary)' }}>{fmt(currency, thisPaymentTotal)}</span>
-          </div>
-        </div>
-      )}
-      <div className={styles.t6ThankYou}>{brand.footer || 'THANK YOU FOR YOUR PAYMENT'}</div>
+      <div className={styles.thankYou}>{brand.footer || 'THANK YOU FOR YOUR BUSINESS'}</div>
     </div>
   )
 }

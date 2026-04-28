@@ -239,6 +239,8 @@ export default function ReceiptTab({
         />
       )}
 
+  
+
       <ConfirmSheet
         open={!!deleteTarget}
         title="Delete this receipt?"

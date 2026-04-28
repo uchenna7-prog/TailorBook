@@ -2,6 +2,7 @@ import styles from "../styles/Template4.module.css"
 import { getDueDate,calcTax,fmt } from "../utils/invoiceUtils"
 
 
+
 export function InvoiceTemplate4({ invoice, customer, brand }) {
 
   const dueDate  = getDueDate(invoice, brand.dueDays)

@@ -37,7 +37,7 @@ export function InvoiceTemplate10({ invoice, customer, brand }) {
       </div>
       <div className={styles.metaRow}>
         <div>
-          <div className={styles.metaLabel}>Invoice to:</div>
+          <div className={styles.metaLabel}>Invoice To:</div>
           <div className={styles.metaName}>{customer.name}</div>
           {customer.phone   && <div className={styles.metaAddress}>{customer.phone}</div>}
           {customer.address && <div className={styles.metaAddress}>{customer.address}</div>}
@@ -80,7 +80,7 @@ export function InvoiceTemplate10({ invoice, customer, brand }) {
           <div className={styles.thankYou}>{brand.footer || 'Thank you for your business'}</div>
           {brand.accountBank && (
             <>
-              <div className={styles.paymentLabel}>Payment Info:</div>
+              <div className={styles.paymentLabel}>Payment Information:</div>
               <div className={styles.paymentInfo}>
                 {brand.accountNumber && <span>Account Number: {brand.accountNumber}<br /></span>}
                 {brand.accountBank   && <span>Bank: {brand.accountBank}<br/></span>}

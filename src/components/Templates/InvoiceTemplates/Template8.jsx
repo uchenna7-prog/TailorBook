@@ -82,7 +82,7 @@ export function InvoiceTemplate8({ invoice, customer, brand }) {
 
         <div className={styles.box} style={{ background: accentColor }}>
 
-          <div className={styles.boxTitle}>Invoice to:</div>
+          <div className={styles.boxTitle}>Invoice To:</div>
           <div className={styles.boxName}>{customer.name}</div>
           {customer.phone   && <div className={styles.boxAddr}>{customer.phone}</div>}
           {customer.address && <div className={styles.boxAddr}>{customer.address}</div>}
@@ -90,11 +90,11 @@ export function InvoiceTemplate8({ invoice, customer, brand }) {
         </div>
         {brand.accountBank && (
           <div className={styles.paymentInfo}>
-            <div className={styles.paymentLabel}>Payment Info:</div>
+            <div className={styles.paymentLabel}>Payment Infomation:</div>
             {brand.accountNumber && <div>Account Number: {brand.accountNumber}</div>}
             {brand.accountBank   && <div>Bank: {brand.accountBank}</div>}
             {brand.accountName   && <div>Account Name: {brand.accountName}</div>}
-            {brand.phone         && <div className={styles.thankYou}>{brand.footer}</div>}
+            {brand.footer  && <div className={styles.thankYou}>{brand.footer}</div>}
           </div>
         )}
         <div className={styles.totals}>

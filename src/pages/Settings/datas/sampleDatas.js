@@ -1,28 +1,34 @@
 
 
 
-export const RECEIPT_SAMPLE = {
+export const RECEIPT_SAMPLE_DATA = {
   number: 'RCP-0001',
   date: '12 Apr 2025',
-  
-  orderPrice: '56200',
+  orderDesc: 'Complete Suit Set',
+  orderPrice: '60000',
+    items: [
+    { name: 'Suit Jacket', price: '25000' },
+    { name: 'Trousers', price: '15000' },
+    { name: 'Inner Shirt', price: '8000' },
+    { name: 'Waistcoat', price: '12000' },
+  ],
 
   payments: [
-    { date: '10 Apr 2025', amount: '28100', method: 'transfer' },
-    { date: '12 Apr 2025', amount: '28100', method: 'cash' },
+    { date: '10 Apr 2025', amount: '30000', method: 'transfer' },
+    { date: '12 Apr 2025', amount: '30000', method: 'cash' },
   ],
-  cumulativePaid: '56200',
+  cumulativePaid: '60000',
 }
 
 export const getBrandSampleData = (brand) => {
   return {
-    name: 'Adeola Stitches',
-    ownerName: 'Adeola Fashola',
+    name: 'Emeka Tailors Co.',
+    ownerName: 'Emeka Nwosu',
     tagline: 'Crafted with love, fitted for you',
     address: '14 Bode Thomas St, Surulere, Lagos',
     phone: '+234 801 234 5678',
-    email: 'info@adeolastitches.ng',
-    website: 'adeolastitches.ng',
+    email: 'info@emekatailors.ng',
+    website: 'emekatailors.ng',
     currency: '₦',
     footer: 'Thank you for your patronage🙏',
     showTax: false,
@@ -30,30 +36,30 @@ export const getBrandSampleData = (brand) => {
     dueDays: 14,
     accountBank: 'GTBank',
     accountNumber: '0123456789',
-    accountName: 'Adeola Fashola',
+    accountName: 'Emeka Nwosu',
     colour: brand?.colour || '#0057D7',
     colourId: brand?.colourId || 'bold-electric-blue',
   };
 }; 
 
  export const CUSTOMER_SAMPLE_DATA = {
-  name: 'Mrs. Chidinma Okafor',
+  name: 'Mr. Uche Okafor',
   phone: '+234 801 234 5678',
   address: '22 Akin Adesola St, Victoria Island',
-  email:"chidinmaokafor@gmail.com"
+  email:"ucheokafor@gmail.com"
 }
 
 export const INVOICE_SAMPLE_DATA = {
   number: 'INV-0001',
   date: '12 Apr 2025',
   dueDate: '26 Apr 2025',
-  orderDesc: 'Mrs. Chidinma Okafor Order',
-  items: [
-    { name: 'Custom Agbada Sewing', price: '8500' },
-    { name: 'Senator Suit Stitching', price: '6200' },
-    { name: 'Ankara Dress Alteration', price: '2500' },
-    { name: 'Bridal Gown Fitting', price: '15000' },
-    { name: 'Trouser Hemming', price: '1200' },
+  orderDesc: 'Complete Suit Set',
+  orderPrice: '60000',
+    items: [
+    { name: 'Suit Jacket', price: '25000' },
+    { name: 'Trousers', price: '15000' },
+    { name: 'Inner Shirt', price: '8000' },
+    { name: 'Waistcoat', price: '12000' },
   ]
 
 }

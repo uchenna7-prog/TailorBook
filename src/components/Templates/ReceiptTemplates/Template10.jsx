@@ -1,19 +1,19 @@
 import styles from "../styles/Template10.module.css"
-
+import { calcTax,fmt } from "../utils/receiptUtils"
 
 export function ReceiptTemplate10({ receipt, customer, brand }) {
-  const accentColor = brand.colour || '#ff5c8a'
-  const { currency } = brand
-  const orderTotal       = receipt.items?.reduce((s, i) => s + (parseFloat(i.price) || 0), 0) ?? (parseFloat(receipt.orderPrice) || 0)
-  const cumulativePaid   = resolveCumulativePaid(receipt)
-  const thisPaymentTotal = (receipt.payments || []).reduce((s, p) => s + (parseFloat(p.amount) || 0), 0)
-  const balanceRemaining = Math.max(0, orderTotal - cumulativePaid)
-  const isFullPayment    = balanceRemaining <= 0
-  const paymentRows      = buildPaymentRows(receipt)
+
+  const accentColor = brand.colour || '#0057D7'
+  const { currency, showTax, taxRate } = brand
+  const subtotal = receipt.items?.length > 0
+    ? receipt.items.reduce((sum, item) => sum + ((item.qty ?? 1) * (parseFloat(item.price) || 0)), 0)
+    : 0
+  const tax      = calcTax(subtotal, taxRate, showTax)
+  const total    = subtotal + tax
 
   return (
-    <div className={styles.t10Wrap}>
-      <div className={styles.t10HeaderZone}>
+    <div className={styles.template}>
+      <div className={styles.headerZone}>
         <svg
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
           viewBox="0 0 400 72"
@@ -22,102 +22,94 @@ export function ReceiptTemplate10({ receipt, customer, brand }) {
           <polygon points="0,0 400,0 400,28 0,72" fill={accentColor} />
         </svg>
         <div style={{ position: 'absolute', top: 10, left: 18, zIndex: 1 }}>
-          <span className={styles.t10BannerTitle}>RECEIPT</span>
+          <span className={styles.bannerTitle}>receipt</span>
         </div>
-        <div className={styles.t10BrandInBanner}>
+        <div className={styles.brandInBanner}>
           {brand.logo
-            ? <img src={brand.logo} alt="" style={{ width: 14, height: 14, objectFit: 'contain' }} />
-            : <span className="mi" style={{ fontSize: 14, color: '#333' }}>checkroom</span>
+            ? <img src={brand.logo} alt="" style={{ width: "25px", height: "25px", objectFit: 'contain' }} />
+            : <span className="mi" style={{ fontSize: 14,  color: "var(--brand-on-primary)" }}>checkroom</span>
           }
           <div>
-            <div className={styles.t10BrandName}>{brand.name || brand.ownerName}</div>
-            <div className={styles.t10BrandSub}>TAILOR SHOP</div>
+            <div className={styles.brandName} style={{ color: "var(--brand-on-primary)" }} >{brand.name || brand.ownerName}</div>
+            <div className={styles.brandSub}>TAILOR SHOP</div>
           </div>
         </div>
       </div>
-      <div className={styles.t10MetaRow}>
+      <div className={styles.metaRow}>
         <div>
-          <div className={styles.t10MetaLabel}>Received from:</div>
-          <div className={styles.t10MetaName}>{customer.name}</div>
-          {customer.phone   && <div className={styles.t10MetaAddr}>{customer.phone}</div>}
-          {customer.address && <div className={styles.t10MetaAddr}>{customer.address}</div>}
+          <div className={styles.metaLabel}>receipt To:</div>
+          <div className={styles.metaName}>{customer.name}</div>
+          {customer.phone   && <div className={styles.metaAddress}>{customer.phone}</div>}
+          {customer.address && <div className={styles.metaAddress}>{customer.address}</div>}
         </div>
         <div style={{ textAlign: 'right' }}>
-          <div><span className={styles.t10MetaKey}>Receipt#</span> <strong>{receipt.number}</strong></div>
-          <div><span className={styles.t10MetaKey}>Date</span> <strong>{receipt.date}</strong></div>
+          <div><span className={styles.metaKey}>receipt#</span> <strong>{receipt.number}</strong></div>
+          <div><span className={styles.metaKey}>Date</span> <strong>{receipt.date}</strong></div>
+        
         </div>
       </div>
-      <div style={{ fontWeight: 800, fontSize: 7, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '4px 16px 3px', color: '#555' }}>Order Details</div>
-      <div className={styles.t10TableHead}>
-        <span>S/N</span>
-        <span style={{ flex: 3 }}>Description</span>
-        <span>Amount</span>
+      <div className={styles.tableHeader}>
+        <span style={{flex: 1, textAlign:"left"}}>SN</span>
+        <span style={{ flex: 3,textAlign:"left"}}>Item Description</span>
+        <span style={{flex: 1, textAlign:"center"}}>Unit Price</span>
+        <span style={{flex: 1, textAlign:"center"}}>Qty</span>
+        <span style={{flex: 1, textAlign:"center"}}>Total</span>
       </div>
-      {receipt.items?.map((item, i) => (
-        <div key={i} className={styles.t10TableRow}>
-          <span>{i + 1}</span>
-          <span style={{ flex: 3 }}>{item.name}</span>
-          <span>{fmt(currency, item.price)}</span>
-        </div>
-      ))}
-      {!receipt.items?.length && (
-        <div className={styles.t10TableRow}>
-          <span>1</span>
-          <span style={{ flex: 3 }}>{receipt.orderDesc || 'Garment Order'}</span>
-          <span>{fmt(currency, orderTotal)}</span>
-        </div>
-      )}
-      <div className={styles.t10Divider} />
-      {paymentRows.length > 0 && (
-        <>
-          <div style={{ fontWeight: 800, fontSize: 7, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '4px 16px 3px', color: '#555' }}>Payment History</div>
-          <div className={styles.t10TableHead}>
-            <span>S/N</span>
-            <span style={{ flex: 3 }}>Payment Date</span>
-            <span>Amount</span>
+      {receipt.items?.map((item, i) => {
+        const qty = item.qty ?? 1;
+        const unitPrice = parseFloat(item.price) || 0;
+        const lineAmount = qty * unitPrice;
+
+        return (
+          <div key={i} className={styles.tableRow}>
+            <span style={{flex: 1, textAlign: "left" }}>{i + 1}</span>
+            <span style={{ flex: 3, textAlign: "left" }}>{item.name}</span>
+            <span style={{flex: 1, textAlign: "center" }}>
+              {fmt(currency, unitPrice)}
+            </span>
+            <span style={{flex: 1, textAlign: "center" }}>{qty}</span>
+            <span style={{flex: 1, textAlign: "center" }}>
+              {fmt(currency, lineAmount)}
+            </span>
           </div>
-          {paymentRows.map((p, idx) => (
-            <div key={p.id ?? idx} className={styles.t10TableRow}>
-              <span style={{ color: p._isCurrent ? '#1a1a1a' : '#9ca3af', fontWeight: p._isCurrent ? 700 : 400 }}>{p._sn}</span>
-              <span style={{ flex: 3, color: p._isCurrent ? '#1a1a1a' : '#9ca3af', fontWeight: p._isCurrent ? 600 : 400 }}>
-                {p.date}
-                {p.method && (
-                  <span style={{ color: p._isCurrent ? '#16a34a' : '#b0b8c1', fontWeight: 700 }}> · {p.method.charAt(0).toUpperCase() + p.method.slice(1)}</span>
-                )}
-              </span>
-              <span style={{ color: p._isCurrent ? '#16a34a' : '#9ca3af', fontWeight: p._isCurrent ? 700 : 400 }}>{fmt(currency, p.amount)}</span>
-            </div>
-          ))}
-          <div className={styles.t10Divider} />
-        </>
-      )}
-      <div className={styles.t10Bottom}>
+        );
+      })}
+      <div className={styles.divider} />
+      <div className={styles.bottom}>
         <div style={{ flex: 1 }}>
-          <div className={styles.t10ThankYou}>{brand.footer || 'Thank you for your payment'}</div>
+          <div className={styles.thankYou}>{brand.footer || 'Thank you for your business'}</div>
+          {brand.accountBank && (
+            <>
+              <div className={styles.paymentLabel}>Payment Details:</div>
+              <div className={styles.paymentInfo}>
+
+                {brand.name && (
+                  <div>Received By : {brand.name}</div>
+                )}
+
+              </div>
+            </>
+          )}
           {(brand.phone || brand.email) && (
             <>
-              <div className={styles.t10TCLabel}>Contact</div>
-              <div className={styles.t10TCText}>
+              <div className={styles.label}>Contact</div>
+              <div className={styles.text}>
                 {brand.phone && <span>{brand.phone}<br /></span>}
                 {brand.email && <span>{brand.email}</span>}
               </div>
             </>
           )}
         </div>
-        <div className={styles.t10RightCol}>
-          <div className={styles.t10TotalsWrap}>
-            <div className={styles.t10TotRow}><span>Order Value:</span><span>{fmt(currency, orderTotal)}</span></div>
-            <div className={styles.t10TotRow}><span>Total Paid:</span><span style={{ color: '#16a34a', fontWeight: 700 }}>{fmt(currency, thisPaymentTotal)}</span></div>
-            {!isFullPayment && <div className={styles.t10TotRow} style={{ color: '#ef4444' }}><span>Balance:</span><span style={{ fontWeight: 700 }}>{fmt(currency, balanceRemaining)}</span></div>}
-            <div className={styles.t10TotDivider} />
-            <div className={styles.t10TotTotal}>
-              <span>{isFullPayment ? 'Paid:' : 'Received:'}</span>
-              <span style={{ color: isFullPayment ? '#16a34a' : '#1a1a1a' }}>{fmt(currency, thisPaymentTotal)}</span>
-            </div>
+        <div className={styles.rightColumn}>
+          <div className={styles.totals}>
+            <div className={styles.totalRow}><span>Sub Total:</span><span>{fmt(currency, subtotal)}</span></div>
+            {showTax && taxRate > 0 && <div className={styles.totalRow}><span>Tax ({taxRate}%):</span><span>{fmt(currency, tax)}</span></div>}
+            <div className={styles.totalDivider} />
+            <div className={styles.totalTotal}><span>Total:</span><span>{fmt(currency, total)}</span></div>
           </div>
-          <div className={styles.t10SignBlock}>
-            <div className={styles.t10SignLine} />
-            <div className={styles.t10SignLabel}>Authorised Sign</div>
+          <div className={styles.signBlock}>
+            <div className={styles.signLine} />
+            <div className={styles.SignLabel}>Authorised Sign</div>
           </div>
         </div>
       </div>

@@ -15,22 +15,21 @@ export const RECEIPT_TEMPLATE_GROUPS = [
     groupLabel: 'Simple and Clean',
     groupDescription: 'Light, open layouts that are easy to read',
     templates: [
-      { 
-        id:'Centered Balance',
-        label:'1. Centered Balance',
-        description:'Business name in the middle with a line on each side',
-        Component: ReceiptTemplate1 },
-      { 
-        id:'Triple-Box Info Bar',      
-        label:'2. Triple-Box Info Bar', 
-        description:'Three side-by-side boxes showing contact details',       
-        Component:ReceiptTemplate2 
+      { id: 'receiptTemplate1',  
+        label: '1. Centered Balance',    
+        description: 'Business name in the middle with a line on each side',  
+        Component: ReceiptTemplate1
       },
       { 
-        id:'Dual-Column Compact', 
-        label:'3. Dual-Column Compact', 
-        description:'From and To details placed side by side',                
-        Component: ReceiptTemplate4 
+        id: 'receiptTemplate2',  
+        label: '2. Triple-Box Info Bar', 
+        description: 'Three side-by-side boxes showing contact details',       
+        Component: ReceiptTemplate2 },
+      { 
+        id: 'receiptTemplate3',  
+        label: '3. Dual-Column Compact', 
+        description: 'From and To details placed side by side',                
+        Component: ReceiptTemplate3 
       },
     ],
   },
@@ -39,20 +38,22 @@ export const RECEIPT_TEMPLATE_GROUPS = [
     groupDescription: 'Strong designs that use solid colour sections',
     templates: [
       { 
-        id:'Full-Bleed Banner',       
-        label:'4. Full-Bleed Banner',    
-        description:'Big colour header at the top with a logo space',     
-        Component: ReceiptTemplate3 },
+        id: 'receiptTemplate4',  
+        label: '4. Full-Bleed Banner',    
+        description: 'Big colour header at the top with a logo space',     
+        Component: ReceiptTemplate4 
+      },
       { 
-        id:'Solid Top and Bottom',        
-        label:'5. Solid Top and Bottom', 
-        description:'Colour fills both the top header and the base',      
-        Component: ReceiptTemplate5 },
+        id: 'receiptTemplate5',  
+        label: '5. Solid Top and Bottom', 
+        description: 'Colour fills both the top header and the base',      
+        Component: ReceiptTemplate5 
+      },
       { 
-        id:'Slanted Header', 
-        label:'6. Slanted Header',      
-        description:'Header cuts diagonally with a matching corner fill', 
-        Component: ReceiptTemplate10 
+        id: 'receiptTemplate6',  
+        label: '6. Slanted Header',       
+        description: 'Header cuts diagonally with a matching corner fill', 
+        Component: ReceiptTemplate6 
       },
     ],
   },
@@ -61,13 +62,15 @@ export const RECEIPT_TEMPLATE_GROUPS = [
     groupDescription: 'Every section has a bold label so nothing is confusing',
     templates: [
       { 
-        id:'Full Field Labels',     
-        label:'7. Full Field Labels',    
-        description:'Sender and receiver details listed with bold labels',       
-        Component: ReceiptTemplate7 },
+        id: 'receiptTemplate7',  
+        label: '7. Full Field Labels',  
+        description: 'Sender and receiver details listed with bold labels',         
+        Component: ReceiptTemplate7 
+      },
       { 
-        id:'Side Summary Box', label:'8. Side Summary Box',     
-        description:'A dedicated box on the side holds totals and client details', 
+        id: 'receiptTemplate8',  
+        label: '8. Side Summary Box',   
+        description: 'A dedicated box on the side holds totals and client details', 
         Component: ReceiptTemplate8 
       },
     ],
@@ -77,17 +80,16 @@ export const RECEIPT_TEMPLATE_GROUPS = [
     groupDescription: 'Packs in your business details without clutter',
     templates: [
       { 
-        id:'Three-Column Details',    
-        label:'9. Three-Column Details', 
-        description:'Payment, delivery, and billing info in one row',       
-        Component: ReceiptTemplate6 
+        id: 'receiptTemplate9',  
+        label: '9. Three-Column Details', 
+        description: 'Payment, delivery, and billing info in one row',         
+        Component: ReceiptTemplate9  
       },
       { 
-        id:'Strip and Signature', 
-        label:'10. Strip and Signature',  
-        description:'Slim info bar at the top with a sign line at the base', 
-        Component: ReceiptTemplate9 
-      },
+        id: 'receiptTemplate10', 
+        label: '10. Strip and Signature', 
+        description: 'Slim info bar at the top with a sign line at the base',  
+        Component: ReceiptTemplate10 },
     ],
   },
   {
@@ -95,9 +97,9 @@ export const RECEIPT_TEMPLATE_GROUPS = [
     groupDescription: 'Shows all the ways your customer can pay you',
     templates: [
       { 
-        id:'Payment Tiles', 
-        label:'11. Payment Tiles', 
-        description:'Separate boxes for bank transfer, mobile money, and cash', 
+        id: 'receiptTemplate11', 
+        label: '11. Payment Tiles', 
+        description: 'Separate boxes for bank transfer, mobile money, and cash', 
         Component: ReceiptTemplate11 
       },
     ],
