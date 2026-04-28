@@ -78,6 +78,7 @@ export function ReceiptTemplate1({ receipt, customer, brand }) {
 
       <ReceiptPaymentSummary receipt={receipt} brand={brand}/>
 
+
       {(brand.accountBank || brand.phone || brand.email || brand.footer) && (
 
         <div className={styles.footer}>

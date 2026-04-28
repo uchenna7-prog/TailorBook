@@ -1,8 +1,5 @@
-// ─────────────────────────────────────────────────────────────
-// Shared payment history block for templates 4-11
-// Renders all rows (previous greyed, current bold/green) then totals
-// ─────────────────────────────────────────────────────────────
-function PaymentHistoryBlock({ receipt, currency, orderTotal, thisPaymentTotal, balanceRemaining, isFullPayment,
+
+export function PaymentHistoryBlock({ receipt, currency, orderTotal, thisPaymentTotal, balanceRemaining, isFullPayment,
   headStyle, rowStyle, totalsAreaStyle, totRowStyle, totDividerStyle, totBoldStyle,
   headSNStyle, headDateStyle, headAmtStyle,
   rowSNStyle, rowDateStyle, rowAmtStyle,

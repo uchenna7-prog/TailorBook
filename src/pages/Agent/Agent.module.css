@@ -25,7 +25,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 16px 20px 12px;
+  padding: 14px 20px 12px;
   border-bottom: 1px solid var(--border);
   background: var(--bg);
   position: sticky;
@@ -33,10 +33,8 @@
   z-index: 50;
 }
 
-.identityText {}
-
 .identityName {
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   font-weight: 700;
   color: var(--text);
   letter-spacing: -0.2px;
@@ -46,7 +44,7 @@
   display: flex;
   align-items: center;
   gap: 5px;
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   color: var(--text3);
   font-weight: 500;
   margin-top: 2px;
@@ -62,12 +60,12 @@
 
 @keyframes livePulse {
   0%, 100% { opacity: 1; }
-  50%       { opacity: 0.4; }
+  50%       { opacity: 0.35; }
 }
 
 /* ── AGENT AVATAR ── */
 .agentAvatar {
-  border-radius: 8px;
+  border-radius: 10px;
   background: var(--text);
   display: flex;
   align-items: center;
@@ -75,11 +73,6 @@
   color: var(--bg);
   position: relative;
   flex-shrink: 0;
-}
-
-.agentAvatar svg {
-  width: 60%;
-  height: 60%;
 }
 
 .avatarMd {
@@ -104,33 +97,29 @@
   border: 2px solid var(--bg);
 }
 
-/* ── SEGMENTED CONTROL ── */
+/* ── TAB BAR (underline style, matches rest of app) ── */
 .segWrap {
-  padding: 12px 16px 0;
   background: var(--bg);
+  border-bottom: 1px solid var(--border);
 }
 
 .segControl {
   display: flex;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 3px;
-  gap: 2px;
+  padding: 0 16px;
+  gap: 0;
 }
 
 .segItem {
   flex: 1;
-  padding: 9px 4px;
-  border-radius: 8px;
+  padding: 12px 4px 10px;
   border: none;
   background: none;
   font-family: inherit;
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   font-weight: 600;
   color: var(--text3);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: color 0.18s;
   letter-spacing: -0.1px;
   position: relative;
   display: flex;
@@ -140,9 +129,18 @@
 }
 
 .segItemActive {
-  background: var(--bg);
   color: var(--text);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+}
+
+.segItemActive::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 12%;
+  right: 12%;
+  height: 2px;
+  background: var(--text);
+  border-radius: 2px 2px 0 0;
 }
 
 .segBadge {
@@ -173,19 +171,12 @@
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 10px;
-  padding: 10px 12px;
+  padding: 9px 12px;
   transition: border-color 0.15s;
 }
 
 .commandWrap:focus-within {
   border-color: var(--border2);
-}
-
-.commandIcon {
-  font-size: 0.85rem;
-  color: var(--text3);
-  flex-shrink: 0;
-  line-height: 1;
 }
 
 .commandInput {
@@ -224,12 +215,7 @@
   transform: scale(0.93);
 }
 
-.commandSend svg {
-  width: 13px;
-  height: 13px;
-}
-
-/* ── VIEW CONTENT CONTAINER ── */
+/* ── VIEW CONTENT ── */
 .viewContent {
   display: flex;
   flex-direction: column;
@@ -243,15 +229,15 @@
   overflow: hidden;
 }
 
-.briefingHero::after {
+.briefingHero::before {
   content: '';
   position: absolute;
-  top: -60px;
-  right: -60px;
-  width: 180px;
-  height: 180px;
+  top: -80px;
+  right: -80px;
+  width: 220px;
+  height: 220px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.03);
   pointer-events: none;
 }
 
@@ -259,30 +245,30 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 0.6rem;
+  font-size: 0.58rem;
   font-weight: 700;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.28);
   margin-bottom: 12px;
 }
 
 .briefingEyebrowLine {
   flex: 1;
   height: 1px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .briefingAway {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 20px;
   padding: 4px 10px;
   font-size: 0.65rem;
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.35);
   font-weight: 500;
   margin-bottom: 14px;
 }
@@ -291,36 +277,28 @@
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.25);
 }
 
 .briefingHeadline {
-  font-size: 1.45rem;
+  font-size: 1.4rem;
   font-weight: 800;
   color: #fff;
   letter-spacing: -0.5px;
-  line-height: 1.2;
+  line-height: 1.25;
   margin: 0 0 10px;
-}
-
-.briefingHeadlineDim {
-  color: rgba(255, 255, 255, 0.4);
-}
-
-.briefingHeadlineDim + .briefingHeadlineDim {
-  color: #fff;
 }
 
 .briefingNarr {
   font-size: 0.78rem;
   line-height: 1.7;
-  color: rgba(255, 255, 255, 0.45);
+  color: rgba(255, 255, 255, 0.42);
   margin: 0 0 18px;
   letter-spacing: -0.05px;
 }
 
 .briefingNarr strong {
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(255, 255, 255, 0.78);
   font-weight: 700;
 }
 
@@ -342,7 +320,7 @@
 }
 
 .statPillNum {
-  font-size: 1.35rem;
+  font-size: 1.3rem;
   font-weight: 800;
   color: #fff;
   letter-spacing: -0.5px;
@@ -354,21 +332,22 @@
 }
 
 .statPillLabel {
-  font-size: 0.55rem;
+  font-size: 0.54rem;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.28);
   margin-top: 3px;
   line-height: 1.3;
 }
 
-/* ── SECTION DIVIDER ── */
+/* ── SECTION DIVIDER (used for log section and coming up) ── */
 .secDivider {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 18px 20px 8px;
+  padding: 14px 20px 8px;
+  border-top: 1px solid var(--border);
 }
 
 .secTitle {
@@ -383,6 +362,53 @@
   font-size: 0.65rem;
   color: var(--text3);
   font-weight: 600;
+}
+
+/* ── ATTENTION ZONE (replaces secDivider for "Needs your attention") ── */
+.attentionZone {
+  background: rgba(239, 68, 68, 0.04);
+  border-bottom: 1px solid rgba(239, 68, 68, 0.14);
+  padding-bottom: 12px;
+}
+
+.attentionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px 8px;
+}
+
+.attentionTitle {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--danger, #ef4444);
+}
+
+.attentionDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--danger, #ef4444);
+  animation: livePulse 2s ease-in-out infinite;
+}
+
+.attentionCount {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  border-radius: 10px;
+  background: var(--danger, #ef4444);
+  color: #fff;
+  font-size: 0.62rem;
+  font-weight: 800;
+  padding: 0 5px;
 }
 
 /* ── ONBOARDING BLOCK ── */
@@ -401,20 +427,20 @@
 }
 
 .onboardEyebrow {
-  font-size: 0.6rem;
+  font-size: 0.58rem;
   font-weight: 700;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.28);
   margin-bottom: 6px;
 }
 
 .onboardTitle {
-  font-size: 1.15rem;
+  font-size: 1.1rem;
   font-weight: 800;
   color: #fff;
   letter-spacing: -0.4px;
-  line-height: 1.25;
+  line-height: 1.3;
 }
 
 .onboardClose {
@@ -423,25 +449,28 @@
   border-radius: 7px;
   width: 28px;
   height: 28px;
-  font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.5);
   cursor: pointer;
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: inherit;
+  color: rgba(255, 255, 255, 0.5);
+  transition: background 0.15s;
+}
+
+.onboardClose:active {
+  background: rgba(255, 255, 255, 0.15);
 }
 
 .onboardBody {
   font-size: 0.78rem;
-  color: rgba(255, 255, 255, 0.45);
+  color: rgba(255, 255, 255, 0.42);
   line-height: 1.7;
   margin-bottom: 14px;
 }
 
 .onboardBody strong {
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(255, 255, 255, 0.82);
   font-weight: 700;
 }
 
@@ -455,11 +484,14 @@
 .onboardPill {
   font-size: 0.62rem;
   font-weight: 600;
-  padding: 4px 9px;
+  padding: 5px 9px;
   border-radius: 20px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  color: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  color: rgba(255, 255, 255, 0.45);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
 }
 
 .onboardDismiss {
@@ -467,7 +499,7 @@
   padding: 13px;
   border-radius: 10px;
   background: #fff;
-  color: var(--text);
+  color: #000;
   border: none;
   font-family: inherit;
   font-size: 0.85rem;
@@ -517,15 +549,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1rem;
   flex-shrink: 0;
   background: var(--surface2);
   border: 1px solid var(--border);
 }
 
-.apIcon_wa    { background: rgba(34,197,94,0.08);  border-color: rgba(34,197,94,0.18);  }
-.apIcon_alert { background: rgba(239,68,68,0.08);  border-color: rgba(239,68,68,0.18);  }
-.apIcon_inv   { background: rgba(251,146,60,0.08); border-color: rgba(251,146,60,0.18); }
+.apIcon_wa    { background: rgba(34,197,94,0.08);  border-color: rgba(34,197,94,0.22);  color: #15803d; }
+.apIcon_alert { background: rgba(239,68,68,0.08);  border-color: rgba(239,68,68,0.22);  color: #ef4444; }
+.apIcon_inv   { background: rgba(251,146,60,0.08); border-color: rgba(251,146,60,0.22); color: #c2410c; }
 
 .apMeta {
   flex: 1;
@@ -541,7 +572,7 @@
 }
 
 .apDesc {
-  font-size: 0.75rem;
+  font-size: 0.73rem;
   color: var(--text2);
   line-height: 1.5;
 }
@@ -563,6 +594,7 @@
 .peekLink {
   display: inline-flex;
   align-items: center;
+  gap: 4px;
   background: none;
   border: none;
   padding: 0;
@@ -589,7 +621,7 @@
 }
 
 .threadLabel {
-  font-size: 0.6rem;
+  font-size: 0.58rem;
   font-weight: 700;
   letter-spacing: 0.09em;
   text-transform: uppercase;
@@ -628,6 +660,8 @@
   background: var(--surface2);
   color: var(--text3);
   border: 1px solid var(--border);
+  font-size: 0.6rem;
+  font-weight: 700;
 }
 
 .threadBubbleWrap {
@@ -643,7 +677,7 @@
 
 .threadBubbleOut {
   background: var(--text);
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(255, 255, 255, 0.82);
   border-bottom-right-radius: 3px;
 }
 
@@ -659,7 +693,7 @@
   align-items: center;
   gap: 4px;
   margin-top: 3px;
-  font-size: 0.6rem;
+  font-size: 0.58rem;
   color: var(--text3);
   font-weight: 500;
 }
@@ -670,13 +704,15 @@
 
 .readCheck {
   color: #22c55e;
-  font-size: 0.65rem;
+  display: flex;
+  align-items: center;
 }
 
 .threadNote {
   font-size: 0.65rem;
   font-weight: 600;
   padding: 4px 0 0 27px;
+  line-height: 1.5;
 }
 
 .threadNoteWarn {
@@ -799,16 +835,16 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.95rem;
   flex-shrink: 0;
   background: var(--surface2);
   border: 1px solid var(--border);
 }
 
-.logIcon_wa    { background: rgba(34,197,94,0.08);  border-color: rgba(34,197,94,0.16);  }
-.logIcon_alert { background: rgba(239,68,68,0.08);  border-color: rgba(239,68,68,0.16);  }
-.logIcon_inv   { background: rgba(251,146,60,0.08); border-color: rgba(251,146,60,0.16); }
-.logIcon_auto  { background: var(--surface2);        border-color: var(--border);          }
+/* ── ICON COLOR VARIANTS (log + approval cards) ── */
+.logIcon_wa    { background: rgba(34,197,94,0.08);  border-color: rgba(34,197,94,0.22);  color: #15803d; }
+.logIcon_alert { background: rgba(239,68,68,0.08);  border-color: rgba(239,68,68,0.22);  color: #ef4444; }
+.logIcon_inv   { background: rgba(251,146,60,0.08); border-color: rgba(251,146,60,0.22); color: #c2410c; }
+.logIcon_auto  { background: var(--surface2); border-color: var(--border); color: var(--text3); }
 
 .logHeaderBody {
   flex: 1;
@@ -857,7 +893,7 @@
 .invoiceDetail {
   font-size: 0.75rem;
   color: var(--text2);
-  line-height: 1.75;
+  line-height: 1.8;
 }
 
 .invRef    { font-weight: 800; color: var(--text); }
@@ -869,7 +905,7 @@
   padding: 0 13px 12px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 5px;
 }
 
 .deadlineRow {
@@ -877,13 +913,24 @@
   align-items: center;
   justify-content: space-between;
   font-size: 0.75rem;
-  padding: 2px 0;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.deadlineRow:last-child {
+  border-bottom: none;
+}
+
+.deadlineRowInner {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .deadlineName { font-weight: 600; color: var(--text); }
-.deadlineDue  { color: var(--text3); font-size: 0.7rem; }
+.deadlineDue  { color: var(--text3); font-size: 0.7rem; font-weight: 500; }
 
-/* Reasoning */
+/* ── REASONING TOGGLE ── */
 .reasoningToggle {
   display: flex;
   align-items: center;
@@ -902,25 +949,19 @@
   background: var(--surface2);
 }
 
+/* Amber lightbulb icon — target the MIcon span inside the toggle */
+.reasoningToggle > span:first-child {
+  color: #d97706;
+}
+
 .reasoningLabel {
-  font-size: 0.68rem;
+  font-size: 0.67rem;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--text3);
   flex: 1;
   text-align: left;
-}
-
-.reasoningArrow {
-  font-size: 0.85rem;
-  color: var(--text3);
-  transition: transform 0.2s;
-  margin-left: auto;
-}
-
-.reasoningArrowOpen {
-  transform: rotate(180deg);
 }
 
 .reasoningBody {
@@ -943,7 +984,6 @@
 .dayRailWrap {
   background: var(--bg);
   border-bottom: 1px solid var(--border);
-  padding-bottom: 0;
 }
 
 .dayRailHeader {
@@ -975,9 +1015,7 @@
   -webkit-overflow-scrolling: touch;
 }
 
-.dayRail::-webkit-scrollbar {
-  display: none;
-}
+.dayRail::-webkit-scrollbar { display: none; }
 
 .dayChip {
   display: flex;
@@ -994,17 +1032,9 @@
   font-family: inherit;
 }
 
-.dayChip:active {
-  transform: scale(0.95);
-}
-
-.dayChipEmpty {
-  opacity: 0.3;
-}
-
-.dayChipActive2 {
-  border-color: var(--border2);
-}
+.dayChip:active { transform: scale(0.95); }
+.dayChipEmpty   { opacity: 0.3; }
+.dayChipActive2 { border-color: var(--border2); }
 
 .dayChipActive {
   background: var(--text);
@@ -1012,7 +1042,7 @@
 }
 
 .dayChipWd {
-  font-size: 0.55rem;
+  font-size: 0.54rem;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -1047,17 +1077,9 @@
   margin-top: 5px;
 }
 
-.dayChipActive2 .dayChipPip {
-  background: var(--text);
-}
-
-.dayChipActive .dayChipPip {
-  background: var(--bg);
-}
-
-.dayChipEmpty .dayChipPip {
-  display: none;
-}
+.dayChipActive2 .dayChipPip { background: var(--text); }
+.dayChipActive .dayChipPip  { background: rgba(255,255,255,0.4); }
+.dayChipEmpty .dayChipPip   { display: none; }
 
 /* History empty */
 .historyEmpty {
@@ -1069,9 +1091,8 @@
   gap: 8px;
 }
 
-.historyEmptyIcon  { font-size: 2.5rem; opacity: 0.25; }
-.historyEmptyTitle { font-size: 0.9rem; font-weight: 700; color: var(--text3); }
-.historyEmptySub   { font-size: 0.75rem; color: var(--text3); opacity: 0.7; }
+.historyEmptyTitle { font-size: 0.88rem; font-weight: 700; color: var(--text3); }
+.historyEmptySub   { font-size: 0.73rem; color: var(--text3); opacity: 0.7; }
 
 /* History log note */
 .historyLogNote {
@@ -1085,7 +1106,6 @@
   gap: 12px;
 }
 
-.historyLogNoteIcon  { font-size: 1.5rem; flex-shrink: 0; }
 .historyLogNoteTitle { font-size: 0.82rem; font-weight: 700; color: var(--text); margin-bottom: 3px; }
 .historyLogNoteSub   { font-size: 0.7rem; color: var(--text3); }
 
@@ -1108,16 +1128,10 @@
   gap: 12px;
   padding: 13px 14px;
   border-bottom: 1px solid var(--border);
-  cursor: pointer;
-  transition: background 0.14s;
 }
 
 .cuRow:last-of-type {
   border-bottom: none;
-}
-
-.cuRow:active {
-  background: var(--surface2);
 }
 
 .cuTime {
@@ -1152,6 +1166,9 @@
 }
 
 .cuBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
   padding: 3px 8px;
   border-radius: 20px;
   font-size: 0.6rem;
@@ -1178,7 +1195,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 5px;
+  gap: 6px;
   width: 100%;
   padding: 12px;
   background: none;
@@ -1236,15 +1253,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1rem;
   color: var(--text2);
-  font-family: inherit;
   transition: background 0.14s;
 }
 
-.settingsBack:active {
-  background: var(--surface2);
-}
+.settingsBack:active { background: var(--surface2); }
 
 .settingsTitle {
   font-size: 1rem;
@@ -1269,7 +1282,14 @@
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--text3);
-  margin-bottom: 8px;
+  margin-bottom: 4px;
+  padding-left: 2px;
+}
+
+.settingsSectionDesc {
+  font-size: 0.72rem;
+  color: var(--text3);
+  margin-bottom: 10px;
   padding-left: 2px;
 }
 
@@ -1288,12 +1308,13 @@
   margin-bottom: 6px;
 }
 
-.settingsRowIcon {
-  font-size: 1.1rem;
+.settingsRowIconWrap {
+  width: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
   margin-top: 1px;
-  width: 22px;
-  text-align: center;
 }
 
 .settingsRowInfo {
@@ -1347,58 +1368,11 @@
   background: #fff;
   top: 3px;
   transition: left 0.22s;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.22);
 }
 
 .toggleOn::after  { left: 21px; }
 .toggleOff::after { left: 3px; }
-
-/* Scheduled rows */
-.schRow {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 11px 14px;
-  margin-bottom: 6px;
-}
-
-.schTime {
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: var(--text);
-  width: 50px;
-  flex-shrink: 0;
-}
-
-.schText {
-  font-size: 0.78rem;
-  color: var(--text2);
-  flex: 1;
-}
-
-.schBadge {
-  padding: 3px 8px;
-  border-radius: 20px;
-  font-size: 0.6rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.schBadgeAuto {
-  background: var(--surface2);
-  color: var(--text3);
-  border: 1px solid var(--border);
-}
-
-.schBadgeWait {
-  background: rgba(239, 68, 68, 0.08);
-  color: var(--danger, #ef4444);
-  border: 1px solid rgba(239, 68, 68, 0.2);
-}
 
 /* Danger rows */
 .dangerRow {
@@ -1406,8 +1380,8 @@
   align-items: center;
   gap: 12px;
   width: 100%;
-  background: rgba(239, 68, 68, 0.06);
-  border: 1px solid rgba(239, 68, 68, 0.18);
+  background: rgba(239, 68, 68, 0.05);
+  border: 1px solid rgba(239, 68, 68, 0.16);
   border-radius: 12px;
   padding: 14px;
   margin-bottom: 6px;
@@ -1418,10 +1392,15 @@
 }
 
 .dangerRow:active {
-  background: rgba(239, 68, 68, 0.1);
+  background: rgba(239, 68, 68, 0.09);
 }
 
-.dangerIcon { font-size: 1.15rem; }
+.dangerIconWrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
 
 .dangerName {
   font-size: 0.83rem;
@@ -1432,13 +1411,7 @@
 
 .dangerDesc {
   font-size: 0.7rem;
-  color: rgba(239, 68, 68, 0.6);
-}
-
-.dangerArrow {
-  color: var(--danger, #ef4444);
-  font-size: 1rem;
-  margin-left: auto;
+  color: rgba(239, 68, 68, 0.55);
 }
 
 /* ── CUSTOMER PEEK ── */
@@ -1498,7 +1471,7 @@
   justify-content: space-between;
 }
 
-.peekName  { font-size: 1rem;  font-weight: 800; color: var(--text); letter-spacing: -0.3px; }
+.peekName  { font-size: 1rem; font-weight: 800; color: var(--text); letter-spacing: -0.3px; }
 .peekPhone { font-size: 0.72rem; color: var(--text3); margin-top: 2px; }
 
 .peekClose {
@@ -1508,12 +1481,10 @@
   background: var(--surface);
   border: 1px solid var(--border);
   cursor: pointer;
-  font-size: 0.8rem;
   color: var(--text3);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: inherit;
 }
 
 .peekBody {
@@ -1557,9 +1528,7 @@
   border-bottom: 1px solid var(--border);
 }
 
-.peekOrderRow:last-of-type {
-  border-bottom: none;
-}
+.peekOrderRow:last-of-type { border-bottom: none; }
 
 .peekOrderName   { font-size: 0.82rem; font-weight: 600; color: var(--text); letter-spacing: -0.1px; }
 .peekOrderDetail { font-size: 0.68rem; color: var(--text3); margin-top: 2px; }
@@ -1593,6 +1562,10 @@
   font-weight: 700;
   transition: all 0.14s;
   letter-spacing: -0.1px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
 }
 
 .peekCta:active { transform: scale(0.97); }
@@ -1625,12 +1598,15 @@
   background: var(--text);
   color: var(--bg);
   border-radius: 12px;
-  padding: 12px 16px;
+  padding: 11px 16px;
   font-size: 0.8rem;
   font-weight: 600;
   letter-spacing: -0.1px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
   animation: toastIn 0.26s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 @keyframes toastIn {
@@ -1646,15 +1622,7 @@
 
   .segItem {
     font-size: 0.73rem;
-    padding: 8px 2px;
-  }
-
-  .apCard,
-  .logItem,
-  .cuCard,
-  .historyLogNote {
-    margin-left: 12px;
-    margin-right: 12px;
+    padding: 10px 2px 8px;
   }
 }
 
@@ -1673,6 +1641,6 @@
     top: 0;
     bottom: 0;
     left: auto;
-    box-shadow: -4px 0 32px rgba(0, 0, 0, 0.12);
+    box-shadow: -4px 0 32px rgba(0, 0, 0, 0.1);
   }
 }
