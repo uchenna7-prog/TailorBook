@@ -28,6 +28,7 @@
 
 
 .description {
+  color: var(--brand-primary-dark);
   flex: 1;
   padding-right: 8px;
   word-break: break-word;
@@ -36,6 +37,7 @@
 
 
 .unitPrice {
+  color: var(--brand-primary-dark);
   flex-shrink: 0;
   width: 72px;
   text-align: right;
@@ -44,6 +46,7 @@
 
 
 .qty {
+  color: var(--brand-primary-dark);
   flex-shrink: 0;
   width: 28px;
   text-align: center;
@@ -51,6 +54,7 @@
 
 
 .price {
+  color: var(--brand-primary-dark);
   flex-shrink: 0;
   text-align: right;
   min-width: 72px;

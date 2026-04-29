@@ -1,5 +1,6 @@
 import styles from "../styles/Template7.module.css"
 import { calcTax,fmt } from "../utils/receiptUtils"
+import { ReceiptPaymentSummary } from "../components/ReceiptPaymentSummary/ReceiptPaymentSummary"
 
 export function ReceiptTemplate7({ receipt, customer, brand }) {
   const accentColor = brand.colour || '#0057D7'
@@ -88,7 +89,9 @@ export function ReceiptTemplate7({ receipt, customer, brand }) {
         <span style={{ flex: 1, textAlign: 'center' }}>Total</span>
         
       </div>
-      {receipt.items?.map((item, i) => {
+
+      <div className={styles.tableBody}>
+        {receipt.items?.map((item, i) => {
         const qty = item.qty ?? 1;
         const unitPrice = parseFloat(item.price) || 0;
         const lineAmount = qty * unitPrice;
@@ -107,11 +110,13 @@ export function ReceiptTemplate7({ receipt, customer, brand }) {
           </div>
         );
       })}
-      <div className={styles.totalBar} style={{ background: accentColor }}>
-        <span>TOTAL:</span>
-        <span className={styles.totalAmount}>{fmt(currency, total)}</span>
-      </div>
 
+        <ReceiptPaymentSummary receipt={receipt} brand={brand} />
+
+
+
+      </div>
+      
       <div className={styles.footer}>
         {brand.accountBank && (
         

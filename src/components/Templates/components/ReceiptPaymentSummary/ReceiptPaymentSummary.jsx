@@ -5,14 +5,25 @@ import { fmt } from '../../utils/receiptUtils'
 import styles from './ReceiptPaymentSummary.module.css'
 
 
+const METHOD_EMOJI = {
+  cash:     '💵',
+  transfer: '🏦',
+  card:     '💳',
+}
+
+function methodEmoji(method) {
+  return METHOD_EMOJI[(method || '').toLowerCase()] ?? '🧾'
+}
+
+function capitalize(str) {
+  return str ? str.charAt(0).toUpperCase() + str.slice(1) : '—'
+}
+
+
 export function ReceiptPaymentSummary({ receipt, brand }) {
   const { currency, showTax, taxRate } = brand
 
   // ── Totals ────────────────────────────────────────────────────────────────
-  // These values are pre-computed and frozen at receipt generation time
-  // inside handleGenerateReceipt. We read them directly from the receipt
-  // instead of recalculating, because recalculating only sees receipt.payments
-  // (current installments) and misses previousInstallments entirely.
   const orderTotal = receipt.items?.length > 0
     ? receipt.items.reduce((sum, item) => sum + (parseFloat(item.price) || 0), 0)
     : (parseFloat(receipt.orderPrice) || 0)
@@ -27,46 +38,52 @@ export function ReceiptPaymentSummary({ receipt, brand }) {
   // ── Build payment rows (previous installments + current payments) ─────────
   const paymentRows = buildPaymentRows(receipt)
 
+  // Derive previously paid (all rows except current ones)
+  const previouslyPaid = paymentRows
+    .filter(p => !p._isCurrent)
+    .reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0)
+
+  // ── "This Receipt" label ─────────────────────────────────────────────────
+  const currentRows    = paymentRows.filter(p => p._isCurrent)
+  const currentMethods = [...new Set(currentRows.map(p => capitalize(p.method || '')))]
+  const methodString   = currentMethods.length <= 1
+    ? (currentMethods[0] || 'This')
+    : currentMethods.slice(0, -1).join(', ') + ' & ' + currentMethods.at(-1)
+
 
   return (
     <div className={styles.container}>
 
-      {/* ── Payment History Table (only shown when there are rows) ──── */}
+      {/* ── Payment History ──────────────────────────────────────────── */}
       {paymentRows.length > 0 && (
         <div className={styles.historySection}>
 
           <div className={styles.sectionLabel}>Payment History</div>
 
-          {/* Table header */}
-          <div className={styles.tableHeader}>
-            <span className={styles.colSerial}>S/N</span>
-            <span className={styles.colDate}>Payment Date</span>
-            <span className={styles.colAmount}>Amount</span>
-          </div>
+          {paymentRows.map((payment, index) => {
+            const isCurrent = payment._isCurrent
+            const method    = payment.method || ''
 
-          {/* Payment rows */}
-          {paymentRows.map((payment, index) => (
-            <div key={payment.id ?? index} className={styles.tableRow}>
+            return (
+              <div key={payment.id ?? index} className={styles.paymentRow}>
 
-              <span className={`${styles.colSerial} ${payment._isCurrent ? styles.currentText : styles.previousText}`}>
-                {payment._sn}
-              </span>
+                <span className={styles.emoji}>{methodEmoji(method)}</span>
 
-              <span className={`${styles.colDate} ${payment._isCurrent ? styles.currentText : styles.previousText}`}>
-                {payment.date}
-                {payment.method && (
-                  <span className={payment._isCurrent ? styles.methodCurrent : styles.methodPrevious}>
-                    {' · '}{payment.method.charAt(0).toUpperCase() + payment.method.slice(1)}
-                  </span>
-                )}
-              </span>
+                <div className={styles.paymentMeta}>
+                  <div className={styles.paymentMethod}>
+                    {capitalize(method)}
+                    {isCurrent && <span className={styles.latestBadge}>Latest</span>}
+                  </div>
+                  <div className={styles.paymentDate}>{payment.date}</div>
+                </div>
 
-              <span className={`${styles.colAmount} ${payment._isCurrent ? styles.amountCurrent : styles.previousText}`}>
-                {fmt(currency, payment.amount)}
-              </span>
+                <span className={`${styles.paymentAmount} ${isCurrent ? styles.amountCurrent : ''}`}>
+                  {fmt(currency, payment.amount)}
+                </span>
 
-            </div>
-          ))}
+              </div>
+            )
+          })}
 
         </div>
       )}
@@ -76,34 +93,54 @@ export function ReceiptPaymentSummary({ receipt, brand }) {
 
         {showTax && taxRate > 0 && (
           <div className={styles.totalsRow}>
-            <span>Tax ({taxRate}%)</span>
-            <span>{fmt(currency, tax)}</span>
+            <span className={styles.totalsKey}>Tax ({taxRate}%)</span>
+            <span className={styles.totalsVal}>{fmt(currency, tax)}</span>
+          </div>
+        )}
+
+        {paymentRows.length > 0 && previouslyPaid > 0 && (
+          <div className={styles.totalsRow}>
+            <span className={styles.totalsKey}>Previously Paid</span>
+            <span className={styles.totalsVal}>{fmt(currency, previouslyPaid)}</span>
           </div>
         )}
 
         {paymentRows.length > 0 && (
           <div className={styles.totalsRow}>
-            <span>Total Paid</span>
-            <span className={styles.amountPaid}>{fmt(currency, thisPaymentTotal)}</span>
-          </div>
-        )}
-
-        {!isFullyPaid && (
-          <div className={`${styles.totalsRow} ${styles.balanceRow}`}>
-            <span>Balance Remaining</span>
-            <span className={styles.amountBalance}>{fmt(currency, balanceRemaining)}</span>
-          </div>
-        )}
-
-        <div className={styles.totalsFinalRow}>
-          <span>{isFullyPaid ? 'PAID IN FULL' : 'AMOUNT RECEIVED'}</span>
-          <div className={styles.finalAmountGroup}>
-            {isFullyPaid && <span className={styles.paidBadge}>✓</span>}
-            <span className={isFullyPaid ? styles.amountPaid : ''}>
-              {fmt(currency, thisPaymentTotal)}
+            <span className={styles.totalsKey}>This Payment</span>
+            <span className={`${styles.totalsVal} ${styles.amountPaid}`}>
+              + {fmt(currency, thisPaymentTotal)}
             </span>
           </div>
+        )}
+
+        <div className={styles.totalsDivider} />
+
+        <div className={styles.totalPaidRow}>
+          <span className={styles.totalPaidKey}>Total Paid</span>
+          <span className={styles.totalPaidVal}>
+            {fmt(currency, thisPaymentTotal + previouslyPaid)}
+          </span>
         </div>
+
+        {/* Status callout */}
+        {!isFullyPaid ? (
+          <div className={styles.balanceCallout}>
+            <div>
+              <div className={styles.balanceLabel}>Balance Remaining</div>
+              <div className={styles.balanceSubLabel}>Order total · {fmt(currency, orderTotal)}</div>
+            </div>
+            <span className={styles.balanceAmount}>{fmt(currency, balanceRemaining)}</span>
+          </div>
+        ) : (
+          <div className={styles.paidCallout}>
+            <div>
+              <div className={styles.paidLabel}>✓ PAID IN FULL</div>
+             
+            </div>
+            <span className={styles.paidAmount}>{fmt(currency, orderTotal)}</span>
+          </div>
+        )}
 
       </div>
 

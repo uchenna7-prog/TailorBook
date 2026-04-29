@@ -1,5 +1,6 @@
 import styles from "../styles/Template4.module.css"
 import { calcTax,fmt } from "../utils/receiptUtils"
+import { ReceiptPaymentSummary } from "../components/ReceiptPaymentSummary/ReceiptPaymentSummary"
 
 export function ReceiptTemplate4({ receipt, customer, brand }) {
 
@@ -78,29 +79,9 @@ export function ReceiptTemplate4({ receipt, customer, brand }) {
             );
           })}
 
-          <div className={styles.totalsArea}>
+          <ReceiptPaymentSummary receipt={receipt} brand={brand} />
 
-            <div className={styles.totalRow}>
 
-              <span>Subtotal</span>
-              <span>{fmt(currency, subtotal)}</span>
-
-            </div>
-            {showTax && taxRate > 0 && 
-            <div className={styles.totalRow}>
-
-              <span>Tax ({taxRate}%)</span>
-              <span>{fmt(currency, tax)}</span>
-
-            </div>}
-
-            <div className={styles.totalDivider} style={{ background: barColor }}></div>
-            <div className={styles.totalBold}>
-              <span>Total Due</span>
-              <span>{fmt(currency, total)}</span>
-            </div>
-
-          </div>
         </div>
 
         {brand.accountBank && (

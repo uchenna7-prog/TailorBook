@@ -20,7 +20,7 @@ export function ReceiptTemplate3({ receipt, customer, brand }) {
         <div className={styles.customBannerRight}>
 
           <div className={styles.customBannerTitle}>receipt</div>
-          <div className={styles.customBannerreceiptNumber}>{receipt.number}</div>
+          <div className={styles.customBannerReceiptNumber}>{receipt.number}</div>
 
         </div>
 

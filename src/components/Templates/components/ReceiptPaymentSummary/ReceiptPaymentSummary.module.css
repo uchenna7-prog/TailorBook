@@ -1,12 +1,14 @@
 /* ─────────────────────────────────────────────────────────────────────────
    ReceiptPaymentSummary.module.css
-   Uses brand color tokens injected by useBrandTokens / getBrandCSSVars.
-   Hard-coded status colors (paid green, balance red) stay fixed
-   because they carry universal meaning on a receipt.
+
+   Brand color usage — intentional, not decorative:
+     --brand-primary      → "Payment History" section label only
+     --brand-primary-dark → top border of history section, last row border,
+                            totals divider, paid-in-full badge + label
+   Everything else (method names, dates, subtotal labels, amounts) uses
+   plain neutral grays so the brand color stays meaningful where it appears.
    ───────────────────────────────────────────────────────────────────────── */
 
-
-/* ── Outer container ────────────────────────────────────────────────────── */
 
 .container {
   width: 100%;
@@ -19,7 +21,7 @@
 
 .historySection {
   margin-top: 14px;
-  border-top: 1px solid #e0e0e0;
+  border-top: 1.5px solid var(--brand-primary-dark, #a07d20);
   padding-top: 10px;
 }
 
@@ -29,101 +31,101 @@
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--brand-primary, #D4AF37);
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 
 
-/* ── Table header ───────────────────────────────────────────────────────── */
+/* ── Payment rows ───────────────────────────────────────────────────────── */
 
-.tableHeader {
-  display: grid;
-  grid-template-columns: 28px 1fr 80px;
+.paymentRow {
+  display: flex;
   align-items: center;
-  padding: 6px 0 5px;
-  background: none;
-  border-bottom: 1px solid #e0e0e0;
-  font-size: 8px;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: #888;
-}
-
-
-/* ── Table data rows ────────────────────────────────────────────────────── */
-
-.tableRow {
-  display: grid;
-  grid-template-columns: 28px 1fr 80px;
-  align-items: baseline;
-  padding: 5px 0;
+  gap: 8px;
+  padding: 7px 0;
   border-bottom: 1px dashed #ebebeb;
 }
 
-.tableRow:last-of-type {
-  border-bottom: 1px solid #e0e0e0;
+.paymentRow:last-of-type {
+  border-bottom: 1px solid var(--brand-primary-dark, #a07d20);
 }
 
 
-/* ── Column layout ──────────────────────────────────────────────────────── */
+/* ── Emoji ──────────────────────────────────────────────────────────────── */
 
-.colSerial {
+.emoji {
+  font-size: 13px;
+  line-height: 1;
+  flex-shrink: 0;
+  width: 20px;
+  text-align: center;
+}
+
+
+/* ── Payment meta ───────────────────────────────────────────────────────── */
+
+.paymentMeta {
+  flex: 1;
+  min-width: 0;
+}
+
+.paymentMethod {
   font-size: 9px;
-  font-variant-numeric: tabular-nums;
-}
-
-.colDate {
-  font-size: 9px;
-  padding-right: 6px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.colAmount {
-  font-size: 9px;
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-  font-feature-settings: "tnum";
-  white-space: nowrap;
-}
-
-
-/* ── Row state: current payment vs previous ─────────────────────────────── */
-
-.currentText {
-  color: #1a1a1a;
   font-weight: 600;
+  color: #1a1a1a;
+  display: flex;
+  align-items: center;
+  gap: 5px;
 }
 
-.previousText {
-  color: #9ca3af;
-  font-weight: 400;
+.paymentDate {
+  font-size: 8px;
+  color: #a8a8a8;
+  margin-top: 1px;
+  font-variant-numeric: tabular-nums;
 }
+
+
+/* ── Row state ──────────────────────────────────────────────────────────── */
 
 .amountCurrent {
   color: #16a34a;
   font-weight: 700;
 }
 
-.methodCurrent {
-  color: #16a34a;
+
+/* ── Latest badge ───────────────────────────────────────────────────────── */
+
+.latestBadge {
+  font-size: 7px;
   font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: #e8f3f1;
+  color: #595f6c;
+  padding: 2px 5px;
+  border-radius: 3px;
+  line-height: 1;
 }
 
-.methodPrevious {
-  color: #b0b8c1;
-  font-weight: 400;
+
+/* ── Payment amount ─────────────────────────────────────────────────────── */
+
+.paymentAmount {
+  font-size: 10px;
+  font-weight: 600;
+  color: #1a1a1a;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 
 /* ── Totals summary ─────────────────────────────────────────────────────── */
-/* Right-aligned to 55% width, matching InvoiceItemsTable summary block */
 
 .totalsSection {
-  margin-left: auto;
-  width: 55%;
-  margin-top: 18px;
+  width: 100%;
+  margin-top: 14px;
 }
 
 .totalsRow {
@@ -131,18 +133,22 @@
   justify-content: space-between;
   align-items: center;
   column-gap: 12px;
-  font-size: 9px;
-  color: #374151;
   padding: 4px 0;
+  margin-left: auto;
+  width: 55%;
 }
 
-/* Balance row gets a subtle red tint so it stands out */
-.balanceRow {
-  color: #ef4444;
-  background: #fff5f5;
-  padding: 4px 6px;
-  border-radius: 3px;
-  margin: 2px 0;
+.totalsKey {
+  font-size: 9px;
+  color: #6b7280;
+}
+
+.totalsVal {
+  font-size: 9px;
+  font-weight: 500;
+  color: #1a1a1a;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
 }
 
 .amountPaid {
@@ -151,46 +157,127 @@
   font-variant-numeric: tabular-nums;
 }
 
-.amountBalance {
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
+
+/* ── Divider ────────────────────────────────────────────────────────────── */
+
+.totalsDivider {
+  height: 1.5px;
+  background: var(--brand-primary-dark, #a07d20);
+  margin: 8px 0;
+  margin-left: auto;
+  width: 55%;
 }
 
 
-/* ── Final bold row (PAID IN FULL / AMOUNT RECEIVED) ───────────────────── */
+/* ── Total Paid row ─────────────────────────────────────────────────────── */
 
-.totalsFinalRow {
+.totalPaidRow {
   display: flex;
   justify-content: space-between;
   align-items: center;
   column-gap: 12px;
+  padding: 4px 0 10px;
+  margin-left: auto;
+  width: 55%;
+}
+
+.totalPaidKey {
+  font-size: 11px;
+  font-weight: 900;
+  color: #1a1a1a;
+  letter-spacing: 0.02em;
+}
+
+.totalPaidVal {
   font-size: 13px;
   font-weight: 900;
   color: #1a1a1a;
-  letter-spacing: 0.04em;
-  border-top: 2px solid var(--brand-primary-dark, #a07d20);
-  margin-top: 8px;
-  padding-top: 8px;
-  padding-bottom: 4px;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
 }
 
-.finalAmountGroup {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
 
-/* Small green checkmark pill shown when fully paid */
-.paidBadge {
+
+
+/* ── Fully paid — green ─────────────────────────────────────────────────── */
+
+
+
+.paidCheckmark {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 14px;
-  height: 14px;
+  width: 18px;
+  height: 18px;
   background: #16a34a;
   color: #fff;
   border-radius: 50%;
-  font-size: 8px;
+  font-size: 10px;
   font-weight: 900;
   flex-shrink: 0;
+}
+
+/* ── Status callout (shared base) ───────────────────────────────────────── */
+
+.balanceCallout,
+.paidCallout {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  column-gap: 12px;
+  padding: 4px 0;
+  margin-left: auto;
+  margin-bottom: 15px;
+  width: 55%;
+}
+
+
+.balanceLabel {
+  font-size: 8px;
+  font-weight: 800;
+  color: #c0392b;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+}
+
+.balanceSubLabel {
+  font-size: 7px;
+  color: #e07060;
+  margin-top: 2px;
+  font-variant-numeric: tabular-nums;
+}
+
+.balanceAmount {
+  font-size: 13px;
+  font-weight: 900;
+  color: #c0392b;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+  white-space: nowrap;
+}
+
+
+
+.paidLabel {
+  font-size: 10px;
+  font-weight: 800;
+  color: #1a7a4a;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+}
+
+.paidSubLabel {
+  font-size: 7px;
+  color: #3a9e68;
+  margin-top: 2px;
+  font-variant-numeric: tabular-nums;
+}
+
+.paidAmount {
+  color: #16a34a;
+  font-size: 10px;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+  white-space: nowrap;
 }

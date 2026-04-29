@@ -1,5 +1,6 @@
 import styles from "../styles/Template8.module.css"
 import { calcTax,fmt } from "../utils/receiptUtils"
+import { ReceiptPaymentSummary } from "../components/ReceiptPaymentSummary/ReceiptPaymentSummary"
 
 export function ReceiptTemplate8({ receipt, customer, brand }) {
 

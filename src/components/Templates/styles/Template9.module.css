@@ -90,11 +90,16 @@
 
 .tableRow { 
    display: flex; 
-   padding: 4px 16px; 
+   padding: 5px 0; 
    border-bottom: 1px solid #f0f0f0; 
    font-size: 8px; 
    gap: 4px; 
 }
+
+.tableBody{
+   padding: 5px 16px; 
+}
+
 .subArea { 
    display: flex; 
    flex-direction: column; 

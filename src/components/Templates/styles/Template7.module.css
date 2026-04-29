@@ -92,13 +92,6 @@
    gap: 3px; 
    margin-bottom: 1px; 
 }
-.t7InfoKey { 
-   color: #aaa; 
-   font-size: 6px; 
-   text-transform: uppercase; 
-   width: 55px; 
-   flex-shrink: 0; 
-}
 
 .infoValue { 
    font-weight: 700; 
@@ -127,9 +120,13 @@
    display: flex; 
    align-items: center; 
    border-bottom: 1px solid #eee; 
-   padding: 4px 16px; 
+   padding: 5px 0; 
    font-size: 7.5px; 
    gap: 4px; 
+}
+
+.tableBody{
+   padding: 5px 16px; 
 }
 
 .numColumn { 

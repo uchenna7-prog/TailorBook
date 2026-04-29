@@ -60,7 +60,7 @@
    opacity: 0.88; 
 }
 
-.invoiceRow { 
+.invoiceRow,.receiptRow { 
    display: flex; 
    justify-content: space-between; 
    align-items: center; 
@@ -68,24 +68,24 @@
    border-bottom: 1px solid #eee; 
 }
 
-.invoiceLeft { 
+.invoiceLeft,.receiptLeft { 
    display: flex; 
    align-items: baseline; 
    gap: 4px; 
 }
 
-.invoiceWord { 
+.invoiceWord,.receiptWord { 
    font-size: 10px; 
    font-weight: 400; 
    color: #555; 
 }
-.invoiceNum { 
+.invoiceNum,.receiptNum { 
    font-size: 18px; 
    font-weight: 900; 
    color: var(--brand-primary); 
 }
 
-.invoiceRight { 
+.invoiceRight,.receiptRight { 
    text-align: right; 
    font-size: 7px; 
    line-height: 1.7; 
@@ -152,11 +152,16 @@
 
 .tableRow { 
    display: flex; 
-   padding: 4px 16px; 
-   border-bottom: 1px solid #f0f0f0; 
+   border-bottom: 1px solid #f0f0f0;
+   padding: 5px 0;  
    font-size: 8px; 
    gap: 6px; 
 }
+
+.tableBody{
+   padding: 5px 16px; 
+}
+
 .totalsArea { 
    margin-left: auto; 
    width: 48%; 

@@ -1,5 +1,6 @@
 import styles from "../styles/Template10.module.css"
 import { calcTax,fmt } from "../utils/receiptUtils"
+import { ReceiptPaymentSummary } from "../components/ReceiptPaymentSummary/ReceiptPaymentSummary"
 
 export function ReceiptTemplate10({ receipt, customer, brand }) {
 

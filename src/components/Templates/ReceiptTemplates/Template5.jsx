@@ -1,5 +1,6 @@
 import styles from "../styles/Template5.module.css"
 import { calcTax,fmt } from "../utils/receiptUtils"
+import { ReceiptPaymentSummary } from "../components/ReceiptPaymentSummary/ReceiptPaymentSummary"
 
 export function ReceiptTemplate5({ receipt, customer, brand }) {
 
@@ -63,36 +64,9 @@ export function ReceiptTemplate5({ receipt, customer, brand }) {
         );
       })}
 
-      <div className={styles.divider} />
+      <ReceiptPaymentSummary receipt={receipt} brand={brand} />
 
-      <div className={styles.totalsSection}>
-
-        <div className={styles.totalRow}>
-
-          <span>Subtotal</span>
-          <span>{fmt(currency, subtotal)}</span>
-
-        </div>
-
-        {showTax && taxRate > 0 && 
-        <div className={styles.totalRow}>
-
-          <span>Tax ({taxRate}%)</span>
-          <span>{fmt(currency, tax)}</span>
-
-        </div>}
-
-        <div className={`${styles.totalRow} ${styles.totalBold}`}>
-
-          <span>Total</span>
-          <span>{fmt(currency, total)}</span>
-
-        </div>
-
-      </div>
-
-      <div className={styles.divider} />
-
+    
       <div className={styles.footer}>
        
         {brand.accountBank ? (

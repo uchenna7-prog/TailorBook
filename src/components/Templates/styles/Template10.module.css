@@ -92,12 +92,17 @@
 
 .tableRow { 
    display: flex; 
-   padding: 4px 16px; 
+   padding: 5px 0; 
    border-bottom: 1px solid #f0f0f0; 
    margin: 0 16px; 
    font-size: 8px; 
    gap: 4px; 
 }
+
+.tableBody{
+   padding: 5px 16px; 
+}
+
 .divider { 
    height: 1px; 
    background: var(--brand-muted); 

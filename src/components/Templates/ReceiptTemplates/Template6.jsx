@@ -1,5 +1,6 @@
 import styles from "../styles/Template6.module.css"
 import { calcTax,fmt } from "../utils/receiptUtils"
+import { ReceiptPaymentSummary } from "../components/ReceiptPaymentSummary/ReceiptPaymentSummary"
 
 export function ReceiptTemplate6({ receipt, customer, brand }) {
 
@@ -77,10 +78,15 @@ export function ReceiptTemplate6({ receipt, customer, brand }) {
         </div>
       </div>
       <div className={styles.tableHead}>
-        <span style={{ flex: 3 }}>ITEM DESCRIPTION</span><span>UNIT PRICE</span><span>QTY</span><span>TOTAL</span>
+        <span style={{ flex: 3 }}>ITEM DESCRIPTION</span>
+        <span>UNIT PRICE</span>
+        <span>QTY</span>
+        <span>TOTAL</span>
       </div>
 
-      {receipt.items?.map((item, i) => {
+      <div className={styles.tableBody}>
+
+        {receipt.items?.map((item, i) => {
         const qty = item.qty ?? 1;
         const unitPrice = parseFloat(item.price) || 0;
         const lineAmount = qty * unitPrice;
@@ -95,11 +101,13 @@ export function ReceiptTemplate6({ receipt, customer, brand }) {
         );
       })}
       
-      <div className={styles.totalsArea}>
-        <div className={styles.totalRow}><span>SUBTOTAL</span><span>{fmt(currency, subtotal)}</span></div>
-        {showTax && taxRate > 0 && <div className={styles.totalRow}><span>TAX ({taxRate}%)</span><span>{fmt(currency, tax)}</span></div>}
-        <div className={styles.total}><span>TOTAL</span><span>{fmt(currency, total)}</span></div>
+       <ReceiptPaymentSummary receipt={receipt} brand={brand} />
+      
       </div>
+
+      
+     
+
       <div className={styles.thankYou}>{brand.footer || 'THANK YOU FOR YOUR BUSINESS'}</div>
     </div>
   )
