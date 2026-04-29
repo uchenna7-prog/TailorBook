@@ -46,7 +46,7 @@
   background: #ffffff;
   border-radius: 12px;
   box-shadow: 0 4px 24px rgba(0,0,0,0.12);
-  overflow: hidden;
+  /* removed overflow: hidden — it clips html2canvas capture */
   margin-bottom: 14px;
   width: 380px;
   max-width: 96%;
@@ -54,13 +54,11 @@
   margin-right: auto;
 }
 
-/* paperInner is what html2canvas captures */
 .paperInner {
   width: 380px;
   max-width: 100%;
-  overflow: hidden;
+  /* removed overflow: hidden — same reason */
 }
-
 /* ── NOTES ── */
 .notesBox {
   padding: 14px;

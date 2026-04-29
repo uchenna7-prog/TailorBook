@@ -1,58 +1,59 @@
 import { useRef, useState } from 'react'
-import html2canvas from 'html2canvas'
-import { jsPDF } from 'jspdf'
 import { useBrand } from '../../contexts/BrandContext'
 import Header from '../Header/Header'
 import styles from './ReceiptViewer.module.css'
 import { TEMPLATE_MAPPINGS } from '../Templates/datas/receiptTemplateMappings'
-import { getBrandCSSVars, downloadPDF, resolveCumulativePaid, buildReceiptWhatsAppMessage } from './utils'
-import ShareSheet from '../ShareSheet/ShareSheet'
-
-
-
+import { getBrandCSSVars, downloadPDF, sharePDF, resolveCumulativePaid, buildReceiptWhatsAppMessage } from './utils'
 
 export default function ReceiptViewer({ receipt: initialReceipt, customer, onClose, onDelete, showToast }) {
   const { brand } = useBrand()
   const paperRef  = useRef(null)
-  const [receipt,    setReceipt]    = useState(initialReceipt)
-  const [pdfLoading, setPdfLoading] = useState(false)
-  const [showShare,  setShowShare]  = useState(false)
+  const [receipt,      setReceipt]      = useState(initialReceipt)
+  const [pdfLoading,   setPdfLoading]   = useState(false)
+  const [shareLoading, setShareLoading] = useState(false)
 
-  const templateKey = receipt.template || brand.receiptTemplate || 'receiptTemplate1'
-  const Template    = TEMPLATE_MAPPINGS[templateKey] || TEMPLATE_MAPPINGS.receiptTemplate1
+  const templateKey    = receipt.template || brand.receiptTemplate || 'receiptTemplate1'
+  const Template       = TEMPLATE_MAPPINGS[templateKey] || TEMPLATE_MAPPINGS.receiptTemplate1
+  const effectiveBrand = receipt.brandSnapshot ? { ...brand, ...receipt.brandSnapshot } : brand
+  const brandCSSVars   = getBrandCSSVars(effectiveBrand.colour)
+  const filename       = `Receipt-${receipt.number}-${customer.name.replace(/\s+/g, '_')}.pdf`
 
-  // FIX: if the receipt has a brandSnapshot, use it exclusively for all brand
-  // fields so the frozen-at-generation colours/details are always shown.
-  // Only fall back to the live brand for fields the snapshot doesn't have.
-  const effectiveBrand = receipt.brandSnapshot
-    ? { ...brand, ...receipt.brandSnapshot }
-    : brand
-
-  // Derive isolated CSS variables from the frozen snapshot colour.
-  // This overrides the global --brand-* tokens (set by useBrandTokens)
-  // so templates always render with the colour active at generation time.
-  const brandCSSVars = getBrandCSSVars(effectiveBrand.colour)
-
-  const filename = `Receipt-${receipt.number}-${customer.name.replace(/\s+/g, '_')}.pdf`
+  const cumulativePaid = resolveCumulativePaid(receipt)
+  const orderTotal     = receipt.orderPrice ? parseFloat(receipt.orderPrice) : cumulativePaid
+  const isFullPay      = cumulativePaid >= orderTotal && orderTotal > 0
 
   const handleDownload = async () => {
-    if (!paperRef.current) return
+    if (!paperRef.current || pdfLoading) return
     setPdfLoading(true)
     showToast?.('Generating PDF…')
     try {
-      await downloadPDF(paperRef.current, filename)
+      await downloadPDF(paperRef.current, filename, brandCSSVars)
       showToast?.('PDF downloaded ✓')
     } catch (err) {
       console.error(err)
-      showToast?.('PDF failed.')
+      showToast?.('PDF failed — please try again.')
     } finally {
       setPdfLoading(false)
     }
   }
 
-  const cumulativePaid = resolveCumulativePaid(receipt)
-  const orderTotal     = receipt.orderPrice ? parseFloat(receipt.orderPrice) : cumulativePaid
-  const isFullPay      = cumulativePaid >= orderTotal && orderTotal > 0
+  const handleShare = async () => {
+    if (!paperRef.current || shareLoading) return
+    setShareLoading(true)
+    showToast?.('Preparing…')
+    try {
+      const message = buildReceiptWhatsAppMessage(receipt, customer, effectiveBrand)
+      await sharePDF(paperRef.current, filename, message, brandCSSVars)
+      showToast?.('Shared ✓')
+    } catch (err) {
+      if (err?.name !== 'AbortError') {
+        console.error(err)
+        showToast?.('Share failed — please try again.')
+      }
+    } finally {
+      setShareLoading(false)
+    }
+  }
 
   return (
     <div className={styles.overlay}>
@@ -62,18 +63,19 @@ export default function ReceiptViewer({ receipt: initialReceipt, customer, onClo
         onBackClick={onClose}
         customActions={[
           {
-            icon: pdfLoading ? 'hourglass_top' : 'download',
-            onClick: handleDownload,
+            icon:     pdfLoading ? 'hourglass_top' : 'download',
+            onClick:  handleDownload,
             disabled: pdfLoading,
           },
           {
-            icon: 'share',
-            onClick: () => setShowShare(true),
+            icon:     shareLoading ? 'hourglass_top' : 'share',
+            onClick:  handleShare,
+            disabled: shareLoading,
           },
           {
-            icon: 'delete',
+            icon:    'delete',
             onClick: () => onDelete(receipt.id),
-            style: { color: '#ef4444' },
+            style:   { color: '#ef4444' },
           },
         ]}
       />
@@ -97,18 +99,6 @@ export default function ReceiptViewer({ receipt: initialReceipt, customer, onClo
         )}
         <div style={{ height: 32 }} />
       </div>
-
-      <ShareSheet
-        open={showShare}
-        onClose={() => setShowShare(false)}
-        paperRef={paperRef}
-        filename={filename}
-        docNumber={receipt.number}
-        customer={customer}
-        brand={effectiveBrand}
-        docType="Receipt"
-        buildMessage={() => buildReceiptWhatsAppMessage(receipt, customer, effectiveBrand)}
-      />
     </div>
   )
 }

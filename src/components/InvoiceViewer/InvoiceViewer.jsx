@@ -3,9 +3,7 @@ import { useBrand } from '../../contexts/BrandContext'
 import Header from '../Header/Header'
 import styles from './InvoiceViewer.module.css'
 import { TEMPLATE_MAPPINGS } from '../Templates/datas/invoiceTemplateMappings'
-import { getBrandCSSVars,buildInvoiceWhatsAppMessage,downloadPDF } from './utils'
-import { ShareSheet } from '../ShareSheet/ShareSheet'
-
+import { getBrandCSSVars, buildInvoiceWhatsAppMessage, downloadPDF, sharePDF } from './utils'
 
 const STATUS_LABELS = {
   unpaid:    'Unpaid',
@@ -14,67 +12,58 @@ const STATUS_LABELS = {
   overdue:   'Overdue',
 }
 
-export default function InvoiceViewer({ 
-  invoice: initialInvoice, 
-  customer, 
-  onClose, 
-  onStatusChange, 
-  onDelete, 
-  showToast 
+export default function InvoiceViewer({
+  invoice: initialInvoice,
+  customer,
+  onClose,
+  onDelete,
+  showToast,
 }) {
-  const { brand } = useBrand()
-  const paperRef  = useRef(null)
-  const [invoice,    setInvoice]    = useState(initialInvoice)
-  const [pdfLoading, setPdfLoading] = useState(false)
-  const [showShare,  setShowShare]  = useState(false)
+  const { brand }  = useBrand()
+  const paperRef   = useRef(null)
+  const [invoice,     setInvoice]     = useState(initialInvoice)
+  const [pdfLoading,  setPdfLoading]  = useState(false)
+  const [shareLoading, setShareLoading] = useState(false)
 
-  const templateKey = brand.invoiceTemplate || 'invoiceTemplate1'
-  const Template = TEMPLATE_MAPPINGS[templateKey] || TEMPLATE_MAPPINGS.invoiceTemplate1
-
-  const effectiveBrand = invoice.brandSnapshot
-    ? { ...brand, ...invoice.brandSnapshot }
-    : brand
-
-  const brandCSSVars = getBrandCSSVars(effectiveBrand.colour)
-  const filename     = `Invoice-${invoice.number}-${customer.name.replace(/\s+/g, '_')}.pdf`
+  const templateKey    = brand.invoiceTemplate || 'invoiceTemplate1'
+  const Template       = TEMPLATE_MAPPINGS[templateKey] || TEMPLATE_MAPPINGS.invoiceTemplate1
+  const effectiveBrand = invoice.brandSnapshot ? { ...brand, ...invoice.brandSnapshot } : brand
+  const brandCSSVars   = getBrandCSSVars(effectiveBrand.colour)
+  const filename       = `Invoice-${invoice.number}-${customer.name.replace(/\s+/g, '_')}.pdf`
 
   const handleDownload = async () => {
-    if (!paperRef.current) return
+    if (!paperRef.current || pdfLoading) return
     setPdfLoading(true)
     showToast?.('Generating PDF…')
     try {
-      await downloadPDF(paperRef.current, filename)
+      await downloadPDF(paperRef.current, filename, brandCSSVars)
       showToast?.('PDF downloaded ✓')
-    } catch {
-      showToast?.('PDF failed.')
+    } catch (err) {
+      console.error(err)
+      showToast?.('PDF failed — please try again.')
     } finally {
       setPdfLoading(false)
     }
   }
 
-  // Single paper element — one ref, works for both layout branches
-  const paper = (
-    <div className={styles.paperWrap}>
-      <div className={styles.paperInner} ref={paperRef} style={brandCSSVars}>
-        <Template invoice={invoice} customer={customer} brand={effectiveBrand} />
-      </div>
-    </div>
-  )
-
-  const notes = invoice.notes ? (
-    <div className={styles.notesBox}>
-      <div className={styles.notesLabel}>Notes</div>
-      <div className={styles.notesText}>{invoice.notes}</div>
-    </div>
-  ) : null
-
-  const badge = (
-    <div className={styles.statusRow}>
-      <div className={`${styles.statusBadge} ${styles[`status_${invoice.status}`]}`}>
-        {STATUS_LABELS[invoice.status] || invoice.status}
-      </div>
-    </div>
-  )
+  const handleShare = async () => {
+    if (!paperRef.current || shareLoading) return
+    setShareLoading(true)
+    showToast?.('Preparing…')
+    try {
+      const message = buildInvoiceWhatsAppMessage(invoice, customer, effectiveBrand)
+      await sharePDF(paperRef.current, filename, message, brandCSSVars)
+      showToast?.('Shared ✓')
+    } catch (err) {
+      // User cancelled the share sheet — not a real error
+      if (err?.name !== 'AbortError') {
+        console.error(err)
+        showToast?.('Share failed — please try again.')
+      }
+    } finally {
+      setShareLoading(false)
+    }
+  }
 
   return (
     <div className={styles.overlay}>
@@ -83,44 +72,75 @@ export default function InvoiceViewer({
         title={invoice.number}
         onBackClick={onClose}
         customActions={[
-          { icon: pdfLoading ? 'hourglass_top' : 'download', onClick: handleDownload, disabled: pdfLoading },
-          { icon: 'share', onClick: () => setShowShare(true) },
-          { icon: 'delete', onClick: () => onDelete(invoice.id), style: { color: '#ef4444' } },
+          {
+            icon:     pdfLoading ? 'hourglass_top' : 'download',
+            onClick:  handleDownload,
+            disabled: pdfLoading,
+          },
+          {
+            icon:     shareLoading ? 'hourglass_top' : 'share',
+            onClick:  handleShare,
+            disabled: shareLoading,
+          },
+          {
+            icon:    'delete',
+            onClick: () => onDelete(invoice.id),
+            style:   { color: '#ef4444' },
+          },
         ]}
       />
 
       <div className={styles.scrollArea}>
 
-        {/* ── MOBILE: original untouched stacked layout ── */}
-        <div className={styles.mobileLayout}>
-          {badge}
-          {paper}
-          {notes}
+        {/* Status badge */}
+        <div className={styles.statusRow}>
+          <div className={`${styles.statusBadge} ${styles[`status_${invoice.status}`]}`}>
+            {STATUS_LABELS[invoice.status] || invoice.status}
+          </div>
         </div>
 
-        {/* ── DESKTOP: centred two-column layout ── */}
+        {/* Paper preview — ref is here, clone is used for PDF so this never moves */}
+        <div className={styles.mobileLayout}>
+          <div className={styles.paperWrap}>
+            <div className={styles.paperInner} ref={paperRef} style={brandCSSVars}>
+              <Template invoice={invoice} customer={customer} brand={effectiveBrand} />
+            </div>
+          </div>
+          {invoice.notes && (
+            <div className={styles.notesBox}>
+              <div className={styles.notesLabel}>Notes</div>
+              <div className={styles.notesText}>{invoice.notes}</div>
+            </div>
+          )}
+        </div>
+
         <div className={styles.desktopLayout}>
-          {badge}
+          <div className={styles.statusRow}>
+            <div className={`${styles.statusBadge} ${styles[`status_${invoice.status}`]}`}>
+              {STATUS_LABELS[invoice.status] || invoice.status}
+            </div>
+          </div>
           <div className={styles.desktopColumns}>
-            <div className={styles.previewCol}>{paper}</div>
-            <div className={styles.metaCol}>{notes}</div>
+            <div className={styles.previewCol}>
+              <div className={styles.paperWrap}>
+                <div className={styles.paperInner} ref={paperRef} style={brandCSSVars}>
+                  <Template invoice={invoice} customer={customer} brand={effectiveBrand} />
+                </div>
+              </div>
+            </div>
+            <div className={styles.metaCol}>
+              {invoice.notes && (
+                <div className={styles.notesBox}>
+                  <div className={styles.notesLabel}>Notes</div>
+                  <div className={styles.notesText}>{invoice.notes}</div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
         <div style={{ height: 32 }} />
       </div>
-
-      <ShareSheet
-        open={showShare}
-        onClose={() => setShowShare(false)}
-        paperRef={paperRef}
-        filename={filename}
-        docNumber={invoice.number}
-        customer={customer}
-        brand={effectiveBrand}
-        docType="Invoice"
-        buildMessage={() => buildInvoiceWhatsAppMessage(invoice, customer, effectiveBrand)}
-      />
     </div>
   )
 }

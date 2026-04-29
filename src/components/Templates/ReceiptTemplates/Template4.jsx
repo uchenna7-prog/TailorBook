@@ -59,7 +59,7 @@ export function ReceiptTemplate4({ receipt, customer, brand }) {
 
             <span style={{ flex: 3 }}>Item Description</span>
             <span>Unit Price</span>
-            <span>QTY</span>
+            <span>Qty</span>
             <span>Total</span>
 
           </div>

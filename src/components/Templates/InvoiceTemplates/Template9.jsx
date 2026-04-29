@@ -89,40 +89,38 @@ export function InvoiceTemplate9({ invoice, customer, brand }) {
       <div className={styles.totalBar}>
         <span>TOTAL</span><span>{fmt(currency, total)}</span>
       </div>
-      <div className={styles.footer}>
-        <div>
-          {brand.accountBank && (
-            <>
-              <div className={styles.thankYou}>PAYMENT INFORMATION</div>
+        <div style={{ marginTop: 'auto' }}>
+        <div className={styles.footer}>
+          <div>
+            {brand.accountBank && (
+              <>
+                <div className={styles.thankYou}>Payment Details</div>
                 <div>
-
-                  {brand.accountBank && (
-                    <div>Bank Name: {brand.accountBank}</div>
+                  {brand.name && (
+                    <div>Received By : {brand.name}</div>
                   )}
-
-                  {brand.accountNumber && (
-                    <div>Account Number: {brand.accountNumber}</div>
-                  )}
-
-                  {brand.accountName && (
-                    <div>Account Name: {brand.accountName}</div>
-                  )}
-                  
                 </div>
+              </>
+            )}
+            <div className={styles.paymentNote} style={{ fontWeight: 900, color: "var(--brand-primary-dark)" }}>
+              {brand.footer}
+            </div>
+          </div>
+          <div className={styles.signArea}>
+            <div className={styles.signLine} />
+            <div className={styles.signLabel}>Signature</div>
+          </div>
 
-            </>
-          )}
-
-        <div className={styles.paymentNote} style={{fontWeight:900,color:"var(--brand-primary-dark)"}}>{brand.footer}</div>
         </div>
-        <div className={styles.signArea}>
-
-          <div className={styles.signLine} />
-          <div className={styles.signLabel}>Signature</div>
-
+        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <svg
+            style={{ display: 'block', width: 50, height: 50 }}
+            viewBox="0 0 50 50"
+          >
+            <polygon points="50,0 50,50 0,50" fill={accentColor} opacity="0.5" />
+          </svg>
         </div>
       </div>
-      <div className={styles.cornerDecoration} />
     </div>
   )
 }

@@ -72,6 +72,7 @@
 .tableHeader span, .tableRow span { 
   flex: 1; 
   text-align: center; 
+  font-size: 9px;
 }
 
 .tableHeader span:first-child, .tableRow span:first-child { 
@@ -82,10 +83,10 @@
 .tableRow { 
   display: flex; 
   align-items: center; 
-  padding: 5px 0; 
   font-size: 7px; 
-  border-bottom: 1px solid #f0f0f0; 
-  gap: 4px; 
+  padding: 6px 0;
+  border-bottom: 1px dashed #ebebeb;
+  gap: 6px;
 }
 
 .totalsArea { 

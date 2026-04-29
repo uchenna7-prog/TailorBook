@@ -1,15 +1,14 @@
-
-.template { 
-   background: #fff; 
-   color: #1a1a1a; 
-   font-family: 'DM Sans', sans-serif; 
-   font-size: 8px; 
-   min-height: 520px; 
-   display: flex; 
-   flex-direction: column; 
-   padding: 0; 
-   position: relative; 
-   overflow: hidden; 
+.template {
+  background: #fff;
+  color: #1a1a1a;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 8px;
+  min-height: 520px;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  position: relative;
+  overflow: hidden;        /* keep for the live preview rounded corners */
 }
 .headerZone { 
    position: relative; 
@@ -88,15 +87,17 @@
 }
 .tableHeader span, .tableRow span { 
    flex: 1; 
+   font-size: 9px;
 }
 
 .tableRow { 
    display: flex; 
-   padding: 5px 0; 
+   padding: 6px 0; 
    border-bottom: 1px solid #f0f0f0; 
    margin: 0 16px; 
    font-size: 8px; 
    gap: 4px; 
+   font-size: 9px;
 }
 
 .tableBody{
@@ -191,4 +192,5 @@
    background: var(--brand-gradient); 
    clip-path: polygon(100% 0, 100% 100%, 0 100%); 
 }
+
 

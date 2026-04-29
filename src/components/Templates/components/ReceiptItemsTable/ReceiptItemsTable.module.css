@@ -1,102 +1,200 @@
+
 .table {
   width: 100%;
   margin-top: 10px;
 }
 
+
+/* ── Order description row ──────────────────────────────────────────────── */
+
 .orderDescriptionRow {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  padding: 8px 0 10px;
-  font-size: 11px;
-  font-weight: 900;
-  color: #000;
-  border-bottom: 2px solid var(--brand-primary-dark);
+  align-items: baseline;
+  padding: 10px 0 12px;
+  border-bottom: 1.5px solid var(--brand-primary-dark, #a07d20);
 }
 
+.orderDescLabel {
+  font-size: 11px;
+  font-weight: 900;
+  color: #0a0a0a;
+}
+
+.orderDescAmount {
+  font-size: 11px;
+  font-weight: 700;
+  color: #0a0a0a;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+
+/* ── Column header row ──────────────────────────────────────────────────── */
+
 .headerRow {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 72px 28px 72px;
   align-items: center;
-  font-weight: 800;
+  gap: 6px;
+  padding: 7px 0 6px;
+  border-bottom: 1px solid #e8e4de;
   font-size: 8px;
-  border-bottom: 1px solid #e0e0e0;
-  padding: 6px 0 5px;
-  margin-bottom: 2px;
+  font-weight: 800;
+  letter-spacing: 0.13em;
   text-transform: uppercase;
   color: #888;
 }
 
 
-.description {
+.colItem { 
   color: var(--brand-primary-dark);
+  text-align: left; 
   flex: 1;
   padding-right: 8px;
   word-break: break-word;
   line-height: 1.4;
+  
 }
 
-
-.unitPrice {
+.colPrice  { 
   color: var(--brand-primary-dark);
+  text-align: right; 
   flex-shrink: 0;
   width: 72px;
-  text-align: right;
   font-variant-numeric: tabular-nums;
 }
-
-
-.qty {
+.colQty{ 
   color: var(--brand-primary-dark);
+  text-align: center; 
   flex-shrink: 0;
   width: 28px;
-  text-align: center;
+
 }
-
-
-.price {
+.colAmount { 
   color: var(--brand-primary-dark);
+  text-align: right; 
   flex-shrink: 0;
-  text-align: right;
   min-width: 72px;
   font-variant-numeric: tabular-nums;
 }
 
-.tColDesc {
-  flex: 1;
-  padding-right: 8px;
-  word-break: break-word;
-  line-height: 1.4;
+
+/* ── Items body ─────────────────────────────────────────────────────────── */
+
+.itemsBody {
+  padding: 4px 0 10px;
+  border-bottom: 1.5px solid var(--brand-primary-dark, #a07d20);
 }
 
-.tColUnitPrice {
-  flex-shrink: 0;
-  width: 72px;
-  text-align: right;
-  font-variant-numeric: tabular-nums;
+.itemRow {
+  display: grid;
+  grid-template-columns: 1fr 72px 28px 72px;
+  align-items: baseline;
+  gap: 6px;
+  padding: 7px 0;
+  border-bottom: 1px dashed #ebebeb;
 }
 
-.tColQty {
-  flex-shrink: 0;
-  width: 28px;
-  text-align: center;
+.itemRow:last-child {
+  border-bottom: none;
 }
 
-.tColNum {
-  flex-shrink: 0;
-  min-width: 72px;
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-}
-
-.orderItemsSection {
-  padding: 8px 0 12px 0;
-}
-
-.tRowSub {
-  display: flex;
-  align-items: center;
-  padding: 4px 0;
+/* Plain dark text — item name is data, not a heading */
+.itemName {
   font-size: 9px;
-  color: #555;
+  font-weight: 600;
+  color: #1a1a1a;
 }
 
+/* Plain muted gray — secondary data */
+.itemUnitPrice {
+  font-size: 9px;
+  font-weight: 400;
+  color: #6b7280;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+.itemQty {
+  font-size: 9px;
+  font-weight: 400;
+  color: #6b7280;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Line amount is the result — stays dark and prominent */
+.itemLineAmount {
+  font-size: 9px;
+  font-weight: 600;
+  color: #1a1a1a;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+  white-space: nowrap;
+}
+
+
+/* ── Summary block (right-aligned, 55%) ─────────────────────────────────── */
+
+.summaryBlock {
+  margin-left: auto;
+  width: 55%;
+  margin-top: 14px;
+  padding-top: 10px;
+}
+
+.summaryRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  column-gap: 12px;
+  padding: 4px 0;
+}
+
+/* Plain gray — supporting lines */
+.summaryKey {
+  font-size: 9px;
+  color: #6b7280;
+}
+
+.summaryVal {
+  font-size: 9px;
+  font-weight: 500;
+  color: #1a1a1a;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+/* Brand-primary-dark divider — matches the order description border */
+.summaryDivider {
+  height: 1.5px;
+  background: var(--brand-primary-dark, #a07d20);
+  margin: 8px 0;
+}
+
+.summaryTotalRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  column-gap: 12px;
+  padding: 4px 0;
+}
+
+/* Total Due uses brand-primary-dark — the final authoritative line */
+.summaryTotalKey {
+  font-size: 13px;
+  font-weight: 900;
+  color: var(--brand-primary-dark, #a07d20);
+  letter-spacing: 0.03em;
+}
+
+.summaryTotalVal {
+  font-size: 13px;
+  font-weight: 900;
+  color: #1a1a1a;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}

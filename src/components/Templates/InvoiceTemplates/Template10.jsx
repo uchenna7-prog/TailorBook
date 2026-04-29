@@ -100,10 +100,10 @@ export function InvoiceTemplate10({ invoice, customer, brand }) {
         </div>
         <div className={styles.rightColumn}>
           <div className={styles.totals}>
-            <div className={styles.totalRow}><span>Sub Total:</span><span>{fmt(currency, subtotal)}</span></div>
+            <div className={styles.totalRow}><span>Sub Total :</span><span>{fmt(currency, subtotal)}</span></div>
             {showTax && taxRate > 0 && <div className={styles.totalRow}><span>Tax ({taxRate}%):</span><span>{fmt(currency, tax)}</span></div>}
             <div className={styles.totalDivider} />
-            <div className={styles.totalTotal}><span>Total:</span><span>{fmt(currency, total)}</span></div>
+            <div className={styles.totalTotal}><span>Total :</span><span>{fmt(currency, total)}</span></div>
           </div>
           <div className={styles.signBlock}>
             <div className={styles.signLine} />
@@ -111,12 +111,16 @@ export function InvoiceTemplate10({ invoice, customer, brand }) {
           </div>
         </div>
       </div>
-      <svg
-        style={{ position: 'absolute', bottom: 0, right: 0, width: 68, height: 58 }}
-        viewBox="0 0 68 58"
-      >
-        <polygon points="68,0 68,58 0,58" fill={accentColor} />
-      </svg>
+                {/* Corner accent — in normal flow so PDF capture always includes it */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 'auto' }}>
+        <svg
+          style={{ display: 'block', width: 68, height: 58 }}
+          viewBox="0 0 68 58"
+        >
+          <polygon points="68,0 68,58 0,58" fill={accentColor} />
+        </svg>
+      </div>
+      
     </div>
   )
 }

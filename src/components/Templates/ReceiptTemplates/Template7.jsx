@@ -82,7 +82,7 @@ export function ReceiptTemplate7({ receipt, customer, brand }) {
 
       <div className={styles.tableHeader}>
 
-        <span className={styles.numColumn}>No.</span>
+        <span className={styles.numColumn}>SN</span>
         <span style={{ flex: 3 }}>Item Description</span>
         <span style={{ flex: 1, textAlign: 'center' }}>Qty</span>
         <span style={{ flex: 1, textAlign: 'center' }}>Unit Price</span>
