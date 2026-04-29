@@ -223,8 +223,9 @@ async function renderElementToBlob(element, cssVars) {
   }
 
   // ── 4. Wait for layout + fonts ───────────────────────────────
+  await iDoc.fonts.ready
   await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))
-  await new Promise(r => setTimeout(r, 200))
+  await new Promise(r => setTimeout(r, 500))
 
   // ── 5. Measure true height ───────────────────────────────────
   let trueHeight = iDoc.body.scrollHeight
