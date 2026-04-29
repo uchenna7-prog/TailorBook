@@ -262,7 +262,7 @@ async function renderElementToBlob(element, cssVars) {
 
   // ── 6. Capture ───────────────────────────────────────────────
   const canvas = await html2canvas(iDoc.body, {
-    scale:           2,
+    scale:           1.5,
     useCORS:         true,
     allowTaint:      true,
     backgroundColor: '#ffffff',

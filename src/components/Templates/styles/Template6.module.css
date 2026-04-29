@@ -22,7 +22,8 @@
 .header > div:first-child{
    display: flex;
    text-align: left;
-   min-width: 45%;
+   min-width: 0;
+   flex:1;
 }
 
 .logoArea { 
@@ -106,7 +107,7 @@
 }
 
 .infoRow > div { 
-   max-width: 45%; 
+   min-width: 0;
    flex: 1; 
    font-size: 6.5px; 
    line-height: 1.6; 

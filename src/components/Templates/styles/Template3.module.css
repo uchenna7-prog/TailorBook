@@ -42,15 +42,17 @@
 .metaRow {
   display: flex;
   justify-content: space-between;
-  gap: 12px;
+  gap: 8px;
   margin-bottom: 20px;
+  flex-wrap: nowrap;
 }
 
 .metaItem{
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  max-width: 45%;
+  min-width: 0;
+  flex:1;
 }
 
 .metaLabel {

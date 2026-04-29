@@ -105,7 +105,8 @@
 }
 
 .footerItem{
-  max-width: 45%;
+  min-width: 0;
+  flex:1;
 }
 
 .footerLabel{ 
