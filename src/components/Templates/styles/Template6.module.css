@@ -29,14 +29,15 @@
    gap: 7px; 
 }
 .logoCircle { 
-   width: 45px; 
-   height: 45px; 
-   border-radius: 50%; 
-   background: rgba(255,255,255,0.25); 
-   border: 1.5px solid rgba(255,255,255,0.6); 
-   display: flex; 
-   align-items: center; 
-   justify-content: center; 
+  width: 45px; 
+  height: 45px; 
+  border-radius: 50%; 
+  background: rgba(255,255,255,0.25); 
+  border: 1.5px solid rgba(255,255,255,0.6); 
+  display: flex; 
+  align-items: center; 
+  justify-content: center;
+  flex-shrink: 0;
 }
 .companyName { 
    font-size: 9px; 
