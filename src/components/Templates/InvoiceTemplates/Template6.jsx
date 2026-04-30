@@ -27,7 +27,7 @@ export function InvoiceTemplate6({ invoice, customer, brand }) {
 
           <div>
             <div className={styles.companyName}>{(brand.name || brand.ownerName || 'YOUR BRAND').toUpperCase()}</div>
-            {brand.tagline && <div className={styles.companySub}>{brand.tagline}</div>}
+            
           </div>
 
         </div>
@@ -50,27 +50,27 @@ export function InvoiceTemplate6({ invoice, customer, brand }) {
           <span className={styles.invoiceNum}>#{invoice.number}</span>
         </div>
         <div className={styles.invoiceRight}>
-          <div><span className={styles.label}>ISSUE DATE :</span> {invoice.date}</div>
-          <div><span className={styles.label}>DUE DATE :</span> {dueDate}</div>
+          <div><span className={styles.label}>ISSUE DATE </span> {invoice.date}</div>
+          <div><span className={styles.label}>DUE DATE </span> {dueDate}</div>
         </div>
       </div>
       <div className={styles.infoRow}>
         {brand.accountBank && (
           <div>
-            <div className={styles.infoLabel}>PAYMENT :</div>
+            <div className={styles.infoLabel}>PAYMENT</div>
             <strong>{brand.accountBank}</strong><br />
             {brand.accountName && <span>{brand.accountName}<br /></span>}
             {brand.accountNumber && <span>Acct : {brand.accountNumber}</span>}
           </div>
         )}
         <div>
-          <div className={styles.infoLabel}>BILL FROM :</div>
+          <div className={styles.infoLabel}>BILL FROM</div>
           {brand.name || brand.ownerName}<br />
           {brand.phone   && <div>{brand.phone}</div>}
           {brand.address}
         </div>
         <div>
-          <div className={`${styles.infoLabel} ${styles.infoLabelRight}`}>BILL TO :</div>
+          <div className={`${styles.infoLabel} ${styles.infoLabelRight}`}>BILL TO</div>
           {customer.name}<br />
           {customer.phone}<br />
           {customer.address}
@@ -81,10 +81,10 @@ export function InvoiceTemplate6({ invoice, customer, brand }) {
         <table className={styles.table}>
           <thead>
             <tr className={styles.tableHead}>
-              <th className={styles.colDesc}>ITEM DESCRIPTION</th>
-              <th className={styles.colPrice}>UNIT PRICE</th>
-              <th className={styles.colQty}>QTY</th>
-              <th className={styles.colTotal}>TOTAL</th>
+              <th className={styles.colDesc}>Item Description</th>
+              <th className={styles.colPrice}>Unit Price</th>
+              <th className={styles.colQty}>Qty</th>
+              <th className={styles.colTotal}>Total</th>
             </tr>
           </thead>
           <tbody className={styles.tableBody}>

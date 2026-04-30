@@ -25,7 +25,7 @@ export function InvoiceTemplate9({ invoice, customer, brand }) {
             }
             <span className={styles.companyName}>{(brand.name || brand.ownerName || '').toUpperCase()}</span>
           </div>
-          {brand.tagline && <div className={styles.companySub}>{brand.tagline.toUpperCase()}</div>}
+          {brand.tagline && <div className={styles.companySub}>{brand.tagline}</div>}
           {brand.address && <div className={styles.companyAddress}>{brand.address}</div>}
         </div>
         <div className={styles.invoiceTitle} style={{ color : accentColor }}>INVOICE</div>
@@ -57,10 +57,10 @@ export function InvoiceTemplate9({ invoice, customer, brand }) {
       <table className={styles.table}>
         <thead>
           <tr className={styles.tableHeader}>
-            <th className={styles.colDesc}>ITEM DESCRIPTION</th>
-            <th className={styles.colQty}>QTY</th>
-            <th className={styles.colPrice}>UNIT PRICE</th>
-            <th className={styles.colTotal}>TOTAL</th>
+            <th className={styles.colDesc}>Item Description</th>
+            <th className={styles.colQty}>Qty</th>
+            <th className={styles.colPrice}>Unit Price</th>
+            <th className={styles.colTotal}>Total</th>
           </tr>
         </thead>
         <tbody className={styles.tableBody}>
@@ -98,11 +98,11 @@ export function InvoiceTemplate9({ invoice, customer, brand }) {
           <div>
             {brand.accountBank && (
               <>
-                <div className={styles.thankYou}>Payment Details</div>
+                <div className={styles.thankYou}>Payment Information</div>
                 <div>
-                  {brand.name && (
-                    <div>Received By  : {brand.name}</div>
-                  )}
+                  {brand.accountNumber && <div>Account Number : {brand.accountNumber}</div>}
+                  {brand.accountBank   && <div>Bank : {brand.accountBank}</div>}
+                  {brand.accountName   && <div>Account Name : {brand.accountName}</div>}
                 </div>
               </>
             )}

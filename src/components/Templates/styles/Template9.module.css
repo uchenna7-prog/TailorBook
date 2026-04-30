@@ -1,8 +1,8 @@
 .template { 
    background: #fff; 
    color: #1a1a1a; 
-   font-family: 'DM Sans', 'Helvetica Neue', Arial, sans-serif;
-   font-size: 8px; 
+   font-family: 'Helvetica Neue', Arial, sans-serif;
+   font-size: 10px; 
    display: flex; 
    flex-direction: column; 
    padding: 0; 
@@ -33,19 +33,19 @@
    gap: 4px; 
 }
 .companyName { 
-   font-size: 9px; 
+   font-size: 12px; 
    font-weight: 900; 
    letter-spacing: 0.04em; 
    color: var(--brand-primary-dark); 
 }
 .companySub { 
-   font-size: 6px; 
+   font-size: 9px; 
    color: #888; 
    letter-spacing: 0.06em; 
    margin-top: 1px; 
 }
 .companyAddress { 
-   font-size: 7px; 
+   font-size: 10px; 
    color: #555; 
    line-height: 1.5; 
    margin-top: 2px; 
@@ -64,14 +64,14 @@
    display: flex; 
    gap: 10px; 
    padding: 4px 16px; 
-   font-size: 7px; 
+   font-size: 10px; 
    font-weight: 600; 
 }
 .billShip { 
    display: flex; 
    gap: 16px; 
    padding: 8px 16px; 
-   font-size: 7px; 
+   font-size: 10px; 
    line-height: 1.5; 
 }
 .billShip > div {
@@ -81,7 +81,7 @@
 }
 .billLabel { 
    font-weight: 700; 
-   font-size: 8px; 
+   font-size: 10px; 
    color: var(--brand-primary); 
 }
 
@@ -108,7 +108,7 @@
 
 .tableHeader th {
   padding: 4px 4px;
-  font-size: 7px;
+  font-size: 10px;
   font-weight: 700;
 }
 
@@ -118,7 +118,7 @@
 
 .tableRow td {
   padding: 6px 4px;
-  font-size: 9px;
+  font-size: 10px;
 }
 
 /* Column alignment */
@@ -151,7 +151,7 @@ th.colTotal, td.colTotal {
    flex-direction: column; 
    align-items: flex-end; 
    padding: 4px 16px 0; 
-   font-size: 8px; 
+   font-size: 10px; 
 }
 .subRow { 
    display: flex; 
@@ -166,7 +166,7 @@ th.colTotal, td.colTotal {
    color: var(--brand-on-primary); 
    padding: 5px 16px; 
    font-weight: 900; 
-   font-size: 9px; 
+   font-size: 10px; 
    margin-top: 3px; 
 }
 .footer {
@@ -174,18 +174,18 @@ th.colTotal, td.colTotal {
   justify-content: space-between;
   align-items: flex-end;
   padding: 8px 16px;
-  font-size: 7px;
+  font-size: 10px;
 }
 .thankYou { 
    font-weight: 700; 
-   font-size: 8px; 
+   font-size: 10px; 
    text-transform: uppercase; 
    margin-bottom: 2px; 
    color: var(--brand-primary-dark); 
 }
 .paymentNote { 
    color: #666; 
-   font-size: 7px; 
+   font-size: 10px; 
 }
 .signArea { 
    text-align: center; 
@@ -197,7 +197,7 @@ th.colTotal, td.colTotal {
    margin: 0 auto 2px; 
 }
 .signLabel { 
-   font-size: 7px; 
+   font-size: 10px; 
    color: #666; 
 }
 .cornerDecoration {

@@ -31,9 +31,9 @@ export function InvoiceTemplate7({ invoice, customer, brand }) {
 
         <div className={styles.dateBlock}>
 
-          <div className={styles.dateLabel}>ISSUE DATE :</div>
+          <div className={styles.dateLabel}>ISSUE DATE</div>
           <div className={styles.dateValue} style={{ color : accentColor }}>{invoice.date}</div>
-          <div className={styles.dateLabel} style={{ marginTop : 2 }}>DUE DATE :</div>
+          <div className={styles.dateLabel} style={{ marginTop : 2 }}>DUE DATE</div>
           <div className={styles.dateValue} style={{ color : accentColor }}>{dueDate}</div>
 
         </div>

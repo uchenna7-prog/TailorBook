@@ -2,8 +2,8 @@
 .template { 
   padding:18px;
   color:#1a1a1a;
-  font-family:'DM Sans',sans-serif;
-  font-size:8px;
+   font-family: 'Helvetica Neue', Arial, sans-serif;
+  font-size:10px;
   min-height: 565px;
   display:flex;
   flex-direction:column; 
@@ -22,16 +22,11 @@
 }
 
 .tagline{ 
-  font-size: 8px; 
+  font-size: 10px; 
   color: #888; 
   margin-top: 3px; 
 }
 
-.address{ 
-  font-size: 8px; 
-  color: #666; 
-  margin-top: 2px; 
-}
 
 .titleRow { 
   display: flex; 
@@ -70,13 +65,13 @@
 }
 
 .metaKey { 
-  font-size: 8px; 
+  font-size: 10px; 
   font-weight: 800;
   color: #767575;  
 }
 
 .metaValue { 
-  font-size: 8px;
+  font-size: 10px;
   font-weight: 900;  
   margin-top: 1px; 
   line-height: 1.4; 
@@ -92,7 +87,7 @@
 
 .footerLeft,.footerRight{ 
   flex: 1; 
-  font-size: 8px; 
+  font-size: 10px; 
   line-height: 1.6; 
 }
 

@@ -24,13 +24,13 @@ export function ReceiptTemplate7({ receipt, customer, brand }) {
         </div>
 
         <div className={styles.titleGroup}>
-          <span className={styles.receiptWord}>receipt</span>
+          <span className={styles.receiptWord}>RECEIPT</span>
           <span className={styles.receiptNumber}>#{receipt.number}</span>
         </div>
 
         <div className={styles.dateBlock}>
 
-          <div className={styles.dateLabel}>ISSUE DATE :</div>
+          <div className={styles.dateLabel}>ISSUE DATE</div>
           <div className={styles.dateValue} style={{ color : accentColor }}>{receipt.date}</div>
 
         </div>

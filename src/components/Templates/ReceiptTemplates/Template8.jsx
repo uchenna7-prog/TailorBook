@@ -24,7 +24,7 @@ export function ReceiptTemplate8({ receipt, customer, brand }) {
           }
           <div>
             <div className={styles.brandName}>{brand.name || brand.ownerName}</div>
-            {brand.tagline && <div className={styles.brandSub}>{brand.tagline.toUpperCase()}</div>}
+            {brand.tagline && <div className={styles.brandSub}>{brand.tagline}</div>}
           </div>
 
         </div>
@@ -35,10 +35,10 @@ export function ReceiptTemplate8({ receipt, customer, brand }) {
           <div className={styles.receiptMeta}>
 
             <div>
-              <span>Receipt No :</span><span>#{receipt.number}</span>
+              <span>Receipt No</span><span>#{receipt.number}</span>
             </div>
             <div>
-              <span>Issue Date :</span><span>{receipt.date}</span>
+              <span>Issue Date</span><span>{receipt.date}</span>
             </div>
 
 

@@ -1,8 +1,8 @@
 .template{ 
   color:#1a1a1a;
-  font-family:'DM Sans',sans-serif;
+   font-family: 'Helvetica Neue', Arial, sans-serif;
   min-height: 565px;
-  font-size:8px;
+  font-size:10px;
   display:flex;
   flex-direction:column;
 }
@@ -70,7 +70,7 @@
 
 .tableHeader th {
   padding: 5px 4px;
-  font-size: 6.5px;
+  font-size: 10px;
   font-weight: 900;
 }
 
@@ -80,7 +80,7 @@
 
 .tableRow td {
   padding: 6px 4px;
-  font-size: 9px;
+  font-size: 10px;
 }
 
 /* Column alignment */
@@ -114,7 +114,7 @@ th.colTotal, td.colTotal {
   display: flex; 
   justify-content: space-between; 
   padding: 2px 0; 
-  font-size: 7px; 
+  font-size: 10px; 
   color: #555; 
 }
 .totalDivider { 
@@ -126,7 +126,7 @@ th.colTotal, td.colTotal {
   display: flex; 
   justify-content: space-between; 
   font-weight: 900; 
-  font-size: 8.5px; 
+  font-size: 10px; 
   padding-top: 1px; 
   color: var(--brand-primary-dark); 
 }

@@ -1,8 +1,8 @@
 .template {
   background: #fff;
   color: #1a1a1a;
-  font-family: 'DM Sans', 'Helvetica Neue', Arial, sans-serif;
-  font-size: 8px;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  font-size: 10px;
   display: flex;
   flex-direction: column;
   padding: 0;
@@ -47,7 +47,7 @@
 }
 .brandSub {
   color: var(--brand-on-primary);
-  font-size: 6px;
+  font-size: 8px;
   letter-spacing: 0.06em;
 }
 .metaRow {
@@ -55,7 +55,7 @@
   justify-content: space-between;
   gap: 12px;
   padding: 9px 16px 5px;
-  font-size: 7px;
+  font-size: 10px;
   line-height: 1.5;
 }
 
@@ -71,13 +71,13 @@
 
 .metaLabel {
   font-weight: 700;
-  font-size: 8px;
+  font-size: 10px;
   margin-bottom: 1px;
   color: var(--brand-primary);
 }
 .metaName {
   font-weight: 700;
-  font-size: 9px;
+  font-size: 10px;
 }
 .metaAddress {
   color: #555;
@@ -111,7 +111,7 @@
 
 .tableHeader th {
   padding: 4px 4px;
-  font-size: 7px;
+  font-size: 10px;
   font-weight: 700;
   color: var(--brand-primary-dark);
 }
@@ -122,7 +122,7 @@
 
 .tableRow td {
   padding: 6px 4px;
-  font-size: 9px;
+  font-size: 10px;
 }
 
 /* Column alignment — header and body mirror each other */
@@ -159,14 +159,14 @@ th.colTotal, td.colTotal {
   display: flex;
   gap: 10px;
   padding: 4px 16px 8px;
-  font-size: 7px;
+  font-size: 10px;
   line-height: 1.6;
   flex: 1;
 }
 
 .thankYou {
   font-weight: 700;
-  font-size: 8px;
+  font-size: 10px;
   margin-bottom: 3px;
   color: var(--brand-primary-dark);
 }
@@ -197,7 +197,7 @@ th.colTotal, td.colTotal {
   flex-shrink: 0;
 }
 .totals {
-  font-size: 8px;
+  font-size: 10px;
 }
 .totalRow {
   display: flex;
@@ -214,7 +214,7 @@ th.colTotal, td.colTotal {
   display: flex;
   justify-content: space-between;
   font-weight: 900;
-  font-size: 9px;
+  font-size: 10px;
   gap: 8px;
   color: var(--brand-primary-dark);
 }
@@ -227,7 +227,7 @@ th.colTotal, td.colTotal {
   margin-bottom: 2px;
 }
 .signLabel {
-  font-size: 7px;
+  font-size: 10px;
   color: #666;
 }
 .cornerAccent {

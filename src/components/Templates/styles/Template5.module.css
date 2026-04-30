@@ -2,8 +2,8 @@
   padding: 18px;
   background: var(--brand-gradient);
   color: var(--brand-on-primary);
-  font-family: 'DM Sans', sans-serif;
-  font-size: 8px;
+   font-family: 'Helvetica Neue', Arial, sans-serif;
+  font-size: 10px;
   display: flex;
   flex-direction: column;
   gap: 7px;
@@ -23,7 +23,7 @@
 }
 .topRight { 
   text-align: right; 
-  font-size: 7px; 
+  font-size: 10px; 
   line-height: 1.6; 
   opacity: 0.9; 
 }
@@ -33,12 +33,12 @@
   margin: 2px 0; 
 }
 .billedTo { 
-  font-size: 7px; 
+  font-size: 10px; 
   line-height: 1.5; 
 }
 .billedLabel { 
   font-weight: 700; 
-  font-size: 6.5px; 
+  font-size: 10px; 
   margin-bottom: 2px; 
   opacity: 0.75; 
   text-transform: uppercase; 
@@ -63,7 +63,7 @@
 
 .tableHead th {
   padding: 3px 4px;
-  font-size: 6.5px;
+  font-size: 10px;
   font-weight: 700;
 }
 
@@ -73,7 +73,7 @@
 
 .tableRow td {
   padding: 6px 4px;
-  font-size: 9px;
+  font-size: 10px;
 }
 
 /* Column alignment */
@@ -98,7 +98,7 @@ th.colTotal, td.colTotal {
 
 /* ── Rest unchanged ── */
 .totalsSection { 
-  font-size: 7px; 
+  font-size: 10px; 
   padding: 4px 0; 
 }
 .totalRow { 
@@ -108,7 +108,7 @@ th.colTotal, td.colTotal {
 }
 .totalBold { 
   font-weight: 900; 
-  font-size: 8.5px; 
+  font-size: 10px; 
   border-top: 1px solid rgba(255,255,255,0.5); 
   padding-top: 3px;
   margin-top: 2px; 
@@ -116,7 +116,7 @@ th.colTotal, td.colTotal {
 .footer { 
   display: flex; 
   justify-content: space-between; 
-  font-size: 6.5px; 
+  font-size: 10px; 
   line-height: 1.5; 
   margin-top: auto; 
   padding-top: 8px; 
@@ -132,7 +132,7 @@ th.colTotal, td.colTotal {
 }
 .footerNote { 
   text-align: center; 
-  font-size: 7px; 
+  font-size: 10px; 
   padding-top: 6px; 
   border-top: 1px solid rgba(255,255,255,0.35); 
   opacity: 0.75; 

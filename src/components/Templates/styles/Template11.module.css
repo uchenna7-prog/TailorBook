@@ -1,8 +1,8 @@
 .template { 
    background: #fff; 
    color: #1a1a1a; 
-   font-family: 'DM Sans', 'Helvetica Neue', Arial, sans-serif;
-   font-size: 8px; 
+   font-family: 'Helvetica Neue', Arial, sans-serif;
+   font-size: 10px; 
    display: flex; 
    flex-direction: column; 
    padding: 0;
@@ -26,7 +26,7 @@
 .companyInfo {
   flex: 1;
   min-width: 0;
-  font-size: 7px;
+  font-size: 10px;
   line-height: 1.6;
   color: #444;
   word-break: break-word;
@@ -42,15 +42,12 @@
    flex-shrink: 0; 
 }
 .companyName { 
-   font-size: 9px; 
+   font-size: 10px; 
    font-weight: 900; 
    letter-spacing: 0.05em; 
    color: var(--brand-primary-dark); 
 }
-.companySub { 
-   font-size: 6px; 
-   color: #888; 
-}
+
 
 .invoiceTitle, .receiptTitle { 
    font-size: 22px; 
@@ -63,7 +60,7 @@
    display: flex; 
    justify-content: space-between; 
    padding: 4px 16px; 
-   font-size: 7px; 
+   font-size: 10px; 
    font-weight: 600; 
    color: var(--brand-primary); 
    border-top: 2px solid var(--brand-primary); 
@@ -74,7 +71,7 @@
   justify-content: space-between;
   gap: 12px;
   padding: 8px 16px 3px;
-  font-size: 7px;
+  font-size: 10px;
   line-height: 1.6;
 }
 
@@ -90,13 +87,13 @@
 
 
 .issuedLabel { 
-   font-size: 8px; 
+   font-size: 10px; 
    font-weight: 700; 
    margin-bottom: 2px; 
    color: var(--brand-primary); 
 }
 .amountLabel { 
-   font-size: 7px; 
+   font-size: 10px; 
    font-weight: 700; 
    text-align: right; 
    color: var(--brand-primary); 
@@ -136,7 +133,7 @@
 
 .tableHead th {
   padding: 4px 4px;
-  font-size: 7px;
+  font-size: 10px;
   font-weight: 700;
 }
 
@@ -147,7 +144,7 @@
 
 .tableRow td {
   padding: 6px 4px;
-  font-size: 9px;
+  font-size: 10px;
 }
 
 /* Column alignment */
@@ -186,14 +183,14 @@ th.colTotal, td.colTotal {
    display: flex; 
    justify-content: space-between; 
    padding: 2px 0; 
-   font-size: 8px;
+   font-size: 10px;
    color: #555; 
 }
 .totalBold { 
    display: flex; 
    justify-content: space-between; 
    font-weight: 900; 
-   font-size: 8px; 
+   font-size: 10px; 
    border-top: 1px solid var(--brand-primary); 
    padding-top: 2px; 
    margin-top: 2px; 
@@ -214,13 +211,13 @@ th.colTotal, td.colTotal {
    flex: 1; 
    background: var(--brand-surface); 
    padding: 6px 8px; 
-   font-size: 7px; 
+   font-size: 10px; 
    line-height: 1.5; 
    border-left: 2px solid var(--brand-primary); 
 }
 .paymentBoxTitle { 
    font-weight: 700; 
-   font-size: 8px; 
+   font-size: 10px; 
    margin-bottom: 2px; 
    color: var(--brand-primary); 
 }

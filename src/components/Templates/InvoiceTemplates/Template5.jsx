@@ -31,7 +31,7 @@ export function InvoiceTemplate5({ invoice, customer, brand }) {
 
       <div className={styles.billedTo}>
 
-        <div className={styles.billedLabel}>Billed to :</div>
+        <div className={styles.billedLabel}>Billed to</div>
         <div><strong>{customer.name}</strong></div>
         {customer.phone   && <div>{customer.phone}</div>}
         {customer.address && <div>{customer.address}</div>}

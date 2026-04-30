@@ -1,9 +1,9 @@
 
 .template{ 
   padding:18px;color:#1a1a1a;
-  font-family:'DM Sans',sans-serif;
+   font-family: 'Helvetica Neue', Arial, sans-serif;
   min-height: 565px;
-  font-size:8px;
+  font-size:10px;
   display:flex;
   flex-direction:column;
 }
@@ -22,7 +22,8 @@
 
 .customBannerTitle{ 
   color: var(--brand-on-primary); 
-  font-size: 20px; font-weight: 900; 
+  font-size: 20px; 
+  font-weight: 900; 
   letter-spacing: 0.06em; 
 }
 
@@ -44,6 +45,7 @@
   justify-content: space-between;
   margin-bottom: 20px;
   flex-wrap: nowrap;
+  gap:5px;
 }
 
 .metaItem{
@@ -55,29 +57,28 @@
 }
 
 .metaLabel {
-  font-size: 8px;
+  font-size: 10px;
   font-weight: 900;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
   margin-bottom: 2px;
   color: var(--brand-primary-dark);
 }
 
 .metaVal { 
   text-transform: capitalize;
-  font-size: 8px; 
+  font-size: 9px; 
   font-weight: 800; 
   color: #1a1a1a; 
 }
 .metaSub { 
-  font-size: 7px; 
+  font-size: 10px; 
   color: #555; 
   margin-top: 1px; 
   line-height: 1.4; 
 }
 
 .paymentRow{ 
-  font-size: 8px; 
+  font-size: 10px; 
   color: #555; 
   margin-top: 12px; 
   padding-top: 8px; 
@@ -91,7 +92,7 @@
   padding: 16px; 
   font-weight: 800; 
   text-transform: uppercase; 
-  font-size: 9px; 
+  font-size: 10px; 
   background: var(--brand-gradient); 
   
 }

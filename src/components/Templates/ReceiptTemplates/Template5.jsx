@@ -31,7 +31,7 @@ export function ReceiptTemplate5({ receipt, customer, brand }) {
 
       <div className={styles.billedTo}>
 
-        <div className={styles.billedLabel}>Received From :</div>
+        <div className={styles.billedLabel}>Received From</div>
         <div><strong>{customer.name}</strong></div>
         {customer.phone   && <div>{customer.phone}</div>}
         {customer.address && <div>{customer.address}</div>}

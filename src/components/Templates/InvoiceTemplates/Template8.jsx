@@ -24,7 +24,7 @@ export function InvoiceTemplate8({ invoice, customer, brand }) {
           }
           <div>
             <div className={styles.brandName}>{brand.name || brand.ownerName}</div>
-            {brand.tagline && <div className={styles.brandSub}>{brand.tagline.toUpperCase()}</div>}
+            {brand.tagline && <div className={styles.brandSub}>{brand.tagline}</div>}
           </div>
 
         </div>
@@ -35,13 +35,13 @@ export function InvoiceTemplate8({ invoice, customer, brand }) {
           <div className={styles.invoiceMeta}>
 
             <div>
-              <span>Invoice No :</span><span>#{invoice.number}</span>
+              <span>Invoice No</span><span>#{invoice.number}</span>
             </div>
             <div>
-              <span>Issue Date :</span><span>{invoice.date}</span>
+              <span>Issue Date</span><span>{invoice.date}</span>
             </div>
             <div>
-               <span>Due Date :</span><span>{dueDate}</span>
+               <span>Due Date</span><span>{dueDate}</span>
             </div>
 
           </div>

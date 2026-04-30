@@ -23,7 +23,7 @@ export function ReceiptTemplate9({ receipt, customer, brand }) {
             }
             <span className={styles.companyName}>{(brand.name || brand.ownerName || '').toUpperCase()}</span>
           </div>
-          {brand.tagline  && <div className={styles.companySub}>{brand.tagline.toUpperCase()}</div>}
+          {brand.tagline  && <div className={styles.companySub}>{brand.tagline}</div>}
           {brand.address  && <div className={styles.companyAddress}>{brand.address}</div>}
         </div>
         <div className={styles.receiptTitle} style={{ color : accentColor }}>RECEIPT</div>
@@ -31,7 +31,7 @@ export function ReceiptTemplate9({ receipt, customer, brand }) {
 
       <div className={styles.numberBar}>
         <span>RECEIPT # {receipt.number}</span><span>|</span>
-        <span>DATE : {receipt.date}</span><span>|</span>
+        <span>DATE : {receipt.date}</span>
       </div>
 
       <div className={styles.billShip}>
@@ -56,10 +56,10 @@ export function ReceiptTemplate9({ receipt, customer, brand }) {
         <table className={styles.table}>
           <thead>
             <tr className={styles.tableHeader}>
-              <th className={styles.colDesc}>ITEM DESCRIPTION</th>
-              <th className={styles.colQty}>QTY</th>
-              <th className={styles.colPrice}>UNIT PRICE</th>
-              <th className={styles.colTotal}>TOTAL</th>
+              <th className={styles.colDesc}>Item Description</th>
+              <th className={styles.colQty}>Qty</th>
+              <th className={styles.colPrice}>Unit Price</th>
+              <th className={styles.colTotal}>Total</th>
             </tr>
           </thead>
           <tbody className={styles.tableBody}>

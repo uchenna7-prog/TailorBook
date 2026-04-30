@@ -22,7 +22,7 @@ export const RECEIPT_SAMPLE_DATA = {
 
 export const getBrandSampleData = (brand) => {
   return {
-    name: 'Emeka Tailors Co.',
+    name: 'Emeka Tailors',
     ownerName: 'Emeka Nwosu',
     tagline: 'Crafted with love, fitted for you',
     address: '14 Bode Thomas St, Surulere, Lagos',

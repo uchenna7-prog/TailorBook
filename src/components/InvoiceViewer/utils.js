@@ -206,7 +206,7 @@ async function renderElementToBlob(element, cssVars, exactHeight) {
             min-height: ${INITIAL_HEIGHT}px;
             background: #fff;
             overflow: visible;
-            font-family: 'DM Sans', 'Helvetica Neue', Arial, sans-serif;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
           }
           ${styleTexts.join('\n')}
         </style>
@@ -246,7 +246,7 @@ async function renderElementToBlob(element, cssVars, exactHeight) {
 
   // ── 6. Capture ───────────────────────────────────────────────
   const canvas = await html2canvas(iDoc.body, {
-    scale:           2,
+    scale:           3,
     useCORS:         true,
     allowTaint:      true,
     backgroundColor: '#ffffff',
@@ -263,7 +263,7 @@ async function renderElementToBlob(element, cssVars, exactHeight) {
   document.body.removeChild(iframe)
 
   // ── 8. Build PDF ─────────────────────────────────────────────
-  const imgData = canvas.toDataURL('image/jpeg', 0.92)
+  const imgData = canvas.toDataURL('image/jpeg', 0.94)
   const pdf     = new jsPDF({ orientation: 'portrait', unit: 'px', format: [PDF_WIDTH, height] })
   pdf.addImage(imgData, 'JPEG', 0, 0, PDF_WIDTH, height)
 

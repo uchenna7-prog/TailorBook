@@ -32,16 +32,14 @@
 
 
 .colDesc  { width: 42%; }
-.colPrice { width: 18%; }
+.colPrice { width: 25%; }
 .colQty   { width: 10%; }
-.colAmount { width: 22%; }
+.colAmount { width: 25%; }
 
 .headerRow th {
   padding: 7px 0 6px;
-  font-size: 8px;
+  font-size: 9px;
   font-weight: 800;
-  letter-spacing: 0.13em;
-  text-transform: uppercase;
   color: var(--brand-primary-dark) ;
   border-bottom: 1px solid #e8e4de;
 }
@@ -74,6 +72,7 @@ th.colQty,   td.colQty  {
 th.colPrice, td.colPrice  {
   text-align: center;
   padding-right: 8px;  
+  word-break: break-word; 
 }
 th.colAmount, td.colAmount { 
    text-align: center; 
@@ -84,25 +83,25 @@ th.colAmount, td.colAmount {
 
 /* Body cell text styles */
 .itemName {
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 600;
   color: #1a1a1a;
 }
 .itemUnitPrice {
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 400;
   color: #6b7280;
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum";
 }
 .itemQty {
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 400;
   color: #6b7280;
   font-variant-numeric: tabular-nums;
 }
 .itemLineAmount {
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 600;
   color: #1a1a1a;
   font-variant-numeric: tabular-nums;
@@ -130,11 +129,11 @@ th.colAmount, td.colAmount {
   padding: 4px 0;
 }
 .summaryKey {
-  font-size: 9px;
+  font-size: 10px;
   color: #6b7280;
 }
 .summaryVal {
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 500;
   color: #1a1a1a;
   font-variant-numeric: tabular-nums;
