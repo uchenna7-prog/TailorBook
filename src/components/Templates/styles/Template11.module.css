@@ -1,25 +1,35 @@
 .template { 
    background: #fff; 
    color: #1a1a1a; 
-   font-family: 'DM Sans', sans-serif; 
+   font-family: 'DM Sans', 'Helvetica Neue', Arial, sans-serif;
    font-size: 8px; 
    display: flex; 
    flex-direction: column; 
    padding: 0;
    min-height: 565px;
 }
-.topBar { 
-   display: flex; 
-   align-items: center; 
-   justify-content: space-between; 
-   padding: 10px 16px; 
-   border-bottom: 1px solid #f0f0f0; 
+.topBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 16px;
+  border-bottom: 1px solid #f0f0f0;
 }
-.logoArea { 
-   max-width: 35%;
-   display: flex; 
-   align-items: center; 
-   gap: 5px; 
+.logoArea {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.companyInfo {
+  flex: 1;
+  min-width: 0;
+  font-size: 7px;
+  line-height: 1.6;
+  color: #444;
+  word-break: break-word;
 }
 .logoCircle{ 
    width: 45px; 
@@ -41,12 +51,7 @@
    font-size: 6px; 
    color: #888; 
 }
-.companyInfo { 
-   max-width: 30%;
-   font-size: 7px; 
-   line-height: 1.6; 
-   color: #444; 
-}
+
 .invoiceTitle, .receiptTitle { 
    font-size: 22px; 
    font-weight: 400; 
@@ -64,13 +69,26 @@
    border-top: 2px solid var(--brand-primary); 
    border-bottom: 2px solid var(--brand-primary); 
 }
-.issuedRow { 
-   display: flex; 
-   justify-content: space-between; 
-   padding: 8px 16px 3px; 
-   font-size: 7px; 
-   line-height: 1.6; 
+.issuedRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 16px 3px;
+  font-size: 7px;
+  line-height: 1.6;
 }
+
+.issuedRow > div:first-child {
+  flex: 1;
+  min-width: 0;
+  word-break: break-word;
+}
+
+.issuedRow > div:last-child {
+  flex-shrink: 0;
+}
+
+
 .issuedLabel { 
    font-size: 8px; 
    font-weight: 700; 

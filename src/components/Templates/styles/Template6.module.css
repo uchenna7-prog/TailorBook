@@ -1,21 +1,21 @@
 .template { 
    background: #fff; 
    color: #1a1a1a; 
-   font-family: 'DM Sans', sans-serif; 
+   font-family: 'DM Sans', 'Helvetica Neue', Arial, sans-serif;
    font-size: 8px; 
    display: flex; 
    flex-direction: column; 
     min-height: 565px;
 }
-.header { 
-   background: var(--brand-gradient); 
-   color: var(--brand-on-primary); 
-   padding: 10px 16px;
-   display: flex;
-   justify-content: space-between;
-   align-items: center; 
-   gap: 14px; 
-   opacity: 0.88; 
+.header {
+  background: var(--brand-gradient);
+  color: var(--brand-on-primary);
+  padding: 10px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  opacity: 0.88;
 }
 .header > div:first-child {
    display: flex;
@@ -23,11 +23,14 @@
    min-width: 0;
    flex: 1;
 }
-.logoArea { 
-   display: flex; 
-   align-items: center; 
-   gap: 7px; 
+.logoArea {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex: 1;
+  min-width: 0;
 }
+
 .logoCircle { 
   width: 45px; 
   height: 45px; 
@@ -39,20 +42,23 @@
   justify-content: center;
   flex-shrink: 0;
 }
-.companyName { 
-   font-size: 9px; 
-   font-weight: 900; 
-   letter-spacing: 0.05em; 
+.companyName {
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  word-break: break-word;
 }
 .companySub { 
    font-size: 6px; 
    opacity: 0.75; 
    letter-spacing: 0.07em; 
 }
-.headerRight { 
-   font-size: 6px; 
-   line-height: 1.6; 
-   opacity: 0.88; 
+.headerRight {
+  font-size: 6px;
+  line-height: 1.6;
+  opacity: 0.88;
+  flex-shrink: 0;
+  text-align: right;
 }
 .invoiceRow, .receiptRow { 
    display: flex; 
@@ -86,18 +92,21 @@
    color: var(--brand-primary); 
 }
 .infoRow {
-   display: flex; 
-   justify-content: space-between;
-   gap: 30px;
-   padding: 7px 16px 9px; 
-   border-bottom: 1px solid #eee; 
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 16px 9px;
+  border-bottom: 1px solid #eee;
 }
-.infoRow > div { 
-   min-width: 0;
-   flex: 1; 
-   font-size: 6.5px; 
-   line-height: 1.6; 
+.infoRow > div {
+  min-width: 0;
+  flex: 1;
+  font-size: 6.5px;
+  line-height: 1.6;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
+
 .infoLabel { 
    font-weight: 700; 
    font-size: 7px; 
@@ -175,12 +184,12 @@ th.colTotal, td.colTotal {
   padding: 5px 0;
 }
 
-/* ── Rest unchanged ── */
-.totalsArea { 
-   margin-left: auto; 
-   width: 48%; 
-   padding: 5px 16px 0 0; 
-   margin-top: 4px; 
+.totalsArea {
+  margin-left: auto;
+  width: 48%;
+  padding: 5px 16px 0 0;
+  margin-top: 4px;
+  word-break: break-word;
 }
 .totalRow { 
    display: flex; 

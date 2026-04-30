@@ -1,7 +1,7 @@
 .template { 
    background: #fff; 
    color: #1a1a1a; 
-   font-family: 'Arial', sans-serif; 
+   font-family: 'Arial', 'Helvetica Neue', Arial, sans-serif;
    font-size: 8px; 
    display: flex; 
    flex-direction: column; 
@@ -40,9 +40,10 @@
    font-weight: 900; 
    color: #888; 
 }
-.dateBlock { 
-   text-align: right; 
-   font-size: 7px; 
+.dateBlock {
+  text-align: right;
+  font-size: 7px;
+  flex-shrink: 0;
 }
 .dateLabel { 
    font-size: 6px; 
@@ -63,10 +64,13 @@
    display: flex; 
    padding: 8px 16px; 
 }
-.fromToBlock { 
-   flex: 1; 
-   font-size: 7px; 
-   line-height: 1.5; 
+.fromToBlock {
+  flex: 1;
+  min-width: 0;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  font-size: 7px;
+  line-height: 1.5;
 }
 .fromLabel, .toLabel { 
    font-size: 13px; 
@@ -79,15 +83,24 @@
    background: var(--brand-primary); 
    margin-bottom: 3px; 
 }
-.infoRow { 
-   display: flex; 
-   gap: 3px; 
-   margin-bottom: 1px; 
+.infoRow {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 1px;
+  align-items: flex-start;
 }
-.infoValue { 
-   font-weight: 700; 
-   font-size: 7px; 
+.infoKey {
+  flex-shrink: 0;
 }
+
+.infoValue {
+  flex: 1;
+  min-width: 0;
+  word-break: break-word;
+  font-weight: 700;
+  font-size: 7px;
+}
+
 .forLabel { 
    font-size: 13px; 
    font-weight: 900; 
@@ -177,28 +190,35 @@ td.colTotal {
    font-size: 13px; 
    font-weight: 900; 
 }
-.footer { 
-  display: flex; 
-  justify-content: space-between; 
-  align-items: center;
-  font-size: 6.5px; 
-  line-height: 1.5; 
-  padding-top: 8px; 
+.footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 6.5px;
+  line-height: 1.5;
+  padding-top: 8px;
 }
+
 .footerLabel { 
   font-weight: 700; 
   margin-bottom: 5px; 
   color: var(--brand-primary-dark); 
 }
-.footerLeft { 
-   display: flex; 
-   flex-wrap: wrap; 
-   gap: 4px; 
-   align-items: center; 
-   padding: 8px 16px; 
-   font-size: 7px; 
-   margin-top: 8px; 
+.footerLeft {
+  flex: 1;
+  min-width: 0;
+  word-break: break-word;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+  padding: 8px 16px;
+  font-size: 7px;
+  margin-top: 8px;
 }
+
 .footerRight {
-   padding: 8px 16px; 
+  flex-shrink: 0;
+  padding: 8px 16px;
 }

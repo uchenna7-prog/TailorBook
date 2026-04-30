@@ -112,8 +112,8 @@ export function buildReceiptWhatsAppMessage(receipt, customer, brand) {
     '',
     `Here is your payment receipt from *${brand?.name || 'us'}*. 🧾`,
     '',
-    '*receipt Details*',
-    `receipt No: *${receipt.number}*`,
+    '*Receipt Details*',
+    `Receipt No: *${receipt.number}*`,
     `Date: ${receipt.date}`,
     '',
   ]
@@ -196,6 +196,9 @@ async function renderElementToBlob(element, cssVars, exactHeight) {
     <html style="width:${PDF_WIDTH}px; min-height:${INITIAL_HEIGHT}px;">
       <head>
         <meta charset="utf-8"/>
+        <link rel="preconnect" href="https://fonts.googleapis.com"/>
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+        <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;600;700;900&display=swap" rel="stylesheet"/>
         <style>
           * { box-sizing: border-box; margin: 0; padding: 0; }
           html, body {
@@ -203,6 +206,7 @@ async function renderElementToBlob(element, cssVars, exactHeight) {
             min-height: ${INITIAL_HEIGHT}px;
             background: #fff;
             overflow: visible;
+            font-family: 'DM Sans', 'Helvetica Neue', Arial, sans-serif;
           }
           ${styleTexts.join('\n')}
         </style>
@@ -221,7 +225,7 @@ async function renderElementToBlob(element, cssVars, exactHeight) {
   // ── 4. Wait for layout + fonts ───────────────────────────────
   await iDoc.fonts.ready
   await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))
-  await new Promise(r => setTimeout(r, 500))
+  await new Promise(r => setTimeout(r, 1500))
 
   // ── 5. Measure true height ───────────────────────────────────
   let trueHeight = iDoc.body.scrollHeight

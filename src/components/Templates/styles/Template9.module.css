@@ -1,21 +1,30 @@
 .template { 
    background: #fff; 
    color: #1a1a1a; 
-   font-family: 'DM Sans', sans-serif; 
+   font-family: 'DM Sans', 'Helvetica Neue', Arial, sans-serif;
    font-size: 8px; 
    display: flex; 
    flex-direction: column; 
    padding: 0; 
    position: relative; 
-   overflow: hidden;
     min-height: 565px;
 }
 
-.header { 
-   display: flex; 
-   justify-content: space-between; 
-   align-items: flex-start; 
-   padding: 14px 16px 6px; 
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px 16px 6px;
+}
+
+.header > div:first-child {
+  flex: 1;
+  min-width: 0;
+}
+
+.header > div:last-child {
+  flex-shrink: 0;
 }
 
 .logoRow { 
@@ -65,8 +74,10 @@
    font-size: 7px; 
    line-height: 1.5; 
 }
-.billShip > div { 
-   flex: 1; 
+.billShip > div {
+  flex: 1;
+  min-width: 0;
+  word-break: break-word;
 }
 .billLabel { 
    font-weight: 700; 

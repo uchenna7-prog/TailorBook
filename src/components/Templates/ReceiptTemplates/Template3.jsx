@@ -55,12 +55,6 @@ export function ReceiptTemplate3({ receipt, customer, brand }) {
 
           </div>
 
-          <div className={styles.metaItem} style={{ textAlign : 'right' }}>
-
-            <div className={styles.metaLabel}>DUE DATE</div>
-      
-
-          </div>
 
         </div>
 
