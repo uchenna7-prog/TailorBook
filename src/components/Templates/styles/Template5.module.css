@@ -4,7 +4,6 @@
   color: var(--brand-on-primary);
   font-family: 'DM Sans', sans-serif;
   font-size: 8px;
-  min-height: 520px;
   display: flex;
   flex-direction: column;
   gap: 7px;
