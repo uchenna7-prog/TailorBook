@@ -112,8 +112,8 @@ export function buildInvoiceWhatsAppMessage(invoice, customer, brand) {
     '',
     `Here is your payment invoice from *${brand?.name || 'us'}*. 🧾`,
     '',
-    '*invoice Details*',
-    `invoice No: *${invoice.number}*`,
+    '*Invoice Details*',
+    `Invoice No: *${invoice.number}*`,
     `Date: ${invoice.date}`,
     '',
   ]
@@ -151,9 +151,9 @@ export function buildInvoiceWhatsAppMessage(invoice, customer, brand) {
 
 // ── PDF core ──────────────────────────────────────────────────
 
-async function renderElementToBlob(element, cssVars,exactHeight) {
-  const PDF_WIDTH = 380
-  const INITIAL_HEIGHT = Math.max(800,element.scrollHeight + 100)
+async function renderElementToBlob(element, cssVars, exactHeight) {
+  const PDF_WIDTH      = 380
+  const INITIAL_HEIGHT = Math.max(800, element.scrollHeight + 100)
 
   // ── 1. Collect all stylesheets ───────────────────────────────
   const styleTexts = await Promise.all(
@@ -190,11 +190,6 @@ async function renderElementToBlob(element, cssVars,exactHeight) {
   const iWin = iframe.contentWindow
 
   // ── 3. Write content ─────────────────────────────────────────
-  // The critical override is the last <style> block:
-  // - The .template div uses overflow:hidden which clips the corner SVG
-  // - We force overflow:visible on ALL elements so nothing is clipped
-  // - We also force the template to use its natural height (not min-height)
-  //   so the bottom SVG anchors to the actual bottom of the content
   iDoc.open()
   iDoc.write(`
     <!DOCTYPE html>
@@ -210,21 +205,6 @@ async function renderElementToBlob(element, cssVars,exactHeight) {
             overflow: visible;
           }
           ${styleTexts.join('\n')}
-          /* ── PDF capture overrides ──────────────────────────
-             Must come AFTER the copied stylesheets so they win.
-             1. Remove overflow:hidden everywhere — it clips
-                position:absolute children like the corner SVG.
-             2. Remove min-height constraints so the template
-                stretches to its true content height, letting
-                bottom:0 on the corner SVG land in the right place.
-          ─────────────────────────────────────────────────── */
-          * {
-            overflow: visible !important;
-          }
-          body > *,
-          body > * * {
-            min-height: unset !important;
-          }
         </style>
       </head>
       <body>${element.outerHTML}</body>
@@ -279,19 +259,19 @@ async function renderElementToBlob(element, cssVars,exactHeight) {
   document.body.removeChild(iframe)
 
   // ── 8. Build PDF ─────────────────────────────────────────────
-  const imgData = canvas.toDataURL('image/jpeg',0.92)
+  const imgData = canvas.toDataURL('image/jpeg', 0.92)
   const pdf     = new jsPDF({ orientation: 'portrait', unit: 'px', format: [PDF_WIDTH, height] })
   pdf.addImage(imgData, 'JPEG', 0, 0, PDF_WIDTH, height)
 
   return pdf.output('blob')
 }
 
-export async function generatePDFBlob(element, cssVars,exactHeight) {
-  return renderElementToBlob(element, cssVars)
+export async function generatePDFBlob(element, cssVars, exactHeight) {
+  return renderElementToBlob(element, cssVars, exactHeight)
 }
 
-export async function downloadPDF(element, filename, cssVars,exactHeight) {
-  const blob = await renderElementToBlob(element, cssVars,exactHeight)
+export async function downloadPDF(element, filename, cssVars, exactHeight) {
+  const blob = await renderElementToBlob(element, cssVars, exactHeight)
   const url  = URL.createObjectURL(blob)
   const a    = document.createElement('a')
   a.href     = url
@@ -300,8 +280,8 @@ export async function downloadPDF(element, filename, cssVars,exactHeight) {
   setTimeout(() => URL.revokeObjectURL(url), 10_000)
 }
 
-export async function sharePDF(element, filename, message, cssVars,exactHeight) {
-  const blob = await renderElementToBlob(element, cssVars,exactHeight)
+export async function sharePDF(element, filename, message, cssVars, exactHeight) {
+  const blob = await renderElementToBlob(element, cssVars, exactHeight)
   const file = new File([blob], filename, { type: 'application/pdf' })
 
   const canShareFile = typeof navigator.share === 'function'

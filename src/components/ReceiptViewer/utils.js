@@ -112,8 +112,8 @@ export function buildReceiptWhatsAppMessage(receipt, customer, brand) {
     '',
     `Here is your payment receipt from *${brand?.name || 'us'}*. 🧾`,
     '',
-    '*Receipt Details*',
-    `Receipt No: *${receipt.number}*`,
+    '*receipt Details*',
+    `receipt No: *${receipt.number}*`,
     `Date: ${receipt.date}`,
     '',
   ]
@@ -151,13 +151,9 @@ export function buildReceiptWhatsAppMessage(receipt, customer, brand) {
 
 // ── PDF core ──────────────────────────────────────────────────
 
-async function renderElementToBlob(element, cssVars,exactHeight) {
-  const PDF_WIDTH = 380
-
-  // Receipts can be very long (multiple payment installments, order
-  // breakdown, totals, corner SVG). Start the iframe at 5000px so
-  // the viewport never clips content during layout or capture.
-  const INITIAL_HEIGHT = Math.max(800,element.scrollHeight + 100)
+async function renderElementToBlob(element, cssVars, exactHeight) {
+  const PDF_WIDTH      = 380
+  const INITIAL_HEIGHT = Math.max(800, element.scrollHeight + 100)
 
   // ── 1. Collect all stylesheets ───────────────────────────────
   const styleTexts = await Promise.all(
@@ -238,7 +234,6 @@ async function renderElementToBlob(element, cssVars,exactHeight) {
 
   const height = exactHeight || (Math.ceil(trueHeight) + 8)
 
-  // Sync iframe + document to exact true height before capture
   iframe.style.height                  = `${height}px`
   iDoc.documentElement.style.minHeight = `${height}px`
   iDoc.body.style.minHeight            = `${height}px`
@@ -264,19 +259,19 @@ async function renderElementToBlob(element, cssVars,exactHeight) {
   document.body.removeChild(iframe)
 
   // ── 8. Build PDF ─────────────────────────────────────────────
-  const imgData = canvas.toDataURL('image/jpeg',0.92)
+  const imgData = canvas.toDataURL('image/jpeg', 0.92)
   const pdf     = new jsPDF({ orientation: 'portrait', unit: 'px', format: [PDF_WIDTH, height] })
   pdf.addImage(imgData, 'JPEG', 0, 0, PDF_WIDTH, height)
 
   return pdf.output('blob')
 }
 
-export async function generatePDFBlob(element, cssVars,exactHeight) {
-  return renderElementToBlob(element, cssVars,exactHeight)
+export async function generatePDFBlob(element, cssVars, exactHeight) {
+  return renderElementToBlob(element, cssVars, exactHeight)
 }
 
-export async function downloadPDF(element, filename, cssVars,exactHeight) {
-  const blob = await renderElementToBlob(element, cssVars,exactHeight)
+export async function downloadPDF(element, filename, cssVars, exactHeight) {
+  const blob = await renderElementToBlob(element, cssVars, exactHeight)
   const url  = URL.createObjectURL(blob)
   const a    = document.createElement('a')
   a.href     = url
@@ -285,8 +280,8 @@ export async function downloadPDF(element, filename, cssVars,exactHeight) {
   setTimeout(() => URL.revokeObjectURL(url), 10_000)
 }
 
-export async function sharePDF(element, filename, message, cssVars,exactHeight) {
-  const blob = await renderElementToBlob(element, cssVars,exactHeight)
+export async function sharePDF(element, filename, message, cssVars, exactHeight) {
+  const blob = await renderElementToBlob(element, cssVars, exactHeight)
   const file = new File([blob], filename, { type: 'application/pdf' })
 
   const canShareFile = typeof navigator.share === 'function'

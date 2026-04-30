@@ -56,20 +56,22 @@
 }
 
 .metaLabel {
-  font-size: 7px;
+  font-size: 8px;
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   margin-bottom: 2px;
+  color: var(--brand-primary-dark);
 }
 
 .metaVal { 
-  font-size: 11px; 
+  text-transform: capitalize;
+  font-size: 8px; 
   font-weight: 800; 
   color: #1a1a1a; 
 }
 .metaSub { 
-  font-size: 8px; 
+  font-size: 7px; 
   color: #555; 
   margin-top: 1px; 
   line-height: 1.4; 
