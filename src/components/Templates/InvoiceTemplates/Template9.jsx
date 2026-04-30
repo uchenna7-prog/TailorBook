@@ -8,7 +8,7 @@ export function InvoiceTemplate9({ invoice, customer, brand }) {
   const { currency, showTax, taxRate } = brand
   const subtotal = invoice.items?.length > 0
     ? invoice.items.reduce((sum, item) => sum + ((item.qty ?? 1) * (parseFloat(item.price) || 0)), 0)
-    : 0
+     : 0
   const tax      = calcTax(subtotal, taxRate, showTax)
   const total    = subtotal + tax
 
@@ -20,31 +20,31 @@ export function InvoiceTemplate9({ invoice, customer, brand }) {
         <div>
           <div className={styles.logoRow}>
             {brand.logo
-              ? <img src={brand.logo} alt="" style={{ width: "45px", height: "45px", objectFit: 'contain' }} />
-              : <span className="mi" style={{ fontSize: 14, color: '#333' }}>checkroom</span>
+              ? <img src={brand.logo} alt="" style={{ width : "45px", height : "45px", objectFit : 'contain' }} />
+               : <span className="mi" style={{ fontSize : 14, color : '#333' }}>checkroom</span>
             }
             <span className={styles.companyName}>{(brand.name || brand.ownerName || '').toUpperCase()}</span>
           </div>
           {brand.tagline && <div className={styles.companySub}>{brand.tagline.toUpperCase()}</div>}
           {brand.address && <div className={styles.companyAddress}>{brand.address}</div>}
         </div>
-        <div className={styles.invoiceTitle} style={{ color: accentColor }}>INVOICE</div>
+        <div className={styles.invoiceTitle} style={{ color : accentColor }}>INVOICE</div>
       </div>
       <div className={styles.numberBar}>
         <span>INVOICE # {invoice.number}</span><span>|</span>
-        <span>DATE: {invoice.date}</span><span>|</span>
-        <span>DUE: {dueDate}</span>
+        <span>DATE : {invoice.date}</span><span>|</span>
+        <span>DUE : {dueDate}</span>
       </div>
       <div className={styles.billShip}>
         <div>
-          <span className={styles.billLabel}>Bill To:</span>
+          <span className={styles.billLabel}>Bill To :</span>
           <div><strong>{customer.name}</strong></div>
           {customer.phone   && <div>{customer.phone}</div>}
           {customer.email   && <div>{customer.email}</div>}
           {customer.address && <div>{customer.address}</div>}
         </div>
         <div>
-          <span className={styles.billLabel}>From:</span>
+          <span className={styles.billLabel}>From :</span>
           <div><strong>{brand.name || brand.ownerName}</strong></div>
           {brand.phone && <div>{brand.phone}</div>}
           {brand.email && <div>{brand.email}</div>}
@@ -84,7 +84,7 @@ export function InvoiceTemplate9({ invoice, customer, brand }) {
       <div className={styles.subArea}>
         <div className={styles.subRow}>
           
-          <span style={{fontWeight:900,color:"var(--brand-primary-dark)"}}>Subtotal:</span>
+          <span style={{fontWeight :900,color :"var(--brand-primary-dark)"}}>Subtotal :</span>
           <span>{fmt(currency, subtotal)}</span>
 
         </div>
@@ -93,7 +93,7 @@ export function InvoiceTemplate9({ invoice, customer, brand }) {
       <div className={styles.totalBar}>
         <span>TOTAL</span><span>{fmt(currency, total)}</span>
       </div>
-        <div style={{ marginTop: 'auto' }}>
+        <div style={{ marginTop : 'auto' }}>
         <div className={styles.footer}>
           <div>
             {brand.accountBank && (
@@ -101,12 +101,12 @@ export function InvoiceTemplate9({ invoice, customer, brand }) {
                 <div className={styles.thankYou}>Payment Details</div>
                 <div>
                   {brand.name && (
-                    <div>Received By : {brand.name}</div>
+                    <div>Received By  : {brand.name}</div>
                   )}
                 </div>
               </>
             )}
-            <div className={styles.paymentNote} style={{ fontWeight: 900, color: "var(--brand-primary-dark)" }}>
+            <div className={styles.paymentNote} style={{ fontWeight : 900, color : "var(--brand-primary-dark)" }}>
               {brand.footer}
             </div>
           </div>
@@ -116,9 +116,9 @@ export function InvoiceTemplate9({ invoice, customer, brand }) {
           </div>
 
         </div>
-        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+        <div style={{ display : 'flex', justifyContent : 'flex-end' }}>
           <svg
-            style={{ display: 'block', width: 50, height: 50 }}
+            style={{ display : 'block', width : 50, height : 50 }}
             viewBox="0 0 50 50"
           >
             <polygon points="50,0 50,50 0,50" fill={accentColor} opacity="0.5" />

@@ -38,13 +38,13 @@ export default function ReceiptViewer({ receipt: initialReceipt, customer, onClo
   }
 }
 
-const handleShare = async () => {
+  const handleShare = async () => {
   if (!paperRef.current || shareLoading) return
   setShareLoading(true)
   showToast?.('Preparing…')
   try {
     const exactHeight = Math.ceil(paperRef.current.getBoundingClientRect().height)
-    const message = buildInvoiceWhatsAppMessage(invoice, customer, effectiveBrand)
+    const message = buildReceiptWhatsAppMessage(receipt, customer, effectiveBrand)
     await sharePDF(paperRef.current, filename, message, brandCSSVars, exactHeight)
     showToast?.('Shared ✓')
   } catch (err) {

@@ -18,9 +18,9 @@ export function InvoiceTemplate1({ invoice, customer, brand }) {
 
         <div className={styles.titleRow}>
 
-          <div className={styles.titleLine} style={{ background: lineColor }} />
+          <div className={styles.titleLine} style={{ background : lineColor }} />
           <div className={styles.title}>INVOICE</div>
-          <div className={styles.titleLine} style={{ background: lineColor }} />
+          <div className={styles.titleLine} style={{ background : lineColor }} />
 
         </div>
 
@@ -37,20 +37,20 @@ export function InvoiceTemplate1({ invoice, customer, brand }) {
 
         </div>
 
-        <div style={{ textAlign: 'right' }}>
+        <div style={{ textAlign : 'right' }}>
 
           <div>
-            <span className={styles.metaKey}>INVOICE #:</span>
+            <span className={styles.metaKey}>INVOICE # :</span>
             <span className={styles.metaValue}> {invoice.number}</span>
           </div>
 
           <div>
-            <span className={styles.metaKey}>Issue Date:</span>
+            <span className={styles.metaKey}>Issue Date :</span>
             <span className={styles.metaValue}> {invoice.date}</span>
           </div>
 
           <div>
-            <span className={styles.metaKey}>Due Date:</span>
+            <span className={styles.metaKey}>Due Date :</span>
             <span className={styles.metaValue}> {dueDate}</span>
           </div>
 
@@ -69,20 +69,20 @@ export function InvoiceTemplate1({ invoice, customer, brand }) {
 
             <div className={styles.footerLeft}>
 
-              <strong style={{fontWeight:900,color:"var(--brand-primary-dark)"}}>Payment Information:</strong><br />
+              <strong style={{fontWeight :900,color :"var(--brand-primary-dark)"}}>Payment Information :</strong><br />
 
               <div>
                 <div>
                   {brand.accountBank && (
-                    <div>Bank Name: {brand.accountBank}</div>
+                    <div>Bank Name : {brand.accountBank}</div>
                   )}
 
                   {brand.accountNumber && (
-                    <div>Account Number: {brand.accountNumber}</div>
+                    <div>Account Number : {brand.accountNumber}</div>
                   )}
 
                   {brand.accountName && (
-                    <div>Account Name: {brand.accountName}</div>
+                    <div>Account Name : {brand.accountName}</div>
                   )}
                   
                 </div>
@@ -96,7 +96,7 @@ export function InvoiceTemplate1({ invoice, customer, brand }) {
 
             <div className={styles.footRight}>
 
-              <strong style={{fontWeight:900,color:"var(--brand-primary-dark)"}}>Notes:</strong><br />
+              <strong style={{fontWeight :900,color :"var(--brand-primary-dark)"}}>Notes :</strong><br />
               {brand.phone   && <span>{brand.phone}<br /></span>}
               {brand.email   && <span>{brand.email}<br /></span>}
               {brand.footer  && <span>{brand.footer}</span>}

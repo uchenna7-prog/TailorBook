@@ -10,9 +10,9 @@ export function InvoiceTemplate3({ invoice, customer, brand }) {
 
   return (
 
-    <div className={styles.template} style={{ padding: 0 }}>
+    <div className={styles.template} style={{ padding : 0 }}>
 
-      <div className={styles.customBanner} style={{ background: bannerBg }}>
+      <div className={styles.customBanner} style={{ background : bannerBg }}>
 
         <div className={styles.customBannerLogo}>
           <LogoOrName brand={brand} darkBg />
@@ -29,11 +29,11 @@ export function InvoiceTemplate3({ invoice, customer, brand }) {
 
       <div className={styles.body}>
 
-        <div className={styles.metaRow} style={{ marginBottom: 16 }}>
+        <div className={styles.metaRow} style={{ marginBottom : 16 }}>
 
           <div className={styles.metaItem}>
 
-            <div className={styles.metaLabel}>BILL FROM:</div>
+            <div className={styles.metaLabel}>BILL FROM :</div>
             <div className={styles.metaVal}>{brand.name}</div>
             {brand.phone   && <div className={styles.metaSub}>{brand.phone}</div>}
             {brand.address && <div className={styles.metaSub}>{brand.address}</div>}
@@ -42,7 +42,7 @@ export function InvoiceTemplate3({ invoice, customer, brand }) {
 
           <div className={styles.metaItem}>
 
-            <div className={styles.metaLabel}>BILL TO:</div>
+            <div className={styles.metaLabel}>BILL TO :</div>
             <div className={styles.metaVal}>{customer.name}</div>
             {customer.phone && <div className={styles.metaSub}>{customer.phone}</div>}
             {customer.address && <div className={styles.metaSub}>{customer.address}</div>}
@@ -51,14 +51,14 @@ export function InvoiceTemplate3({ invoice, customer, brand }) {
 
           <div className={styles.metaItem}>
 
-            <div className={styles.metaLabel}>ISSUE DATE:</div>
+            <div className={styles.metaLabel}>ISSUE DATE :</div>
             <div className={styles.metaSub}>{invoice.date}</div>
 
           </div>
 
-          <div className={styles.metaItem} style={{ textAlign: 'right' }}>
+          <div className={styles.metaItem} style={{ textAlign : 'right' }}>
 
-            <div className={styles.metaLabel}>DUE DATE:</div>
+            <div className={styles.metaLabel}>DUE DATE :</div>
             <div className={styles.metaSub}>{dueDate}</div>
 
           </div>
@@ -69,20 +69,20 @@ export function InvoiceTemplate3({ invoice, customer, brand }) {
 
         {brand.accountBank && (
           <div className={styles.paymentRow}>
-            <strong style={{fontWeight:900,color:"var(--brand-primary-dark)"}}>Payment Information:</strong><br/>
+            <strong style={{fontWeight :900,color :"var(--brand-primary-dark)"}}>Payment Information :</strong><br/>
 
               <div>
 
                 {brand.accountBank && (
-                  <div>Bank Name: {brand.accountBank}</div>
+                  <div>Bank Name : {brand.accountBank}</div>
                 )}
 
                 {brand.accountNumber && (
-                  <div>Account Number: {brand.accountNumber}</div>
+                  <div>Account Number : {brand.accountNumber}</div>
                 )}
 
                 {brand.accountName && (
-                  <div>Account Name: {brand.accountName}</div>
+                  <div>Account Name : {brand.accountName}</div>
                 )}
                 
               </div>

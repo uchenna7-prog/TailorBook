@@ -8,7 +8,7 @@ export function ReceiptTemplate10({ receipt, customer, brand }) {
   const { currency, showTax, taxRate } = brand
   const subtotal = receipt.items?.length > 0
     ? receipt.items.reduce((sum, item) => sum + ((item.qty ?? 1) * (parseFloat(item.price) || 0)), 0)
-    : 0
+     : 0
   const tax      = calcTax(subtotal, taxRate, showTax)
   const total    = subtotal + tax
 
@@ -16,34 +16,34 @@ export function ReceiptTemplate10({ receipt, customer, brand }) {
     <div className={styles.template}>
       <div className={styles.headerZone}>
         <svg
-          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
+          style={{ position : 'absolute', inset : 0, width : '100%', height : '100%' }}
           viewBox="0 0 400 72"
           preserveAspectRatio="none"
         >
           <polygon points="0,0 400,0 400,28 0,72" fill={accentColor} />
         </svg>
-        <div style={{ position: 'absolute', top: 10, left: 18, zIndex: 1 }}>
+        <div style={{ position : 'absolute', top : 10, left : 18, zIndex : 1 }}>
           <span className={styles.bannerTitle}>RECEIPT</span>
         </div>
         <div className={styles.brandInBanner}>
           {brand.logo
-            ? <img src={brand.logo} alt="" style={{ width: "25px", height: "25px", objectFit: 'contain' }} />
-            : <span className="mi" style={{ fontSize: 14,  color: "var(--brand-on-primary)" }}>checkroom</span>
+            ? <img src={brand.logo} alt="" style={{ width : "25px", height : "25px", objectFit : 'contain' }} />
+             : <span className="mi" style={{ fontSize : 14,  color : "var(--brand-on-primary)" }}>checkroom</span>
           }
           <div>
-            <div className={styles.brandName} style={{ color: "var(--brand-on-primary)" }} >{brand.name || brand.ownerName}</div>
+            <div className={styles.brandName} style={{ color : "var(--brand-on-primary)" }} >{brand.name || brand.ownerName}</div>
             <div className={styles.brandSub}>TAILOR SHOP</div>
           </div>
         </div>
       </div>
       <div className={styles.metaRow}>
         <div>
-          <div className={styles.metaLabel}>receipt To:</div>
+          <div className={styles.metaLabel}>receipt To :</div>
           <div className={styles.metaName}>{customer.name}</div>
           {customer.phone   && <div className={styles.metaAddress}>{customer.phone}</div>}
           {customer.address && <div className={styles.metaAddress}>{customer.address}</div>}
         </div>
-        <div style={{ textAlign: 'right' }}>
+        <div style={{ textAlign : 'right' }}>
           <div><span className={styles.metaKey}>receipt#</span> <strong>{receipt.number}</strong></div>
           <div><span className={styles.metaKey}>Date </span> <strong>{receipt.date}</strong></div>
         
@@ -82,15 +82,15 @@ export function ReceiptTemplate10({ receipt, customer, brand }) {
       
       <div className={styles.divider} />
       <div className={styles.bottom}>
-        <div style={{ flex: 1 }}>
+        <div style={{ flex : 1 }}>
           <div className={styles.thankYou}>{brand.footer || 'Thank you for your business'}</div>
           {brand.accountBank && (
             <>
-              <div className={styles.paymentLabel}>Payment Details:</div>
+              <div className={styles.paymentLabel}>Payment Details :</div>
               <div className={styles.paymentInfo}>
 
                 {brand.name && (
-                  <div>Received By : {brand.name}</div>
+                  <div>Received By  : {brand.name}</div>
                 )}
 
               </div>
@@ -108,10 +108,10 @@ export function ReceiptTemplate10({ receipt, customer, brand }) {
         </div>
         <div className={styles.rightColumn}>
           <div className={styles.totals}>
-            <div className={styles.totalRow}><span>Sub Total :</span><span>{fmt(currency, subtotal)}</span></div>
-            {showTax && taxRate > 0 && <div className={styles.totalRow}><span>Tax ({taxRate}%):</span><span>{fmt(currency, tax)}</span></div>}
+            <div className={styles.totalRow}><span>Sub Total  :</span><span>{fmt(currency, subtotal)}</span></div>
+            {showTax && taxRate > 0 && <div className={styles.totalRow}><span>Tax ({taxRate}%) :</span><span>{fmt(currency, tax)}</span></div>}
             <div className={styles.totalDivider} />
-            <div className={styles.totalTotal}><span>Total :</span><span>{fmt(currency, total)}</span></div>
+            <div className={styles.totalTotal}><span>Total  :</span><span>{fmt(currency, total)}</span></div>
           </div>
           <div className={styles.signBlock}>
             <div className={styles.signLine} />
@@ -120,9 +120,9 @@ export function ReceiptTemplate10({ receipt, customer, brand }) {
         </div>
       </div>
       {/* Corner accent — in normal flow so PDF capture always includes it */}
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 'auto' }}>
+      <div style={{ display : 'flex', justifyContent : 'flex-end', marginTop : 'auto' }}>
         <svg
-          style={{ display: 'block', width: 68, height: 58 }}
+          style={{ display : 'block', width : 68, height : 58 }}
           viewBox="0 0 68 58"
         >
           <polygon points="68,0 68,58 0,58" fill={accentColor} />

@@ -7,7 +7,7 @@ export function ReceiptTemplate7({ receipt, customer, brand }) {
   const { currency, showTax, taxRate } = brand
   const subtotal = receipt.items?.length > 0
     ? receipt.items.reduce((sum, item) => sum + ((item.qty ?? 1) * (parseFloat(item.price) || 0)), 0)
-    : 0
+     : 0
   const tax      = calcTax(subtotal, taxRate, showTax)
   const total    = subtotal + tax
 
@@ -16,10 +16,10 @@ export function ReceiptTemplate7({ receipt, customer, brand }) {
 
       <div className={styles.header}>
 
-        <div className={styles.logoCircle} style={{ borderColor: accentColor }}>
+        <div className={styles.logoCircle} style={{ borderColor : accentColor }}>
           {brand.logo
-            ? <img src={brand.logo} alt="" style={{ width: "45px", height: "45px", objectFit: 'contain', borderRadius: '50%' }} />
-            : <span className="mi" style={{ fontSize: 13, color: accentColor }}>checkroom</span>
+            ? <img src={brand.logo} alt="" style={{ width : "45px", height : "45px", objectFit : 'contain', borderRadius : '50%' }} />
+             : <span className="mi" style={{ fontSize : 13, color : accentColor }}>checkroom</span>
           }
         </div>
 
@@ -30,8 +30,8 @@ export function ReceiptTemplate7({ receipt, customer, brand }) {
 
         <div className={styles.dateBlock}>
 
-          <div className={styles.dateLabel}>ISSUE DATE:</div>
-          <div className={styles.dateValue} style={{ color: accentColor }}>{receipt.date}</div>
+          <div className={styles.dateLabel}>ISSUE DATE :</div>
+          <div className={styles.dateValue} style={{ color : accentColor }}>{receipt.date}</div>
 
         </div>
 
@@ -43,14 +43,14 @@ export function ReceiptTemplate7({ receipt, customer, brand }) {
 
         <div className={styles.fromToBlock}>
 
-          <div className={styles.fromLabel}>FROM:</div>
+          <div className={styles.fromLabel}>FROM :</div>
           <div className={styles.fromDivider} />
           {[
-            ['NAME:', brand.ownerName || brand.name],
-            ['COMPANY:', (brand.name || '').toUpperCase()],
-            ['PHONE:', (brand.phone || '').toUpperCase()],
-            ['EMAIL:', (brand.email || '')],
-            ['ADDRESS:', (brand.address || '').toUpperCase()]
+            ['NAME :', brand.ownerName || brand.name],
+            ['COMPANY :', (brand.name || '').toUpperCase()],
+            ['PHONE :', (brand.phone || '').toUpperCase()],
+            ['EMAIL :', (brand.email || '')],
+            ['ADDRESS :', (brand.address || '').toUpperCase()]
           ].filter(([,v]) => v).map(([l, v]) => (
             <div key={l} className={styles.infoRow}>
               <span className={styles.infoKey}>{l}</span>
@@ -60,12 +60,12 @@ export function ReceiptTemplate7({ receipt, customer, brand }) {
         </div>
 
         <div className={styles.fromToBlock}>
-          <div className={styles.toLabel}>TO:</div>
+          <div className={styles.toLabel}>TO :</div>
           <div className={styles.fromDivider} />
           {[
-            ['NAME:', (customer.name || '').toUpperCase()],
-            ['PHONE:', (customer.phone || '').toUpperCase()],
-            ['ADDRESS:', (customer.address || '').toUpperCase()],
+            ['NAME :', (customer.name || '').toUpperCase()],
+            ['PHONE :', (customer.phone || '').toUpperCase()],
+            ['ADDRESS :', (customer.address || '').toUpperCase()],
           ].filter(([,v]) => v).map(([l, v]) => (
             <div key={l} className={styles.infoRow}>
               <span className={styles.infoKey}>{l}</span>
@@ -78,7 +78,7 @@ export function ReceiptTemplate7({ receipt, customer, brand }) {
 
       <div className={styles.divider} />
 
-      <div className={styles.forLabel}>FOR:</div>
+      <div className={styles.forLabel}>FOR :</div>
 
       <div className={styles.tableWrapper}>
         <table className={styles.table}>
@@ -103,7 +103,7 @@ export function ReceiptTemplate7({ receipt, customer, brand }) {
                   <td className={styles.colDesc}>{item.name}</td>
                   <td className={styles.colQty}>{qty}</td>
                   <td className={styles.colPrice}>{fmt(currency, unitPrice)}</td>
-                  <td className={styles.colTotal} style={{ color: accentColor }}>
+                  <td className={styles.colTotal} style={{ color : accentColor }}>
                     {fmt(currency, lineAmount)}
                   </td>
                 </tr>
@@ -123,10 +123,10 @@ export function ReceiptTemplate7({ receipt, customer, brand }) {
         <div className={styles.footerLeft}>
           
            <div>
-            <h3 className={styles.footerLabel}>Payment Details:</h3>
+            <h3 className={styles.footerLabel}>Payment Details :</h3>
 
             {brand.name && (
-              <div>Received By : {brand.name}</div>
+              <div>Received By  : {brand.name}</div>
             )}
             
           </div>
@@ -136,7 +136,7 @@ export function ReceiptTemplate7({ receipt, customer, brand }) {
 
       {brand.footer && (
         <div className={styles.footerRight}>
-          <h3 style={{color:"var(--brand-primary-dark)"}}>Notes:</h3><br />{brand.footer}
+          <h3 style={{color :"var(--brand-primary-dark)"}}>Notes :</h3><br />{brand.footer}
         </div>
       )}
 

@@ -6,7 +6,7 @@ export function InvoiceTemplate6({ invoice, customer, brand }) {
   const { currency, showTax, taxRate } = brand
   const subtotal = invoice.items?.length > 0
     ? invoice.items.reduce((sum, item) => sum + ((item.qty ?? 1) * (parseFloat(item.price) || 0)), 0)
-    : 0
+     : 0
   const tax      = calcTax(subtotal, taxRate, showTax)
   const total    = subtotal + tax
 
@@ -20,8 +20,8 @@ export function InvoiceTemplate6({ invoice, customer, brand }) {
 
           <div className={styles.logoCircle}>
             {brand.logo
-              ? <img src={brand.logo} alt="" style={{ width: "45px", height: "45px", objectFit: 'contain' }} />
-              : <span className="mi" style={{ fontSize: 13, color: 'var(--brand-on-primary)' }}>checkroom</span>
+              ? <img src={brand.logo} alt="" style={{ width : "45px", height : "45px", objectFit : 'contain' }} />
+               : <span className="mi" style={{ fontSize : 13, color : 'var(--brand-on-primary)' }}>checkroom</span>
             }
           </div>
 
@@ -50,27 +50,27 @@ export function InvoiceTemplate6({ invoice, customer, brand }) {
           <span className={styles.invoiceNum}>#{invoice.number}</span>
         </div>
         <div className={styles.invoiceRight}>
-          <div><span className={styles.label}>ISSUE DATE:</span> {invoice.date}</div>
-          <div><span className={styles.label}>DUE DATE:</span> {dueDate}</div>
+          <div><span className={styles.label}>ISSUE DATE :</span> {invoice.date}</div>
+          <div><span className={styles.label}>DUE DATE :</span> {dueDate}</div>
         </div>
       </div>
       <div className={styles.infoRow}>
         {brand.accountBank && (
           <div>
-            <div className={styles.infoLabel}>PAYMENT:</div>
+            <div className={styles.infoLabel}>PAYMENT :</div>
             <strong>{brand.accountBank}</strong><br />
             {brand.accountName && <span>{brand.accountName}<br /></span>}
-            {brand.accountNumber && <span>Acct: {brand.accountNumber}</span>}
+            {brand.accountNumber && <span>Acct : {brand.accountNumber}</span>}
           </div>
         )}
         <div>
-          <div className={styles.infoLabel}>BILL FROM:</div>
+          <div className={styles.infoLabel}>BILL FROM :</div>
           {brand.name || brand.ownerName}<br />
           {brand.phone   && <div>{brand.phone}</div>}
           {brand.address}
         </div>
         <div>
-          <div className={`${styles.infoLabel} ${styles.infoLabelRight}`}>BILL TO:</div>
+          <div className={`${styles.infoLabel} ${styles.infoLabelRight}`}>BILL TO :</div>
           {customer.name}<br />
           {customer.phone}<br />
           {customer.address}

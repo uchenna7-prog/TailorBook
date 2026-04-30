@@ -46,7 +46,7 @@ export function ReceiptTemplate2({ receipt, customer, brand }) {
         <div className={styles.gridBox}>
 
           <strong>DETAILS</strong><br />
-          Date: {receipt.date}<br />
+          Date : {receipt.date}<br />
    
         </div>
 
@@ -57,14 +57,14 @@ export function ReceiptTemplate2({ receipt, customer, brand }) {
 
       {brand.accountBank && (
         <div className={styles.paymentInfo}>
-          <strong style={{fontWeight:900,color:"var(--brand-primary-dark)"}}>Payment Details</strong><br/>
+          <strong style={{fontWeight :900,color :"var(--brand-primary-dark)"}}>Payment Details</strong><br/>
 
             <div>
 
               <div>
 
                   {brand.name && (
-                    <div>Received By : {brand.name}</div>
+                    <div>Received By  : {brand.name}</div>
                   )}
                 
               </div>

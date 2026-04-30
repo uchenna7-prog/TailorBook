@@ -47,8 +47,8 @@ export function InvoiceTemplate2({ invoice, customer, brand }) {
         <div className={styles.gridBox}>
 
           <strong>DETAILS</strong><br />
-          Date: {invoice.date}<br />
-          Due: {dueDate}
+          Date : {invoice.date}<br />
+          Due : {dueDate}
 
         </div>
 
@@ -58,21 +58,21 @@ export function InvoiceTemplate2({ invoice, customer, brand }) {
 
       {brand.accountBank && (
         <div className={styles.paymentInfo}>
-          <strong style={{fontWeight:900,color:"var(--brand-primary-dark)"}}>Payment Information:</strong><br/>
+          <strong style={{fontWeight :900,color :"var(--brand-primary-dark)"}}>Payment Information :</strong><br/>
 
             <div>
 
               <div>
                 {brand.accountBank && (
-                  <div>Bank Name: {brand.accountBank}</div>
+                  <div>Bank Name : {brand.accountBank}</div>
                 )}
 
                 {brand.accountNumber && (
-                  <div>Account Number: {brand.accountNumber}</div>
+                  <div>Account Number : {brand.accountNumber}</div>
                 )}
 
                 {brand.accountName && (
-                  <div>Account Name: {brand.accountName}</div>
+                  <div>Account Name : {brand.accountName}</div>
                 )}
                 
               </div>

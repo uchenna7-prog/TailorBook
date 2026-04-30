@@ -8,7 +8,7 @@ export function ReceiptTemplate4({ receipt, customer, brand }) {
   const { currency, showTax, taxRate } = brand
   const subtotal = receipt.items?.length > 0
     ? receipt.items.reduce((sum, item) => sum + ((item.qty ?? 1) * (parseFloat(item.price) || 0)), 0)
-    : 0
+     : 0
   const tax = calcTax(subtotal, taxRate, showTax)
   const total = subtotal + tax
 
@@ -24,9 +24,9 @@ export function ReceiptTemplate4({ receipt, customer, brand }) {
               
             <div className={styles.title}>receipt</div>
 
-            <div style={{ textAlign: 'right', fontSize: 9 }}>
-              <div>ISSUE DATE: <strong>{receipt.date}</strong></div>
-              <div>receipt #: <strong>{receipt.number}</strong></div>
+            <div style={{ textAlign : 'right', fontSize : 9 }}>
+              <div>ISSUE DATE : <strong>{receipt.date}</strong></div>
+              <div>receipt # : <strong>{receipt.number}</strong></div>
             </div>
 
           </div>
@@ -34,7 +34,7 @@ export function ReceiptTemplate4({ receipt, customer, brand }) {
 
             <div  className={styles.metaItem} >
 
-              <div className={styles.metaLabel}>RECEIVED BY:</div>
+              <div className={styles.metaLabel}>RECEIVED BY :</div>
               <div className={styles.metaVal}>{brand.name}</div>
               {brand.phone   && <div className={styles.metaSub}>{brand.phone}</div>}
               {brand.address && <div className={styles.metaSub}>{brand.address}</div>}
@@ -42,9 +42,9 @@ export function ReceiptTemplate4({ receipt, customer, brand }) {
 
             </div>
 
-            <div className={styles.metaItem}  style={{ textAlign: 'right' }}>
+            <div className={styles.metaItem}  style={{ textAlign : 'right' }}>
 
-              <div className={styles.metaLabel}>RECEIVED FROM:</div>
+              <div className={styles.metaLabel}>RECEIVED FROM :</div>
               <div className={styles.metaVal}>{customer.name}</div>
               {customer.phone   && <div className={styles.metaSub}>{customer.phone}</div>}
               {customer.address && <div className={styles.metaSub}>{customer.address}</div>}
@@ -57,10 +57,10 @@ export function ReceiptTemplate4({ receipt, customer, brand }) {
           <div className={styles.table}>
             <table
               className={styles.tableEl}
-              style={{ borderColor: barColor }}
+              style={{ borderColor : barColor }}
             >
               <thead>
-                <tr className={styles.tableHeader} style={{ borderColor: barColor }}>
+                <tr className={styles.tableHeader} style={{ borderColor : barColor }}>
                   <th className={styles.colDesc}>Item Description</th>
                   <th className={styles.colPrice}>Unit Price</th>
                   <th className={styles.colQty}>Qty</th>
@@ -94,12 +94,12 @@ export function ReceiptTemplate4({ receipt, customer, brand }) {
           
           <div className={styles.footer}>
             <div className={styles.footerSection}>
-              <strong style={{fontWeight:900,color:"var(--brand-primary-dark)"}}>Payment Details:</strong><br />
+              <strong style={{fontWeight :900,color :"var(--brand-primary-dark)"}}>Payment Details :</strong><br />
 
               <div>
 
                 {brand.name && (
-                    <div>Received By : {brand.name}</div>
+                    <div>Received By  : {brand.name}</div>
                   )}
                 
               </div>
@@ -107,7 +107,7 @@ export function ReceiptTemplate4({ receipt, customer, brand }) {
             </div>
             {brand.footer && (
               <div className={styles.footerSection}>
-                <strong style={{fontWeight:900,color:"var(--brand-primary-dark)"}}>Notes:</strong><br />{brand.footer}
+                <strong style={{fontWeight :900,color :"var(--brand-primary-dark)"}}>Notes :</strong><br />{brand.footer}
               </div>
             )}
           </div>

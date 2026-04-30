@@ -9,7 +9,7 @@ export function ReceiptTemplate11({ receipt, customer, brand }) {
   const { currency, showTax, taxRate } = brand
   const subtotal = receipt.items?.length > 0
     ? receipt.items.reduce((sum, item) => sum + ((item.qty ?? 1) * (parseFloat(item.price) || 0)), 0)
-    : 0
+     : 0
   const tax      = calcTax(subtotal, taxRate, showTax)
   const total    = subtotal + tax
 
@@ -22,8 +22,8 @@ export function ReceiptTemplate11({ receipt, customer, brand }) {
 
           <div className={styles.logoCircle}>
             {brand.logo
-              ? <img src={brand.logo} alt="" style={{ width: "45px", height: "45px", objectFit: 'contain', borderRadius: 2 }} />
-              : <span className="mi" style={{ fontSize: 11, color: '#fff' }}>checkroom</span>
+              ? <img src={brand.logo} alt="" style={{ width : "45px", height : "45px", objectFit : 'contain', borderRadius : 2 }} />
+               : <span className="mi" style={{ fontSize : 11, color : '#fff' }}>checkroom</span>
             }
           </div>
 
@@ -36,7 +36,7 @@ export function ReceiptTemplate11({ receipt, customer, brand }) {
 
         {brand.address && <div className={styles.companyInfo}>{brand.address}</div>}
 
-        <div className={styles.companyInfo} style={{ textAlign: 'right' }}>
+        <div className={styles.companyInfo} style={{ textAlign : 'right' }}>
           {brand.website && <div>{brand.website}</div>}
           {brand.email   && <div>{brand.email}</div>}
           {brand.phone   && <div>{brand.phone}</div>}
@@ -46,9 +46,9 @@ export function ReceiptTemplate11({ receipt, customer, brand }) {
 
       <div className={styles.receiptTitle}>receipt</div>
 
-      <div className={styles.bar} style={{ background: "var(--brand-muted)", color: accentColor }}>
+      <div className={styles.bar} style={{ background : "var(--brand-muted)", color : accentColor }}>
         <span>RECEIPT # {receipt.number}</span>
-        <span>DATE ISSUED: {receipt.date}</span>
+        <span>DATE ISSUED : {receipt.date}</span>
 
       </div>
 
@@ -61,9 +61,9 @@ export function ReceiptTemplate11({ receipt, customer, brand }) {
           {customer.address && <div>{customer.address}</div>}
         </div>
 
-        <div style={{ textAlign: 'right' }}>
-          <div className={styles.amountLabel} style={{ color: accentColor }}>AMOUNT</div>
-          <div className={styles.amountVal} style={{ color: accentColor }}>{fmt(currency, total)}</div>
+        <div style={{ textAlign : 'right' }}>
+          <div className={styles.amountLabel} style={{ color : accentColor }}>AMOUNT</div>
+          <div className={styles.amountVal} style={{ color : accentColor }}>{fmt(currency, total)}</div>
         </div>
 
       </div>
@@ -105,19 +105,19 @@ export function ReceiptTemplate11({ receipt, customer, brand }) {
           <div className={styles.paymentTitle}>Payment Details</div>
           <div className={styles.paymentBoxRow}>
             {brand.accountBank && (
-              <div className={styles.paymentBox} style={{background: "var(--brand-muted)"}}>
+              <div className={styles.paymentBox} style={{background : "var(--brand-muted)"}}>
                 <div className={styles.paymentBoxTitle}>Bank Transfer</div>
                 <div>
 
                   {brand.name && (
-                  <div>Received By : {brand.name}</div>
+                  <div>Received By  : {brand.name}</div>
                 )}
 
                 </div>
               </div>
             )}
             {brand.phone && (
-              <div className={styles.paymentBox} style={{background: "var(--brand-muted)"}}>
+              <div className={styles.paymentBox} style={{background : "var(--brand-muted)"}}>
                 <div className={styles.paymentBoxTitle}>Contact</div>
                 <div>
                   {brand.phone}<br />
@@ -126,7 +126,7 @@ export function ReceiptTemplate11({ receipt, customer, brand }) {
               </div>
             )}
             {brand.address && (
-              <div className={styles.paymentBox} style={{ background: "var(--brand-muted)"}}>
+              <div className={styles.paymentBox} style={{ background : "var(--brand-muted)"}}>
                 <div className={styles.paymentBoxTitle}>Visit Us</div>
                 <div>{brand.address}</div>
               </div>
@@ -134,7 +134,7 @@ export function ReceiptTemplate11({ receipt, customer, brand }) {
           </div>
         </>
       )}
-      <div className={styles.thankYou} style={{ color: accentColor }}>{brand.footer || 'THANK YOU!'}</div>
+      <div className={styles.thankYou} style={{ color : accentColor }}>{brand.footer || 'THANK YOU!'}</div>
     </div>
   )
 }

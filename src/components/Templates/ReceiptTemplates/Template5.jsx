@@ -8,7 +8,7 @@ export function ReceiptTemplate5({ receipt, customer, brand }) {
   const { currency, showTax, taxRate } = brand
   const subtotal = receipt.items?.length > 0
     ? receipt.items.reduce((sum, item) => sum + ((item.qty ?? 1) * (parseFloat(item.price) || 0)), 0)
-    : 0
+     : 0
   const tax      = calcTax(subtotal, taxRate, showTax)
   const total    = subtotal + tax
 
@@ -22,7 +22,7 @@ export function ReceiptTemplate5({ receipt, customer, brand }) {
 
         <div className={styles.topRight}>
           <div>{receipt.date}</div>
-          <div><strong>receipt No: {receipt.number}</strong></div>
+          <div><strong>receipt No : {receipt.number}</strong></div>
         </div>
 
       </div>
@@ -31,7 +31,7 @@ export function ReceiptTemplate5({ receipt, customer, brand }) {
 
       <div className={styles.billedTo}>
 
-        <div className={styles.billedLabel}>Received From:</div>
+        <div className={styles.billedLabel}>Received From :</div>
         <div><strong>{customer.name}</strong></div>
         {customer.phone   && <div>{customer.phone}</div>}
         {customer.address && <div>{customer.address}</div>}
@@ -80,12 +80,12 @@ export function ReceiptTemplate5({ receipt, customer, brand }) {
             <div>{brand.name || brand.ownerName}</div>
             
               {brand.name && (
-                <div>Received By : {brand.name}</div>
+                <div>Received By  : {brand.name}</div>
               )}
 
           </div>
-        ) : <div />}
-        <div className={styles.footerItem} style={{ textAlign: 'right' }}>
+        )  : <div />}
+        <div className={styles.footerItem} style={{ textAlign : 'right' }}>
           <div><strong>{brand.name || brand.ownerName}</strong></div>
           {brand.phone   && <div>{brand.phone}</div>}
           {brand.email   && <div>{brand.email}</div>}

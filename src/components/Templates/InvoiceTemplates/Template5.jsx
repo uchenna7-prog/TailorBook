@@ -8,7 +8,7 @@ export function InvoiceTemplate5({ invoice, customer, brand }) {
   const { currency, showTax, taxRate } = brand
   const subtotal = invoice.items?.length > 0
     ? invoice.items.reduce((sum, item) => sum + ((item.qty ?? 1) * (parseFloat(item.price) || 0)), 0)
-    : 0
+     : 0
   const tax      = calcTax(subtotal, taxRate, showTax)
   const total    = subtotal + tax
 
@@ -22,7 +22,7 @@ export function InvoiceTemplate5({ invoice, customer, brand }) {
 
         <div className={styles.topRight}>
           <div>{invoice.date}</div>
-          <div><strong>Invoice No: {invoice.number}</strong></div>
+          <div><strong>Invoice No : {invoice.number}</strong></div>
         </div>
 
       </div>
@@ -31,7 +31,7 @@ export function InvoiceTemplate5({ invoice, customer, brand }) {
 
       <div className={styles.billedTo}>
 
-        <div className={styles.billedLabel}>Billed to:</div>
+        <div className={styles.billedLabel}>Billed to :</div>
         <div><strong>{customer.name}</strong></div>
         {customer.phone   && <div>{customer.phone}</div>}
         {customer.address && <div>{customer.address}</div>}
@@ -105,13 +105,13 @@ export function InvoiceTemplate5({ invoice, customer, brand }) {
             
             <div className={styles.footerLabel}>Payment Information</div>
             <div>{brand.name || brand.ownerName}</div>
-            {brand.accountBank   && <div>Bank Name: {brand.accountBank}</div>}
-            {brand.accountNumber && <div>Account No: {brand.accountNumber}</div>}
-            {brand.accountName   && <div>Name: {brand.accountName}</div>}
+            {brand.accountBank   && <div>Bank Name : {brand.accountBank}</div>}
+            {brand.accountNumber && <div>Account No : {brand.accountNumber}</div>}
+            {brand.accountName   && <div>Name : {brand.accountName}</div>}
 
           </div>
-        ) : <div />}
-        <div className={styles.footerItem} style={{ textAlign: 'right' }}>
+        )  : <div />}
+        <div className={styles.footerItem} style={{ textAlign : 'right' }}>
           <div><strong>{brand.name || brand.ownerName}</strong></div>
           {brand.phone   && <div>{brand.phone}</div>}
           {brand.email   && <div>{brand.email}</div>}

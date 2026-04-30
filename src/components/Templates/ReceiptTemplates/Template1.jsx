@@ -18,9 +18,9 @@ export function ReceiptTemplate1({ receipt, customer, brand }) {
 
         <div className={styles.titleRow}>
 
-          <div className={styles.titleLine} style={{ background: lineColor }} />
+          <div className={styles.titleLine} style={{ background : lineColor }} />
           <div className={styles.title}>RECEIPT</div>
-          <div className={styles.titleLine} style={{ background: lineColor }} />
+          <div className={styles.titleLine} style={{ background : lineColor }} />
 
         </div>
 
@@ -37,15 +37,15 @@ export function ReceiptTemplate1({ receipt, customer, brand }) {
 
         </div>
 
-        <div style={{ textAlign: 'right' }}>
+        <div style={{ textAlign : 'right' }}>
 
           <div>
-            <span className={styles.metaKey}>RECEIPT #:</span>
+            <span className={styles.metaKey}>RECEIPT # :</span>
             <span className={styles.metaValue}> {receipt.number}</span>
           </div>
 
           <div>
-            <span className={styles.metaKey}>Issue Date:</span>
+            <span className={styles.metaKey}>Issue Date :</span>
             <span className={styles.metaValue}> {receipt.date}</span>
           </div>
 
@@ -67,13 +67,13 @@ export function ReceiptTemplate1({ receipt, customer, brand }) {
 
             <div className={styles.footerLeft}>
 
-              <strong style={{fontWeight:900,color:"var(--brand-primary-dark)"}}>Payment Details:</strong><br />
+              <strong style={{fontWeight :900,color :"var(--brand-primary-dark)"}}>Payment Details :</strong><br />
 
               <div>
                 <div>
 
                   {brand.name && (
-                    <div>Received By : {brand.name}</div>
+                    <div>Received By  : {brand.name}</div>
                   )}
                   
                 </div>
@@ -87,7 +87,7 @@ export function ReceiptTemplate1({ receipt, customer, brand }) {
 
             <div className={styles.footRight}>
 
-              <strong style={{fontWeight:900,color:"var(--brand-primary-dark)"}}>Notes:</strong><br />
+              <strong style={{fontWeight :900,color :"var(--brand-primary-dark)"}}>Notes :</strong><br />
               {brand.phone   && <span>{brand.phone}<br /></span>}
               {brand.email   && <span>{brand.email}<br /></span>}
               {brand.footer  && <span>{brand.footer}</span>}
