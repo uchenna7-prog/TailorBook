@@ -11,6 +11,7 @@ export function ReceiptTemplate4({ receipt, customer, brand }) {
      : 0
   const tax = calcTax(subtotal, taxRate, showTax)
   const total = subtotal + tax
+  const isTemplate4 = true
 
   return (
 
@@ -85,7 +86,7 @@ export function ReceiptTemplate4({ receipt, customer, brand }) {
               </tbody>
             </table>
 
-            <ReceiptPaymentSummary receipt={receipt} brand={brand} />
+            <ReceiptPaymentSummary receipt={receipt} brand={brand} isTemplate4 = {isTemplate4} />
 
           </div>
         

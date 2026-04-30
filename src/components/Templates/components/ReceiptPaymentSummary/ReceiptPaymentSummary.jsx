@@ -20,7 +20,7 @@ function capitalize(str) {
 }
 
 
-export function ReceiptPaymentSummary({ receipt, brand }) {
+export function ReceiptPaymentSummary({ receipt, brand, isTemplate4 }) {
   const { currency, showTax, taxRate } = brand
 
   // ── Totals ────────────────────────────────────────────────────────────────
@@ -58,26 +58,32 @@ export function ReceiptPaymentSummary({ receipt, brand }) {
       {paymentRows.length > 0 && (
         <div className={styles.historySection}>
 
-          <div className={styles.sectionLabel}>Payment History</div>
+          <div className={styles.sectionLabel} 
+          style={{ color : isTemplate4 ? 'var(--brand-on-primary)' : 'var(--brand-primary)' }}>
+            Payment History
+          </div>
 
           {paymentRows.map((payment, index) => {
             const isCurrent = payment._isCurrent
             const method    = payment.method || ''
 
             return (
-              <div key={payment.id ?? index} className={styles.paymentRow}>
+              <div key={payment.id ?? index} className={styles.paymentRow}
+              style={{ borderBottom : isTemplate4 ? '1px solid #ebebeb' : '1px dashed #ebebeb' }}>
 
                 <span className={styles.emoji}>{methodEmoji(method)}</span>
 
                 <div className={styles.paymentMeta}>
-                  <div className={styles.paymentMethod}>
+                  <div className={styles.paymentMethod} 
+                  style={{ color : isTemplate4 ? 'var(--brand-on-primary)' : 'var(--brand-primary)' }}>
                     {capitalize(method)}
                     {isCurrent && <span className={styles.latestBadge}>Latest</span>}
                   </div>
                   <div className={styles.paymentDate}>{payment.date}</div>
                 </div>
 
-                <span className={`${styles.paymentAmount} ${isCurrent ? styles.amountCurrent : ''}`}>
+                <span className={`${styles.paymentAmount} ${isCurrent ? styles.amountCurrent : ''}`}
+                style={{ color : isTemplate4 ? 'var(--brand-on-primary)' : 'var(--brand-primary)' }}>
                   {fmt(currency, payment.amount)}
                 </span>
 
@@ -100,15 +106,22 @@ export function ReceiptPaymentSummary({ receipt, brand }) {
 
         {paymentRows.length > 0 && previouslyPaid > 0 && (
           <div className={styles.totalsRow}>
-            <span className={styles.totalsKey}>Previously Paid</span>
+            <span className={styles.totalsKey}
+            style={{ color : isTemplate4 ? 'var(--brand-on-primary)' : 'var(--brand-primary)' }}>
+              Previously Paid
+            </span>
             <span className={styles.totalsVal}>{fmt(currency, previouslyPaid)}</span>
           </div>
         )}
 
         {paymentRows.length > 0 && (
           <div className={styles.totalsRow}>
-            <span className={styles.totalsKey}>This Payment</span>
-            <span className={`${styles.totalsVal} ${styles.amountPaid}`}>
+            <span className={styles.totalsKey}
+            style={{ color : isTemplate4 ? 'var(--brand-on-primary)' : 'var(--brand-primary)' }}>
+              This Payment
+            </span>
+            <span className={`${styles.totalsVal} ${styles.amountPaid}`}
+            style={{ color : isTemplate4 ? 'var(--brand-on-primary)' : 'var(--brand-primary)' }}>
               + {fmt(currency, thisPaymentTotal)}
             </span>
           </div>

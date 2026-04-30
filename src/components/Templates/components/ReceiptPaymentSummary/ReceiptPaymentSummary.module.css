@@ -30,7 +30,6 @@
   font-weight: 800;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--brand-primary, #D4AF37);
   margin-bottom: 8px;
 }
 
@@ -46,7 +45,7 @@
 }
 
 .paymentRow:last-of-type {
-  border-bottom: 1px solid var(--brand-primary-dark, #a07d20);
+  border-bottom: 1px solid var(--brand-primary-dark);
 }
 
 
@@ -142,6 +141,7 @@
   font-size: 9px;
   color: #6b7280;
 }
+
 
 .totalsVal {
   font-size: 9px;
