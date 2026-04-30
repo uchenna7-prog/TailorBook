@@ -20,7 +20,9 @@ function capitalize(str) {
 }
 
 
-export function ReceiptPaymentSummary({ receipt, brand, isTemplate4 }) {
+export function ReceiptPaymentSummary({ receipt, brand, isTemplate5 = false  }) {
+
+  
   const { currency, showTax, taxRate } = brand
 
   // ── Totals ────────────────────────────────────────────────────────────────
@@ -56,10 +58,11 @@ export function ReceiptPaymentSummary({ receipt, brand, isTemplate4 }) {
 
       {/* ── Payment History ──────────────────────────────────────────── */}
       {paymentRows.length > 0 && (
-        <div className={styles.historySection}>
+        <div className={styles.historySection}
+        style={{ borderTop : isTemplate5 ? '1px solid #ebebeb' : '' }}>
 
           <div className={styles.sectionLabel} 
-          style={{ color : isTemplate4 ? 'var(--brand-on-primary)' : 'var(--brand-primary)' }}>
+          style={{ color : isTemplate5 ? 'var(--brand-on-primary)' : 'var(--brand-primary)' }}>
             Payment History
           </div>
 
@@ -69,13 +72,13 @@ export function ReceiptPaymentSummary({ receipt, brand, isTemplate4 }) {
 
             return (
               <div key={payment.id ?? index} className={styles.paymentRow}
-              style={{ borderBottom : isTemplate4 ? '1px solid #ebebeb' : '1px dashed #ebebeb' }}>
+              style={{ borderBottom : isTemplate5 ? '1px solid #ebebeb' : '1px dashed #ebebeb' }}>
 
                 <span className={styles.emoji}>{methodEmoji(method)}</span>
 
                 <div className={styles.paymentMeta}>
                   <div className={styles.paymentMethod} 
-                  style={{ color : isTemplate4 ? 'var(--brand-on-primary)' : 'var(--brand-primary)' }}>
+                  style={{ color : isTemplate5 ? 'var(--brand-on-primary)' : 'var(--brand-primary)' }}>
                     {capitalize(method)}
                     {isCurrent && <span className={styles.latestBadge}>Latest</span>}
                   </div>
@@ -83,7 +86,7 @@ export function ReceiptPaymentSummary({ receipt, brand, isTemplate4 }) {
                 </div>
 
                 <span className={`${styles.paymentAmount} ${isCurrent ? styles.amountCurrent : ''}`}
-                style={{ color : isTemplate4 ? 'var(--brand-on-primary)' : 'var(--brand-primary)' }}>
+                style={{ color : isTemplate5 ? 'var(--brand-on-primary)' : 'var(--brand-primary)' }}>
                   {fmt(currency, payment.amount)}
                 </span>
 
@@ -107,7 +110,7 @@ export function ReceiptPaymentSummary({ receipt, brand, isTemplate4 }) {
         {paymentRows.length > 0 && previouslyPaid > 0 && (
           <div className={styles.totalsRow}>
             <span className={styles.totalsKey}
-            style={{ color : isTemplate4 ? 'var(--brand-on-primary)' : 'var(--brand-primary)' }}>
+            style={{ color : isTemplate5 ? 'var(--brand-on-primary)' : 'var(--brand-primary)' }}>
               Previously Paid
             </span>
             <span className={styles.totalsVal}>{fmt(currency, previouslyPaid)}</span>
@@ -117,17 +120,18 @@ export function ReceiptPaymentSummary({ receipt, brand, isTemplate4 }) {
         {paymentRows.length > 0 && (
           <div className={styles.totalsRow}>
             <span className={styles.totalsKey}
-            style={{ color : isTemplate4 ? 'var(--brand-on-primary)' : 'var(--brand-primary)' }}>
+            style={{ color : isTemplate5 ? 'var(--brand-on-primary)' : 'var(--brand-primary)' }}>
               This Payment
             </span>
             <span className={`${styles.totalsVal} ${styles.amountPaid}`}
-            style={{ color : isTemplate4 ? 'var(--brand-on-primary)' : 'var(--brand-primary)' }}>
+            style={{ color : isTemplate5 ? 'var(--brand-on-primary)' : 'var(--brand-primary)' }}>
               + {fmt(currency, thisPaymentTotal)}
             </span>
           </div>
         )}
 
-        <div className={styles.totalsDivider} />
+        <div className={styles.totalsDivider} 
+        style={{ borderBottom : isTemplate5 ? '1px solid #ebebeb' : '' }}/>
 
         <div className={styles.totalPaidRow}>
           <span className={styles.totalPaidKey}>Total Paid</span>

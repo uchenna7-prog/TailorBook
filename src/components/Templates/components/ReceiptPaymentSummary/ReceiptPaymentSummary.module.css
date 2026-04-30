@@ -21,7 +21,7 @@
 
 .historySection {
   margin-top: 14px;
-  border-top: 1.5px solid var(--brand-primary-dark, #a07d20);
+  border-top: 1.5px solid var(--brand-primary-dark);
   padding-top: 10px;
 }
 

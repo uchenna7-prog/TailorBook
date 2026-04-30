@@ -67,7 +67,7 @@ export function ReceiptTemplate5({ receipt, customer, brand }) {
         </tbody>
       </table>
 
-      <ReceiptPaymentSummary receipt={receipt} brand={brand} />
+      <ReceiptPaymentSummary receipt={receipt} brand={brand} isTemplate5={true} />
 
     
       <div className={styles.footer}>
