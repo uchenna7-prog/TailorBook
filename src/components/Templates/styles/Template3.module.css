@@ -2,6 +2,7 @@
 .template{ 
   padding:18px;color:#1a1a1a;
   font-family:'DM Sans',sans-serif;
+  min-height: 565px;
   font-size:8px;
   display:flex;
   flex-direction:column;

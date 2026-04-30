@@ -5,6 +5,7 @@
    font-size: 8px; 
    display: flex; 
    flex-direction: column; 
+    min-height: 565px;
 }
 .header { 
    background: var(--brand-gradient); 

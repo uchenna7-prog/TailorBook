@@ -31,11 +31,11 @@ export function ReceiptTemplate8({ receipt, customer, brand }) {
 
         <div className={styles.receiptBox} style={{ background : accentColor }}>
 
-          <div className={styles.receiptTitle}>receipt</div>
+          <div className={styles.receiptTitle}>RECEIPT</div>
           <div className={styles.receiptMeta}>
 
             <div>
-              <span>receipt No :</span><span>#{receipt.number}</span>
+              <span>Receipt No :</span><span>#{receipt.number}</span>
             </div>
             <div>
               <span>Issue Date :</span><span>{receipt.date}</span>

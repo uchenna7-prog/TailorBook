@@ -8,6 +8,7 @@
   padding: 0;
   position: relative;
   overflow: hidden;
+   min-height: 565px;
 }
 .headerZone {
   position: relative;
