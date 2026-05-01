@@ -8,7 +8,7 @@
   gap:5px;
   align-items: baseline;
   padding: 10px 0 12px;
-  border-bottom: 1.5px solid var(--brand-primary-dark, #a07d20);
+  border-bottom: 1.5px solid var(--brand-primary-dark);
 }
 .orderText{
   font-weight: 900;
@@ -59,14 +59,14 @@ th.colItem,  td.colItem  {
 }
 
 th.colQty,   td.colQty  {
-  text-align: center;
-  padding-left: 6px;   
-  padding-right: 6px;  
+  text-align: center;  
 }
 
 th.colPrice, td.colPrice  {
   text-align: center;
-  padding-right: 8px;  
+  text-wrap: nowrap;
+  word-break: break-word;
+ 
 }
 th.colAmount, td.colAmount { 
    text-align: center; 
