@@ -140,10 +140,10 @@ export function ReceiptTemplate7({ receipt, customer, brand }) {
         <div className={styles.footerLeft}>
           
            <div>
-            <h3 className={styles.footerLabel}>Payment Details :</h3>
+            <h3 className={styles.footerLabel}>Payment Details:</h3>
 
             {brand.name && (
-              <div>Received By  : {brand.name}</div>
+              <div>Received By: {brand.name}</div>
             )}
             
           </div>
@@ -153,7 +153,7 @@ export function ReceiptTemplate7({ receipt, customer, brand }) {
 
       {brand.footer && (
         <div className={styles.footerRight}>
-          <h3 style={{color :"var(--brand-primary-dark)"}}>Notes :</h3><br />{brand.footer}
+          <h3 className={styles.footerLabel} style={{color :"var(--brand-primary-dark)"}}>Notes:</h3>{brand.footer}
         </div>
       )}
 

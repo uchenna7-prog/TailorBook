@@ -159,7 +159,7 @@ export function InvoiceTemplate7({ invoice, customer, brand }) {
 
       {brand.footer && (
         <div className={styles.footerRight}>
-          <h3 style={{color :"var(--brand-primary-dark)"}}>Notes :</h3><br />{brand.footer}
+          <h3 className={styles.footerLabel} style={{color :"var(--brand-primary-dark)"}}>Notes:</h3>{brand.footer}
         </div>
       )}
 

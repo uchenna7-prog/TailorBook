@@ -237,6 +237,7 @@ td.colTotal {
 .footerRight {
   flex-shrink: 0;
   padding: 8px 16px;
+  margin-top: 8px;
 }
 
 .orderTotalWrap {
