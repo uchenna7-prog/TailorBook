@@ -15,6 +15,7 @@
   gap: 8px;
   padding: 10px 16px;
   border-bottom: 1px solid #f0f0f0;
+  font-size: 9;
 }
 .logoArea {
   flex: 1;
@@ -60,7 +61,7 @@
    display: flex; 
    justify-content: space-between; 
    padding: 4px 16px; 
-   font-size: 10px; 
+   font-size: 8.5px; 
    font-weight: 600; 
    color: var(--brand-primary); 
    border-top: 2px solid var(--brand-primary); 
@@ -121,8 +122,8 @@
   table-layout: fixed;
 }
 
-.colDesc  { width: 45%; }
-.colPrice { width: 20%; }
+.colDesc  { width: 42%; }
+.colPrice { width: 23%; }
 .colQty   { width: 10%; }  
 .colTotal { width: 25%; }
 
@@ -133,7 +134,7 @@
 
 .tableHead th {
   padding: 4px 4px;
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 700;
 }
 
@@ -211,13 +212,13 @@ th.colTotal, td.colTotal {
    flex: 1; 
    background: var(--brand-surface); 
    padding: 6px 8px; 
-   font-size: 10px; 
+   font-size: 8.5px; 
    line-height: 1.5; 
    border-left: 2px solid var(--brand-primary); 
 }
 .paymentBoxTitle { 
    font-weight: 700; 
-   font-size: 10px; 
+   font-size: 9px; 
    margin-bottom: 2px; 
    color: var(--brand-primary); 
 }

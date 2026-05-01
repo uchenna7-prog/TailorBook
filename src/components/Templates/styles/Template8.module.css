@@ -74,11 +74,11 @@
   table-layout: fixed;
 }
 
-.colSn    { width: 8%; }
+.colSn    { width: 5%; }
 .colDesc  { width: 40%; }
-.colPrice { width: 20%; }
-.colQty   { width: 12%; }
-.colTotal { width: 20%; }
+.colPrice { width: 22%; }
+.colQty   { width: 10%; }
+.colTotal { width: 23%; }
 
 .tableHeader {
   background: var(--brand-surface);
@@ -145,14 +145,14 @@ th.colTotal, td.colTotal {
    border-radius: 3px; 
    width: 105px;
    flex-shrink: 0;
-   font-size: 9px;
+   font-size: 8.5px;
    line-height: 1.5;
    word-break: break-word;
    overflow-wrap: break-word;
 }
 .boxTitle { 
    font-weight: 700; 
-   font-size: 10px; 
+   font-size: 9px; 
    margin-bottom: 2px; 
 }
 .boxName { 

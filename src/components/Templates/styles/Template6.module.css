@@ -16,12 +16,16 @@
   align-items: center;
   gap: 8px;
   opacity: 0.88;
+  font-size: 9px;
+  flex-wrap: wrap;
 }
 .header > div:first-child {
    display: flex;
+   flex-direction: row;
    text-align: left;
    min-width: 0;
    flex: 1;
+
 }
 .logoArea {
   display: flex;
@@ -43,10 +47,11 @@
   flex-shrink: 0;
 }
 .companyName {
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 900;
-  letter-spacing: 0.05em;
   word-break: break-word;
+  white-space: nowrap;
+  overflow: hidden;
 }
 .companySub { 
    font-size: 6.5px; 
@@ -54,11 +59,12 @@
    letter-spacing: 0.07em; 
 }
 .headerRight {
-  font-size: 10px;
+  font-size: 9px;
   line-height: 1.6;
   opacity: 0.88;
   flex-shrink: 0;
   text-align: right;
+  max-width: 38%;
 }
 .invoiceRow, .receiptRow { 
    display: flex; 
@@ -135,9 +141,9 @@
   table-layout: fixed;
 }
 
-.colDesc  { width: 46%; }
-.colPrice { width: 18%; }
-.colQty   { width: 12%; }
+.colDesc  { width: 44%; }
+.colPrice { width: 22%; }
+.colQty   { width: 10%; }
 .colTotal { width: 24%; }
 
 .tableHead {

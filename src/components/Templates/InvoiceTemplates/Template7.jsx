@@ -50,10 +50,10 @@ export function InvoiceTemplate7({ invoice, customer, brand }) {
           <div className={styles.fromDivider} />
           {[
             ['NAME :', brand.ownerName || brand.name],
-            ['COMPANY :', (brand.name || '').toUpperCase()],
-            ['PHONE :', (brand.phone || '').toUpperCase()],
+            ['COMPANY :', (brand.name || '')],
+            ['PHONE :', (brand.phone || '')],
             ['EMAIL :', (brand.email || '')],
-            ['ADDRESS :', (brand.address || '').toUpperCase()]
+            ['ADDRESS :', (brand.address || '')]
           ].filter(([,v]) => v).map(([l, v]) => (
             <div key={l} className={styles.infoRow}>
               <span className={styles.infoKey}>{l}</span>
@@ -66,9 +66,9 @@ export function InvoiceTemplate7({ invoice, customer, brand }) {
           <div className={styles.toLabel}>TO :</div>
           <div className={styles.fromDivider} />
           {[
-            ['NAME :', (customer.name || '').toUpperCase()],
-            ['PHONE :', (customer.phone || '').toUpperCase()],
-            ['ADDRESS :', (customer.address || '').toUpperCase()],
+            ['NAME :', (customer.name || '')],
+            ['PHONE :', (customer.phone || '')],
+            ['ADDRESS :', (customer.address || '')],
           ].filter(([,v]) => v).map(([l, v]) => (
             <div key={l} className={styles.infoRow}>
               <span className={styles.infoKey}>{l}</span>

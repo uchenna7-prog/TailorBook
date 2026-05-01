@@ -26,10 +26,7 @@ export function ReceiptTemplate10({ receipt, customer, brand }) {
           <span className={styles.bannerTitle}>RECEIPT</span>
         </div>
         <div className={styles.brandInBanner}>
-          {brand.logo
-            ? <img src={brand.logo} alt="" style={{ width : "25px", height : "25px", objectFit : 'contain' }} />
-             : <span className="mi" style={{ fontSize : 14,  color : "var(--brand-on-primary)" }}>checkroom</span>
-          }
+
           <div>
             <div className={styles.brandName} style={{ color : "var(--brand-on-primary)" }} >{brand.name || brand.ownerName}</div>
             <div className={styles.brandSub}>TAILOR SHOP</div>
@@ -38,7 +35,7 @@ export function ReceiptTemplate10({ receipt, customer, brand }) {
       </div>
       <div className={styles.metaRow}>
         <div>
-          <div className={styles.metaLabel}>Receipt To :</div>
+          <div className={styles.metaLabel}>Receipt To</div>
           <div className={styles.metaName}>{customer.name}</div>
           {customer.phone   && <div className={styles.metaAddress}>{customer.phone}</div>}
           {customer.address && <div className={styles.metaAddress}>{customer.address}</div>}

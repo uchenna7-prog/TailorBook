@@ -56,9 +56,9 @@
   table-layout: fixed;
 }
 
-.colDesc  { width: 46%; }
-.colPrice { width: 18%; }
-.colQty   { width: 12%; }
+.colDesc  { width: 44%; }
+.colPrice { width: 22%; }
+.colQty   { width: 10%; }
 .colTotal { width: 24%; }
 
 .tableHeader {

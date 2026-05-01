@@ -99,9 +99,9 @@
 }
 
 /* Column widths */
-.colSn    { width: 8%; }
-.colDesc  { width: 42%; }
-.colPrice { width: 18%; }
+.colSn    { width: 6%; }
+.colDesc  { width: 40%; }
+.colPrice { width: 20%; }
 .colQty   { width: 10%; }
 .colTotal { width: 22%; }
 
@@ -111,7 +111,7 @@
 
 .tableHeader th {
   padding: 4px 4px;
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 700;
   color: var(--brand-primary-dark);
 }

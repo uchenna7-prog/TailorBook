@@ -91,7 +91,7 @@ export function InvoiceTemplate8({ invoice, customer, brand }) {
         </div>
         {brand.accountBank && (
           <div className={styles.paymentInfo}>
-            <div className={styles.paymentLabel}>Payment Infomation :</div>
+            <div className={styles.paymentLabel}>Payment Infomation</div>
             {brand.accountNumber && <div>Account Number : {brand.accountNumber}</div>}
             {brand.accountBank   && <div>Bank : {brand.accountBank}</div>}
             {brand.accountName   && <div>Account Name : {brand.accountName}</div>}

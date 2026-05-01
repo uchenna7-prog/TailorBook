@@ -62,7 +62,7 @@
    background: var(--brand-gradient); 
    color: var(--brand-on-primary); 
    display: flex; 
-   gap: 10px; 
+   gap: 8.5px; 
    padding: 4px 16px; 
    font-size: 10px; 
    font-weight: 600; 
@@ -96,10 +96,10 @@
   table-layout: fixed;
 }
 
-.colDesc  { width: 46%; }
-.colQty   { width: 12%; }
-.colPrice { width: 21%; }
-.colTotal { width: 21%; }
+.colDesc  { width: 42%; }
+.colQty   { width: 10%; }
+.colPrice { width: 23%; }
+.colTotal { width: 25%; }
 
 .tableHeader {
   background: var(--brand-gradient);
@@ -108,7 +108,7 @@
 
 .tableHeader th {
   padding: 4px 4px;
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 700;
 }
 
