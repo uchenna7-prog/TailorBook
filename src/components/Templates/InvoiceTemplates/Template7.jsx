@@ -91,7 +91,7 @@ export function InvoiceTemplate7({ invoice, customer, brand }) {
           <div className={styles.orderDescLabel}>{invoice.orderDesc || 'Garment Order'}</div>
   
         </div>
-        
+
         <table className={styles.table}>
           <thead>
             <tr className={styles.tableHeader}>
@@ -122,12 +122,15 @@ export function InvoiceTemplate7({ invoice, customer, brand }) {
             })}
           </tbody>
         </table>
+
+        <div className={styles.totalBar} style={{ background : accentColor }}>
+          <span>TOTAL :</span>
+          <span className={styles.totalAmount}>{fmt(currency, total)}</span>
+        </div>
+
       </div>
       
-      <div className={styles.totalBar} style={{ background : accentColor }}>
-        <span>TOTAL :</span>
-        <span className={styles.totalAmount}>{fmt(currency, total)}</span>
-      </div>
+
 
       <div className={styles.footer}>
         {brand.accountBank && (

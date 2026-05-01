@@ -71,7 +71,7 @@ export function ReceiptPaymentSummary({ receipt, brand, isTemplate5 = false  }) 
 
             return (
               <div key={payment.id ?? index} className={styles.paymentRow}
-              style={{ borderBottom : isTemplate5 ? '1px solid rgba(255,255,255,0.35)' : '1px dashed rgba(255,255,255,0.35)' }}>
+              style={{ borderBottom : isTemplate5 ? '1px solid rgba(255,255,255,0.35)' : '1px dashed #ebebeb' }}>
 
                 <span className={styles.emoji}>{methodEmoji(method)}</span>
 

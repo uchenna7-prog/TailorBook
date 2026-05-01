@@ -87,11 +87,11 @@ export function InvoiceTemplate9({ invoice, customer, brand }) {
           })}
         </tbody>
       </table>
-    </div>
-      <div className={styles.subArea}>
+
+           <div className={styles.subArea}>
         <div className={styles.subRow}>
           
-          <span style={{fontWeight :900,color :"var(--brand-primary-dark)"}}>Subtotal :</span>
+          <span style={{fontWeight :900,color :"var(--brand-primary-dark)"}}>Subtotal:</span>
           <span>{fmt(currency, subtotal)}</span>
 
         </div>
@@ -100,7 +100,10 @@ export function InvoiceTemplate9({ invoice, customer, brand }) {
       <div className={styles.totalBar}>
         <span>TOTAL</span><span>{fmt(currency, total)}</span>
       </div>
-        <div style={{ marginTop : 'auto' }}>
+      
+    </div>
+ 
+      <div style={{ marginTop : 'auto' }}>
         <div className={styles.footer}>
           <div>
             {brand.accountBank && (
