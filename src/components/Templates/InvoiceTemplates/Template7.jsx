@@ -124,7 +124,7 @@ export function InvoiceTemplate7({ invoice, customer, brand }) {
         </table>
 
         <div className={styles.totalBar} style={{ background : accentColor }}>
-          <span>TOTAL :</span>
+          <span>TOTAL:</span>
           <span className={styles.totalAmount}>{fmt(currency, total)}</span>
         </div>
 
@@ -138,18 +138,18 @@ export function InvoiceTemplate7({ invoice, customer, brand }) {
         <div className={styles.footerLeft}>
           
            <div>
-            <h3 className={styles.footerLabel}>Payment Information :</h3>
+            <h3 className={styles.footerLabel}>Payment Information:</h3>
 
             {brand.accountBank && (
-              <div>Bank Name : {brand.accountBank}</div>
+              <div>Bank Name: {brand.accountBank}</div>
             )}
 
             {brand.accountNumber && (
-              <div>Account Number : {brand.accountNumber}</div>
+              <div>Account Number: {brand.accountNumber}</div>
             )}
 
             {brand.accountName && (
-              <div>Account Name : {brand.accountName}</div>
+              <div>Account Name: {brand.accountName}</div>
             )}
             
           </div>
