@@ -48,6 +48,14 @@ export function InvoiceTemplate10({ invoice, customer, brand }) {
       </div>
 
      <div className={styles.tableWrapper}>
+
+      <div className={styles.orderDescriptionRow}>
+
+        <div className={styles.orderText}>ORDER:</div>
+        <div className={styles.orderDescLabel}>{invoice.orderDesc || 'Garment Order'}</div>
+
+      </div>
+      
       <table className={styles.table}>
         <thead>
           <tr className={styles.tableHeader}>

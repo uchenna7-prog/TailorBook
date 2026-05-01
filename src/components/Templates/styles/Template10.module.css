@@ -98,6 +98,21 @@
   table-layout: fixed;
 }
 
+.orderDescriptionRow {
+  display: flex;
+  gap:5px;
+  align-items: baseline;
+  padding: 10px 0 12px;
+}
+.orderText{
+  font-weight: 900;
+}
+
+.orderDescLabel {
+  font-size: 11px;
+  color: #0a0a0a;
+}
+
 /* Column widths */
 .colSn    { width: 6%; }
 .colDesc  { width: 40%; }

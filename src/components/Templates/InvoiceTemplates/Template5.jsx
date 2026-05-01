@@ -40,7 +40,16 @@ export function InvoiceTemplate5({ invoice, customer, brand }) {
 
       <div className={styles.divider} />
 
+        <div className={styles.orderDescriptionRow}>
+
+          <div className={styles.orderText}>ORDER:</div>
+          <div className={styles.orderDescLabel}>{invoice.orderDesc || 'Garment Order'}</div>
+  
+        </div>
+
       <table className={styles.table}>
+
+        
         <thead>
           <tr className={styles.tableHead}>
             <th className={styles.colDesc}>Item Description</th>
@@ -67,7 +76,6 @@ export function InvoiceTemplate5({ invoice, customer, brand }) {
         </tbody>
       </table>
 
-      <div className={styles.divider} />
 
       <div className={styles.totalsSection}>
 
@@ -95,7 +103,6 @@ export function InvoiceTemplate5({ invoice, customer, brand }) {
 
       </div>
 
-      <div className={styles.divider} />
 
       <div className={styles.footer}>
        

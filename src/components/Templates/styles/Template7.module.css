@@ -119,6 +119,22 @@
   table-layout: fixed;
 }
 
+.orderDescriptionRow {
+  display: flex;
+  gap:5px;
+  align-items: baseline;
+  padding: 10px 0 12px;
+}
+.orderText{
+  font-weight: 900;
+}
+
+.orderDescLabel {
+  font-size: 11px;
+  color: #0a0a0a;
+}
+
+
 .colSn    { width: 24px; }
 .colDesc  { width: auto; }
 .colQty   { width: 12%; }
