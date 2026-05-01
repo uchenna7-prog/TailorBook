@@ -58,8 +58,7 @@ export function ReceiptPaymentSummary({ receipt, brand, isTemplate5 = false  }) 
 
       {/* ── Payment History ──────────────────────────────────────────── */}
       {paymentRows.length > 0 && (
-        <div className={styles.historySection}
-        style={{ borderTop : isTemplate5 ? '1px solid #ebebeb' : '' }}>
+        <div className={styles.historySection}>
 
           <div className={styles.sectionLabel} 
           style={{ color : isTemplate5 ? 'var(--brand-on-primary)' : 'var(--brand-primary)' }}>
@@ -72,7 +71,7 @@ export function ReceiptPaymentSummary({ receipt, brand, isTemplate5 = false  }) 
 
             return (
               <div key={payment.id ?? index} className={styles.paymentRow}
-              style={{ borderBottom : isTemplate5 ? '1px solid #ebebeb' : '1px dashed #ebebeb' }}>
+              style={{ borderBottom : isTemplate5 ? '1px solid rgba(255,255,255,0.35)' : '1px dashed rgba(255,255,255,0.35)' }}>
 
                 <span className={styles.emoji}>{methodEmoji(method)}</span>
 
@@ -123,8 +122,7 @@ export function ReceiptPaymentSummary({ receipt, brand, isTemplate5 = false  }) 
             style={{ color : isTemplate5 ? 'var(--brand-on-primary)' : 'var(--brand-primary)' }}>
               This Payment
             </span>
-            <span className={`${styles.totalsVal} ${styles.amountPaid}`}
-            style={{ color : isTemplate5 ? 'var(--brand-on-primary)' : 'var(--brand-primary)' }}>
+            <span className={`${styles.totalsVal} ${styles.amountPaid}`}>
               + {fmt(currency, thisPaymentTotal)}
             </span>
           </div>
@@ -134,8 +132,13 @@ export function ReceiptPaymentSummary({ receipt, brand, isTemplate5 = false  }) 
         style={{ borderBottom : isTemplate5 ? '1px solid #ebebeb' : '' }}/>
 
         <div className={styles.totalPaidRow}>
-          <span className={styles.totalPaidKey}>Total Paid</span>
-          <span className={styles.totalPaidVal}>
+          <span className={styles.totalPaidKey}
+          style={{ color : isTemplate5 ? 'var(--brand-on-primary)' : 'var(--brand-primary)' }}
+          >
+            Total Paid</span>
+          <span className={styles.totalPaidVal} 
+          style={{ color : isTemplate5 ? 'var(--brand-on-primary)' : '' }} 
+          >
             {fmt(currency, thisPaymentTotal + previouslyPaid)}
           </span>
         </div>

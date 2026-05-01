@@ -61,6 +61,7 @@
 }
 
 
+
 /* ── Table ── */
 .table { 
   margin-top: 10px; 
@@ -154,4 +155,26 @@ th.colTotal, td.colTotal {
   padding: 10px 16px 14px; 
   margin-top: auto;
   border-top: 1px solid var(--brand-muted);
+}
+
+.orderTotalWrap {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding:7px 0px;
+}
+
+.orderTotalLabel {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--brand-primary-dark);
+}
+.orderTotalValue {
+  font-size: 11px;
+  font-weight: 900;
+  color: #1a1a1a;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
 }

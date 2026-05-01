@@ -142,6 +142,7 @@
 .amountPaid {
   color: #16a34a;
   font-weight: 700;
+  font-size: 10px;
   font-variant-numeric: tabular-nums;
 }
 

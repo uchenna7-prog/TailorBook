@@ -63,6 +63,7 @@ export function ReceiptTemplate4({ receipt, customer, brand }) {
               <div className={styles.orderDescLabel}>{receipt.orderDesc || 'Garment Order'}</div>
       
             </div>
+
             <table
               className={styles.tableEl}
               style={{ borderColor : barColor }}
@@ -92,6 +93,14 @@ export function ReceiptTemplate4({ receipt, customer, brand }) {
                 })}
               </tbody>
             </table>
+
+            <div className={styles.orderTotalWrap}>
+            
+              
+              <div className={styles.orderTotalLabel}>Order Total</div>
+              
+              <div className={styles.orderTotalValue}>{fmt(currency, total)}</div>
+            </div>
 
             <ReceiptPaymentSummary receipt={receipt} brand={brand} />
 

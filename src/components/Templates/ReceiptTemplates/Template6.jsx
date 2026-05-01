@@ -30,7 +30,7 @@ export function ReceiptTemplate6({ receipt, customer, brand }) {
             
             <div className={styles.companyName}>{(brand.name || brand.ownerName || 'YOUR BRAND').toUpperCase()}</div>
             {brand.tagline && <div className={styles.tagline}>{brand.tagline}</div>}
-            
+
           </div>
 
         </div>
@@ -80,36 +80,50 @@ export function ReceiptTemplate6({ receipt, customer, brand }) {
         </div>
       </div>
          <div className={styles.tableWrapper}>
-                <table className={styles.table}>
-                  <thead>
-                    <tr className={styles.tableHead}>
-                      <th className={styles.colDesc}>Item Description</th>
-                      <th className={styles.colPrice}>Unit Price</th>
-                      <th className={styles.colQty}>Qty</th>
-                      <th className={styles.colTotal}>Total</th>
-                    </tr>
-                  </thead>
-                  <tbody className={styles.tableBody}>
-                    {receipt.items?.map((item, i) => {
-                      const qty = item.qty ?? 1;
-                      const unitPrice = parseFloat(item.price) || 0;
-                      const lineAmount = qty * unitPrice;
-        
-                      return (
-                        <tr key={i} className={styles.tableRow}>
-                          <td className={styles.colDesc}>{item.name}</td>
-                          <td className={styles.colPrice}>{fmt(currency, unitPrice)}</td>
-                          <td className={styles.colQty}>{qty}</td>
-                          <td className={styles.colTotal}>{fmt(currency, lineAmount)}</td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
 
-                <ReceiptPaymentSummary receipt={receipt} brand={brand} />
-                
-              </div>
+          <div className={styles.orderDescriptionRow}>
+            <div className={styles.orderText}>ORDER:</div>
+            <div className={styles.orderDescLabel}>{receipt.orderDesc || 'Garment Order'}</div>
+    
+          </div>
+          <table className={styles.table}>
+            <thead>
+              <tr className={styles.tableHead}>
+                <th className={styles.colDesc}>Item Description</th>
+                <th className={styles.colPrice}>Unit Price</th>
+                <th className={styles.colQty}>Qty</th>
+                <th className={styles.colTotal}>Total</th>
+              </tr>
+            </thead>
+            <tbody className={styles.tableBody}>
+              {receipt.items?.map((item, i) => {
+                const qty = item.qty ?? 1;
+                const unitPrice = parseFloat(item.price) || 0;
+                const lineAmount = qty * unitPrice;
+  
+                return (
+                  <tr key={i} className={styles.tableRow}>
+                    <td className={styles.colDesc}>{item.name}</td>
+                    <td className={styles.colPrice}>{fmt(currency, unitPrice)}</td>
+                    <td className={styles.colQty}>{qty}</td>
+                    <td className={styles.colTotal}>{fmt(currency, lineAmount)}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+
+          <div className={styles.orderTotalWrap}>
+          
+            
+            <div className={styles.orderTotalLabel}>Order Total</div>
+            
+            <div className={styles.orderTotalValue}>{fmt(currency, total)}</div>
+          </div>
+
+          <ReceiptPaymentSummary receipt={receipt} brand={brand} />
+          
+        </div>
       
        
       

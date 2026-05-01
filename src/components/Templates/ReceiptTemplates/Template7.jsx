@@ -61,6 +61,7 @@ export function ReceiptTemplate7({ receipt, customer, brand }) {
 
         <div className={styles.fromToBlock}>
           <div className={styles.toLabel}>TO :</div>
+
           <div className={styles.fromDivider} />
           {[
             ['NAME :', (customer.name || '')],
@@ -78,9 +79,17 @@ export function ReceiptTemplate7({ receipt, customer, brand }) {
 
       <div className={styles.divider} />
 
+
       <div className={styles.forLabel}>FOR :</div>
 
+
       <div className={styles.tableWrapper}>
+
+        <div className={styles.orderDescriptionRow}>
+          <div className={styles.orderText}>ORDER:</div>
+          <div className={styles.orderDescLabel}>{receipt.orderDesc || 'Garment Order'}</div>
+  
+        </div>
         <table className={styles.table}>
           <thead>
             <tr className={styles.tableHeader}>
@@ -111,6 +120,14 @@ export function ReceiptTemplate7({ receipt, customer, brand }) {
             })}
           </tbody>
         </table>
+
+        <div className={styles.orderTotalWrap}>
+        
+          
+          <div className={styles.orderTotalLabel}>Order Total</div>
+          
+          <div className={styles.orderTotalValue}>{fmt(currency, total)}</div>
+        </div>
 
          <ReceiptPaymentSummary receipt={receipt} brand={brand} />
          
