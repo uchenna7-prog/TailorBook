@@ -1,6 +1,6 @@
 // src/pages/CustomerDetail/tabs/PaymentsTab/PaymentsTab.jsx
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../../../../contexts/AuthContext'
 import {
   subscribeToPayments,
@@ -37,12 +37,10 @@ function getTodayLabel() {
   return new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
-// Returns the status object (color, label, etc.) for a given status value
 function getStatusMeta(value) {
   return PAYMENT_STATUSES.find(s => s.value === value) ?? PAYMENT_STATUSES[0]
 }
 
-// Builds a map of orderId -> order items, for looking up images per payment
 function buildOrderItemsMap(orders) {
   const map = {}
   for (const order of (orders || [])) {
@@ -53,8 +51,6 @@ function buildOrderItemsMap(orders) {
   return map
 }
 
-// Groups an array of payments by their date field
-// Returns: { "Jan 1 2025": [payment, payment], ... }
 function groupPaymentsByDate(payments) {
   return payments.reduce((groups, payment) => {
     const date = payment.date || 'Unknown Date'
@@ -64,19 +60,16 @@ function groupPaymentsByDate(payments) {
   }, {})
 }
 
-// Calculates total amount paid from an array of installments
 function getTotalPaid(installments) {
   return (installments || []).reduce((sum, inst) => sum + (parseFloat(inst.amount) || 0), 0)
 }
 
-// Calculates the fill percentage for the progress bar (0–100)
 function getProgressPercent(totalPaid, fullPrice, status) {
   if (fullPrice <= 0) return 0
   const raw = (totalPaid / fullPrice) * 100
   return status === 'part' ? Math.min(99, raw) : Math.min(100, raw)
 }
 
-// Determines the payment status based on amount entered vs order price
 function resolvePaymentStatus(enteredAmount, orderPrice, selectedPaymentType) {
   const entered = parseFloat(enteredAmount) || 0
   const full    = parseFloat(orderPrice) || 0
@@ -86,7 +79,6 @@ function resolvePaymentStatus(enteredAmount, orderPrice, selectedPaymentType) {
   return selectedPaymentType === 'full' ? 'paid' : 'part'
 }
 
-// Capitalises the first letter of a string e.g. "cash" -> "Cash"
 function capitalise(str) {
   return str.charAt(0).toUpperCase() + str.slice(1)
 }
@@ -94,14 +86,12 @@ function capitalise(str) {
 
 // ─────────────────────────────────────────────────────────────
 // ORDER MOSAIC THUMBNAIL
-// Shows 1, 2, or 3+ item images in a tiled thumbnail box
 // ─────────────────────────────────────────────────────────────
 
 function OrderMosaic({ orderItems, fallbackIcon, fallbackColor }) {
   const images     = (orderItems || []).map(item => item.imgSrc ?? null).filter(Boolean)
   const totalItems = (orderItems || []).length
 
-  // No images — show a fallback icon
   if (images.length === 0) {
     return (
       <div className={styles.mosaicOuterBox}>
@@ -114,7 +104,6 @@ function OrderMosaic({ orderItems, fallbackIcon, fallbackColor }) {
     )
   }
 
-  // Single image — full bleed
   if (totalItems === 1) {
     return (
       <div className={styles.mosaicOuterBox}>
@@ -125,7 +114,6 @@ function OrderMosaic({ orderItems, fallbackIcon, fallbackColor }) {
     )
   }
 
-  // Two items — left/right split
   if (totalItems === 2) {
     return (
       <div className={styles.mosaicOuterBox}>
@@ -147,33 +135,25 @@ function OrderMosaic({ orderItems, fallbackIcon, fallbackColor }) {
     )
   }
 
-  // Three or more — left + two stacked on right
   const extraCount = totalItems > 3 ? totalItems - 3 : 0
-
   return (
     <div className={styles.mosaicOuterBox}>
       <div className={`${styles.mosaicInnerBox} ${styles.mosaicTiled}`}>
-
         <div className={styles.mosaicTileLeft}>
           {images[0]
             ? <img src={images[0]} alt="" className={styles.mosaicTileImage} />
             : <span className="mi" style={{ fontSize: '0.9rem', color: 'var(--text3)' }}>checkroom</span>
           }
         </div>
-
         <div className={styles.mosaicDividerVertical} />
-
         <div className={styles.mosaicTileRight}>
-
           <div className={styles.mosaicTileCell}>
             {images[1]
               ? <img src={images[1]} alt="" className={styles.mosaicTileImage} />
               : <span className="mi" style={{ fontSize: '0.75rem', color: 'var(--text3)' }}>checkroom</span>
             }
           </div>
-
           <div className={styles.mosaicDividerHorizontal} />
-
           <div className={`${styles.mosaicTileCell} ${extraCount > 0 ? styles.mosaicTileCellWithOverlay : ''}`}>
             {images[2]
               ? <img src={images[2]} alt="" className={styles.mosaicTileImage} />
@@ -183,7 +163,6 @@ function OrderMosaic({ orderItems, fallbackIcon, fallbackColor }) {
               <div className={styles.mosaicExtraOverlay}>+{extraCount}</div>
             )}
           </div>
-
         </div>
       </div>
     </div>
@@ -192,39 +171,212 @@ function OrderMosaic({ orderItems, fallbackIcon, fallbackColor }) {
 
 
 // ─────────────────────────────────────────────────────────────
-// ADD PAYMENT MODAL
-// Full-screen overlay — two steps matching ReceiptPickerModal:
-//   Step "order" — list of all orders; search bar only when > 5
-//   Step "form"  — payment form (or duplicate notice) for the
-//                  selected order, with an order context card
+// INLINE PAYMENT FORM
+// Rendered inside the accordion when an order is selected.
+// Matches the detailsCard / pricingCard visual language from
+// OrderModal — no page navigation.
 // ─────────────────────────────────────────────────────────────
 
-function AddPaymentModal({ isOpen, onClose, orders, payments, onSave }) {
-  const [step,          setStep]          = useState('order')
-  const [selectedOrder, setSelectedOrder] = useState(null)
-  const [search,        setSearch]        = useState('')
-  const [paymentType,   setPaymentType]   = useState('full')
-  const [amount,        setAmount]        = useState('')
-  const [method,        setMethod]        = useState('cash')
-  const [notes,         setNotes]         = useState('')
+function InlinePaymentForm({ order, existingPayment, onSave, onClose, saving }) {
+  const [paymentType, setPaymentType] = useState('full')
+  const [amount,      setAmount]      = useState('')
+  const [method,      setMethod]      = useState('cash')
+  const [notes,       setNotes]       = useState('')
 
-  // Reset everything when modal closes
+  const fullPrice          = parseFloat(order?.price) || 0
+  const existingIsFullPaid = existingPayment?.status === 'paid'
+  const totalAlreadyPaid   = getTotalPaid(existingPayment?.installments)
+  const balance            = fullPrice > 0 ? Math.max(0, fullPrice - totalAlreadyPaid) : 0
+
+  function handleAmountChange(value) {
+    setAmount(value)
+    if (fullPrice > 0) {
+      const entered = parseFloat(value) || 0
+      setPaymentType(entered > 0 && entered < fullPrice ? 'part' : 'full')
+    }
+  }
+
+  function handleSave() {
+    if (!amount || saving) return
+    const finalStatus = resolvePaymentStatus(amount, order.price, paymentType)
+    onSave({
+      orderId:      order.id,
+      orderDesc:    order.desc,
+      orderPrice:   order.price ?? null,
+      orderItems:   order.items ?? [],
+      status:       finalStatus,
+      notes:        notes.trim(),
+      installments: [{ amount: parseFloat(amount), method, date: getTodayLabel(), id: Date.now() }],
+      date:         getTodayLabel(),
+    })
+  }
+
+  // ── Existing-but-not-fully-paid: show balance & "add to existing" notice ──
+  if (existingPayment && !existingIsFullPaid) {
+    return (
+      <div className={styles.inlineFormCard}>
+        <div className={styles.inlineFormNotice}>
+          <span className="mi" style={{ fontSize: '1rem', color: '#fb923c' }}>info</span>
+          <span>
+            A part-payment exists. Open it from the Payments list below to record the next instalment.
+          </span>
+        </div>
+        {fullPrice > 0 && (
+          <div className={styles.inlineBalanceRow}>
+            <span className={styles.inlineBalanceLabel}>Balance remaining</span>
+            <span className={styles.inlineBalanceValue}>{formatMoney(balance)}</span>
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  return (
+    <div className={styles.inlineFormCard}>
+
+      {/* Order price reference */}
+      {fullPrice > 0 && (
+        <div className={styles.inlineOrderTotal}>
+          <span className={styles.inlineOrderTotalLabel}>Order value</span>
+          <span className={styles.inlineOrderTotalValue}>{formatMoney(fullPrice)}</span>
+        </div>
+      )}
+
+      {/* Payment type chips */}
+      <label className={styles.fieldLabel}>Payment Type</label>
+      <div className={styles.chipRow} style={{ marginBottom: 20 }}>
+        <button
+          className={`${styles.typeChip} ${paymentType === 'full' ? styles.typeChipActive : ''}`}
+          style={paymentType === 'full'
+            ? { borderColor: '#22c55e', color: '#22c55e', background: 'rgba(34,197,94,0.12)' }
+            : {}}
+          onClick={() => setPaymentType('full')}
+        >
+          Full Payment
+        </button>
+        <button
+          className={`${styles.typeChip} ${paymentType === 'part' ? styles.typeChipActive : ''}`}
+          style={paymentType === 'part'
+            ? { borderColor: '#fb923c', color: '#fb923c', background: 'rgba(251,146,60,0.12)' }
+            : {}}
+          onClick={() => setPaymentType('part')}
+        >
+          Part Payment
+        </button>
+      </div>
+
+      {/* Amount */}
+      <label className={styles.fieldLabel}>
+        {paymentType === 'part' ? 'Amount Paid (₦)' : 'Amount (₦)'}
+      </label>
+      <input
+        type="number"
+        className={styles.textInput}
+        placeholder={fullPrice > 0 ? `of ${formatMoney(fullPrice)}` : '0.00'}
+        inputMode="decimal"
+        value={amount}
+        onChange={e => handleAmountChange(e.target.value)}
+        style={{ marginBottom: 20 }}
+      />
+
+      {/* Payment method */}
+      <label className={styles.fieldLabel}>Payment Method</label>
+      <div className={styles.methodChipRow} style={{ marginBottom: 20 }}>
+        {['cash', 'transfer', 'card', 'other'].map(m => (
+          <button
+            key={m}
+            className={`${styles.methodChip} ${method === m ? styles.methodChipActive : ''}`}
+            onClick={() => setMethod(m)}
+          >
+            {capitalise(m)}
+          </button>
+        ))}
+      </div>
+
+      {/* Notes */}
+      <label className={styles.fieldLabel}>Notes <span className={styles.fieldLabelOptional}>(optional)</span></label>
+      <textarea
+        className={styles.textareaInput}
+        placeholder="Any extra details…"
+        value={notes}
+        rows={2}
+        onChange={e => setNotes(e.target.value)}
+        style={{ marginBottom: 20 }}
+      />
+
+      {/* Dashed divider — matches orderTotalRow in OrderModal */}
+      <div className={styles.inlineFormDivider} />
+
+      {/* Save button */}
+      <button
+        className={styles.inlineSaveButton}
+        onClick={handleSave}
+        disabled={!amount || saving}
+      >
+        {saving
+          ? (
+            <>
+              <div className={styles.inlineSpinner} />
+              Saving…
+            </>
+          )
+          : (
+            <>
+              <span className="mi" style={{ fontSize: '1.1rem' }}>payments</span>
+              Record Payment
+            </>
+          )
+        }
+      </button>
+    </div>
+  )
+}
+
+
+// ─────────────────────────────────────────────────────────────
+// ADD PAYMENT MODAL
+// Full-screen overlay — single scrollable screen with inline
+// accordion. Selecting an order expands the form below it.
+// Only orders that are NOT (fully paid AND invoiced) are shown.
+// ─────────────────────────────────────────────────────────────
+
+function AddPaymentModal({ isOpen, onClose, orders, payments, invoices, onSave }) {
+  const [selectedOrderId, setSelectedOrderId] = useState(null)
+  const [search,          setSearch]          = useState('')
+  const [saving,          setSaving]          = useState(false)
+  const expandedRef                           = useRef(null)
+
+  // Reset when modal closes
   useEffect(() => {
     if (!isOpen) {
-      setStep('order')
-      setSelectedOrder(null)
+      setSelectedOrderId(null)
       setSearch('')
-      setPaymentType('full')
-      setAmount('')
-      setMethod('cash')
-      setNotes('')
+      setSaving(false)
     }
   }, [isOpen])
 
-  // ── Step-1 helpers ────────────────────────────────────────
+  // Scroll the expanded form into view when an order is selected
+  useEffect(() => {
+    if (selectedOrderId && expandedRef.current) {
+      setTimeout(() => {
+        expandedRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+      }, 60)
+    }
+  }, [selectedOrderId])
 
-  const showSearch     = orders.length > 5
-  const filteredOrders = orders.filter(order => {
+  // Build sets for quick lookup
+  const invoicedOrderIds = new Set((invoices || []).map(inv => String(inv.orderId)))
+
+  // Filter: exclude orders that are BOTH fully paid AND invoiced
+  const eligibleOrders = orders.filter(order => {
+    const payment = payments.find(p => String(p.orderId) === String(order.id))
+    const isFullyPaid = payment?.status === 'paid'
+    const isInvoiced  = invoicedOrderIds.has(String(order.id))
+    return !(isFullyPaid && isInvoiced)
+  })
+
+  const showSearch     = eligibleOrders.length > 5
+  const filteredOrders = eligibleOrders.filter(order => {
     if (!search.trim()) return true
     const q = search.toLowerCase()
     return (
@@ -235,359 +387,141 @@ function AddPaymentModal({ isOpen, onClose, orders, payments, onSave }) {
     )
   })
 
-  function handlePickOrder(order) {
-    setSelectedOrder(order)
-    setSearch('')
-    setStep('form')
+  function handleToggleOrder(order) {
+    setSelectedOrderId(prev => prev === order.id ? null : order.id)
   }
 
-  function handleBack() {
-    setStep('order')
-    setSelectedOrder(null)
-    setSearch('')
-    setPaymentType('full')
-    setAmount('')
-    setMethod('cash')
-    setNotes('')
-  }
-
-  // ── Step-2 helpers ────────────────────────────────────────
-
-  const existingPayment = selectedOrder
-    ? payments.find(p => String(p.orderId) === String(selectedOrder.id))
-    : null
-
-  const existingIsFullyPaid = existingPayment
-    ? existingPayment.status === 'paid'
-    : false
-
-  const totalAlreadyPaid = existingPayment ? getTotalPaid(existingPayment.installments) : 0
-  const fullPrice        = parseFloat(selectedOrder?.price) || 0
-  const balance          = fullPrice > 0 ? Math.max(0, fullPrice - totalAlreadyPaid) : 0
-
-  function handleAmountChange(value) {
-    setAmount(value)
-    if (selectedOrder) {
-      const price   = parseFloat(selectedOrder.price) || 0
-      const entered = parseFloat(value) || 0
-      if (price > 0) {
-        setPaymentType(entered > 0 && entered < price ? 'part' : 'full')
-      }
+  async function handleSave(paymentData) {
+    setSaving(true)
+    try {
+      await onSave(paymentData)
+      onClose()
+    } catch {
+      setSaving(false)
     }
   }
-
-  function handleSave() {
-    if (!selectedOrder || !amount || existingPayment) return
-    const finalStatus = resolvePaymentStatus(amount, selectedOrder.price, paymentType)
-    onSave({
-      orderId:      selectedOrder.id,
-      orderDesc:    selectedOrder.desc,
-      orderPrice:   selectedOrder.price ?? null,
-      orderItems:   selectedOrder.items  ?? [],
-      status:       finalStatus,
-      notes:        notes.trim(),
-      installments: [{ amount: parseFloat(amount), method, date: getTodayLabel(), id: Date.now() }],
-      date:         getTodayLabel(),
-    })
-    onClose()
-  }
-
-  // ── Render ────────────────────────────────────────────────
 
   return (
     <div className={`${styles.pickerOverlay} ${isOpen ? styles.pickerOverlay_open : ''}`}>
 
-      {/* ════════════════════════════════════
-          STEP 1 — Order picker
-          ════════════════════════════════════ */}
-      {step === 'order' && (
-        <>
-          <Header
-            type="back"
-            title="New Payment"
-            onBackClick={onClose}
-          />
+      <Header
+        type="back"
+        title="New Payment"
+        onBackClick={onClose}
+      />
 
-          <div className={styles.pickerSubtitleBar}>
-            Choose an order to record a payment for
-          </div>
+      <div className={styles.pickerScrollBody}>
+        <div style={{ padding: '20px' }}>
 
-          {/* Search bar — only when more than 5 orders */}
+          {/* ── Step 1: Select Order ── */}
+          <p className={styles.stepHeading}>1. Select Order</p>
+
+          {/* Search bar — only when more than 5 eligible orders */}
           {showSearch && (
-            <>
-              <div className={styles.pickerSearchWrap}>
-                <span className="mi" style={{ fontSize: '1.1rem', color: 'var(--text3)' }}>search</span>
-                <input
-                  type="text"
-                  className={styles.pickerSearchInput}
-                  placeholder="Search orders…"
-                  value={search}
-                  onChange={e => setSearch(e.target.value)}
-                />
-                {search.length > 0 && (
-                  <button className={styles.pickerSearchClear} onClick={() => setSearch('')}>
-                    <span className="mi" style={{ fontSize: '1rem' }}>close</span>
-                  </button>
-                )}
-              </div>
-
-              {search.trim() && (
-                <div className={styles.pickerCountLine}>
-                  {filteredOrders.length} {filteredOrders.length === 1 ? 'order' : 'orders'} matching &ldquo;{search}&rdquo;
-                </div>
+            <div className={styles.clothSearchBar}>
+              <span className="mi" style={{ fontSize: '1.1rem', color: 'var(--text3)' }}>search</span>
+              <input
+                type="text"
+                className={styles.clothSearchInput}
+                placeholder="Search orders…"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+              />
+              {search.length > 0 && (
+                <button
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text3)', display: 'flex', alignItems: 'center', padding: 0 }}
+                  onClick={() => setSearch('')}
+                >
+                  <span className="mi" style={{ fontSize: '1rem' }}>close</span>
+                </button>
               )}
-            </>
+            </div>
           )}
 
-          <div className={styles.pickerList}>
+          {/* Empty state — no eligible orders */}
+          {eligibleOrders.length === 0 && (
+            <div className={styles.pickerEmpty}>
+              <span className="mi" style={{ fontSize: '2rem', color: 'var(--text3)' }}>assignment</span>
+              <p>All orders are fully paid and invoiced.</p>
+            </div>
+          )}
 
-            {orders.length === 0 && (
-              <div className={styles.pickerEmpty}>
-                <span className="mi" style={{ fontSize: '2rem', color: 'var(--text3)' }}>assignment</span>
-                <p>No orders available.</p>
-                <p style={{ fontSize: '0.72rem', color: 'var(--text3)', marginTop: 4 }}>
-                  Create an order first before recording a payment.
-                </p>
-              </div>
-            )}
+          {/* No search results */}
+          {eligibleOrders.length > 0 && filteredOrders.length === 0 && (
+            <div className={styles.pickerEmpty}>
+              <span className="mi" style={{ fontSize: '2rem', color: 'var(--text3)' }}>search_off</span>
+              <p>No orders match your search</p>
+            </div>
+          )}
 
-            {orders.length > 0 && filteredOrders.length === 0 && (
-              <div className={styles.pickerEmpty}>
-                <span className="mi" style={{ fontSize: '2rem', color: 'var(--text3)' }}>search_off</span>
-                <p>No orders match your search</p>
-              </div>
-            )}
-
-            {filteredOrders.map((order, index) => {
-              const existingPmt       = payments.find(p => String(p.orderId) === String(order.id))
-              const alreadyHasPayment = !!existingPmt
-              const isPaid            = existingPmt?.status === 'paid'
-              const isLast            = index === filteredOrders.length - 1
+          {/* Order picker list — accordion style */}
+          <div className={styles.clothPickerList}>
+            {filteredOrders.map(order => {
+              const isSelected    = selectedOrderId === order.id
+              const existingPmt   = payments.find(p => String(p.orderId) === String(order.id))
+              const isPartPaid    = existingPmt?.status === 'part'
+              const isFullPaid    = existingPmt?.status === 'paid'
 
               return (
-                <div
-                  key={order.id}
-                  className={`${styles.pickerOrderCard} ${isLast ? styles.pickerOrderCard_last : ''}`}
-                  onClick={() => handlePickOrder(order)}
-                >
-                  {/* Thumbnail */}
-                  <OrderMosaic
-                    orderItems={order.items || []}
-                    fallbackIcon="content_cut"
-                    fallbackColor="var(--text3)"
-                  />
+                <div key={order.id}>
+                  {/* ── Selectable order row ── */}
+                  <div
+                    className={`${styles.clothPickerItem} ${isSelected ? styles.clothPickerItem_selected : ''}`}
+                    onClick={() => handleToggleOrder(order)}
+                  >
+                    {/* Thumbnail */}
+                    <div className={styles.clothThumb}>
+                      {order.items?.length > 0 && order.items[0]?.imgSrc
+                        ? <img src={order.items[0].imgSrc} alt={order.desc} />
+                        : <span className="mi" style={{ fontSize: '1.1rem' }}>receipt_long</span>
+                      }
+                    </div>
 
-                  {/* Info stack */}
-                  <div className={styles.pickerOrderInfo}>
-                    <span className={styles.pickerOrderTitle}>
-                      {order.desc || 'Untitled Order'}
-                    </span>
-                    <span className={styles.pickerOrderPrice}>
-                      {formatMoney(order.price)}
-                    </span>
-                    {order.due && (
-                      <span className={styles.pickerOrderDue}>
-                        Due {order.due}
-                      </span>
-                    )}
-                    {isPaid ? (
-                      <span className={styles.pickerFullPaidBadge}>
-                        <span className="mi" style={{ fontSize: '0.65rem' }}>check_circle</span>
-                        Paid in full
-                      </span>
-                    ) : alreadyHasPayment ? (
-                      <span className={styles.pickerBalanceBadge}>
-                        Payment in progress
-                      </span>
-                    ) : null}
+                    {/* Name + status indicator */}
+                    <div className={styles.clothInfo}>
+                      <h5>{order.desc || 'Untitled Order'}</h5>
+                      {isFullPaid
+                        ? <span style={{ color: '#15803d' }}>Paid — not yet invoiced</span>
+                        : isPartPaid
+                          ? <span style={{ color: '#fb923c' }}>Part payment recorded</span>
+                          : order.due
+                            ? <span style={{ color: '#ef4444' }}>Due {order.due}</span>
+                            : <span>No due date</span>
+                      }
+                    </div>
+
+                    {/* Checkmark circle */}
+                    <div className={`${styles.clothCheckCircle} ${isSelected ? styles.clothCheckCircle_checked : ''}`}>
+                      {isSelected && <span className="mi" style={{ fontSize: '0.9rem' }}>check</span>}
+                    </div>
                   </div>
 
-                  {/* Chevron */}
-                  <div className={styles.pickerChevron}>
-                    <span className="mi" style={{ fontSize: '1.2rem', color: 'var(--text3)' }}>
-                      chevron_right
-                    </span>
-                  </div>
+                  {/* ── Inline expanded form ── */}
+                  {isSelected && (
+                    <div
+                      ref={expandedRef}
+                      className={styles.accordionBody}
+                    >
+                      {/* Step 2 heading */}
+                      <p className={styles.stepHeading} style={{ marginTop: 0, marginBottom: 16 }}>
+                        2. Payment Details
+                      </p>
+                      <InlinePaymentForm
+                        order={order}
+                        existingPayment={existingPmt}
+                        onSave={handleSave}
+                        onClose={onClose}
+                        saving={saving}
+                      />
+                    </div>
+                  )}
                 </div>
               )
             })}
-
-            <div style={{ height: 40 }} />
           </div>
-        </>
-      )}
 
-      {/* ════════════════════════════════════
-          STEP 2 — Payment form
-          ════════════════════════════════════ */}
-      {step === 'form' && selectedOrder && (
-        <>
-          <Header
-            type="back"
-            title="New Payment"
-            onBackClick={handleBack}
-            customActions={
-              !existingPayment
-                ? [{ label: 'Save', onClick: handleSave, disabled: !amount }]
-                : []
-            }
-          />
-
-          <div className={styles.pickerList}>
-
-            {/* Order context card — mirrors ReceiptPickerModal's orderContextCard */}
-            <div className={styles.orderContextCard}>
-              <div className={styles.orderContextLeft}>
-                <OrderMosaic
-                  orderItems={selectedOrder.items || []}
-                  fallbackIcon="content_cut"
-                  fallbackColor="var(--text3)"
-                />
-              </div>
-              <div className={styles.orderContextBody}>
-                <div className={styles.orderContextName}>
-                  {selectedOrder.desc || 'Untitled Order'}
-                </div>
-                {fullPrice > 0 && (
-                  <div className={styles.orderContextStats}>
-                    <div className={styles.orderContextStat}>
-                      <span className={styles.orderContextStatLabel}>Total</span>
-                      <span className={styles.orderContextStatValue}>
-                        {formatMoney(fullPrice)}
-                      </span>
-                    </div>
-                    {existingPayment && (
-                      <>
-                        <div className={styles.orderContextDivider} />
-                        <div className={styles.orderContextStat}>
-                          <span className={styles.orderContextStatLabel}>Paid</span>
-                          <span className={styles.orderContextStatValue} style={{ color: '#15803d' }}>
-                            {formatMoney(totalAlreadyPaid)}
-                          </span>
-                        </div>
-                        <div className={styles.orderContextDivider} />
-                        <div className={styles.orderContextStat}>
-                          <span className={styles.orderContextStatLabel}>
-                            {existingIsFullyPaid ? 'Status' : 'Balance'}
-                          </span>
-                          <span
-                            className={styles.orderContextStatValue}
-                            style={{ color: existingIsFullyPaid ? '#15803d' : '#dc2626' }}
-                          >
-                            {existingIsFullyPaid ? 'Paid in Full' : formatMoney(balance)}
-                          </span>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                )}
-                {selectedOrder.due && (
-                  <div className={styles.orderContextFooter}>Due {selectedOrder.due}</div>
-                )}
-              </div>
-            </div>
-
-            {/* ── Duplicate notice ── */}
-            {existingPayment ? (
-              <div className={styles.duplicatePaymentNotice}>
-                <div className={styles.duplicatePaymentIconCircle}>
-                  <span className="mi" style={{ fontSize: '1.6rem', color: existingIsFullyPaid ? '#15803d' : '#c2410c' }}>
-                    {existingIsFullyPaid ? 'check_circle' : 'payments'}
-                  </span>
-                </div>
-                <div className={styles.duplicatePaymentTitle}>
-                  {existingIsFullyPaid ? 'This order is fully paid' : 'Payment already in progress'}
-                </div>
-                <p className={styles.duplicatePaymentBody}>
-                  {existingIsFullyPaid
-                    ? `A full payment has already been recorded for "${selectedOrder.desc}". Tap the payment card on the Payments tab to view the details.`
-                    : `A payment card already exists for "${selectedOrder.desc}". To record the next instalment, tap that card and use the "Record Another Payment" option.`}
-                </p>
-                <button className={styles.duplicatePaymentDismissBtn} onClick={onClose}>
-                  Got it
-                </button>
-              </div>
-            ) : (
-              /* ── Payment form fields ── */
-              <div className={styles.pickerFormBody}>
-
-                {/* Payment type */}
-                <div className={styles.fieldGroup}>
-                  <label className={styles.fieldLabel}>Payment Type</label>
-                  <div className={styles.chipRow}>
-                    <button
-                      className={`${styles.typeChip} ${paymentType === 'full' ? styles.typeChipActive : ''}`}
-                      style={paymentType === 'full'
-                        ? { borderColor: '#22c55e', color: '#22c55e', background: 'rgba(34,197,94,0.12)' }
-                        : {}}
-                      onClick={() => setPaymentType('full')}
-                    >
-                      Full Payment
-                    </button>
-                    <button
-                      className={`${styles.typeChip} ${paymentType === 'part' ? styles.typeChipActive : ''}`}
-                      style={paymentType === 'part'
-                        ? { borderColor: '#fb923c', color: '#fb923c', background: 'rgba(251,146,60,0.12)' }
-                        : {}}
-                      onClick={() => setPaymentType('part')}
-                    >
-                      Part Payment
-                    </button>
-                  </div>
-                </div>
-
-                {/* Amount */}
-                <div className={styles.fieldGroup}>
-                  <label className={styles.fieldLabel}>
-                    {paymentType === 'part' ? 'Initial Amount Paid (₦)' : 'Amount (₦)'}
-                  </label>
-                  <input
-                    type="number"
-                    className={styles.textInput}
-                    placeholder={selectedOrder ? `of ${formatMoney(selectedOrder.price)}` : '0.00'}
-                    inputMode="decimal"
-                    value={amount}
-                    onChange={e => handleAmountChange(e.target.value)}
-                  />
-                </div>
-
-                {/* Payment method */}
-                <div className={styles.fieldGroup}>
-                  <label className={styles.fieldLabel}>Payment Method</label>
-                  <div className={styles.methodChipRow}>
-                    {['cash', 'transfer', 'card', 'other'].map(m => (
-                      <button
-                        key={m}
-                        className={`${styles.methodChip} ${method === m ? styles.methodChipActive : ''}`}
-                        onClick={() => setMethod(m)}
-                      >
-                        {capitalise(m)}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Notes */}
-                <div className={styles.fieldGroup}>
-                  <label className={styles.fieldLabel}>
-                    Notes <span className={styles.fieldLabelOptional}>(optional)</span>
-                  </label>
-                  <textarea
-                    className={styles.textareaInput}
-                    placeholder="Any extra details…"
-                    value={notes}
-                    rows={2}
-                    onChange={e => setNotes(e.target.value)}
-                  />
-                </div>
-
-              </div>
-            )}
-
-            <div style={{ height: 40 }} />
-          </div>
-        </>
-      )}
+        </div>
+      </div>
     </div>
   )
 }
@@ -673,14 +607,14 @@ function AddInstallmentModal({ payment, onClose, onSave }) {
 function PaymentDetail({ payment, onClose, onDelete, onStatusChange, onAddInstallment, onGenerateReceipt }) {
   const [showInstallmentModal, setShowInstallmentModal] = useState(false)
 
-  const installments     = payment.installments || []
-  const fullPrice        = parseFloat(payment.orderPrice) || 0
-  const totalPaid        = getTotalPaid(installments)
-  const remaining        = fullPrice > 0 ? Math.max(0, fullPrice - totalPaid) : 0
-  const isPaid           = payment.status === 'paid'
-  const isNowFullyPaid   = fullPrice > 0 && totalPaid >= fullPrice
-  const hasInstallments  = installments.length > 0
-  const progressPercent  = getProgressPercent(totalPaid, fullPrice, payment.status)
+  const installments    = payment.installments || []
+  const fullPrice       = parseFloat(payment.orderPrice) || 0
+  const totalPaid       = getTotalPaid(installments)
+  const remaining       = fullPrice > 0 ? Math.max(0, fullPrice - totalPaid) : 0
+  const isPaid          = payment.status === 'paid'
+  const isNowFullyPaid  = fullPrice > 0 && totalPaid >= fullPrice
+  const hasInstallments = installments.length > 0
+  const progressPercent = getProgressPercent(totalPaid, fullPrice, payment.status)
 
   return (
     <div className={styles.fullScreenModal}>
@@ -695,7 +629,6 @@ function PaymentDetail({ payment, onClose, onDelete, onStatusChange, onAddInstal
 
       <div className={styles.modalBody}>
 
-        {/* Basic payment info */}
         <div className={styles.detailInfoCard}>
           <div className={styles.detailInfoRow}>
             <span className={styles.detailInfoLabel}>Order</span>
@@ -719,7 +652,6 @@ function PaymentDetail({ payment, onClose, onDelete, onStatusChange, onAddInstal
           )}
         </div>
 
-        {/* Payment breakdown — shown when we have a known order price AND installments */}
         {fullPrice > 0 && hasInstallments && (
           <div className={styles.breakdownCard}>
             <label className={styles.fieldLabel} style={{ marginBottom: 12, display: 'block' }}>Payment Breakdown</label>
@@ -775,7 +707,6 @@ function PaymentDetail({ payment, onClose, onDelete, onStatusChange, onAddInstal
               )
             })}
 
-            {/* Progress bar */}
             <div style={{ marginTop: 16 }}>
               <div className={styles.paymentProgressTrack}>
                 <div className={styles.paymentProgressFill} style={{ width: `${progressPercent}%` }} />
@@ -788,7 +719,6 @@ function PaymentDetail({ payment, onClose, onDelete, onStatusChange, onAddInstal
           </div>
         )}
 
-        {/* Simple installment list — shown when no known order price */}
         {(!fullPrice || !hasInstallments) && hasInstallments && (
           <div className={styles.breakdownCard}>
             <div className={styles.installmentList}>
@@ -817,7 +747,6 @@ function PaymentDetail({ payment, onClose, onDelete, onStatusChange, onAddInstal
           </div>
         )}
 
-        {/* Status selector */}
         <div className={styles.fieldGroup} style={{ marginTop: 18 }}>
           <label className={styles.fieldLabel}>Payment Status</label>
           {hasInstallments && (
@@ -855,7 +784,6 @@ function PaymentDetail({ payment, onClose, onDelete, onStatusChange, onAddInstal
           </div>
         </div>
 
-        {/* Record another payment button */}
         {!isPaid && (
           <button className={styles.addInstallmentBtn} onClick={() => setShowInstallmentModal(true)}>
             <span className="mi" style={{ fontSize: '1.1rem' }}>add_circle_outline</span>
@@ -863,7 +791,6 @@ function PaymentDetail({ payment, onClose, onDelete, onStatusChange, onAddInstal
           </button>
         )}
 
-        {/* Generate receipt button */}
         <button className={styles.generateReceiptBtn} onClick={() => onGenerateReceipt(payment)}>
           <span className="material-icons" style={{ fontSize: '1.2rem', verticalAlign: 'middle', marginRight: 4 }}>receipt</span>
           Generate Receipt
@@ -887,7 +814,7 @@ function PaymentDetail({ payment, onClose, onDelete, onStatusChange, onAddInstal
 // PAYMENTS TAB — main export
 // ─────────────────────────────────────────────────────────────
 
-export default function PaymentsTab({ customerId, orders, showToast, onGenerateReceipt, onInvoicePaid, onPaymentsChange }) {
+export default function PaymentsTab({ customerId, orders, invoices, showToast, onGenerateReceipt, onInvoicePaid, onPaymentsChange }) {
   const { user } = useAuth()
 
   const [payments,       setPayments]       = useState([])
@@ -895,7 +822,6 @@ export default function PaymentsTab({ customerId, orders, showToast, onGenerateR
   const [viewingPayment, setViewingPayment] = useState(null)
   const [deleteTarget,   setDeleteTarget]   = useState(null)
 
-  // Subscribe to live payment updates from the database
   useEffect(() => {
     if (!user || !customerId) return
     const unsubscribe = subscribeToPayments(
@@ -914,6 +840,13 @@ export default function PaymentsTab({ customerId, orders, showToast, onGenerateR
     return unsubscribe
   }, [user, customerId])
 
+  // Listen for FAB event
+  useEffect(() => {
+    const handler = () => setModalOpen(true)
+    document.addEventListener('openPaymentModal', handler)
+    return () => document.removeEventListener('openPaymentModal', handler)
+  }, [])
+
   const orderItemsMap = buildOrderItemsMap(orders)
   const groupedByDate = groupPaymentsByDate(payments)
 
@@ -929,6 +862,7 @@ export default function PaymentsTab({ customerId, orders, showToast, onGenerateR
       }
     } catch {
       showToast('Failed to save payment.')
+      throw new Error('save failed')
     }
   }
 
@@ -988,7 +922,6 @@ export default function PaymentsTab({ customerId, orders, showToast, onGenerateR
 
   return (
     <>
-      {/* Empty state */}
       {payments.length === 0 && (
         <div className={styles.emptyState}>
           <span className="mi" style={{ fontSize: '2.8rem', opacity: 0.3 }}>payments</span>
@@ -997,7 +930,6 @@ export default function PaymentsTab({ customerId, orders, showToast, onGenerateR
         </div>
       )}
 
-      {/* Payment list grouped by date */}
       {Object.entries(groupedByDate).map(([date, datePayments]) => (
         <div key={date} className={styles.dateGroup}>
           <div className={styles.dateGroupLabel}>{date}</div>
@@ -1019,14 +951,12 @@ export default function PaymentsTab({ customerId, orders, showToast, onGenerateR
                 className={`${styles.paymentRow} ${isLast ? styles.paymentRowLast : ''}`}
                 onClick={() => setViewingPayment(payment)}
               >
-                {/* Left: mosaic thumbnail */}
                 <OrderMosaic
                   orderItems={orderItems}
                   fallbackIcon="payments"
                   fallbackColor={statusMeta.color}
                 />
 
-                {/* Centre: order name + status badge + instalment count */}
                 <div className={styles.paymentRowInfo}>
                   <div className={styles.paymentRowTitle}>{payment.orderDesc || 'Payment'}</div>
                   <div className={styles.paymentRowMeta}>
@@ -1048,7 +978,6 @@ export default function PaymentsTab({ customerId, orders, showToast, onGenerateR
                   </div>
                 </div>
 
-                {/* Right: amount + sub-amount + mini progress bar */}
                 <div className={styles.paymentRowRight}>
                   <div className={styles.paymentRowAmount}>
                     {fullPrice > 0 ? formatMoney(totalPaid) : formatMoney(installments[0]?.amount)}
@@ -1071,16 +1000,15 @@ export default function PaymentsTab({ customerId, orders, showToast, onGenerateR
         </div>
       ))}
 
-      {/* Add payment modal */}
       <AddPaymentModal
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
         orders={orders}
         payments={payments}
+        invoices={invoices || []}
         onSave={handleSavePayment}
       />
 
-      {/* Payment detail modal */}
       {viewingPayment && (
         <PaymentDetail
           payment={viewingPayment}
@@ -1092,7 +1020,6 @@ export default function PaymentsTab({ customerId, orders, showToast, onGenerateR
         />
       )}
 
-      {/* Delete confirmation */}
       <ConfirmSheet
         open={!!deleteTarget}
         title="Delete Payment?"
@@ -1100,21 +1027,10 @@ export default function PaymentsTab({ customerId, orders, showToast, onGenerateR
         onConfirm={handleConfirmDelete}
         onCancel={() => setDeleteTarget(null)}
       />
-
-      {/* Hidden trigger element used by PaymentsTab.openModal() */}
-      <div
-        style={{ display: 'none' }}
-        id="__payment_modal_trigger__"
-        ref={() => {
-          const handler = () => setModalOpen(true)
-          document.addEventListener('openPaymentModal', handler)
-          return () => document.removeEventListener('openPaymentModal', handler)
-        }}
-      />
     </>
   )
 }
 
 PaymentsTab.openModal = () => {
-  document.getElementById('__payment_modal_trigger__')?.dispatchEvent(new Event('open'))
+  document.dispatchEvent(new Event('openPaymentModal'))
 }
