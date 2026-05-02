@@ -271,7 +271,7 @@ function OrderPickerModal({ isOpen, onClose, orders, invoices, onSelectOrder, ge
 
       {/* Subtitle */}
       <div className={styles.pickerSubtitleBar}>
-        Choose an order to create or view an invoice
+        Choose an order to create an invoice for
       </div>
 
       {/* Search bar — only shown when orders > 5 */}

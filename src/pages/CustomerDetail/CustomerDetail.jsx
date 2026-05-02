@@ -607,7 +607,7 @@ export default function CustomerDetail({ onMenuClick }) {
       </div>
 
       <div className={styles.profileContainer}>
-        {true ? (
+        {true? (
           <div className={styles.profileSection}>
 
             <>
@@ -665,12 +665,25 @@ export default function CustomerDetail({ onMenuClick }) {
           </div>
         ) : (
           <div className={styles.profileSectionFree}>
-            <div className={styles.name}>{customer.name}{customer.sex && ` (${customer.sex})`}</div>
+            <div className={styles.name}>{customer.name}</div>
             <div className={styles.metaInline}>
+
               <div className={styles.metaItem}>
                 <span className="mi">call</span>
                 <span>{customer.phone}</span>
               </div>
+
+              {customer.sex &&(
+
+                <div className={`${styles.metaItem} ${styles.sex}`}>
+        
+                  <span className="mi">person</span>
+                  <span>{customer.sex}</span>
+
+                </div>
+                
+                
+              )}
               {birthday && (
                 <div className={`${styles.metaItem} ${styles.birthday}`}>
                   <span className="mi">cake</span>

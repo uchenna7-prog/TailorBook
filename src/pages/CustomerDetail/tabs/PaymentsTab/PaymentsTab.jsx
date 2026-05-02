@@ -192,57 +192,93 @@ function OrderMosaic({ orderItems, fallbackIcon, fallbackColor }) {
 
 
 // ─────────────────────────────────────────────────────────────
-// ADD PAYMENT MODAL — create a new payment for an order
+// ADD PAYMENT MODAL
+// Full-screen overlay — two steps matching ReceiptPickerModal:
+//   Step "order" — list of all orders; search bar only when > 5
+//   Step "form"  — payment form (or duplicate notice) for the
+//                  selected order, with an order context card
 // ─────────────────────────────────────────────────────────────
 
 function AddPaymentModal({ isOpen, onClose, orders, payments, onSave }) {
-  const [selectedOrder,  setSelectedOrder]  = useState(null)
-  const [orderDropOpen,  setOrderDropOpen]  = useState(false)
-  const [paymentType,    setPaymentType]    = useState('full')
-  const [amount,         setAmount]         = useState('')
-  const [method,         setMethod]         = useState('cash')
-  const [notes,          setNotes]          = useState('')
+  const [step,          setStep]          = useState('order')
+  const [selectedOrder, setSelectedOrder] = useState(null)
+  const [search,        setSearch]        = useState('')
+  const [paymentType,   setPaymentType]   = useState('full')
+  const [amount,        setAmount]        = useState('')
+  const [method,        setMethod]        = useState('cash')
+  const [notes,         setNotes]         = useState('')
 
-  function resetForm() {
+  // Reset everything when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setStep('order')
+      setSelectedOrder(null)
+      setSearch('')
+      setPaymentType('full')
+      setAmount('')
+      setMethod('cash')
+      setNotes('')
+    }
+  }, [isOpen])
+
+  // ── Step-1 helpers ────────────────────────────────────────
+
+  const showSearch     = orders.length > 5
+  const filteredOrders = orders.filter(order => {
+    if (!search.trim()) return true
+    const q = search.toLowerCase()
+    return (
+      (order.desc   || '').toLowerCase().includes(q) ||
+      (order.due    || '').toLowerCase().includes(q) ||
+      (order.status || '').toLowerCase().includes(q) ||
+      (order.items  || []).some(i => (i.name || '').toLowerCase().includes(q))
+    )
+  })
+
+  function handlePickOrder(order) {
+    setSelectedOrder(order)
+    setSearch('')
+    setStep('form')
+  }
+
+  function handleBack() {
+    setStep('order')
     setSelectedOrder(null)
-    setOrderDropOpen(false)
+    setSearch('')
     setPaymentType('full')
     setAmount('')
     setMethod('cash')
     setNotes('')
   }
 
-  function handleClose() {
-    resetForm()
-    onClose()
-  }
+  // ── Step-2 helpers ────────────────────────────────────────
 
-  // Check if a payment already exists for the selected order
   const existingPayment = selectedOrder
     ? payments.find(p => String(p.orderId) === String(selectedOrder.id))
     : null
 
   const existingIsFullyPaid = existingPayment
-    ? (existingPayment.installments || []).length === 1 && existingPayment.status === 'paid'
+    ? existingPayment.status === 'paid'
     : false
+
+  const totalAlreadyPaid = existingPayment ? getTotalPaid(existingPayment.installments) : 0
+  const fullPrice        = parseFloat(selectedOrder?.price) || 0
+  const balance          = fullPrice > 0 ? Math.max(0, fullPrice - totalAlreadyPaid) : 0
 
   function handleAmountChange(value) {
     setAmount(value)
-    // Auto-detect part vs full payment based on the order price
     if (selectedOrder) {
-      const fullPrice = parseFloat(selectedOrder.price) || 0
-      const entered   = parseFloat(value) || 0
-      if (fullPrice > 0) {
-        setPaymentType(entered > 0 && entered < fullPrice ? 'part' : 'full')
+      const price   = parseFloat(selectedOrder.price) || 0
+      const entered = parseFloat(value) || 0
+      if (price > 0) {
+        setPaymentType(entered > 0 && entered < price ? 'part' : 'full')
       }
     }
   }
 
   function handleSave() {
     if (!selectedOrder || !amount || existingPayment) return
-
     const finalStatus = resolvePaymentStatus(amount, selectedOrder.price, paymentType)
-
     onSave({
       orderId:      selectedOrder.id,
       orderDesc:    selectedOrder.desc,
@@ -253,160 +289,305 @@ function AddPaymentModal({ isOpen, onClose, orders, payments, onSave }) {
       installments: [{ amount: parseFloat(amount), method, date: getTodayLabel(), id: Date.now() }],
       date:         getTodayLabel(),
     })
-    resetForm()
     onClose()
   }
 
-  if (!isOpen) return null
+  // ── Render ────────────────────────────────────────────────
 
   return (
-    <div className={styles.fullScreenModal}>
-      <Header
-        type="back"
-        title="New Payment"
-        onBackClick={handleClose}
-        customActions={[
-          { label: 'Save', onClick: handleSave, disabled: !selectedOrder || !amount || !!existingPayment }
-        ]}
-      />
+    <div className={`${styles.pickerOverlay} ${isOpen ? styles.pickerOverlay_open : ''}`}>
 
-      <div className={styles.modalBody}>
+      {/* ════════════════════════════════════
+          STEP 1 — Order picker
+          ════════════════════════════════════ */}
+      {step === 'order' && (
+        <>
+          <Header
+            type="back"
+            title="New Payment"
+            onBackClick={onClose}
+          />
 
-        {/* Order selector */}
-        <div className={styles.fieldGroup}>
-          <label className={styles.fieldLabel}>Related Order *</label>
-          {selectedOrder ? (
-            <div className={styles.selectedOrderChip}>
-              <span className="mi" style={{ fontSize: '1rem', color: 'var(--accent)' }}>content_cut</span>
-              <div style={{ flex: 1 }}>
-                <div className={styles.selectedOrderName}>{selectedOrder.desc}</div>
-                <div className={styles.selectedOrderMeta}>{formatMoney(selectedOrder.price)} · {selectedOrder.status}</div>
+          <div className={styles.pickerSubtitleBar}>
+            Choose an order to record a payment for
+          </div>
+
+          {/* Search bar — only when more than 5 orders */}
+          {showSearch && (
+            <>
+              <div className={styles.pickerSearchWrap}>
+                <span className="mi" style={{ fontSize: '1.1rem', color: 'var(--text3)' }}>search</span>
+                <input
+                  type="text"
+                  className={styles.pickerSearchInput}
+                  placeholder="Search orders…"
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                />
+                {search.length > 0 && (
+                  <button className={styles.pickerSearchClear} onClick={() => setSearch('')}>
+                    <span className="mi" style={{ fontSize: '1rem' }}>close</span>
+                  </button>
+                )}
               </div>
-              <button className={styles.selectedOrderRemoveBtn} onClick={() => setSelectedOrder(null)}>
-                <span className="mi" style={{ fontSize: '1rem' }}>close</span>
-              </button>
-            </div>
-          ) : (
-            <div className={styles.orderDropdownWrap}>
-              <button className={styles.orderDropdownBtn} onClick={() => setOrderDropOpen(p => !p)}>
-                <span className="mi" style={{ fontSize: '1.1rem', color: 'var(--text3)' }}>assignment</span>
-                <span>{orders.length === 0 ? 'No orders available' : 'Select an order…'}</span>
-                <span className="mi" style={{ fontSize: '1rem', color: 'var(--text3)', marginLeft: 'auto' }}>expand_more</span>
-              </button>
-              {orderDropOpen && orders.length > 0 && (
-                <div className={styles.orderDropdownList}>
-                  {orders.map(order => (
-                    <button
-                      key={order.id}
-                      className={styles.orderDropdownItem}
-                      onClick={() => { setSelectedOrder(order); setOrderDropOpen(false) }}
-                    >
-                      <span className="mi" style={{ fontSize: '1.1rem', color: 'var(--text3)' }}>content_cut</span>
-                      <div>
-                        <div className={styles.orderDropdownItemName}>{order.desc}</div>
-                        <div className={styles.orderDropdownItemMeta}>{formatMoney(order.price)} · Due {order.due || '—'}</div>
-                      </div>
-                    </button>
-                  ))}
+
+              {search.trim() && (
+                <div className={styles.pickerCountLine}>
+                  {filteredOrders.length} {filteredOrders.length === 1 ? 'order' : 'orders'} matching &ldquo;{search}&rdquo;
                 </div>
               )}
-            </div>
+            </>
           )}
-        </div>
 
-        {/* If this order already has a payment, show a notice instead of the form */}
-        {existingPayment ? (
-          <div className={styles.duplicatePaymentNotice}>
-            <div className={styles.duplicatePaymentIconCircle}>
-              <span className="mi" style={{ fontSize: '1.6rem', color: existingIsFullyPaid ? '#15803d' : '#c2410c' }}>
-                {existingIsFullyPaid ? 'check_circle' : 'payments'}
-              </span>
-            </div>
-            <div className={styles.duplicatePaymentTitle}>
-              {existingIsFullyPaid ? 'This order is fully paid' : 'Payment already in progress'}
-            </div>
-            <p className={styles.duplicatePaymentBody}>
-              {existingIsFullyPaid
-                ? `A full payment has already been recorded for "${selectedOrder.desc}". Tap the payment card on the Payments tab to view the details.`
-                : `A payment card already exists for "${selectedOrder.desc}". To record the next instalment, tap that card and use the "Record Another Payment" option.`}
-            </p>
-            <button className={styles.duplicatePaymentDismissBtn} onClick={handleClose}>
-              Got it
-            </button>
+          <div className={styles.pickerList}>
+
+            {orders.length === 0 && (
+              <div className={styles.pickerEmpty}>
+                <span className="mi" style={{ fontSize: '2rem', color: 'var(--text3)' }}>assignment</span>
+                <p>No orders available.</p>
+                <p style={{ fontSize: '0.72rem', color: 'var(--text3)', marginTop: 4 }}>
+                  Create an order first before recording a payment.
+                </p>
+              </div>
+            )}
+
+            {orders.length > 0 && filteredOrders.length === 0 && (
+              <div className={styles.pickerEmpty}>
+                <span className="mi" style={{ fontSize: '2rem', color: 'var(--text3)' }}>search_off</span>
+                <p>No orders match your search</p>
+              </div>
+            )}
+
+            {filteredOrders.map((order, index) => {
+              const existingPmt       = payments.find(p => String(p.orderId) === String(order.id))
+              const alreadyHasPayment = !!existingPmt
+              const isPaid            = existingPmt?.status === 'paid'
+              const isLast            = index === filteredOrders.length - 1
+
+              return (
+                <div
+                  key={order.id}
+                  className={`${styles.pickerOrderCard} ${isLast ? styles.pickerOrderCard_last : ''}`}
+                  onClick={() => handlePickOrder(order)}
+                >
+                  {/* Thumbnail */}
+                  <OrderMosaic
+                    orderItems={order.items || []}
+                    fallbackIcon="content_cut"
+                    fallbackColor="var(--text3)"
+                  />
+
+                  {/* Info stack */}
+                  <div className={styles.pickerOrderInfo}>
+                    <span className={styles.pickerOrderTitle}>
+                      {order.desc || 'Untitled Order'}
+                    </span>
+                    <span className={styles.pickerOrderPrice}>
+                      {formatMoney(order.price)}
+                    </span>
+                    {order.due && (
+                      <span className={styles.pickerOrderDue}>
+                        Due {order.due}
+                      </span>
+                    )}
+                    {isPaid ? (
+                      <span className={styles.pickerFullPaidBadge}>
+                        <span className="mi" style={{ fontSize: '0.65rem' }}>check_circle</span>
+                        Paid in full
+                      </span>
+                    ) : alreadyHasPayment ? (
+                      <span className={styles.pickerBalanceBadge}>
+                        Payment in progress
+                      </span>
+                    ) : null}
+                  </div>
+
+                  {/* Chevron */}
+                  <div className={styles.pickerChevron}>
+                    <span className="mi" style={{ fontSize: '1.2rem', color: 'var(--text3)' }}>
+                      chevron_right
+                    </span>
+                  </div>
+                </div>
+              )
+            })}
+
+            <div style={{ height: 40 }} />
           </div>
-        ) : (
-          <>
-            {/* Payment type selector */}
-            <div className={styles.fieldGroup}>
-              <label className={styles.fieldLabel}>Payment Type</label>
-              <div className={styles.chipRow}>
-                <button
-                  className={`${styles.typeChip} ${paymentType === 'full' ? styles.typeChipActive : ''}`}
-                  style={paymentType === 'full'
-                    ? { borderColor: '#22c55e', color: '#22c55e', background: 'rgba(34,197,94,0.12)' }
-                    : {}}
-                  onClick={() => setPaymentType('full')}
-                >
-                  Full Payment
-                </button>
-                <button
-                  className={`${styles.typeChip} ${paymentType === 'part' ? styles.typeChipActive : ''}`}
-                  style={paymentType === 'part'
-                    ? { borderColor: '#fb923c', color: '#fb923c', background: 'rgba(251,146,60,0.12)' }
-                    : {}}
-                  onClick={() => setPaymentType('part')}
-                >
-                  Part Payment
-                </button>
+        </>
+      )}
+
+      {/* ════════════════════════════════════
+          STEP 2 — Payment form
+          ════════════════════════════════════ */}
+      {step === 'form' && selectedOrder && (
+        <>
+          <Header
+            type="back"
+            title="New Payment"
+            onBackClick={handleBack}
+            customActions={
+              !existingPayment
+                ? [{ label: 'Save', onClick: handleSave, disabled: !amount }]
+                : []
+            }
+          />
+
+          <div className={styles.pickerList}>
+
+            {/* Order context card — mirrors ReceiptPickerModal's orderContextCard */}
+            <div className={styles.orderContextCard}>
+              <div className={styles.orderContextLeft}>
+                <OrderMosaic
+                  orderItems={selectedOrder.items || []}
+                  fallbackIcon="content_cut"
+                  fallbackColor="var(--text3)"
+                />
+              </div>
+              <div className={styles.orderContextBody}>
+                <div className={styles.orderContextName}>
+                  {selectedOrder.desc || 'Untitled Order'}
+                </div>
+                {fullPrice > 0 && (
+                  <div className={styles.orderContextStats}>
+                    <div className={styles.orderContextStat}>
+                      <span className={styles.orderContextStatLabel}>Total</span>
+                      <span className={styles.orderContextStatValue}>
+                        {formatMoney(fullPrice)}
+                      </span>
+                    </div>
+                    {existingPayment && (
+                      <>
+                        <div className={styles.orderContextDivider} />
+                        <div className={styles.orderContextStat}>
+                          <span className={styles.orderContextStatLabel}>Paid</span>
+                          <span className={styles.orderContextStatValue} style={{ color: '#15803d' }}>
+                            {formatMoney(totalAlreadyPaid)}
+                          </span>
+                        </div>
+                        <div className={styles.orderContextDivider} />
+                        <div className={styles.orderContextStat}>
+                          <span className={styles.orderContextStatLabel}>
+                            {existingIsFullyPaid ? 'Status' : 'Balance'}
+                          </span>
+                          <span
+                            className={styles.orderContextStatValue}
+                            style={{ color: existingIsFullyPaid ? '#15803d' : '#dc2626' }}
+                          >
+                            {existingIsFullyPaid ? 'Paid in Full' : formatMoney(balance)}
+                          </span>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
+                {selectedOrder.due && (
+                  <div className={styles.orderContextFooter}>Due {selectedOrder.due}</div>
+                )}
               </div>
             </div>
 
-            {/* Amount input */}
-            <div className={styles.fieldGroup}>
-              <label className={styles.fieldLabel}>
-                {paymentType === 'part' ? 'Initial Amount Paid (₦)' : 'Amount (₦)'}
-              </label>
-              <input
-                type="number"
-                className={styles.textInput}
-                placeholder={selectedOrder ? `of ${formatMoney(selectedOrder.price)}` : '0.00'}
-                inputMode="decimal"
-                value={amount}
-                onChange={e => handleAmountChange(e.target.value)}
-              />
-            </div>
-
-            {/* Payment method selector */}
-            <div className={styles.fieldGroup}>
-              <label className={styles.fieldLabel}>Payment Method</label>
-              <div className={styles.methodChipRow}>
-                {['cash', 'transfer', 'card', 'other'].map(m => (
-                  <button
-                    key={m}
-                    className={`${styles.methodChip} ${method === m ? styles.methodChipActive : ''}`}
-                    onClick={() => setMethod(m)}
-                  >
-                    {capitalise(m)}
-                  </button>
-                ))}
+            {/* ── Duplicate notice ── */}
+            {existingPayment ? (
+              <div className={styles.duplicatePaymentNotice}>
+                <div className={styles.duplicatePaymentIconCircle}>
+                  <span className="mi" style={{ fontSize: '1.6rem', color: existingIsFullyPaid ? '#15803d' : '#c2410c' }}>
+                    {existingIsFullyPaid ? 'check_circle' : 'payments'}
+                  </span>
+                </div>
+                <div className={styles.duplicatePaymentTitle}>
+                  {existingIsFullyPaid ? 'This order is fully paid' : 'Payment already in progress'}
+                </div>
+                <p className={styles.duplicatePaymentBody}>
+                  {existingIsFullyPaid
+                    ? `A full payment has already been recorded for "${selectedOrder.desc}". Tap the payment card on the Payments tab to view the details.`
+                    : `A payment card already exists for "${selectedOrder.desc}". To record the next instalment, tap that card and use the "Record Another Payment" option.`}
+                </p>
+                <button className={styles.duplicatePaymentDismissBtn} onClick={onClose}>
+                  Got it
+                </button>
               </div>
-            </div>
+            ) : (
+              /* ── Payment form fields ── */
+              <div className={styles.pickerFormBody}>
 
-            {/* Notes input */}
-            <div className={styles.fieldGroup}>
-              <label className={styles.fieldLabel}>Notes <span className={styles.fieldLabelOptional}>(optional)</span></label>
-              <textarea
-                className={styles.textareaInput}
-                placeholder="Any extra details…"
-                value={notes}
-                rows={2}
-                onChange={e => setNotes(e.target.value)}
-              />
-            </div>
-          </>
-        )}
+                {/* Payment type */}
+                <div className={styles.fieldGroup}>
+                  <label className={styles.fieldLabel}>Payment Type</label>
+                  <div className={styles.chipRow}>
+                    <button
+                      className={`${styles.typeChip} ${paymentType === 'full' ? styles.typeChipActive : ''}`}
+                      style={paymentType === 'full'
+                        ? { borderColor: '#22c55e', color: '#22c55e', background: 'rgba(34,197,94,0.12)' }
+                        : {}}
+                      onClick={() => setPaymentType('full')}
+                    >
+                      Full Payment
+                    </button>
+                    <button
+                      className={`${styles.typeChip} ${paymentType === 'part' ? styles.typeChipActive : ''}`}
+                      style={paymentType === 'part'
+                        ? { borderColor: '#fb923c', color: '#fb923c', background: 'rgba(251,146,60,0.12)' }
+                        : {}}
+                      onClick={() => setPaymentType('part')}
+                    >
+                      Part Payment
+                    </button>
+                  </div>
+                </div>
 
-      </div>
+                {/* Amount */}
+                <div className={styles.fieldGroup}>
+                  <label className={styles.fieldLabel}>
+                    {paymentType === 'part' ? 'Initial Amount Paid (₦)' : 'Amount (₦)'}
+                  </label>
+                  <input
+                    type="number"
+                    className={styles.textInput}
+                    placeholder={selectedOrder ? `of ${formatMoney(selectedOrder.price)}` : '0.00'}
+                    inputMode="decimal"
+                    value={amount}
+                    onChange={e => handleAmountChange(e.target.value)}
+                  />
+                </div>
+
+                {/* Payment method */}
+                <div className={styles.fieldGroup}>
+                  <label className={styles.fieldLabel}>Payment Method</label>
+                  <div className={styles.methodChipRow}>
+                    {['cash', 'transfer', 'card', 'other'].map(m => (
+                      <button
+                        key={m}
+                        className={`${styles.methodChip} ${method === m ? styles.methodChipActive : ''}`}
+                        onClick={() => setMethod(m)}
+                      >
+                        {capitalise(m)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Notes */}
+                <div className={styles.fieldGroup}>
+                  <label className={styles.fieldLabel}>
+                    Notes <span className={styles.fieldLabelOptional}>(optional)</span>
+                  </label>
+                  <textarea
+                    className={styles.textareaInput}
+                    placeholder="Any extra details…"
+                    value={notes}
+                    rows={2}
+                    onChange={e => setNotes(e.target.value)}
+                  />
+                </div>
+
+              </div>
+            )}
+
+            <div style={{ height: 40 }} />
+          </div>
+        </>
+      )}
     </div>
   )
 }
@@ -549,8 +730,8 @@ function PaymentDetail({ payment, onClose, onDelete, onStatusChange, onAddInstal
             </div>
 
             {installments.map((inst, idx) => {
-              const paidBefore  = getTotalPaid(installments.slice(0, idx))
-              const paidAfter   = paidBefore + (parseFloat(inst.amount) || 0)
+              const paidBefore   = getTotalPaid(installments.slice(0, idx))
+              const paidAfter    = paidBefore + (parseFloat(inst.amount) || 0)
               const balanceAfter = Math.max(0, fullPrice - paidAfter)
               const methodLabel  = inst.method ? capitalise(inst.method) : ''
 
@@ -721,13 +902,13 @@ export default function PaymentsTab({ customerId, orders, showToast, onGenerateR
       user.uid,
       customerId,
       (data) => {
-      setPayments(data)
-      onPaymentsChange?.(data)   // ← add this line
-      setViewingPayment(prev => {
-        if (!prev) return null
-        return data.find(p => p.id === prev.id) ?? null
-  })
-    },
+        setPayments(data)
+        onPaymentsChange?.(data)
+        setViewingPayment(prev => {
+          if (!prev) return null
+          return data.find(p => p.id === prev.id) ?? null
+        })
+      },
       (err) => console.error('[PaymentsTab]', err)
     )
     return unsubscribe
@@ -823,14 +1004,14 @@ export default function PaymentsTab({ customerId, orders, showToast, onGenerateR
           <div className={styles.dateGroupDivider} />
 
           {datePayments.map((payment, index) => {
-            const statusMeta    = getStatusMeta(payment.status)
-            const isLast        = index === datePayments.length - 1
-            const installments  = payment.installments || []
-            const totalPaid     = getTotalPaid(installments)
-            const fullPrice     = parseFloat(payment.orderPrice) || 0
-            const installCount  = installments.length
-            const progressPct   = getProgressPercent(totalPaid, fullPrice, payment.status)
-            const orderItems    = orderItemsMap[payment.orderId] ?? []
+            const statusMeta   = getStatusMeta(payment.status)
+            const isLast       = index === datePayments.length - 1
+            const installments = payment.installments || []
+            const totalPaid    = getTotalPaid(installments)
+            const fullPrice    = parseFloat(payment.orderPrice) || 0
+            const installCount = installments.length
+            const progressPct  = getProgressPercent(totalPaid, fullPrice, payment.status)
+            const orderItems   = orderItemsMap[payment.orderId] ?? []
 
             return (
               <div

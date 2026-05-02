@@ -277,7 +277,7 @@ function ReceiptPickerModal({ isOpen, onClose, orders, payments, receipts, onSel
       {/* Subtitle */}
       <div className={styles.pickerSubtitleBar}>
         {step === 'order'
-          ? 'Choose an order to generate a receipt from'
+          ? 'Choose an order to generate a receipt for'
           : 'Select a payment to generate a receipt for'
         }
       </div>

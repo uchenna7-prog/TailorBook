@@ -301,7 +301,321 @@
 
 
 /* ─────────────────────────────────────────────────────────────
-   FULL-SCREEN MODAL (Add Payment + Payment Detail)
+   ADD PAYMENT MODAL — full-screen overlay (slide-up from bottom)
+   Matches ReceiptTab's pickerOverlay pattern exactly.
+   ───────────────────────────────────────────────────────────── */
+
+.pickerOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--bg);
+  z-index: 3500;
+  display: flex;
+  flex-direction: column;
+  transform: translateY(100%);
+  transition: transform 0.38s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.pickerOverlay_open {
+  transform: translateY(0);
+}
+
+/* ── Subtitle bar directly below the Header ── */
+.pickerSubtitleBar {
+  text-transform: uppercase;
+  margin: 16px 0;
+  font-size: 0.8rem;
+  color: var(--text3);
+  font-weight: 900;
+  padding: 0 16px 12px;
+  flex-shrink: 0;
+}
+
+/* ── Search bar ── */
+.pickerSearchWrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 16px 6px;
+  background: var(--surface);
+  border: 1.5px solid var(--border2);
+  border-radius: 12px;
+  padding: 0 12px;
+  flex-shrink: 0;
+  transition: border-color 0.15s;
+}
+
+.pickerSearchWrap:focus-within {
+  border-color: var(--accent);
+}
+
+.pickerSearchInput {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 500;
+  padding: 11px 0;
+}
+
+.pickerSearchInput::placeholder {
+  color: var(--text3);
+}
+
+.pickerSearchClear {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text3);
+  display: flex;
+  align-items: center;
+  padding: 0;
+}
+
+/* ── Count line — shown only when search is active ── */
+.pickerCountLine {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--text3);
+  padding: 0 16px 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  flex-shrink: 0;
+}
+
+/* ── Scrollable list area ── */
+.pickerList {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 0 16px;
+}
+
+/* ── Empty / no-results state ── */
+.pickerEmpty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 48px 20px;
+  text-align: center;
+}
+
+.pickerEmpty p {
+  font-size: 0.82rem;
+  color: var(--text3);
+  margin: 0;
+}
+
+/* ── Order card (step 1) ── */
+.pickerOrderCard {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  margin-bottom: 16px;
+  cursor: pointer;
+  position: relative;
+  transition: background 0.12s, opacity 0.2s;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}
+
+.pickerOrderCard::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 70px;
+  right: 0;
+  height: 1px;
+  background: var(--border);
+}
+
+.pickerOrderCard_last::after {
+  display: none;
+}
+
+.pickerOrderCard:active {
+  background: var(--surface);
+}
+
+/* ── Order info — vertical stack ── */
+.pickerOrderInfo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+/* Order name — full, wraps naturally */
+.pickerOrderTitle {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+/* Price */
+.pickerOrderPrice {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--text);
+}
+
+/* Due date — red, small */
+.pickerOrderDue {
+  font-size: 9px;
+  font-weight: 600;
+  color: #dc2626;
+  margin-top: 1px;
+}
+
+/* "Paid in full" badge — green */
+.pickerFullPaidBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 5px;
+  background: rgba(34, 197, 94, 0.1);
+  color: #15803d;
+  border: 1px solid rgba(34, 197, 94, 0.25);
+  white-space: nowrap;
+  align-self: flex-start;
+  margin-top: 2px;
+}
+
+/* "Payment in progress" badge — orange */
+.pickerBalanceBadge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 5px;
+  background: rgba(251, 146, 60, 0.1);
+  color: #c2410c;
+  border: 1px solid rgba(251, 146, 60, 0.25);
+  white-space: nowrap;
+  align-self: flex-start;
+  margin-top: 2px;
+}
+
+/* Chevron on the right of each order card */
+.pickerChevron {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+
+/* ─────────────────────────────────────────────────────────────
+   ORDER CONTEXT CARD — bold header shown on step 2
+   Mirrors ReceiptPickerModal's orderContextCard exactly.
+   ───────────────────────────────────────────────────────────── */
+
+.orderContextCard {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 16px 0 14px;
+  padding: 14px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
+  flex-shrink: 0;
+}
+
+.orderContextLeft {
+  flex-shrink: 0;
+  padding-top: 2px;
+}
+
+.orderContextBody {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Order name — large and bold, the hero element */
+.orderContextName {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1.3;
+  word-break: break-word;
+}
+
+/* Three-stat row: Total · Paid · Balance */
+.orderContextStats {
+  display: flex;
+  align-items: center;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.orderContextStat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 4px;
+}
+
+.orderContextStatLabel {
+  font-size: 0.6rem;
+  font-weight: 600;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.orderContextStatValue {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+/* Thin vertical divider between stats */
+.orderContextDivider {
+  width: 1px;
+  height: 32px;
+  background: var(--border);
+  flex-shrink: 0;
+}
+
+/* Footer line: "Due …" */
+.orderContextFooter {
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--text3);
+}
+
+
+/* ── Payment form body (step 2, no duplicate) ── */
+.pickerFormBody {
+  padding-top: 4px;
+}
+
+
+/* ─────────────────────────────────────────────────────────────
+   FULL-SCREEN MODAL (Payment Detail)
    ───────────────────────────────────────────────────────────── */
 
 .fullScreenModal {
@@ -445,105 +759,6 @@
   background: var(--surface2);
   border-color: var(--accent);
   color: var(--accent);
-}
-
-
-/* ── ORDER DROPDOWN (inside Add Payment modal) ── */
-
-.orderDropdownWrap {
-  position: relative;
-}
-
-.orderDropdownBtn {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: var(--surface);
-  border: 1px solid var(--border2);
-  border-radius: 12px;
-  padding: 13px 14px;
-  color: var(--text3);
-  font-size: 0.88rem;
-  cursor: pointer;
-  font-family: 'DM Sans', sans-serif;
-}
-
-.orderDropdownList {
-  position: absolute;
-  top: calc(100% + 4px);
-  left: 0;
-  right: 0;
-  background: var(--surface);
-  border: 1px solid var(--border2);
-  border-radius: 12px;
-  z-index: 100;
-  overflow: hidden;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-}
-
-.orderDropdownItem {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px 14px;
-  border: none;
-  background: none;
-  width: 100%;
-  text-align: left;
-  cursor: pointer;
-  font-family: 'DM Sans', sans-serif;
-}
-
-.orderDropdownItem:active {
-  background: var(--surface2);
-}
-
-.orderDropdownItemName {
-  font-size: 0.88rem;
-  font-weight: 700;
-  color: var(--text);
-}
-
-.orderDropdownItemMeta {
-  font-size: 0.7rem;
-  color: var(--text3);
-  margin-top: 2px;
-}
-
-
-/* ── SELECTED ORDER CHIP (shown after an order is picked) ── */
-
-.selectedOrderChip {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: var(--surface);
-  border: 1px solid var(--accent);
-  border-radius: 12px;
-  padding: 12px 14px;
-}
-
-.selectedOrderName {
-  font-size: 0.88rem;
-  font-weight: 700;
-  color: var(--text);
-}
-
-.selectedOrderMeta {
-  font-size: 0.72rem;
-  color: var(--text3);
-  margin-top: 2px;
-}
-
-.selectedOrderRemoveBtn {
-  background: none;
-  border: none;
-  color: var(--text3);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  margin-left: auto;
 }
 
 
