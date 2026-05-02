@@ -223,20 +223,20 @@ function OrderMosaic({ orderItems, fallbackIcon, size = 68 }) {
 
 // ─────────────────────────────────────────────────────────────
 // ORDER PICKER MODAL
-// Full-screen overlay (like MeasurementTab) — Header component
-// at the top, scrollable order list below.
-// Tapping an un-invoiced order shows an inline "Creating…" state
-// on that card while the invoice is being generated.
+// Full-screen overlay — Header at top, scrollable order list.
+// Search bar only visible when orders.length > 5.
+// Card layout: name → price → item count → due date.
 // ─────────────────────────────────────────────────────────────
 
 function OrderPickerModal({ isOpen, onClose, orders, invoices, onSelectOrder, generating }) {
-  const [search, setSearch] = useState('')
-  const searchRef           = useRef(null)
-  const currency            = getCurrency()
+  const [search, setSearch]   = useState('')
+  const searchRef             = useRef(null)
+  const currency              = getCurrency()
+  const showSearch            = orders.length > 5
 
-  // Focus search when modal opens
+  // Focus search when modal opens (only relevant when search is shown)
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && showSearch) {
       setTimeout(() => searchRef.current?.focus(), 350)
     } else {
       setSearch('')
@@ -247,12 +247,12 @@ function OrderPickerModal({ isOpen, onClose, orders, invoices, onSelectOrder, ge
     if (!search.trim()) return true
     const q = search.toLowerCase()
     return (
-      (order.desc   || '').toLowerCase().includes(q) ||
-      (order.status || '').toLowerCase().includes(q) ||
-      (order.stage  || '').toLowerCase().replace(/_/g, ' ').includes(q) ||
-      (order.due    || '').toLowerCase().includes(q) ||
+      (order.desc    || '').toLowerCase().includes(q) ||
+      (order.status  || '').toLowerCase().includes(q) ||
+      (order.stage   || '').toLowerCase().replace(/_/g, ' ').includes(q) ||
+      (order.due     || '').toLowerCase().includes(q) ||
       (order.takenAt || '').toLowerCase().includes(q) ||
-      (order.items  || []).some(i => (i.name || '').toLowerCase().includes(q))
+      (order.items   || []).some(i => (i.name || '').toLowerCase().includes(q))
     )
   })
 
@@ -262,41 +262,46 @@ function OrderPickerModal({ isOpen, onClose, orders, invoices, onSelectOrder, ge
   return (
     <div className={`${styles.pickerOverlay} ${isOpen ? styles.pickerOverlay_open : ''}`}>
 
-      {/* Full-screen header using the shared Header component */}
+      {/* Full-screen header */}
       <Header
         type="back"
         title="New Invoice"
         onBackClick={onClose}
       />
 
-      {/* Subtitle line */}
+      {/* Subtitle */}
       <div className={styles.pickerSubtitleBar}>
         Choose an order to create or view an invoice
       </div>
 
-      {/* Search bar */}
-      <div className={styles.pickerSearchWrap}>
-        <span className="mi" style={{ fontSize: '1.1rem', color: 'var(--text3)' }}>search</span>
-        <input
-          ref={searchRef}
-          type="text"
-          className={styles.pickerSearchInput}
-          placeholder="Search orders…"
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-        />
-        {search.length > 0 && (
-          <button className={styles.pickerSearchClear} onClick={() => setSearch('')}>
-            <span className="mi" style={{ fontSize: '1rem' }}>close</span>
-          </button>
-        )}
-      </div>
+      {/* Search bar — only shown when orders > 5 */}
+      {showSearch && (
+        <>
+          <div className={styles.pickerSearchWrap}>
+            <span className="mi" style={{ fontSize: '1.1rem', color: 'var(--text3)' }}>search</span>
+            <input
+              ref={searchRef}
+              type="text"
+              className={styles.pickerSearchInput}
+              placeholder="Search orders…"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+            />
+            {search.length > 0 && (
+              <button className={styles.pickerSearchClear} onClick={() => setSearch('')}>
+                <span className="mi" style={{ fontSize: '1rem' }}>close</span>
+              </button>
+            )}
+          </div>
 
-      {/* Count line */}
-      <div className={styles.pickerCountLine}>
-        {filtered.length} {filtered.length === 1 ? 'order' : 'orders'}
-        {search.trim() ? ` matching "${search}"` : ''}
-      </div>
+          {/* Count line — only meaningful when search is active */}
+          {search.trim() && (
+            <div className={styles.pickerCountLine}>
+              {filtered.length} {filtered.length === 1 ? 'order' : 'orders'} matching &ldquo;{search}&rdquo;
+            </div>
+          )}
+        </>
+      )}
 
       {/* Orders list */}
       <div className={styles.pickerList}>
@@ -309,20 +314,13 @@ function OrderPickerModal({ isOpen, onClose, orders, invoices, onSelectOrder, ge
         )}
 
         {filtered.map((order, index) => {
-          const isInvoiced  = invoicedOrderIds.has(String(order.id))
-          const existingInv = isInvoiced ? invoices.find(inv => String(inv.orderId) === String(order.id)) : null
+          const isInvoiced   = invoicedOrderIds.has(String(order.id))
+          const existingInv  = isInvoiced ? invoices.find(inv => String(inv.orderId) === String(order.id)) : null
           const isGenerating = generating === order.id
-          const items       = order.items || []
-          const itemCount   = items.length
-          const price       = parseFloat(order.price) || 0
-          const statusStyle = ORDER_STATUS_STYLES[order.status] || ORDER_STATUS_STYLES.pending
-          const statusLabel = ORDER_STATUS_LABELS[order.status] || 'Pending'
-          const stageLabel  = order.stage ? STAGE_LABELS[order.stage] : null
-          const stageIcon   = order.stage ? STAGE_ICONS[order.stage]  : null
-          const isLast      = index === filtered.length - 1
-
-          // Garment names joined
-          const garmentNames = items.map(i => i.name).filter(Boolean).join(' · ')
+          const items        = order.items || []
+          const itemCount    = items.length
+          const price        = parseFloat(order.price) || 0
+          const isLast       = index === filtered.length - 1
 
           return (
             <div
@@ -338,45 +336,32 @@ function OrderPickerModal({ isOpen, onClose, orders, invoices, onSelectOrder, ge
               {/* Thumbnail */}
               <OrderMosaic orderItems={items} fallbackIcon="receipt_long" size={56} />
 
-              {/* Main info */}
+              {/* Main info — vertical stack */}
               <div className={styles.pickerOrderInfo}>
 
-                {/* Row 1: title + price */}
-                <div className={styles.pickerOrderTop}>
-                  <span className={styles.pickerOrderTitle}>
-                    {order.desc || 'Untitled Order'}
-                  </span>
-                  <span className={styles.pickerOrderPrice}>
-                    {formatMoney(currency, price)}
-                  </span>
-                </div>
+                {/* Order name — full, wraps if needed */}
+                <span className={styles.pickerOrderTitle}>
+                  {order.desc || 'Untitled Order'}
+                </span>
 
-                {/* Row 2: garment names (if any) */}
-                {garmentNames ? (
-                  <div className={styles.pickerGarmentNames}>{garmentNames}</div>
-                ) : itemCount > 0 ? (
-                  <div className={styles.pickerGarmentNames}>
+                {/* Price */}
+                <span className={styles.pickerOrderPrice}>
+                  {formatMoney(currency, price)}
+                </span>
+
+                {/* Item count */}
+                {itemCount > 0 && (
+                  <span className={styles.pickerOrderMeta}>
                     {itemCount} {itemCount === 1 ? 'item' : 'items'}
-                  </div>
-                ) : null}
-
-                {/* Row 3: status badge + stage badge + due date */}
-                <div className={styles.pickerOrderBadges}>
-                  <span className={styles.pickerStatusBadge} style={statusStyle}>
-                    {statusLabel}
                   </span>
-                  {stageLabel && (
-                    <span className={styles.pickerStageBadge}>
-                      <span className="mi" style={{ fontSize: '0.65rem' }}>{stageIcon}</span>
-                      {stageLabel}
-                    </span>
-                  )}
-                  {order.due && (
-                    <span className={styles.pickerDueBadge}>
-                      Due {order.due}
-                    </span>
-                  )}
-                </div>
+                )}
+
+                {/* Due date */}
+                {order.due && (
+                  <span className={styles.pickerOrderDue}>
+                    Due {order.due}
+                  </span>
+                )}
               </div>
 
               {/* Right indicator */}
@@ -402,7 +387,7 @@ function OrderPickerModal({ isOpen, onClose, orders, invoices, onSelectOrder, ge
           )
         })}
 
-        {/* Bottom padding for safe area */}
+        {/* Bottom safe-area padding */}
         <div style={{ height: 40 }} />
       </div>
     </div>

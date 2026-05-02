@@ -181,55 +181,105 @@
 
 /* ── Subtitle bar below the Header ── */
 .pickerSubtitleBar {
-  font-size: 0.75rem;
+  text-transform: uppercase;
+  margin: 16px 0;
+  font-size: 0.8rem;
   color: var(--text3);
-  font-weight: 400;
-  padding: 0 16px 10px;
+  font-weight: 900;
+  padding: 0 16px 12px;
   flex-shrink: 0;
 }
 
-.pickerBreadcrumb {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--accent);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 240px;
-}
 
-/* ── Order summary strip (shown at top of step 2) ── */
-.pickerOrderSummary {
+/* ─────────────────────────────────────────────────────────────
+   ORDER CONTEXT CARD — bold header on step 2
+   Shows the order the user picked with key payment stats.
+   ───────────────────────────────────────────────────────────── */
+
+.orderContextCard {
   display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 0 16px 10px;
-  padding: 10px 12px;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 0 16px 14px;
+  padding: 14px;
   background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
   flex-shrink: 0;
 }
 
-.pickerOrderSummaryInfo {
+.orderContextLeft {
+  flex-shrink: 0;
+  padding-top: 2px;
+}
+
+.orderContextBody {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
-.pickerOrderSummaryTitle {
-  font-size: 0.85rem;
-  font-weight: 700;
+/* Order name — large and bold, the hero element */
+.orderContextName {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1.3;
+  word-break: break-word;
+}
+
+/* Three-stat row: Total · Paid · Balance */
+.orderContextStats {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.orderContextStat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 4px;
+}
+
+.orderContextStatLabel {
+  font-size: 0.6rem;
+  font-weight: 600;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.orderContextStatValue {
+  font-size: 0.82rem;
+  font-weight: 800;
   color: var(--text);
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
-.pickerOrderSummaryMeta {
-  font-size: 0.72rem;
-  color: var(--text3);
-  margin-top: 2px;
+/* Thin vertical divider between stats */
+.orderContextDivider {
+  width: 1px;
+  height: 32px;
+  background: var(--border);
+  flex-shrink: 0;
 }
+
+/* Footer line: "X payments recorded" */
+.orderContextFooter {
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--text3);
+}
+
 
 /* ── Search bar ── */
 .pickerSearchWrap {
@@ -275,7 +325,7 @@
   padding: 0;
 }
 
-/* ── Count line ── */
+/* ── Count line — shown only when searching ── */
 .pickerCountLine {
   font-size: 0.65rem;
   font-weight: 700;
@@ -294,7 +344,7 @@
   padding: 0 16px;
 }
 
-/* ── Empty search result ── */
+/* ── Empty result ── */
 .pickerEmpty {
   display: flex;
   flex-direction: column;
@@ -315,20 +365,22 @@
 
 .pickerOrderCard {
   display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 14px 0;
+  align-items: center;
+  gap: 14px;
+  padding: 16px ;
+  margin-bottom: 16px;
   cursor: pointer;
   position: relative;
-  transition: background 0.12s;
-  border-radius: 4px;
+  transition: background 0.12s, opacity 0.2s;
+  border-radius: 10px;
+  border: 1px solid var(--border);
 }
 
 .pickerOrderCard::after {
   content: '';
   position: absolute;
   bottom: 0;
-  left: 74px;
+  left: 70px;
   right: 0;
   height: 1px;
   background: var(--border);
@@ -342,79 +394,45 @@
   background: var(--surface);
 }
 
+/* Vertical info stack */
 .pickerOrderInfo {
   flex: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
 }
 
-.pickerOrderTop {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 6px;
-}
-
+/* Order name — full, wraps naturally */
 .pickerOrderTitle {
-  font-size: 0.88rem;
+  font-size: 11px;
   font-weight: 700;
   color: var(--text);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  flex: 1;
-  line-height: 1.3;
+  line-height: 1.35;
+  word-break: break-word;
 }
 
+/* Price */
 .pickerOrderPrice {
-  font-size: 0.88rem;
+  font-size: 11px;
   font-weight: 800;
   color: var(--text);
-  white-space: nowrap;
-  flex-shrink: 0;
 }
 
+/* Payment count */
 .pickerOrderMeta {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.pickerMetaChip {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  font-size: 0.68rem;
-  font-weight: 600;
-  color: var(--text3);
-}
-
-.pickerMetaDate {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  font-size: 0.68rem;
+  font-size: 10px;
   font-weight: 500;
   color: var(--text3);
-}
-
-.pickerOrderBadges {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  flex-wrap: wrap;
   margin-top: 1px;
 }
 
-/* Green "Fully Paid" badge */
+/* Fully paid badge */
 .pickerFullPaidBadge {
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  font-size: 0.62rem;
+  font-size: 9px;
   font-weight: 700;
   padding: 2px 7px;
   border-radius: 5px;
@@ -422,13 +440,15 @@
   color: #15803d;
   border: 1px solid rgba(34, 197, 94, 0.25);
   white-space: nowrap;
+  align-self: flex-start;
+  margin-top: 2px;
 }
 
-/* Amber "Balance: ₦X" badge */
+/* Balance badge */
 .pickerBalanceBadge {
   display: inline-flex;
   align-items: center;
-  font-size: 0.62rem;
+  font-size: 9px;
   font-weight: 700;
   padding: 2px 7px;
   border-radius: 5px;
@@ -436,31 +456,13 @@
   color: #c2410c;
   border: 1px solid rgba(251, 146, 60, 0.25);
   white-space: nowrap;
-}
-
-.pickerPaidChip {
-  display: inline-flex;
-  align-items: center;
-  font-size: 0.62rem;
-  font-weight: 600;
-  color: var(--text3);
-  white-space: nowrap;
-}
-
-.pickerGarmentNames {
-  font-size: 0.68rem;
-  color: var(--text3);
-  font-weight: 400;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  margin-top: 1px;
+  align-self: flex-start;
+  margin-top: 2px;
 }
 
 .pickerChevron {
   display: flex;
   align-items: center;
-  padding-top: 2px;
   flex-shrink: 0;
 }
 
@@ -471,10 +473,13 @@
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  padding: 14px 0;
+  padding: 15px;
   cursor: pointer;
   position: relative;
+  margin-top: 15px;
   transition: background 0.12s;
+  border-radius: 10px;
+  border: 1px solid var(--border);
 }
 
 .pickerInstallCard::after {
@@ -495,21 +500,19 @@
   background: var(--surface);
 }
 
-/* Receipted cards: slightly muted */
 .pickerInstallCard_receipted {
-  opacity: 0.75;
+  opacity: 0.72;
 }
 
-/* Card being generated: non-interactive */
 .pickerInstallCard_generating {
-  opacity: 0.7;
+  opacity: 0.6;
   pointer-events: none;
 }
 
 /* Payment number circle */
 .pickerInstallNumber {
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
   background: var(--surface);
   border: 1.5px solid var(--border2);
@@ -517,7 +520,7 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   font-weight: 800;
   color: var(--text2);
   margin-top: 2px;
@@ -539,7 +542,7 @@
 }
 
 .pickerInstallAmount {
-  font-size: 1rem;
+  font-size: 11px;
   font-weight: 800;
   color: var(--text);
 }
@@ -552,10 +555,15 @@
 }
 
 .pickerInstallBalance {
-  font-size: 0.68rem;
+  font-size: 9.5px;
   color: var(--text3);
   font-weight: 500;
-  margin-top: 1px;
+}
+
+.pickerMetaDate {
+  font-size:9.5px;
+  font-weight: 500;
+  color: var(--text3);
 }
 
 .pickerMethodPill {
@@ -571,58 +579,63 @@
   white-space: nowrap;
 }
 
-/* "Receipted" tag — green */
+/* "Receipted" tag */
 .pickerReceiptedTag {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
-  font-size: 0.6rem;
+  gap: 3px;
+  font-size: 0.58rem;
   font-weight: 800;
   color: #15803d;
   background: rgba(34, 197, 94, 0.1);
-  border: 1px solid rgba(34, 197, 94, 0.25);
-  border-radius: 8px;
-  padding: 5px 7px;
+  border: 1px solid rgba(34, 197, 94, 0.22);
+  border-radius: 9px;
+  padding: 6px 8px;
   white-space: nowrap;
   line-height: 1;
+  min-width: 56px;
+  text-align: center;
 }
 
-/* "Generate" tag — accent */
+/* "Generate" tag */
 .pickerGenerateTag {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
-  font-size: 0.6rem;
+  gap: 3px;
+  font-size: 0.58rem;
   font-weight: 800;
   color: var(--accent);
   background: rgba(200, 135, 58, 0.08);
-  border: 1px solid rgba(200, 135, 58, 0.2);
-  border-radius: 8px;
-  padding: 5px 7px;
+  border: 1px solid rgba(200, 135, 58, 0.18);
+  border-radius: 9px;
+  padding: 6px 8px;
   white-space: nowrap;
   line-height: 1;
+  min-width: 56px;
+  text-align: center;
 }
 
-/* "Generating…" tag — shown while receipt is being created */
+/* "Generating…" tag */
 .pickerCreatingTag {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  font-size: 0.6rem;
+  gap: 5px;
+  font-size: 0.58rem;
   font-weight: 800;
   color: var(--text2);
   background: var(--surface);
   border: 1px solid var(--border2);
-  border-radius: 8px;
-  padding: 5px 8px;
+  border-radius: 9px;
+  padding: 6px 8px;
   white-space: nowrap;
   line-height: 1;
+  min-width: 56px;
+  text-align: center;
 }
 
-/* Spinner inside the "Generating…" tag */
 .pickerSpinner {
   width: 14px;
   height: 14px;
@@ -636,8 +649,6 @@
 @keyframes pickerSpin {
   to { transform: rotate(360deg); }
 }
-
-
 
 @keyframes receiptSlideUp {
   from { transform: translateY(100%); }
