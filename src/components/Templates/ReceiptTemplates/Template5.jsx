@@ -91,7 +91,6 @@ export function ReceiptTemplate5({ receipt, customer, brand }) {
           <div className={styles.footerItem}>
             
             <div className={styles.footerLabel}>Payment Details</div>
-            <div>{brand.name || brand.ownerName}</div>
             
               {brand.name && (
                 <div>Received By: {brand.name}</div>

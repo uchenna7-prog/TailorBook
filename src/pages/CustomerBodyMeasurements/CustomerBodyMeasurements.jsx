@@ -41,6 +41,57 @@ function fitInBox(imgW, imgH, boxW, boxH) {
   }
 }
 
+// ── Group entries by body zone ────────────────────────────────
+const SECTION_ORDER = [
+  'Upper Body',
+  'Arms',
+  'Torso Length',
+  'Waist & Lower Torso',
+  'Lower Body & Legs',
+  'Other',
+]
+
+const FIELD_SECTION_MAP = {
+  'Neck':            'Upper Body',
+  'Shoulder Width':  'Upper Body',
+  'Half Shoulder':   'Upper Body',
+  'Chest':           'Upper Body',
+  'Cross Back':      'Upper Body',
+  'Arm Hole':        'Upper Body',
+  'Biceps':          'Arms',
+  'Arm Length':      'Arms',
+  'Sleeve Length':   'Arms',
+  'Coat Sleeve':     'Arms',
+  'Wrist':           'Arms',
+  'Shirt Length':    'Torso Length',
+  'Jacket Length':   'Torso Length',
+  'Waist':           'Waist & Lower Torso',
+  'Hip':             'Waist & Lower Torso',
+  'Seat':            'Waist & Lower Torso',
+  'Coat Waist':      'Waist & Lower Torso',
+  'Crotch':          'Lower Body & Legs',
+  'Fly':             'Lower Body & Legs',
+  'Inseam':          'Lower Body & Legs',
+  'Thighs':          'Lower Body & Legs',
+  'Crotch to Knee':  'Lower Body & Legs',
+}
+
+function groupEntries(allEntries) {
+  const map = {}
+  SECTION_ORDER.forEach(s => { map[s] = [] })
+
+  for (const entry of allEntries) {
+    const section = FIELD_SECTION_MAP[entry.field] || 'Other'
+    if (!map[section]) map[section] = []
+    map[section].push(entry)
+  }
+
+  // Return only sections that have at least one entry
+  return SECTION_ORDER
+    .filter(s => map[s].length > 0)
+    .map(s => ({ title: s, entries: map[s] }))
+}
+
 // ── PDF export ────────────────────────────────────────────────
 async function exportPDF(customer, allEntries, imgMap) {
   if (!window.jspdf) {
@@ -56,93 +107,195 @@ async function exportPDF(customer, allEntries, imgMap) {
   const { jsPDF } = window.jspdf
   const doc = new jsPDF({ unit: 'mm', format: 'a4' })
 
-  const PAGE_W    = 210
-  const PAGE_H    = 297
-  const MARGIN    = 14
-  const CONTENT_W = PAGE_W - MARGIN * 2
-  const COL_COUNT = 2
-  const GAP       = 5
-  const COL_W     = (CONTENT_W - GAP) / COL_COUNT
-  const ROW_H     = 28
-  const IMG_BOX   = 22
-  const CARD_PAD  = 4
+  const PAGE_W      = 210
+  const PAGE_H      = 297
+  const MARGIN      = 16
+  const CONTENT_W   = PAGE_W - MARGIN * 2
+  const GOLD        = [176, 141, 91]
+  const INK         = [26, 26, 26]
+  const INK2        = [74, 74, 74]
+  const INK3        = [138, 138, 138]
+  const RULE        = [216, 216, 216]
+  const RULE2       = [239, 239, 239]
+  const SURFACE     = [250, 250, 248]
 
-  // ── Header band ──
-  doc.setFillColor(18, 18, 18)
-  doc.rect(0, 0, PAGE_W, 24, 'F')
-  doc.setFont('helvetica', 'bold')
-  doc.setFontSize(14)
-  doc.setTextColor(255, 255, 255)
-  doc.text(customer.name + (customer.sex ? `  (${customer.sex})` : ''), MARGIN, 13)
-  doc.setFont('helvetica', 'normal')
-  doc.setFontSize(7)
-  doc.setTextColor(170, 170, 170)
-  doc.text('FULL BODY MEASUREMENTS  ·  INCHES', MARGIN, 20)
-  const dateStr = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-  doc.text(dateStr, PAGE_W - MARGIN, 20, { align: 'right' })
+  // Row geometry
+  const ROW_H       = 40    // height of each measurement row
+  const IMG_BOX     = 40    // square box for the illustration
+  const COL_LABEL_W = 68    // label column width (left side of row)
+  const COL_VAL_W   = CONTENT_W - COL_LABEL_W - IMG_BOX - 6 // remaining for value (right-aligned)
 
-  let y = 30
+  // Section title height + bottom gap
+  const SECTION_TITLE_H = 10
+  const SECTION_GAP     = 6
 
-  for (let i = 0; i < allEntries.length; i++) {
-    const { field, value } = allEntries[i]
-    const col = i % COL_COUNT
+  // ── Helpers ──────────────────────────────────────────────────
 
-    if (col === 0 && i > 0 && y + ROW_H > PAGE_H - 14) {
-      doc.addPage()
-      y = 14
-    }
+  function drawHeader(pageNum, totalPages) {
+    // Dark band
+    doc.setFillColor(...INK)
+    doc.rect(0, 0, PAGE_W, 22, 'F')
 
-    const cardX = MARGIN + col * (COL_W + GAP)
-    const cardY = y
+    // Gold accent stripe
+    doc.setFillColor(...GOLD)
+    doc.rect(0, 22, PAGE_W, 2, 'F')
 
-    doc.setFillColor(247, 247, 247)
-    doc.setDrawColor(218, 218, 218)
-    doc.setLineWidth(0.3)
-    doc.roundedRect(cardX, cardY, COL_W, ROW_H, 2.5, 2.5, 'FD')
+    // Customer name
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(13)
+    doc.setTextColor(255, 255, 255)
+    doc.text(customer.name + (customer.sex ? `  (${customer.sex})` : ''), MARGIN, 12)
 
+    // Meta line
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(6.5)
+    doc.setTextColor(160, 160, 160)
+    doc.text('FULL BODY MEASUREMENTS  ·  INCHES', MARGIN, 18.5)
+
+    // Date + page
+    const dateStr = new Date().toLocaleDateString('en-US', {
+      month: 'short', day: 'numeric', year: 'numeric',
+    })
+    doc.text(dateStr, PAGE_W - MARGIN, 14, { align: 'right' })
+    doc.setTextColor(120, 120, 120)
+    doc.text(`Page ${pageNum} of ${totalPages}`, PAGE_W - MARGIN, 19.5, { align: 'right' })
+  }
+
+  function drawFooter() {
+    doc.setDrawColor(...RULE)
+    doc.setLineWidth(0.25)
+    doc.line(MARGIN, PAGE_H - 10, PAGE_W - MARGIN, PAGE_H - 10)
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(6.5)
+    doc.setTextColor(...INK3)
+    doc.text('Generated by TailorFlow', MARGIN, PAGE_H - 6)
+  }
+
+  function drawSectionTitle(title, y) {
+    // Label text
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(7)
+    doc.setTextColor(...GOLD)
+    doc.text(title.toUpperCase(), MARGIN, y + 4)
+
+    // Rule line after title
+    const titleWidth = doc.getTextWidth(title.toUpperCase()) + 4
+    doc.setDrawColor(...RULE)
+    doc.setLineWidth(0.25)
+    doc.line(MARGIN + titleWidth, y + 3.5, PAGE_W - MARGIN, y + 3.5)
+  }
+
+  async function drawRow(entry, y, isLast) {
+    const { field, value } = entry
     const imgSrc = imgMap[field] || null
+
+    const rowX = MARGIN
+
+    // Illustration
     if (imgSrc) {
       const result = await loadImage(imgSrc)
       if (result) {
         try {
           const { w, h } = fitInBox(result.width, result.height, IMG_BOX, IMG_BOX)
-          const imgAreaX = cardX + CARD_PAD
-          const imgAreaY = cardY + (ROW_H - IMG_BOX) / 2
-          const imgX = imgAreaX + (IMG_BOX - w) / 2
-          const imgY = imgAreaY + (IMG_BOX - h) / 2
+          const imgX = rowX + (IMG_BOX - w) / 2
+          const imgY = y + (ROW_H - h) / 2
           doc.addImage(result.b64, 'JPEG', imgX, imgY, w, h)
         } catch (_) { /* skip broken image */ }
       }
     }
 
-    const textX    = imgSrc ? cardX + CARD_PAD + IMG_BOX + 4 : cardX + CARD_PAD
-    const maxTextW = COL_W - (imgSrc ? CARD_PAD + IMG_BOX + 4 + CARD_PAD : CARD_PAD * 2)
+    const textX = rowX + IMG_BOX + 5
 
+    // Field label
     doc.setFont('helvetica', 'bold')
     doc.setFontSize(6)
-    doc.setTextColor(130, 130, 130)
-    doc.text(field.toUpperCase(), textX, cardY + ROW_H / 2 - 2.5, { maxWidth: maxTextW })
+    doc.setTextColor(...INK3)
+    doc.text(field.toUpperCase(), textX, y + ROW_H / 2 - 1)
 
+    // Value — right-aligned
     doc.setFont('helvetica', 'bold')
-    doc.setFontSize(14)
-    doc.setTextColor(18, 18, 18)
-    doc.text(`${value}"`, textX, cardY + ROW_H / 2 + 6, { maxWidth: maxTextW })
+    doc.setFontSize(13)
+    doc.setTextColor(...INK)
+    doc.text(`${value}"`, PAGE_W - MARGIN, y + ROW_H / 2 + 4.5, { align: 'right' })
 
-    if (col === COL_COUNT - 1 || i === allEntries.length - 1) {
-      y += ROW_H + 4
+    // Divider (skip on last row of section)
+    if (!isLast) {
+      doc.setDrawColor(...RULE2)
+      doc.setLineWidth(0.2)
+      doc.line(MARGIN + IMG_BOX + 5, y + ROW_H, PAGE_W - MARGIN, y + ROW_H)
     }
   }
 
-  // ── Footer on every page ──
-  const totalPages = doc.internal.getNumberOfPages()
-  for (let p = 1; p <= totalPages; p++) {
-    doc.setPage(p)
-    doc.setFont('helvetica', 'normal')
-    doc.setFontSize(7)
-    doc.setTextColor(180, 180, 180)
-    doc.text('Generated by TailorFlow', MARGIN, PAGE_H - 6)
-    doc.text(`${p} / ${totalPages}`, PAGE_W - MARGIN, PAGE_H - 6, { align: 'right' })
+  // ── Layout pass: pre-calculate total pages ────────────────
+  // We need total pages before drawing so we can stamp "Page X of N"
+
+  const sections = groupEntries(allEntries)
+  const HEADER_BOTTOM = 28   // y where content starts after header
+  const FOOTER_TOP    = PAGE_H - 14
+
+  function calcTotalPages() {
+    let y        = HEADER_BOTTOM
+    let pages    = 1
+
+    for (const section of sections) {
+      // Section title
+      if (y + SECTION_TITLE_H > FOOTER_TOP) { pages++; y = HEADER_BOTTOM }
+      y += SECTION_TITLE_H
+
+      for (let i = 0; i < section.entries.length; i++) {
+        if (y + ROW_H > FOOTER_TOP) { pages++; y = HEADER_BOTTOM }
+        y += ROW_H
+      }
+      y += SECTION_GAP
+    }
+    return pages
   }
+
+  const totalPages = calcTotalPages()
+
+  // ── Draw pass ─────────────────────────────────────────────
+  let currentPage = 1
+  let y           = HEADER_BOTTOM
+
+  drawHeader(currentPage, totalPages)
+
+  for (const section of sections) {
+    // Page break before section title if needed
+    if (y + SECTION_TITLE_H > FOOTER_TOP) {
+      drawFooter()
+      doc.addPage()
+      currentPage++
+      y = HEADER_BOTTOM
+      drawHeader(currentPage, totalPages)
+    }
+
+    drawSectionTitle(section.title, y)
+    y += SECTION_TITLE_H
+
+    for (let i = 0; i < section.entries.length; i++) {
+      const entry  = section.entries[i]
+      const isLast = i === section.entries.length - 1
+
+      // Page break before row if needed
+      if (y + ROW_H > FOOTER_TOP) {
+        drawFooter()
+        doc.addPage()
+        currentPage++
+        y = HEADER_BOTTOM
+        drawHeader(currentPage, totalPages)
+        // Re-draw section title as a continuation header
+        drawSectionTitle(section.title + ' (cont.)', y)
+        y += SECTION_TITLE_H
+      }
+
+      await drawRow(entry, y, isLast)
+      y += ROW_H
+    }
+
+    y += SECTION_GAP
+  }
+
+  drawFooter()
 
   doc.save(`${customer.name.replace(/\s+/g, '_')}_measurements.pdf`)
 }
@@ -458,7 +611,7 @@ export default function CustomerBodyMeasurements({ onMenuClick }) {
       <div className={`${styles.toast} ${toastMsg ? styles.toastShow : ''}`}>
         {toastMsg}
       </div>
-      <BottomNav></BottomNav>
+
     </div>
   )
 }
