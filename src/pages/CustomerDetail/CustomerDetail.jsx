@@ -607,7 +607,7 @@ export default function CustomerDetail({ onMenuClick }) {
       </div>
 
       <div className={styles.profileContainer}>
-        {true? (
+        {isPremium? (
           <div className={styles.profileSection}>
 
             <>
