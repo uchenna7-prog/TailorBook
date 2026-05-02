@@ -25,17 +25,17 @@ const STATUSES = [
 ]
 
 const STAGES = [
-  { value: 'measurement_taken', label: 'Measurement Taken', icon: 'straighten' ,color: '#a16207'    },
-  { value: 'fabric_ready',      label: 'Fabric Ready',      icon: 'roll_content',color: '#a16207'   },
-  { value: 'cutting',           label: 'Cutting',           icon: 'content_cut',color: '#2563eb'    },
-  { value: 'weaving',           label: 'Weaving',           icon: 'texture',color: '#2563eb'        },
-  { value: 'sewing',            label: 'Sewing',            icon: 'send' ,color: '#2563eb'          },
-  { value: 'embroidery',        label: 'Embroidery',        icon: 'auto_awesome',color: '#2563eb'   },
-  { value: 'fitting',           label: 'Fitting',           icon: 'accessibility',color: '#2563eb'  },
-  { value: 'adjustments',       label: 'Adjustments',       icon: 'tune' ,color: '#2563eb'          },
-  { value: 'finishing',         label: 'Finishing',         icon: 'dry_cleaning' ,color: '#2563eb'   },
-  { value: 'quality_check',     label: 'Quality Check',     icon: 'fact_check' ,color: '#2563eb'    },
-  { value: 'ready',             label: 'Ready',             icon: 'check_circle' ,color: '#15803d'    },
+  { value: 'measurement_taken', label: 'Measurement Taken', icon: 'straighten',    color: '#a16207' },
+  { value: 'fabric_ready',      label: 'Fabric Ready',      icon: 'layers',        color: '#a16207' },
+  { value: 'cutting',           label: 'Cutting',           icon: 'content_cut',   color: '#2563eb' },
+  { value: 'weaving',           label: 'Weaving',           icon: 'texture',       color: '#2563eb' },
+  { value: 'sewing',            label: 'Sewing',            icon: 'send',          color: '#2563eb' },
+  { value: 'embroidery',        label: 'Embroidery',        icon: 'auto_awesome',  color: '#2563eb' },
+  { value: 'fitting',           label: 'Fitting',           icon: 'accessibility', color: '#2563eb' },
+  { value: 'adjustments',       label: 'Adjustments',       icon: 'tune',          color: '#2563eb' },
+  { value: 'finishing',         label: 'Finishing',         icon: 'dry_cleaning',  color: '#2563eb' },
+  { value: 'quality_check',     label: 'Quality Check',     icon: 'fact_check',    color: '#2563eb' },
+  { value: 'ready',             label: 'Ready',             icon: 'check_circle',  color: '#15803d' },
 ]
 
 
@@ -54,16 +54,16 @@ const STAGE_AUTO_STATUS = {
   ready:             'completed',
 }
 
+// How many measurements to show before requiring search
+const VISIBLE_MEASUREMENT_LIMIT = 5
+
 
 // ─────────────────────────────────────────────────────────────
 // DATE HELPERS
 // ─────────────────────────────────────────────────────────────
 
-// Formats a Firestore timestamp or plain date string into "Jan 1, 2024"
 function formatFirestoreDate(timestamp) {
   if (!timestamp) return 'Unknown Date'
-
-  // Firestore Timestamp object
   if (typeof timestamp.toDate === 'function') {
     return timestamp.toDate().toLocaleDateString('en-US', {
       month: 'short',
@@ -71,14 +71,10 @@ function formatFirestoreDate(timestamp) {
       year:  'numeric',
     })
   }
-
-  // Already a plain string
   if (typeof timestamp === 'string') return timestamp
-
   return 'Unknown Date'
 }
 
-// Formats "2024-01-15" into "Jan 15" (no year, for due date display)
 function formatShortDate(dateString) {
   if (!dateString) return ''
   return new Date(dateString + 'T00:00:00').toLocaleDateString('en-US', {
@@ -87,7 +83,6 @@ function formatShortDate(dateString) {
   })
 }
 
-// Returns today's date as "Jan 1, 2024"
 function getTodayReadable() {
   return new Date().toLocaleDateString('en-US', {
     month: 'short',
@@ -99,13 +94,10 @@ function getTodayReadable() {
 
 // ─────────────────────────────────────────────────────────────
 // ORDER MOSAIC THUMBNAIL
-// Shows 1, 2, or 3-panel image grid for an order's items
 // ─────────────────────────────────────────────────────────────
 
 function OrderMosaic({ items }) {
-  // Pull the first image from each item (skip items with no image)
-  const images = items.map(item => item.imgSrc ?? null).filter(Boolean)
-
+  const images     = items.map(item => item.imgSrc ?? null).filter(Boolean)
   const totalItems = items.length
   const hasImages  = images.length > 0
 
@@ -115,18 +107,14 @@ function OrderMosaic({ items }) {
     </span>
   )
 
-  // No images at all — show placeholder icon
   if (!hasImages) {
     return (
       <div className={styles.mosaicContainer}>
-        <div className={styles.mosaicBox}>
-          {placeholderIcon}
-        </div>
+        <div className={styles.mosaicBox}>{placeholderIcon}</div>
       </div>
     )
   }
 
-  // Single item — full image
   if (totalItems === 1) {
     return (
       <div className={styles.mosaicContainer}>
@@ -137,7 +125,6 @@ function OrderMosaic({ items }) {
     )
   }
 
-  // Two items — left/right split
   if (totalItems === 2) {
     return (
       <div className={styles.mosaicContainer}>
@@ -145,9 +132,7 @@ function OrderMosaic({ items }) {
           <div className={styles.mosaicPanel_left}>
             <img src={images[0]} alt="" className={styles.mosaicPanelImage} />
           </div>
-
           <div className={styles.mosaicDivider_vertical} />
-
           <div className={styles.mosaicPanel_right}>
             <div className={styles.mosaicCell}>
               {images[1]
@@ -161,23 +146,18 @@ function OrderMosaic({ items }) {
     )
   }
 
-  // Three or more items — left panel + two stacked right cells
   const extraCount = totalItems > 3 ? totalItems - 3 : 0
 
   return (
     <div className={styles.mosaicContainer}>
       <div className={`${styles.mosaicBox} ${styles.mosaicBox_split}`}>
-        {/* Left large panel */}
         <div className={styles.mosaicPanel_left}>
           {images[0]
             ? <img src={images[0]} alt="" className={styles.mosaicPanelImage} />
             : <span className="mi" style={{ fontSize: '0.9rem', color: 'var(--text3)' }}>checkroom</span>
           }
         </div>
-
         <div className={styles.mosaicDivider_vertical} />
-
-        {/* Right column — top and bottom cells */}
         <div className={styles.mosaicPanel_right}>
           <div className={styles.mosaicCell}>
             {images[1]
@@ -185,10 +165,7 @@ function OrderMosaic({ items }) {
               : <span className="mi" style={{ fontSize: '0.75rem', color: 'var(--text3)' }}>checkroom</span>
             }
           </div>
-
           <div className={styles.mosaicDivider_horizontal} />
-
-          {/* Bottom cell — shows "+N" overlay if there are more items */}
           <div className={`${styles.mosaicCell} ${extraCount > 0 ? styles.mosaicCell_hasOverlay : ''}`}>
             {images[2]
               ? <img src={images[2]} alt="" className={styles.mosaicPanelImage} />
@@ -207,22 +184,19 @@ function OrderMosaic({ items }) {
 
 // ─────────────────────────────────────────────────────────────
 // ORDER FORM MODAL
-// Slide-up sheet for creating a new order
 // ─────────────────────────────────────────────────────────────
 
 function OrderModal({ isOpen, onClose, measurements, onSave }) {
 
-  // ── Form state ──
-  const [selectedItems,  setSelectedItems]  = useState([])
+  const [selectedItems,   setSelectedItems]   = useState([])
   const [clothSearchText, setClothSearchText] = useState('')
-  const [orderDesc,      setOrderDesc]      = useState('')
-  const [dueDate,        setDueDate]        = useState('')
-  const [priority,       setPriority]       = useState('normal')
-  const [notes,          setNotes]          = useState('')
-  const [stage,          setStage]          = useState('')
-  const [pricingError,   setPricingError]   = useState('')
+  const [orderDesc,       setOrderDesc]       = useState('')
+  const [dueDate,         setDueDate]         = useState('')
+  const [priority,        setPriority]        = useState('normal')
+  const [notes,           setNotes]           = useState('')
+  const [stage,           setStage]           = useState('')
+  const [pricingError,    setPricingError]    = useState('')
 
-  // ── Reset all fields back to defaults ──
   function resetForm() {
     setSelectedItems([])
     setClothSearchText('')
@@ -234,19 +208,15 @@ function OrderModal({ isOpen, onClose, measurements, onSave }) {
     setPricingError('')
   }
 
-  // ── Toggle a cloth type on/off in the selection list ──
   function toggleItemSelection(measurement) {
     const itemId   = String(measurement.id)
     const coverImg = measurement.imgSrcs?.[0] ?? measurement.imgSrc ?? null
 
     setSelectedItems(prev => {
       const alreadySelected = prev.find(item => item.id === itemId)
-
       if (alreadySelected) {
-        // Deselect — remove it
         return prev.filter(item => item.id !== itemId)
       } else {
-        // Select — add with empty price/qty
         return [...prev, { id: itemId, price: '', qty: '', name: measurement.name, imgSrc: coverImg }]
       }
     })
@@ -254,7 +224,6 @@ function OrderModal({ isOpen, onClose, measurements, onSave }) {
     setPricingError('')
   }
 
-  // ── Update a single field (price or qty) for one item ──
   function updateItemField(itemId, field, value) {
     setSelectedItems(prev =>
       prev.map(item => item.id === itemId ? { ...item, [field]: value } : item)
@@ -262,7 +231,6 @@ function OrderModal({ isOpen, onClose, measurements, onSave }) {
     setPricingError('')
   }
 
-  // ── Computed totals ──
   const orderTotal = selectedItems.reduce((sum, item) => {
     return sum + (parseFloat(item.price) || 0) * (parseInt(item.qty, 10) || 0)
   }, 0)
@@ -271,19 +239,25 @@ function OrderModal({ isOpen, onClose, measurements, onSave }) {
     return sum + (parseInt(item.qty, 10) || 0)
   }, 0) || 1
 
-  // ── Filter cloth list by search text ──
-  const visibleMeasurements = clothSearchText.trim()
-    ? measurements.filter(m => m.name.toLowerCase().includes(clothSearchText.toLowerCase()))
-    : measurements
+  // ── Cloth list display logic ──
+  // No search active → show first 5 (insertion order)
+  // Search active    → show all matches (no cap)
+  const isSearching = clothSearchText.trim().length > 0
 
-  // ── Save the order ──
+  const visibleMeasurements = isSearching
+    ? measurements.filter(m =>
+        m.name.toLowerCase().includes(clothSearchText.toLowerCase())
+      )
+    : measurements.slice(0, VISIBLE_MEASUREMENT_LIMIT)
+
+  const hiddenCount = isSearching ? 0 : Math.max(0, measurements.length - VISIBLE_MEASUREMENT_LIMIT)
+
   function handleSave() {
-    const hasItems    = selectedItems.length > 0
-    const hasDesc     = orderDesc.trim()
+    const hasItems = selectedItems.length > 0
+    const hasDesc  = orderDesc.trim()
 
     if (!hasItems && !hasDesc) return
 
-    // Every selected item must have both price and qty filled
     if (hasItems) {
       const incomplete = selectedItems.find(
         item => !(parseFloat(item.price) > 0) || !(parseInt(item.qty, 10) > 0)
@@ -294,7 +268,6 @@ function OrderModal({ isOpen, onClose, measurements, onSave }) {
       }
     }
 
-    // Format due date for display
     let dueDateDisplay = ''
     if (dueDate) {
       dueDateDisplay = new Date(dueDate + 'T00:00:00').toLocaleDateString('en-US', {
@@ -349,8 +322,8 @@ function OrderModal({ isOpen, onClose, measurements, onSave }) {
           {/* ── Step 1: Select Clothes ── */}
           <p className={styles.stepHeading}>1. Select Clothes</p>
 
-          {/* Search bar — only shown when there are many cloth types */}
-          {measurements.length > 5 && (
+          {/* Search bar — always shown when there are more than 5 measurements */}
+          {measurements.length > VISIBLE_MEASUREMENT_LIMIT && (
             <div className={styles.clothSearchBar}>
               <span className="mi" style={{ fontSize: '1.1rem', color: 'var(--text3)' }}>search</span>
               <input
@@ -360,6 +333,14 @@ function OrderModal({ isOpen, onClose, measurements, onSave }) {
                 onChange={e => setClothSearchText(e.target.value)}
                 className={styles.clothSearchInput}
               />
+              {clothSearchText.length > 0 && (
+                <button
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text3)', display: 'flex', alignItems: 'center', padding: 0 }}
+                  onClick={() => setClothSearchText('')}
+                >
+                  <span className="mi" style={{ fontSize: '1rem' }}>close</span>
+                </button>
+              )}
             </div>
           )}
 
@@ -375,7 +356,6 @@ function OrderModal({ isOpen, onClose, measurements, onSave }) {
                   className={`${styles.clothPickerItem} ${isSelected ? styles.clothPickerItem_selected : ''}`}
                   onClick={() => toggleItemSelection(measurement)}
                 >
-                  {/* Thumbnail */}
                   <div className={styles.clothThumb}>
                     {coverImg
                       ? <img src={coverImg} alt={measurement.name} />
@@ -383,13 +363,11 @@ function OrderModal({ isOpen, onClose, measurements, onSave }) {
                     }
                   </div>
 
-                  {/* Name + measurement count */}
                   <div className={styles.clothInfo}>
                     <h5>{measurement.name}</h5>
                     <span>{measurement.fields?.length || 0} measurements</span>
                   </div>
 
-                  {/* Checkmark circle */}
                   <div className={`${styles.clothCheckCircle} ${isSelected ? styles.clothCheckCircle_checked : ''}`}>
                     {isSelected && <span className="mi" style={{ fontSize: '0.9rem' }}>check</span>}
                   </div>
@@ -397,6 +375,22 @@ function OrderModal({ isOpen, onClose, measurements, onSave }) {
               )
             })}
           </div>
+
+          {/* "Search to see N more" hint — only shown when not searching and there are hidden items */}
+          {hiddenCount > 0 && (
+            <div className={styles.clothHiddenHint}>
+              <span className="mi" style={{ fontSize: '0.9rem' }}>search</span>
+              Search to see {hiddenCount} more cloth {hiddenCount === 1 ? 'type' : 'types'}
+            </div>
+          )}
+
+          {/* No search results */}
+          {isSearching && visibleMeasurements.length === 0 && (
+            <div className={styles.clothEmptySearch}>
+              <span className="mi" style={{ fontSize: '1.4rem', color: 'var(--text3)' }}>search_off</span>
+              <span>No cloth types match "{clothSearchText}"</span>
+            </div>
+          )}
 
 
           {/* ── Step 2: Price & Quantity per Item ── */}
@@ -410,7 +404,6 @@ function OrderModal({ isOpen, onClose, measurements, onSave }) {
                 {selectedItems.map(item => (
                   <div key={item.id} className={styles.pricingRow}>
 
-                    {/* Item thumbnail */}
                     <div className={styles.clothThumb} style={{ width: 40, height: 40, flexShrink: 0 }}>
                       {item.imgSrc
                         ? <img src={item.imgSrc} alt="" />
@@ -418,12 +411,10 @@ function OrderModal({ isOpen, onClose, measurements, onSave }) {
                       }
                     </div>
 
-                    {/* Fields: name + price/qty/amount inputs */}
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div className={styles.pricingItemName}>{item.name}</div>
 
                       <div className={styles.pricingInputRow}>
-                        {/* Price */}
                         <div className={styles.pricingField}>
                           <label className={styles.fieldLabel}>
                             Price (₦) <span className={styles.requiredStar}>*</span>
@@ -438,7 +429,6 @@ function OrderModal({ isOpen, onClose, measurements, onSave }) {
                           />
                         </div>
 
-                        {/* Quantity */}
                         <div className={styles.pricingField}>
                           <label className={styles.fieldLabel}>
                             Qty <span className={styles.requiredStar}>*</span>
@@ -454,7 +444,6 @@ function OrderModal({ isOpen, onClose, measurements, onSave }) {
                           />
                         </div>
 
-                        {/* Computed line total (read-only) */}
                         <div className={styles.pricingField} style={{ alignItems: 'flex-end' }}>
                           <label className={styles.fieldLabel}>Amount</label>
                           <div className={styles.pricingAmount}>
@@ -466,7 +455,6 @@ function OrderModal({ isOpen, onClose, measurements, onSave }) {
                   </div>
                 ))}
 
-                {/* Error message if price/qty missing */}
                 {pricingError && (
                   <div className={styles.pricingError}>
                     <span className="mi" style={{ fontSize: '0.9rem' }}>error_outline</span>
@@ -474,7 +462,6 @@ function OrderModal({ isOpen, onClose, measurements, onSave }) {
                   </div>
                 )}
 
-                {/* Order total row */}
                 <div className={styles.orderTotalRow}>
                   <span>Order Total (Qty: {totalQty})</span>
                   <span style={{ color: 'var(--accent)' }}>₦{orderTotal.toLocaleString()}</span>
@@ -489,7 +476,6 @@ function OrderModal({ isOpen, onClose, measurements, onSave }) {
 
           <div className={styles.detailsCard}>
 
-            {/* Description */}
             <label className={styles.fieldLabel}>Order Description</label>
             <input
               type="text"
@@ -499,7 +485,6 @@ function OrderModal({ isOpen, onClose, measurements, onSave }) {
               onChange={e => setOrderDesc(e.target.value)}
             />
 
-            {/* Due date + total qty side by side */}
             <div style={{ display: 'flex', gap: 14, marginBottom: 20 }}>
               <div style={{ flex: 1 }}>
                 <label className={styles.fieldLabel}>Due Date</label>
@@ -519,7 +504,6 @@ function OrderModal({ isOpen, onClose, measurements, onSave }) {
               </div>
             </div>
 
-            {/* Priority chips */}
             <label className={styles.fieldLabel}>Priority</label>
             <div className={styles.priorityChipRow}>
               {['normal', 'urgent', 'vip'].map(p => (
@@ -533,7 +517,6 @@ function OrderModal({ isOpen, onClose, measurements, onSave }) {
               ))}
             </div>
 
-            {/* Stage chips */}
             <label className={styles.fieldLabel} style={{ marginTop: 20 }}>Current Stage</label>
             <div className={styles.stageChipRow}>
               {STAGES.map(stageItem => (
@@ -548,7 +531,6 @@ function OrderModal({ isOpen, onClose, measurements, onSave }) {
               ))}
             </div>
 
-            {/* Notes */}
             <label className={styles.fieldLabel} style={{ marginTop: 20 }}>Notes</label>
             <textarea
               className={styles.notesTextarea}
@@ -567,7 +549,6 @@ function OrderModal({ isOpen, onClose, measurements, onSave }) {
 
 // ─────────────────────────────────────────────────────────────
 // ORDER DETAIL PANEL
-// Slides in from the right when an order is tapped
 // ─────────────────────────────────────────────────────────────
 
 function OrderDetail({ order, measurements, onClose, onDelete, onStatusChange, onStageChange, onGenerateInvoice, onShareReviewLink }) {
@@ -590,12 +571,10 @@ function OrderDetail({ order, measurements, onClose, onDelete, onStatusChange, o
 
       <div className={styles.detailScrollBody}>
 
-        {/* Priority label */}
         <span className={`${styles.priorityBanner} ${priorityBanner.className}`}>
           {priorityBanner.label}
         </span>
 
-        {/* 2×2 info grid: price, status, stage, due date */}
         <div className={styles.infoGrid}>
           <div className={styles.infoGridCell}>
             <div className={styles.infoGridLabel}>Total Price</div>
@@ -633,14 +612,12 @@ function OrderDetail({ order, measurements, onClose, onDelete, onStatusChange, o
         </div>
 
 
-        {/* Selected garments list */}
         {order.items && order.items.length > 0 && (
           <div className={styles.sectionCard}>
             <div className={styles.sectionCardLabel}>Selected Garments</div>
 
             {order.items.map((item, index) => (
               <div key={index} className={styles.garmentRow}>
-                {/* Left: thumbnail + name */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   <div className={styles.garmentThumb}>
                     {item.imgSrc
@@ -658,7 +635,6 @@ function OrderDetail({ order, measurements, onClose, onDelete, onStatusChange, o
                   </div>
                 </div>
 
-                {/* Right: line total */}
                 <div style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--accent)' }}>
                   ₦{((item.qty ?? 1) * Number(item.price || 0)).toLocaleString()}
                 </div>
@@ -668,7 +644,6 @@ function OrderDetail({ order, measurements, onClose, onDelete, onStatusChange, o
         )}
 
 
-        {/* Notes */}
         {order.notes && (
           <div className={styles.notesCard}>
             <div className={styles.sectionCardLabel}>Notes</div>
@@ -677,7 +652,6 @@ function OrderDetail({ order, measurements, onClose, onDelete, onStatusChange, o
         )}
 
 
-        {/* Change Stage chips */}
         <div className={styles.sectionCard} style={{ marginTop: 16 }}>
           <div className={styles.sectionCardLabel}>Change Stage</div>
           <div className={styles.stageChipRow}>
@@ -695,7 +669,6 @@ function OrderDetail({ order, measurements, onClose, onDelete, onStatusChange, o
         </div>
 
 
-        {/* Change Status buttons */}
         <div className={styles.sectionCard}>
           <div className={styles.sectionCardLabel}>Change Status</div>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -712,7 +685,6 @@ function OrderDetail({ order, measurements, onClose, onDelete, onStatusChange, o
         </div>
 
 
-        {/* Share Review Link — only show for completed/delivered orders */}
         {(order.status === 'completed' || order.status === 'delivered') && (
           <button
             className={styles.shareReviewButton}
@@ -725,7 +697,6 @@ function OrderDetail({ order, measurements, onClose, onDelete, onStatusChange, o
         )}
 
 
-        {/* Generate Invoice */}
         <button
           className={styles.generateInvoiceButton}
           onClick={() => onGenerateInvoice(order.id)}
@@ -736,7 +707,6 @@ function OrderDetail({ order, measurements, onClose, onDelete, onStatusChange, o
         </button>
 
 
-        {/* Footer: placed on, due, qty */}
         <div className={styles.detailFooterDates}>
           Order Taken: {placedOnDate}
           {order.due && <> &nbsp;•&nbsp; Due: {order.due}</>}
@@ -757,18 +727,16 @@ export default function OrdersTab({ customerId, orders, measurements, showToast,
   const { addOrder, deleteOrder, updateOrderStatus, updateOrderStage } = useOrders()
   const { user } = useAuth()
 
-  const [isModalOpen,    setIsModalOpen]    = useState(false)
-  const [selectedOrder,  setSelectedOrder]  = useState(null)
-  const [orderToDelete,  setOrderToDelete]  = useState(null)
+  const [isModalOpen,   setIsModalOpen]   = useState(false)
+  const [selectedOrder, setSelectedOrder] = useState(null)
+  const [orderToDelete, setOrderToDelete] = useState(null)
 
-  // Allow other parts of the app to open the order modal via a custom event
   useEffect(() => {
     const openModal = () => setIsModalOpen(true)
     document.addEventListener('openOrderModal', openModal)
     return () => document.removeEventListener('openOrderModal', openModal)
   }, [])
 
-  // ── Save a new order to Firestore ──
   async function handleSaveOrder(orderData) {
     try {
       await addOrder(customerId, orderData)
@@ -778,27 +746,21 @@ export default function OrdersTab({ customerId, orders, measurements, showToast,
     }
   }
 
-  // ── Confirm and delete the order ──
   async function handleDeleteConfirm() {
     if (!orderToDelete) return
-
     try {
       await deleteOrder(customerId, orderToDelete.id)
       showToast('Order deleted')
     } catch {
       showToast('Failed to delete order')
     }
-
     setOrderToDelete(null)
     setSelectedOrder(null)
   }
 
-  // ── Update order status ──
   async function handleStatusChange(orderId, newStatus) {
     try {
       await updateOrderStatus(customerId, orderId, newStatus)
-
-      // Keep the detail panel in sync
       setSelectedOrder(prev =>
         prev && String(prev.id) === String(orderId)
           ? { ...prev, status: newStatus }
@@ -809,15 +771,12 @@ export default function OrdersTab({ customerId, orders, measurements, showToast,
     }
   }
 
-  // ── Update order stage and auto-update status to match ──
   async function handleStageChange(orderId, newStage) {
     try {
       await updateOrderStage(customerId, orderId, newStage)
-
       const autoStatus = newStage ? STAGE_AUTO_STATUS[newStage] : null
 
       if (autoStatus) {
-        // Stage implies a status — update both
         await updateOrderStatus(customerId, orderId, autoStatus)
         setSelectedOrder(prev =>
           prev && String(prev.id) === String(orderId)
@@ -825,7 +784,6 @@ export default function OrdersTab({ customerId, orders, measurements, showToast,
             : prev
         )
       } else {
-        // Stage cleared — only update stage
         setSelectedOrder(prev =>
           prev && String(prev.id) === String(orderId)
             ? { ...prev, stage: newStage }
@@ -837,10 +795,9 @@ export default function OrdersTab({ customerId, orders, measurements, showToast,
     }
   }
 
-  // ── Build and open a WhatsApp review link for the customer ──
   function handleShareReviewLink(order) {
-    const reviewToken = order.reviewToken || crypto.randomUUID()
-    const reviewUrl   = `https://tailorflow-62b0a.web.app/review/${user?.uid}/${reviewToken}`
+    const reviewToken  = order.reviewToken || crypto.randomUUID()
+    const reviewUrl    = `https://tailorflow-62b0a.web.app/review/${user?.uid}/${reviewToken}`
     const customerName = order.customerName || 'there'
 
     const message = encodeURIComponent(
@@ -849,7 +806,6 @@ export default function OrdersTab({ customerId, orders, measurements, showToast,
       `Your review means a lot to us! ⭐`
     )
 
-    // Normalize phone number to international format (Nigerian: 0XX -> 234XX)
     const rawPhone   = order.customerPhone || ''
     const cleanPhone = rawPhone.replace(/[\s\-()]/g, '')
     let waPhone = cleanPhone
@@ -867,20 +823,16 @@ export default function OrdersTab({ customerId, orders, measurements, showToast,
     window.open(waUrl, '_blank', 'noopener,noreferrer')
   }
 
-  // ── Group orders by the date they were taken ──
   const ordersByDate = orders.reduce((groups, order) => {
     const dateKey = order.takenAt || formatFirestoreDate(order.createdAt) || order.date || 'Unknown Date'
-
     if (!groups[dateKey]) groups[dateKey] = []
     groups[dateKey].push(order)
-
     return groups
   }, {})
 
 
   return (
     <>
-      {/* Empty state */}
       {orders.length === 0 && (
         <div className={styles.emptyState}>
           <span className="mi" style={{ fontSize: '2.8rem', opacity: 0.4 }}>shopping_basket</span>
@@ -888,20 +840,18 @@ export default function OrdersTab({ customerId, orders, measurements, showToast,
         </div>
       )}
 
-      {/* Orders grouped by date */}
       {Object.entries(ordersByDate).map(([date, ordersInGroup]) => (
         <div key={date} className={styles.orderGroup}>
           <div className={styles.orderGroupDate}>{date}</div>
           <div className={styles.orderGroupDivider} />
 
           {ordersInGroup.map((order, index) => {
-            const statusInfo  = STATUSES.find(s => s.value === order.status) ?? STATUSES[0]
-            const stageInfo   = STAGES.find(s => s.value === order.stage)
-            
-            const items       = order.items || []
-            const itemCount   = items.length
-            const priceText   = order.price != null ? `₦${Number(order.price).toLocaleString()}` : '—'
-            const dueDateRaw  = order.dueRaw || order.dueDate
+            const statusInfo    = STATUSES.find(s => s.value === order.status) ?? STATUSES[0]
+            const stageInfo     = STAGES.find(s => s.value === order.stage)
+            const items         = order.items || []
+            const itemCount     = items.length
+            const priceText     = order.price != null ? `₦${Number(order.price).toLocaleString()}` : '—'
+            const dueDateRaw    = order.dueRaw || order.dueDate
             const isLastInGroup = index === ordersInGroup.length - 1
 
             return (
@@ -910,10 +860,8 @@ export default function OrdersTab({ customerId, orders, measurements, showToast,
                 className={`${styles.orderRow} ${isLastInGroup ? styles.orderRow_last : ''}`}
                 onClick={() => setSelectedOrder(order)}
               >
-                {/* Mosaic thumbnail */}
                 <OrderMosaic items={items} />
 
-                {/* Left: description, item count, stage */}
                 <div className={styles.orderRowInfo}>
                   <div className={styles.orderRowDescription}>{order.desc}</div>
 
@@ -927,13 +875,11 @@ export default function OrdersTab({ customerId, orders, measurements, showToast,
 
                   {stageInfo && (
                     <div className={styles.orderRowStage}>
-                      <span  style={{ fontSize: '0.78rem', color:stageInfo.color}}>{stageInfo.label}</span>
-                      
+                      <span style={{ fontSize: '0.78rem', color: stageInfo.color }}>{stageInfo.label}</span>
                     </div>
                   )}
                 </div>
 
-                {/* Right: price, status badge, due date */}
                 <div className={styles.orderRowRight}>
                   <div className={styles.orderRowPrice}>{priceText}</div>
                   <span className={`${styles.orderStatusBadge} ${styles[`orderStatusBadge_${(order.status || 'pending').replace('-', '_')}`]}`}>
@@ -952,7 +898,6 @@ export default function OrdersTab({ customerId, orders, measurements, showToast,
       ))}
 
 
-      {/* New order modal */}
       <OrderModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -960,7 +905,6 @@ export default function OrdersTab({ customerId, orders, measurements, showToast,
         onSave={handleSaveOrder}
       />
 
-      {/* Order detail panel */}
       {selectedOrder && (
         <OrderDetail
           order={selectedOrder}
@@ -977,7 +921,6 @@ export default function OrdersTab({ customerId, orders, measurements, showToast,
         />
       )}
 
-      {/* Delete confirmation sheet */}
       <ConfirmSheet
         open={!!orderToDelete}
         title="Delete Order?"
