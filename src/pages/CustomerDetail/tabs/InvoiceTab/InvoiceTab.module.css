@@ -214,15 +214,21 @@
 .pickerScrollBody {
   flex: 1;
   overflow-y: auto;
-  padding-bottom: 100px;
+  padding-bottom: 120px;   /* extra room for the sticky generate bar */
   -webkit-overflow-scrolling: touch;
 }
 
 
 /* ─────────────────────────────────────────────────────────────
-   STEP HEADING — "1. Select Order" / "2. Generate Invoice"
-   Matches OrderModal's .stepHeading exactly
+   STEP HEADING ROW — heading + selection count inline
    ───────────────────────────────────────────────────────────── */
+
+.stepHeadingRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
 
 .stepHeading {
   font-size: 0.65rem;
@@ -230,7 +236,19 @@
   color: var(--text2);
   text-transform: uppercase;
   letter-spacing: 1px;
-  margin-bottom: 12px;
+  margin: 0;
+}
+
+/* Pill badge showing how many orders are selected */
+.selectionBadge {
+  font-size: 0.6rem;
+  font-weight: 800;
+  color: var(--accent);
+  background: rgba(var(--accent-rgb, 99, 102, 241), 0.1);
+  border: 1px solid rgba(var(--accent-rgb, 99, 102, 241), 0.25);
+  border-radius: 20px;
+  padding: 2px 9px;
+  letter-spacing: 0.02em;
 }
 
 
@@ -266,7 +284,6 @@
    CLOTH PICKER LIST + ITEMS — reused from OrderModal
    ───────────────────────────────────────────────────────────── */
 
-/* List of order options to pick from */
 .clothPickerList {
   display: flex;
   flex-direction: column;
@@ -274,7 +291,6 @@
   margin-bottom: 4px;
 }
 
-/* Single order option row */
 .clothPickerItem {
   display: flex;
   align-items: center;
@@ -297,7 +313,6 @@
   pointer-events: none;
 }
 
-/* Small square thumbnail */
 .clothThumb {
   width: 38px;
   height: 38px;
@@ -318,9 +333,9 @@
   border-radius: 8px;
 }
 
-/* Order name + due date text */
 .clothInfo {
   flex: 1;
+  min-width: 0;
 }
 
 .clothInfo h5 {
@@ -328,6 +343,9 @@
   font-weight: 700;
   color: var(--text);
   margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .clothInfo span {
@@ -336,7 +354,16 @@
   font-weight: 600;
 }
 
-/* Circle checkmark on the right */
+/* Price shown on picker card */
+.pickerOrderPrice {
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: var(--accent);
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-right: 2px;
+}
+
 .clothCheckCircle {
   width: 22px;
   height: 22px;
@@ -357,55 +384,52 @@
 
 
 /* ─────────────────────────────────────────────────────────────
-   GENERATE CARD — Step 2: shown after selecting an order
-   Matches OrderModal's .pricingCard / .detailsCard style
+   GENERATE BAR
+   Sticky bottom bar that appears once ≥1 order is selected.
+   Shows selection count + the single generate button.
    ───────────────────────────────────────────────────────────── */
 
-.generateCard {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 18px;
-  padding: 16px;
-  margin-bottom: 20px;
-}
-
-/* Selected order summary row inside the card */
-.generateOrderSummary {
+.generateBar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
   display: flex;
   align-items: center;
   gap: 12px;
+  padding: 14px 20px;
+  padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+  animation: barSlideUp 0.22s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.generateOrderName {
-  font-size: 0.9rem;
-  font-weight: 700;
+@keyframes barSlideUp {
+  from { transform: translateY(100%); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+.generateBarInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex-shrink: 0;
+}
+
+.generateBarCount {
+  font-size: 0.78rem;
+  font-weight: 800;
   color: var(--text);
-  margin-bottom: 2px;
 }
 
-.generateOrderPrice {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--accent);
-}
-
-/* Dashed divider — matches .orderTotalRow's top border in OrderModal */
-.generateDivider {
-  border-top: 2px dashed var(--border);
-  margin: 0 -2px;
-}
-
-/* Primary generate button — full width, accent coloured */
-.generateInlineButton {
-  width: 100%;
+.generateBarButton {
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 14px;
+  padding: 14px 16px;
   border-radius: 14px;
   border: none;
   background: var(--accent);
@@ -419,11 +443,11 @@
   transition: opacity 0.15s;
 }
 
-.generateInlineButton:active {
+.generateBarButton:active {
   opacity: 0.8;
 }
 
-.generateInlineButton:disabled {
+.generateBarButton:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
