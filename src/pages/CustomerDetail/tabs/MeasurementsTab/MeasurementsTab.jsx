@@ -10,50 +10,36 @@ import styles       from './MeasurementsTab.module.css'
 // CONSTANTS
 // ─────────────────────────────────────────────────────────────
 
-// Short symbol shown in the list row (e.g. 14")
 const UNIT_SHORT = { in: '"', cm: 'cm', yd: 'yd' }
-
-// Full label shown in the detail panel
 const UNIT_FULL  = { in: 'Inches (")', cm: 'Centimetres (cm)', yd: 'Yards (yd)' }
 
 
 // ─────────────────────────────────────────────────────────────
 // IMAGE COMPRESSION UTILITY
-// Shrinks a photo before storing it to keep Firestore docs small
 // ─────────────────────────────────────────────────────────────
 
 function compressImage(file, maxWidth = 1200, quality = 0.78) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
-
     reader.onerror = () => reject(new Error('Failed to read file'))
-
     reader.onload = (event) => {
       const img = new Image()
-
       img.onerror = () => reject(new Error('Failed to load image'))
-
       img.onload = () => {
         let { width, height } = img
-
-        // Scale down if wider than maxWidth, keeping aspect ratio
         if (width > maxWidth) {
           height = Math.round((height * maxWidth) / width)
           width  = maxWidth
         }
-
         const canvas = document.createElement('canvas')
         canvas.width  = width
         canvas.height = height
         canvas.getContext('2d').drawImage(img, 0, 0, width, height)
-
         const mimeType = file.type === 'image/png' ? 'image/png' : 'image/jpeg'
         resolve(canvas.toDataURL(mimeType, quality))
       }
-
       img.src = event.target.result
     }
-
     reader.readAsDataURL(file)
   })
 }
@@ -61,92 +47,51 @@ function compressImage(file, maxWidth = 1200, quality = 0.78) {
 
 // ─────────────────────────────────────────────────────────────
 // FULLSCREEN LIGHTBOX
-// Opens when the user taps an image in the detail panel
 // ─────────────────────────────────────────────────────────────
 
 function ImageLightbox({ images, startIndex = 0, onClose }) {
   const [currentIndex, setCurrentIndex] = useState(startIndex)
   const touchStartX = useRef(null)
 
-  // Sync index if parent re-opens with a different starting image
   useEffect(() => { setCurrentIndex(startIndex) }, [startIndex])
 
-  // Prevent page scrolling while lightbox is open
   useEffect(() => {
     document.body.style.overflow = 'hidden'
     return () => { document.body.style.overflow = '' }
   }, [])
 
-  function goPrev() {
-    setCurrentIndex(i => (i === 0 ? images.length - 1 : i - 1))
-  }
+  function goPrev() { setCurrentIndex(i => (i === 0 ? images.length - 1 : i - 1)) }
+  function goNext() { setCurrentIndex(i => (i === images.length - 1 ? 0 : i + 1)) }
 
-  function goNext() {
-    setCurrentIndex(i => (i === images.length - 1 ? 0 : i + 1))
-  }
-
-  // Swipe left/right to navigate
-  function handleTouchStart(e) {
-    touchStartX.current = e.touches[0].clientX
-  }
-
+  function handleTouchStart(e) { touchStartX.current = e.touches[0].clientX }
   function handleTouchEnd(e) {
     if (touchStartX.current === null) return
     const swipeDistance = touchStartX.current - e.changedTouches[0].clientX
-    if (Math.abs(swipeDistance) > 40) {
-      swipeDistance > 0 ? goNext() : goPrev()
-    }
+    if (Math.abs(swipeDistance) > 40) swipeDistance > 0 ? goNext() : goPrev()
     touchStartX.current = null
   }
 
   if (!images || images.length === 0) return null
 
   return (
-    <div
-      className={styles.lightboxOverlay}
-      onTouchStart={handleTouchStart}
-      onTouchEnd={handleTouchEnd}
-    >
-      {/* Close button */}
+    <div className={styles.lightboxOverlay} onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
       <button className={styles.lightboxCloseButton} onClick={onClose} type="button">
         <span className="mi">close</span>
       </button>
-
-      {/* "2 / 5" counter */}
       {images.length > 1 && (
-        <div className={styles.lightboxCounter}>
-          {currentIndex + 1} / {images.length}
-        </div>
+        <div className={styles.lightboxCounter}>{currentIndex + 1} / {images.length}</div>
       )}
-
-      {/* Current image */}
       <div className={styles.lightboxImageWrapper}>
-        <img
-          src={images[currentIndex]}
-          alt={`Design reference ${currentIndex + 1}`}
-          className={styles.lightboxImage}
-        />
+        <img src={images[currentIndex]} alt={`Design reference ${currentIndex + 1}`} className={styles.lightboxImage} />
       </div>
-
-      {/* Left / Right arrows + dot indicators */}
       {images.length > 1 && (
         <>
-          <button
-            className={`${styles.lightboxArrow} ${styles.lightboxArrow_left}`}
-            onClick={goPrev}
-            type="button"
-          >
+          <button className={`${styles.lightboxArrow} ${styles.lightboxArrow_left}`} onClick={goPrev} type="button">
             <span className="mi">chevron_left</span>
           </button>
-
-          <button
-            className={`${styles.lightboxArrow} ${styles.lightboxArrow_right}`}
-            onClick={goNext}
-            type="button"
-          >
+          <button className={`${styles.lightboxArrow} ${styles.lightboxArrow_right}`} onClick={goNext} type="button">
             <span className="mi">chevron_right</span>
           </button>
-
           <div className={styles.lightboxDots}>
             {images.map((_, i) => (
               <button
@@ -165,68 +110,44 @@ function ImageLightbox({ images, startIndex = 0, onClose }) {
 
 
 // ─────────────────────────────────────────────────────────────
-// IMAGE CAROUSEL
-// Used inside the detail panel — tap image to open lightbox
+// IMAGE CAROUSEL — used inside the detail panel
 // ─────────────────────────────────────────────────────────────
 
 function ImageCarousel({ images, className, onImageClick }) {
   const [currentIndex, setCurrentIndex] = useState(0)
-
   if (!images || images.length === 0) return null
 
-  function goPrev(e) {
-    e.stopPropagation()
-    setCurrentIndex(i => (i === 0 ? images.length - 1 : i - 1))
-  }
-
-  function goNext(e) {
-    e.stopPropagation()
-    setCurrentIndex(i => (i === images.length - 1 ? 0 : i + 1))
-  }
+  function goPrev(e) { e.stopPropagation(); setCurrentIndex(i => (i === 0 ? images.length - 1 : i - 1)) }
+  function goNext(e) { e.stopPropagation(); setCurrentIndex(i => (i === images.length - 1 ? 0 : i + 1)) }
 
   return (
     <div className={styles.carousel}>
-      {/* Main image — tappable if onImageClick is provided */}
       <img
         src={images[currentIndex]}
         alt={`Design reference ${currentIndex + 1}`}
         className={`${className || styles.carouselImage} ${onImageClick ? styles.carouselImage_zoomable : ''}`}
         onClick={() => onImageClick && onImageClick(currentIndex)}
       />
-
-      {/* Small "expand" hint badge in the corner */}
       {onImageClick && (
         <div className={styles.carouselExpandHint}>
           <span className="mi" style={{ fontSize: '0.85rem' }}>open_in_full</span>
         </div>
       )}
-
-      {/* Arrows + dots when there are multiple images */}
       {images.length > 1 && (
         <>
-          <button
-            className={`${styles.carouselArrow} ${styles.carouselArrow_left}`}
-            onClick={goPrev}
-            type="button"
-          >
+          <button className={`${styles.carouselArrow} ${styles.carouselArrow_left}`} onClick={goPrev} type="button">
             <span className="mi">chevron_left</span>
           </button>
-
-          <button
-            className={`${styles.carouselArrow} ${styles.carouselArrow_right}`}
-            onClick={goNext}
-            type="button"
-          >
+          <button className={`${styles.carouselArrow} ${styles.carouselArrow_right}`} onClick={goNext} type="button">
             <span className="mi">chevron_right</span>
           </button>
-
           <div className={styles.carouselDots}>
             {images.map((_, i) => (
               <button
                 key={i}
                 type="button"
                 className={`${styles.carouselDot} ${i === currentIndex ? styles.carouselDot_active : ''}`}
-                onClick={(e) => { e.stopPropagation(); setCurrentIndex(i) }}
+                onClick={e => { e.stopPropagation(); setCurrentIndex(i) }}
               />
             ))}
           </div>
@@ -239,28 +160,24 @@ function ImageCarousel({ images, className, onImageClick }) {
 
 // ─────────────────────────────────────────────────────────────
 // MULTI-IMAGE UPLOAD
-// Lets the user pick multiple reference photos for a cloth type
 // ─────────────────────────────────────────────────────────────
 
 function MultiImageUpload({ images, onChange, cardId }) {
   const [previewIndex, setPreviewIndex] = useState(0)
 
-  // If images are removed and previewIndex is out of range, clamp it
   useEffect(() => {
     if (previewIndex >= images.length && images.length > 0) {
       setPreviewIndex(images.length - 1)
     }
   }, [images.length, previewIndex])
 
-  // Compress and add new images to the list
   async function handleFilePick(files) {
-    const fileArray    = Array.from(files)
-    const compressed   = await Promise.all(fileArray.map(f => compressImage(f)))
+    const fileArray  = Array.from(files)
+    const compressed = await Promise.all(fileArray.map(f => compressImage(f)))
     onChange([...images, ...compressed])
     setPreviewIndex(images.length + compressed.length - 1)
   }
 
-  // Remove the currently previewed image
   function removeCurrentImage(e) {
     e.stopPropagation()
     const updated = images.filter((_, i) => i !== previewIndex)
@@ -268,24 +185,14 @@ function MultiImageUpload({ images, onChange, cardId }) {
     setPreviewIndex(Math.max(0, previewIndex - 1))
   }
 
-  function goPrev(e) {
-    e.stopPropagation()
-    setPreviewIndex(i => Math.max(0, i - 1))
-  }
+  function goPrev(e) { e.stopPropagation(); setPreviewIndex(i => Math.max(0, i - 1)) }
+  function goNext(e) { e.stopPropagation(); setPreviewIndex(i => Math.min(images.length - 1, i + 1)) }
 
-  function goNext(e) {
-    e.stopPropagation()
-    setPreviewIndex(i => Math.min(images.length - 1, i + 1))
-  }
-
-  // ── Empty state: show upload area ──
   if (images.length === 0) {
     return (
       <div className={styles.uploadArea_wrapper}>
         <label className={styles.uploadArea_empty} htmlFor={`upload-${cardId}`}>
-          <span className="mi" style={{ fontSize: '2rem', color: 'var(--text3)', pointerEvents: 'none' }}>
-            add_a_photo
-          </span>
+          <span className="mi" style={{ fontSize: '1.8rem', color: 'var(--text3)', pointerEvents: 'none' }}>add_a_photo</span>
           <span className={styles.uploadArea_label}>Tap to upload design references</span>
           <input
             id={`upload-${cardId}`}
@@ -300,46 +207,23 @@ function MultiImageUpload({ images, onChange, cardId }) {
     )
   }
 
-  // ── Has images: show carousel with remove button ──
   return (
     <div className={styles.uploadArea_wrapper}>
       <div className={styles.uploadCarousel}>
-        <img
-          src={images[previewIndex]}
-          alt={`Preview ${previewIndex + 1}`}
-          className={styles.uploadCarouselImage}
-        />
-
-        {/* Remove current image button */}
-        <button
-          type="button"
-          className={styles.uploadRemoveButton}
-          onClick={removeCurrentImage}
-        >
+        <img src={images[previewIndex]} alt={`Preview ${previewIndex + 1}`} className={styles.uploadCarouselImage} />
+        <button type="button" className={styles.uploadRemoveButton} onClick={removeCurrentImage}>
           <span className="mi" style={{ fontSize: '1rem' }}>close</span>
         </button>
-
-        {/* Nav arrows for multiple images */}
         {images.length > 1 && (
           <>
-            <button
-              type="button"
-              className={`${styles.carouselArrow} ${styles.carouselArrow_left}`}
-              onClick={goPrev}
-            >
+            <button type="button" className={`${styles.carouselArrow} ${styles.carouselArrow_left}`} onClick={goPrev}>
               <span className="mi">chevron_left</span>
             </button>
-            <button
-              type="button"
-              className={`${styles.carouselArrow} ${styles.carouselArrow_right}`}
-              onClick={goNext}
-            >
+            <button type="button" className={`${styles.carouselArrow} ${styles.carouselArrow_right}`} onClick={goNext}>
               <span className="mi">chevron_right</span>
             </button>
           </>
         )}
-
-        {/* Dot indicators */}
         <div className={styles.carouselDots}>
           {images.map((_, i) => (
             <button
@@ -350,14 +234,9 @@ function MultiImageUpload({ images, onChange, cardId }) {
             />
           ))}
         </div>
-
-        {/* "1 / 3" counter */}
-        <div className={styles.uploadCarouselCounter}>
-          {previewIndex + 1} / {images.length}
-        </div>
+        <div className={styles.uploadCarouselCounter}>{previewIndex + 1} / {images.length}</div>
       </div>
 
-      {/* "Add More Images" button below the carousel */}
       <label className={styles.addMoreImagesButton} htmlFor={`upload-more-${cardId}`}>
         <span className="mi" style={{ fontSize: '0.9rem' }}>add_photo_alternate</span>
         Add More Images
@@ -376,8 +255,7 @@ function MultiImageUpload({ images, onChange, cardId }) {
 
 
 // ─────────────────────────────────────────────────────────────
-// FRESH CARD FACTORY
-// Returns a blank cloth-type card object for the form
+// BLANK CARD FACTORY
 // ─────────────────────────────────────────────────────────────
 
 function createBlankCard(cardNumber) {
@@ -393,19 +271,14 @@ function createBlankCard(cardNumber) {
 
 // ─────────────────────────────────────────────────────────────
 // MEASURE MODAL
-// Slide-up form for adding new measurements
 // ─────────────────────────────────────────────────────────────
 
 function MeasureModal({ isOpen, onClose, onSave }) {
   const [unit,  setUnit]  = useState('in')
   const [cards, setCards] = useState(() => [createBlankCard(1)])
 
-  // ── Card-level updates ──
-
   function updateCard(cardId, key, value) {
-    setCards(prev => prev.map(card =>
-      card.id === cardId ? { ...card, [key]: value } : card
-    ))
+    setCards(prev => prev.map(card => card.id === cardId ? { ...card, [key]: value } : card))
   }
 
   function addCard() {
@@ -415,8 +288,6 @@ function MeasureModal({ isOpen, onClose, onSave }) {
   function removeCard(cardId) {
     setCards(prev => prev.filter(card => card.id !== cardId))
   }
-
-  // ── Field-level updates (measurement rows inside a card) ──
 
   function addField(cardId) {
     setCards(prev => prev.map(card =>
@@ -442,20 +313,14 @@ function MeasureModal({ isOpen, onClose, onSave }) {
     ))
   }
 
-  // ── Save all cards that have a name filled in ──
-
   function handleSave() {
     const today = new Date().toLocaleDateString('en-US', {
-      month: 'short',
-      day:   'numeric',
-      year:  'numeric',
+      month: 'short', day: 'numeric', year: 'numeric',
     })
 
     let savedCount = 0
-
     cards.forEach(card => {
-      if (!card.name.trim()) return  // skip blank cards
-
+      if (!card.name.trim()) return
       const filledFields = card.fields
         .filter(f => f.name.trim())
         .map(f => ({ name: f.name, value: f.value }))
@@ -469,13 +334,10 @@ function MeasureModal({ isOpen, onClose, onSave }) {
         fields:  filledFields,
         date:    today,
       })
-
       savedCount++
     })
 
     if (savedCount === 0) return
-
-    // Reset form
     setCards([createBlankCard(1)])
     setUnit('in')
     onClose()
@@ -496,111 +358,111 @@ function MeasureModal({ isOpen, onClose, onSave }) {
         customActions={[{ label: 'Save', onClick: handleSave }]}
       />
 
-      {/* Unit selector bar — sticky below the header */}
-      <div className={styles.unitSelectorBar}>
-        {['in', 'cm', 'yd'].map(u => (
-          <button
-            key={u}
-            className={`${styles.unitChip} ${unit === u ? styles.unitChip_active : ''}`}
-            onClick={() => setUnit(u)}
-          >
-            {UNIT_FULL[u]}
-          </button>
-        ))}
-      </div>
-
-      {/* Scrollable form body */}
       <div className={styles.formScrollBody}>
+        <div style={{ padding: '20px' }}>
 
-        {/* One card per cloth type */}
-        {cards.map((card, index) => (
-          <div key={card.id} className={styles.clothCard}>
-
-            {/* Card header: label + remove button */}
-            <div className={styles.clothCardHeader}>
-              <span className={styles.clothCardLabel}>{card.label}</span>
-              {index > 0 && (
-                <button
-                  className="mi"
-                  onClick={() => removeCard(card.id)}
-                  style={{ background: 'none', border: 'none', color: 'var(--text3)', cursor: 'pointer', fontSize: '1.2rem' }}
-                >
-                  cancel
-                </button>
-              )}
-            </div>
-
-            {/* Cloth name */}
-            <label className={styles.fieldLabel}>Name</label>
-            <input
-              type="text"
-              className={styles.underlineInput}
-              placeholder="e.g. Shirt"
-              value={card.name}
-              onChange={e => updateCard(card.id, 'name', e.target.value)}
-            />
-
-            {/* Design reference images */}
-            <label className={styles.fieldLabel}>Design References</label>
-            <MultiImageUpload
-              images={card.imgSrcs}
-              cardId={card.id}
-              onChange={imgs => updateCard(card.id, 'imgSrcs', imgs)}
-            />
-
-            {/* Measurement fields */}
-            <label className={styles.fieldLabel} style={{ marginTop: 20 }}>Measurements</label>
-            <div className={styles.measureFieldList}>
-              {card.fields.map(field => (
-                <div key={field.id} className={styles.measureFieldRow}>
-
-                  {/* Field name */}
-                  <div className={styles.measureFieldColumn}>
-                    <label>Field</label>
-                    <input
-                      type="text"
-                      className={styles.measureFieldInput}
-                      placeholder="e.g. Neck"
-                      value={field.name}
-                      onChange={e => updateField(card.id, field.id, 'name', e.target.value)}
-                    />
-                  </div>
-
-                  {/* Field value */}
-                  <div className={styles.measureFieldColumn}>
-                    <label>Value</label>
-                    <input
-                      type="number"
-                      className={styles.measureFieldInput}
-                      placeholder="0"
-                      inputMode="decimal"
-                      value={field.value}
-                      onChange={e => updateField(card.id, field.id, 'value', e.target.value)}
-                    />
-                  </div>
-
-                  {/* Remove field button */}
-                  <button
-                    className={styles.removeFieldButton}
-                    onClick={() => removeField(card.id, field.id)}
-                  >
-                    <span className="mi" style={{ fontSize: '1.2rem' }}>remove_circle_outline</span>
-                  </button>
-                </div>
-              ))}
-            </div>
-
-            <button className={styles.addFieldButton} onClick={() => addField(card.id)}>
-              <span className="mi" style={{ fontSize: '0.9rem' }}>add</span> Add Field
-            </button>
+          {/* ── Step 1: Unit ── */}
+          <p className={styles.stepHeading}>1. Unit of Measurement</p>
+          <div className={styles.unitChipRow}>
+            {['in', 'cm', 'yd'].map(u => (
+              <button
+                key={u}
+                className={`${styles.unitChip} ${unit === u ? styles.unitChip_active : ''}`}
+                onClick={() => setUnit(u)}
+              >
+                {UNIT_FULL[u]}
+              </button>
+            ))}
           </div>
-        ))}
 
-        {/* Add another cloth type */}
-        <div className={styles.addClothButtonWrapper}>
+          {/* ── Step 2: Cloth Types ── */}
+          <p className={styles.stepHeading} style={{ marginTop: 24 }}>2. Cloth Types</p>
+
+          {cards.map((card, index) => (
+            <div key={card.id} className={styles.clothCard}>
+
+              {/* Card header */}
+              <div className={styles.clothCardHeader}>
+                <span className={styles.clothCardLabel}>{card.label}</span>
+                {index > 0 && (
+                  <button
+                    className={styles.removeCardButton}
+                    onClick={() => removeCard(card.id)}
+                  >
+                    <span className="mi" style={{ fontSize: '1.1rem' }}>cancel</span>
+                  </button>
+                )}
+              </div>
+
+              {/* Cloth name */}
+              <label className={styles.fieldLabel}>Name</label>
+              <input
+                type="text"
+                className={styles.underlineInput}
+                placeholder="e.g. Shirt"
+                value={card.name}
+                onChange={e => updateCard(card.id, 'name', e.target.value)}
+              />
+
+              {/* Design reference images */}
+              <label className={styles.fieldLabel}>Design References</label>
+              <MultiImageUpload
+                images={card.imgSrcs}
+                cardId={card.id}
+                onChange={imgs => updateCard(card.id, 'imgSrcs', imgs)}
+              />
+
+              {/* Measurement fields */}
+              <label className={styles.fieldLabel} style={{ marginTop: 4 }}>Measurements</label>
+
+              <div className={styles.measureFieldList}>
+                {card.fields.map(field => (
+                  <div key={field.id} className={styles.measureFieldRow}>
+                    <div className={styles.measureFieldColumn}>
+                      <label>Field</label>
+                      <input
+                        type="text"
+                        className={styles.measureFieldInput}
+                        placeholder="e.g. Neck"
+                        value={field.name}
+                        onChange={e => updateField(card.id, field.id, 'name', e.target.value)}
+                      />
+                    </div>
+                    <div className={styles.measureFieldColumn}>
+                      <label>Value</label>
+                      <input
+                        type="number"
+                        className={styles.measureFieldInput}
+                        placeholder="0"
+                        inputMode="decimal"
+                        value={field.value}
+                        onChange={e => updateField(card.id, field.id, 'value', e.target.value)}
+                      />
+                    </div>
+                    <button
+                      className={styles.removeFieldButton}
+                      onClick={() => removeField(card.id, field.id)}
+                    >
+                      <span className="mi" style={{ fontSize: '1.1rem' }}>remove_circle_outline</span>
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              <button className={styles.addFieldButton} onClick={() => addField(card.id)}>
+                <span className="mi" style={{ fontSize: '0.9rem' }}>add</span>
+                Add Field
+              </button>
+            </div>
+          ))}
+
+          {/* ── Step 3: Add Another Cloth Type ── */}
+          <p className={styles.stepHeading} style={{ marginTop: 24 }}>3. Add More Cloth Types</p>
           <button className={styles.addClothButton} onClick={addCard}>
-            <span className="mi">add_circle_outline</span> Add Another Cloth Type
+            <span className="mi">add_circle_outline</span>
+            Add Another Cloth Type
           </button>
+
         </div>
       </div>
     </div>
@@ -610,7 +472,6 @@ function MeasureModal({ isOpen, onClose, onSave }) {
 
 // ─────────────────────────────────────────────────────────────
 // MEASURE DETAIL PANEL
-// Slides in from the right when a measurement row is tapped
 // ─────────────────────────────────────────────────────────────
 
 function MeasureDetail({ measurement, onClose, onDelete }) {
@@ -619,9 +480,7 @@ function MeasureDetail({ measurement, onClose, onDelete }) {
   if (!measurement) return null
 
   const unitLabel = UNIT_FULL[measurement.unit] ?? measurement.unit
-
-  // Support both old single-image (imgSrc) and new multi-image (imgSrcs) format
-  const images = measurement.imgSrcs?.length
+  const images    = measurement.imgSrcs?.length
     ? measurement.imgSrcs
     : measurement.imgSrc
       ? [measurement.imgSrc]
@@ -641,7 +500,7 @@ function MeasureDetail({ measurement, onClose, onDelete }) {
 
         <div className={styles.detailScrollBody}>
 
-          {/* Image carousel — tap to open fullscreen lightbox */}
+          {/* Design reference carousel */}
           {images.length > 0 && (
             <ImageCarousel
               images={images}
@@ -650,26 +509,42 @@ function MeasureDetail({ measurement, onClose, onDelete }) {
             />
           )}
 
-          {/* Unit label (e.g. "Inches (")") */}
-          <div className={styles.detailUnitLabel}>{unitLabel}</div>
+          {/* Summary info grid — unit + field count */}
+          <div className={styles.infoGrid}>
+            <div className={styles.infoGridCell}>
+              <div className={styles.infoGridLabel}>Unit</div>
+              <div className={styles.infoGridValue}>{UNIT_SHORT[measurement.unit] ?? measurement.unit}</div>
+            </div>
+            <div className={styles.infoGridCell}>
+              <div className={styles.infoGridLabel}>Fields</div>
+              <div className={styles.infoGridValue}>{measurement.fields.length}</div>
+            </div>
+          </div>
 
-          {/* Measurement fields list */}
-          {measurement.fields.length === 0
-            ? <p style={{ color: 'var(--text3)', fontSize: '0.8rem' }}>No fields recorded.</p>
-            : measurement.fields.map((field, index) => (
-                <div key={index} className={styles.measurementFieldRow}>
-                  <span className={styles.measurementFieldName}>{field.name}</span>
-                  <span className={styles.measurementFieldValue}>{field.value || '—'}</span>
-                </div>
-              ))
-          }
+          {/* Measurements section card */}
+          <div className={styles.sectionCard}>
+            <div className={styles.sectionCardLabel}>Measurements</div>
 
-          {/* Saved date */}
+            {measurement.fields.length === 0
+              ? <p style={{ color: 'var(--text3)', fontSize: '0.8rem' }}>No fields recorded.</p>
+              : measurement.fields.map((field, index) => (
+                  <div
+                    key={index}
+                    className={`${styles.measurementFieldRow} ${index === measurement.fields.length - 1 ? styles.measurementFieldRow_last : ''}`}
+                  >
+                    <span className={styles.measurementFieldName}>{field.name}</span>
+                    <span className={styles.measurementFieldValue}>
+                      {field.value || '—'}{field.value ? <span className={styles.measurementFieldUnit}>{UNIT_SHORT[measurement.unit] ?? ''}</span> : ''}
+                    </span>
+                  </div>
+                ))
+            }
+          </div>
+
           <div className={styles.detailFooterDate}>Saved on {measurement.date}</div>
         </div>
       </div>
 
-      {/* Fullscreen lightbox — rendered on top of the detail panel */}
       {lightboxIndex !== null && (
         <ImageLightbox
           images={images}
@@ -687,11 +562,10 @@ function MeasureDetail({ measurement, onClose, onDelete }) {
 // ─────────────────────────────────────────────────────────────
 
 export default function MeasurementsTab({ measurements, onSave, onDelete, showToast }) {
-  const [isModalOpen,       setIsModalOpen]       = useState(false)
+  const [isModalOpen,         setIsModalOpen]         = useState(false)
   const [selectedMeasurement, setSelectedMeasurement] = useState(null)
   const [measurementToDelete, setMeasurementToDelete] = useState(null)
 
-  // Allow other parts of the app to open the modal via a custom event
   useEffect(() => {
     const openModal = () => setIsModalOpen(true)
     document.addEventListener('openMeasureModal', openModal)
@@ -711,7 +585,6 @@ export default function MeasurementsTab({ measurements, onSave, onDelete, showTo
     setSelectedMeasurement(null)
   }
 
-  // Group measurements by the date they were saved
   const measurementsByDate = measurements.reduce((groups, measurement) => {
     const dateKey = measurement.date || 'Unknown Date'
     if (!groups[dateKey]) groups[dateKey] = []
@@ -737,7 +610,6 @@ export default function MeasurementsTab({ measurements, onSave, onDelete, showTo
           <div className={styles.measurementGroupDivider} />
 
           {measurementsInGroup.map((measurement, index) => {
-            const unitShort     = UNIT_SHORT[measurement.unit] ?? measurement.unit
             const isLastInGroup = index === measurementsInGroup.length - 1
             const coverImage    = measurement.imgSrcs?.[0] ?? measurement.imgSrc ?? null
             const extraCount    = (measurement.imgSrcs?.length ?? (measurement.imgSrc ? 1 : 0)) - 1
@@ -748,32 +620,28 @@ export default function MeasurementsTab({ measurements, onSave, onDelete, showTo
                 className={`${styles.measurementRow} ${isLastInGroup ? styles.measurementRow_last : ''}`}
                 onClick={() => setSelectedMeasurement(measurement)}
               >
-                {/* Thumbnail box */}
+                {/* Thumbnail */}
                 <div className={styles.thumbnailContainer}>
                   <div className={styles.thumbnailBox}>
                     {coverImage
                       ? <img src={coverImage} alt={measurement.name} className={styles.thumbnailImage} />
                       : <span className="mi" style={{ fontSize: '1.5rem', color: 'var(--text3)' }}>straighten</span>
                     }
-                    {/* "+N views" overlay when there are more images */}
                     {extraCount > 0 && coverImage && (
-                      <div className={styles.thumbnailExtraOverlay}>
-                        +{extraCount} view{extraCount !== 1 ? 's' : ''}
-                      </div>
+                      <div className={styles.thumbnailExtraOverlay}>+{extraCount}</div>
                     )}
                   </div>
                 </div>
 
-                {/* Name, date, unit + field count */}
+                {/* Info */}
                 <div className={styles.measurementRowInfo}>
                   <div className={styles.measurementRowName}>{measurement.name}</div>
-             
                   <div className={styles.measurementRowMeta}>
                     {measurement.fields.length} measurement{measurement.fields.length !== 1 ? 's' : ''}
                   </div>
                 </div>
 
-                {/* Delete + chevron */}
+                {/* Actions */}
                 <div className={styles.measurementRowActions}>
                   <button
                     className={styles.deleteButton}
@@ -789,14 +657,12 @@ export default function MeasurementsTab({ measurements, onSave, onDelete, showTo
         </div>
       ))}
 
-      {/* New measurement modal */}
       <MeasureModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSave={handleSave}
       />
 
-      {/* Measurement detail panel */}
       {selectedMeasurement && (
         <MeasureDetail
           measurement={selectedMeasurement}
@@ -805,7 +671,6 @@ export default function MeasurementsTab({ measurements, onSave, onDelete, showTo
         />
       )}
 
-      {/* Delete confirmation */}
       <ConfirmSheet
         open={!!measurementToDelete}
         title="Delete Measurement?"
