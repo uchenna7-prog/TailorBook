@@ -86,18 +86,25 @@ function capitalise(str) {
 
 // ─────────────────────────────────────────────────────────────
 // ORDER MOSAIC THUMBNAIL
+// size="sm" → 38px picker card thumb
+// size="md" → 68px payment list row
+// Matches OrdersTab mosaic structure exactly.
 // ─────────────────────────────────────────────────────────────
 
-function OrderMosaic({ orderItems, fallbackIcon, fallbackColor }) {
-  const images     = (orderItems || []).map(item => item.imgSrc ?? null).filter(Boolean)
-  const totalItems = (orderItems || []).length
+function OrderMosaic({ items = [], size = 'md', fallbackIcon = 'payments', fallbackColor }) {
+  const images     = items.map(item => item.imgSrc ?? null).filter(Boolean)
+  const totalItems = items.length
+  const isSm      = size === 'sm'
+
+  const outerCls = isSm ? styles.mosaicOuter_sm : styles.mosaicOuter
+  const innerCls = isSm ? styles.mosaicInner_sm : styles.mosaicInner
 
   if (images.length === 0) {
     return (
-      <div className={styles.mosaicOuterBox}>
-        <div className={styles.mosaicInnerBox}>
-          <span className="mi" style={{ fontSize: '1.5rem', color: fallbackColor || 'var(--text3)' }}>
-            {fallbackIcon || 'payments'}
+      <div className={outerCls}>
+        <div className={innerCls}>
+          <span className="mi" style={{ fontSize: isSm ? '1rem' : '1.5rem', color: fallbackColor || 'var(--text3)' }}>
+            {fallbackIcon}
           </span>
         </div>
       </div>
@@ -106,9 +113,9 @@ function OrderMosaic({ orderItems, fallbackIcon, fallbackColor }) {
 
   if (totalItems === 1) {
     return (
-      <div className={styles.mosaicOuterBox}>
-        <div className={styles.mosaicInnerBox}>
-          <img src={images[0]} alt="" className={styles.mosaicFullImage} />
+      <div className={outerCls}>
+        <div className={innerCls}>
+          <img src={images[0]} alt="" className={styles.mosaicSingleImage} />
         </div>
       </div>
     )
@@ -116,16 +123,16 @@ function OrderMosaic({ orderItems, fallbackIcon, fallbackColor }) {
 
   if (totalItems === 2) {
     return (
-      <div className={styles.mosaicOuterBox}>
-        <div className={`${styles.mosaicInnerBox} ${styles.mosaicTiled}`}>
-          <div className={styles.mosaicTileLeft}>
-            <img src={images[0]} alt="" className={styles.mosaicTileImage} />
+      <div className={outerCls}>
+        <div className={`${innerCls} ${styles.mosaicSplit}`}>
+          <div className={styles.mosaicLeft}>
+            <img src={images[0]} alt="" className={styles.mosaicPanelImg} />
           </div>
-          <div className={styles.mosaicDividerVertical} />
-          <div className={styles.mosaicTileRight}>
-            <div className={styles.mosaicTileCell}>
+          <div className={styles.mosaicDividerV} />
+          <div className={styles.mosaicRight}>
+            <div className={styles.mosaicCell}>
               {images[1]
-                ? <img src={images[1]} alt="" className={styles.mosaicTileImage} />
+                ? <img src={images[1]} alt="" className={styles.mosaicPanelImg} />
                 : <span className="mi" style={{ fontSize: '0.75rem', color: 'var(--text3)' }}>checkroom</span>
               }
             </div>
@@ -137,30 +144,30 @@ function OrderMosaic({ orderItems, fallbackIcon, fallbackColor }) {
 
   const extraCount = totalItems > 3 ? totalItems - 3 : 0
   return (
-    <div className={styles.mosaicOuterBox}>
-      <div className={`${styles.mosaicInnerBox} ${styles.mosaicTiled}`}>
-        <div className={styles.mosaicTileLeft}>
+    <div className={outerCls}>
+      <div className={`${innerCls} ${styles.mosaicSplit}`}>
+        <div className={styles.mosaicLeft}>
           {images[0]
-            ? <img src={images[0]} alt="" className={styles.mosaicTileImage} />
+            ? <img src={images[0]} alt="" className={styles.mosaicPanelImg} />
             : <span className="mi" style={{ fontSize: '0.9rem', color: 'var(--text3)' }}>checkroom</span>
           }
         </div>
-        <div className={styles.mosaicDividerVertical} />
-        <div className={styles.mosaicTileRight}>
-          <div className={styles.mosaicTileCell}>
+        <div className={styles.mosaicDividerV} />
+        <div className={styles.mosaicRight}>
+          <div className={styles.mosaicCell}>
             {images[1]
-              ? <img src={images[1]} alt="" className={styles.mosaicTileImage} />
+              ? <img src={images[1]} alt="" className={styles.mosaicPanelImg} />
               : <span className="mi" style={{ fontSize: '0.75rem', color: 'var(--text3)' }}>checkroom</span>
             }
           </div>
-          <div className={styles.mosaicDividerHorizontal} />
-          <div className={`${styles.mosaicTileCell} ${extraCount > 0 ? styles.mosaicTileCellWithOverlay : ''}`}>
+          <div className={styles.mosaicDividerH} />
+          <div className={`${styles.mosaicCell} ${extraCount > 0 ? styles.mosaicCell_overlay : ''}`}>
             {images[2]
-              ? <img src={images[2]} alt="" className={styles.mosaicTileImage} />
+              ? <img src={images[2]} alt="" className={styles.mosaicPanelImg} />
               : <span className="mi" style={{ fontSize: '0.75rem', color: 'var(--text3)' }}>checkroom</span>
             }
             {extraCount > 0 && (
-              <div className={styles.mosaicExtraOverlay}>+{extraCount}</div>
+              <div className={styles.mosaicOverlay}>+{extraCount}</div>
             )}
           </div>
         </div>
@@ -173,20 +180,16 @@ function OrderMosaic({ orderItems, fallbackIcon, fallbackColor }) {
 // ─────────────────────────────────────────────────────────────
 // INLINE PAYMENT FORM
 // Rendered inside the accordion when an order is selected.
-// Matches the detailsCard / pricingCard visual language from
-// OrderModal — no page navigation.
+// Only shown for orders with zero existing payment records.
 // ─────────────────────────────────────────────────────────────
 
-function InlinePaymentForm({ order, existingPayment, onSave, onClose, saving }) {
+function InlinePaymentForm({ order, onSave, saving }) {
   const [paymentType, setPaymentType] = useState('full')
   const [amount,      setAmount]      = useState('')
   const [method,      setMethod]      = useState('cash')
   const [notes,       setNotes]       = useState('')
 
-  const fullPrice          = parseFloat(order?.price) || 0
-  const existingIsFullPaid = existingPayment?.status === 'paid'
-  const totalAlreadyPaid   = getTotalPaid(existingPayment?.installments)
-  const balance            = fullPrice > 0 ? Math.max(0, fullPrice - totalAlreadyPaid) : 0
+  const fullPrice = parseFloat(order?.price) || 0
 
   function handleAmountChange(value) {
     setAmount(value)
@@ -209,26 +212,6 @@ function InlinePaymentForm({ order, existingPayment, onSave, onClose, saving }) 
       installments: [{ amount: parseFloat(amount), method, date: getTodayLabel(), id: Date.now() }],
       date:         getTodayLabel(),
     })
-  }
-
-  // ── Existing-but-not-fully-paid: show balance & "add to existing" notice ──
-  if (existingPayment && !existingIsFullPaid) {
-    return (
-      <div className={styles.inlineFormCard}>
-        <div className={styles.inlineFormNotice}>
-          <span className="mi" style={{ fontSize: '1rem', color: '#fb923c' }}>info</span>
-          <span>
-            A part-payment exists. Open it from the Payments list below to record the next instalment.
-          </span>
-        </div>
-        {fullPrice > 0 && (
-          <div className={styles.inlineBalanceRow}>
-            <span className={styles.inlineBalanceLabel}>Balance remaining</span>
-            <span className={styles.inlineBalanceValue}>{formatMoney(balance)}</span>
-          </div>
-        )}
-      </div>
-    )
   }
 
   return (
@@ -294,7 +277,9 @@ function InlinePaymentForm({ order, existingPayment, onSave, onClose, saving }) 
       </div>
 
       {/* Notes */}
-      <label className={styles.fieldLabel}>Notes <span className={styles.fieldLabelOptional}>(optional)</span></label>
+      <label className={styles.fieldLabel}>
+        Notes <span className={styles.fieldLabelOptional}>(optional)</span>
+      </label>
       <textarea
         className={styles.textareaInput}
         placeholder="Any extra details…"
@@ -336,11 +321,11 @@ function InlinePaymentForm({ order, existingPayment, onSave, onClose, saving }) 
 // ─────────────────────────────────────────────────────────────
 // ADD PAYMENT MODAL
 // Full-screen overlay — single scrollable screen with inline
-// accordion. Selecting an order expands the form below it.
-// Only orders that are NOT (fully paid AND invoiced) are shown.
+// accordion. Only shows orders that have NO payment record at all.
+// Selecting an order expands the payment form inline below it.
 // ─────────────────────────────────────────────────────────────
 
-function AddPaymentModal({ isOpen, onClose, orders, payments, invoices, onSave }) {
+function AddPaymentModal({ isOpen, onClose, orders, payments, onSave }) {
   const [selectedOrderId, setSelectedOrderId] = useState(null)
   const [search,          setSearch]          = useState('')
   const [saving,          setSaving]          = useState(false)
@@ -364,16 +349,11 @@ function AddPaymentModal({ isOpen, onClose, orders, payments, invoices, onSave }
     }
   }, [selectedOrderId])
 
-  // Build sets for quick lookup
-  const invoicedOrderIds = new Set((invoices || []).map(inv => String(inv.orderId)))
+  // Build a set of all order IDs that already have ANY payment record
+  const orderIdsWithPayments = new Set(payments.map(p => String(p.orderId)))
 
-  // Filter: exclude orders that are BOTH fully paid AND invoiced
-  const eligibleOrders = orders.filter(order => {
-    const payment = payments.find(p => String(p.orderId) === String(order.id))
-    const isFullyPaid = payment?.status === 'paid'
-    const isInvoiced  = invoicedOrderIds.has(String(order.id))
-    return !(isFullyPaid && isInvoiced)
-  })
+  // Only show orders that have zero payment records
+  const eligibleOrders = orders.filter(order => !orderIdsWithPayments.has(String(order.id)))
 
   const showSearch     = eligibleOrders.length > 5
   const filteredOrders = eligibleOrders.filter(order => {
@@ -407,7 +387,7 @@ function AddPaymentModal({ isOpen, onClose, orders, payments, invoices, onSave }
       <Header
         type="back"
         title="New Payment"
-        onBackClick={onClose}
+        onBackClick={saving ? undefined : onClose}
       />
 
       <div className={styles.pickerScrollBody}>
@@ -438,11 +418,12 @@ function AddPaymentModal({ isOpen, onClose, orders, payments, invoices, onSave }
             </div>
           )}
 
-          {/* Empty state — no eligible orders */}
+          {/* Empty state — all orders already have payments */}
           {eligibleOrders.length === 0 && (
             <div className={styles.pickerEmpty}>
               <span className="mi" style={{ fontSize: '2rem', color: 'var(--text3)' }}>assignment</span>
-              <p>All orders are fully paid and invoiced.</p>
+              <p>All orders already have a payment recorded.</p>
+              <p>Open an existing payment to add an instalment.</p>
             </div>
           )}
 
@@ -457,60 +438,50 @@ function AddPaymentModal({ isOpen, onClose, orders, payments, invoices, onSave }
           {/* Order picker list — accordion style */}
           <div className={styles.clothPickerList}>
             {filteredOrders.map(order => {
-              const isSelected    = selectedOrderId === order.id
-              const existingPmt   = payments.find(p => String(p.orderId) === String(order.id))
-              const isPartPaid    = existingPmt?.status === 'part'
-              const isFullPaid    = existingPmt?.status === 'paid'
+              const isSelected = selectedOrderId === order.id
 
               return (
                 <div key={order.id}>
-                  {/* ── Selectable order row ── */}
+                  {/* ── Selectable order card ── */}
                   <div
-                    className={`${styles.clothPickerItem} ${isSelected ? styles.clothPickerItem_selected : ''}`}
-                    onClick={() => handleToggleOrder(order)}
+                    className={`
+                      ${styles.clothPickerItem}
+                      ${isSelected ? styles.clothPickerItem_selected : ''}
+                      ${saving && isSelected ? styles.clothPickerItem_saving : ''}
+                    `}
+                    onClick={() => !saving && handleToggleOrder(order)}
                   >
-                    {/* Thumbnail */}
-                    <div className={styles.clothThumb}>
-                      {order.items?.length > 0 && order.items[0]?.imgSrc
-                        ? <img src={order.items[0].imgSrc} alt={order.desc} />
-                        : <span className="mi" style={{ fontSize: '1.1rem' }}>receipt_long</span>
-                      }
-                    </div>
+                    {/* Full mosaic thumbnail */}
+                    <OrderMosaic
+                      items={order.items || []}
+                      size="sm"
+                      fallbackIcon="content_cut"
+                    />
 
-                    {/* Name + status indicator */}
+                    {/* Order name + due date */}
                     <div className={styles.clothInfo}>
                       <h5>{order.desc || 'Untitled Order'}</h5>
-                      {isFullPaid
-                        ? <span style={{ color: '#15803d' }}>Paid — not yet invoiced</span>
-                        : isPartPaid
-                          ? <span style={{ color: '#fb923c' }}>Part payment recorded</span>
-                          : order.due
-                            ? <span style={{ color: '#ef4444' }}>Due {order.due}</span>
-                            : <span>No due date</span>
+                      {order.due
+                        ? <span style={{ color: '#ef4444' }}>Due {order.due}</span>
+                        : <span>No due date</span>
                       }
                     </div>
 
-                    {/* Checkmark circle */}
+                    {/* Check circle */}
                     <div className={`${styles.clothCheckCircle} ${isSelected ? styles.clothCheckCircle_checked : ''}`}>
                       {isSelected && <span className="mi" style={{ fontSize: '0.9rem' }}>check</span>}
                     </div>
                   </div>
 
-                  {/* ── Inline expanded form ── */}
+                  {/* ── Inline expanded payment form ── */}
                   {isSelected && (
-                    <div
-                      ref={expandedRef}
-                      className={styles.accordionBody}
-                    >
-                      {/* Step 2 heading */}
+                    <div ref={expandedRef} className={styles.accordionBody}>
                       <p className={styles.stepHeading} style={{ marginTop: 0, marginBottom: 16 }}>
                         2. Payment Details
                       </p>
                       <InlinePaymentForm
                         order={order}
-                        existingPayment={existingPmt}
                         onSave={handleSave}
-                        onClose={onClose}
                         saving={saving}
                       />
                     </div>
@@ -814,7 +785,7 @@ function PaymentDetail({ payment, onClose, onDelete, onStatusChange, onAddInstal
 // PAYMENTS TAB — main export
 // ─────────────────────────────────────────────────────────────
 
-export default function PaymentsTab({ customerId, orders, invoices, showToast, onGenerateReceipt, onInvoicePaid, onPaymentsChange }) {
+export default function PaymentsTab({ customerId, orders, showToast, onGenerateReceipt, onInvoicePaid, onPaymentsChange }) {
   const { user } = useAuth()
 
   const [payments,       setPayments]       = useState([])
@@ -952,7 +923,8 @@ export default function PaymentsTab({ customerId, orders, invoices, showToast, o
                 onClick={() => setViewingPayment(payment)}
               >
                 <OrderMosaic
-                  orderItems={orderItems}
+                  items={orderItems}
+                  size="md"
                   fallbackIcon="payments"
                   fallbackColor={statusMeta.color}
                 />
@@ -1005,7 +977,6 @@ export default function PaymentsTab({ customerId, orders, invoices, showToast, o
         onClose={() => setModalOpen(false)}
         orders={orders}
         payments={payments}
-        invoices={invoices || []}
         onSave={handleSavePayment}
       />
 
