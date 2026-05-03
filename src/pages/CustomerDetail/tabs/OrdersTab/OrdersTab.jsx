@@ -187,7 +187,6 @@ function OrderModal({ isOpen, onClose, measurements, onSave, taxRate, taxEnabled
   const [dueDate,         setDueDate]         = useState('')
   const [priority,        setPriority]        = useState('normal')
   const [notes,           setNotes]           = useState('')
-  const [stage,           setStage]           = useState('')
   const [pricingError,    setPricingError]    = useState('')
   const [shippingFee,     setShippingFee]     = useState('')
 
@@ -198,7 +197,6 @@ function OrderModal({ isOpen, onClose, measurements, onSave, taxRate, taxEnabled
     setDueDate('')
     setPriority('normal')
     setNotes('')
-    setStage('')
     setPricingError('')
     setShippingFee('')
   }
@@ -228,8 +226,10 @@ function OrderModal({ isOpen, onClose, measurements, onSave, taxRate, taxEnabled
 
   const shippingAmount = parseFloat(shippingFee) || 0
 
-  // Tax is computed on subtotal only (not on shipping) — common practice
-  const taxAmount = taxEnabled ? Math.round(subtotal * taxRate * 100) / 100 : 0
+  // taxRate is stored as a plain percent number (e.g. 3 = 3%)
+  // divide by 100 to get the decimal multiplier before applying
+  const taxMultiplier = taxEnabled ? (taxRate / 100) : 0
+  const taxAmount     = Math.round(subtotal * taxMultiplier * 100) / 100
 
   const grandTotal = subtotal + shippingAmount + taxAmount
 
@@ -237,8 +237,8 @@ function OrderModal({ isOpen, onClose, measurements, onSave, taxRate, taxEnabled
     return sum + (parseInt(item.qty, 10) || 0)
   }, 0) || 1
 
-  // No search → show first 3 (insertion order)
-  // Searching  → show all matches, no cap
+  // Steps 2 & 3 only visible once at least one cloth is selected
+  const hasItems    = selectedItems.length > 0
   const isSearching = clothSearchText.trim().length > 0
 
   const visibleMeasurements = isSearching
@@ -249,9 +249,11 @@ function OrderModal({ isOpen, onClose, measurements, onSave, taxRate, taxEnabled
 
   const hiddenCount = isSearching ? 0 : Math.max(0, measurements.length - VISIBLE_MEASUREMENT_LIMIT)
 
+  // Display label e.g. "3%"
+  const taxPercentLabel = taxEnabled ? `${taxRate}%` : null
+
   function handleSave() {
-    const hasItems = selectedItems.length > 0
-    const hasDesc  = orderDesc.trim()
+    const hasDesc = orderDesc.trim()
     if (!hasItems && !hasDesc) return
 
     if (hasItems) {
@@ -273,7 +275,6 @@ function OrderModal({ isOpen, onClose, measurements, onSave, taxRate, taxEnabled
 
     onSave({
       desc:           orderDesc.trim() || (hasItems ? selectedItems.map(i => i.name).join(', ') : 'New Order'),
-      // price = subtotal (items only) — kept for backward-compat with invoice/receipt
       price:          subtotal,
       items:          selectedItems.map(item => ({
         id:     item.id,
@@ -289,13 +290,13 @@ function OrderModal({ isOpen, onClose, measurements, onSave, taxRate, taxEnabled
       priority,
       measurementIds: selectedItems.map(i => i.id),
       status:         'pending',
-      stage:          stage || null,
+      stage:          null,
       takenAt:        getTodayReadable(),
-      // ── New charges fields ──
+      // Charges — taxRate frozen at creation time as plain percent
       shippingFee:    shippingAmount,
-      taxRate:        taxEnabled ? taxRate : 0,        // freeze rate at order creation
+      taxRate:        taxEnabled ? taxRate : 0,
       taxAmount:      taxAmount,
-      totalAmount:    grandTotal,                      // the true payable amount
+      totalAmount:    grandTotal,
     })
 
     resetForm()
@@ -306,8 +307,6 @@ function OrderModal({ isOpen, onClose, measurements, onSave, taxRate, taxEnabled
     resetForm()
     onClose()
   }
-
-  const taxPercent = taxEnabled ? `${(taxRate * 100).toFixed(taxRate % 0.01 === 0 ? 0 : 1)}%` : null
 
   return (
     <div className={`${styles.formOverlay} ${isOpen ? styles.formOverlay_open : ''}`}>
@@ -324,7 +323,6 @@ function OrderModal({ isOpen, onClose, measurements, onSave, taxRate, taxEnabled
           {/* ── Step 1: Select Clothes ── */}
           <p className={styles.stepHeading}>1. Select Clothes</p>
 
-          {/* Search bar — shown whenever total measurements exceed visible limit */}
           {measurements.length > VISIBLE_MEASUREMENT_LIMIT && (
             <div className={styles.clothSearchBar}>
               <span className="mi" style={{ fontSize: '1.1rem', color: 'var(--text3)' }}>search</span>
@@ -346,7 +344,6 @@ function OrderModal({ isOpen, onClose, measurements, onSave, taxRate, taxEnabled
             </div>
           )}
 
-          {/* Cloth type picker list */}
           <div className={styles.clothPickerList}>
             {visibleMeasurements.map(measurement => {
               const isSelected = selectedItems.find(i => i.id === String(measurement.id))
@@ -378,7 +375,6 @@ function OrderModal({ isOpen, onClose, measurements, onSave, taxRate, taxEnabled
             })}
           </div>
 
-          {/* More-results hint — shown when not searching and there are hidden items */}
           {hiddenCount > 0 && (
             <div className={styles.clothHiddenHint}>
               <div className={styles.clothHiddenHintDots}>
@@ -390,7 +386,6 @@ function OrderModal({ isOpen, onClose, measurements, onSave, taxRate, taxEnabled
             </div>
           )}
 
-          {/* No search results */}
           {isSearching && visibleMeasurements.length === 0 && (
             <div className={styles.clothEmptySearch}>
               <span className="mi" style={{ fontSize: '1.6rem' }}>search_off</span>
@@ -399,28 +394,39 @@ function OrderModal({ isOpen, onClose, measurements, onSave, taxRate, taxEnabled
           )}
 
 
-          {/* ── Step 2: Price & Quantity per Item ── */}
-          {selectedItems.length > 0 && (
+          {/* ── Steps 2 & 3 — only shown once at least one item is selected ── */}
+          {hasItems && (
             <>
+              {/* ── Step 2: Price & Quantity ── */}
               <p className={styles.stepHeading} style={{ marginTop: 24 }}>
                 2. Price &amp; Quantity Per Item
               </p>
 
               <div className={styles.pricingCard}>
-                {selectedItems.map(item => (
-                  <div key={item.id} className={styles.pricingRow}>
-                    <div className={styles.clothThumb} style={{ width: 40, height: 40, flexShrink: 0 }}>
-                      {item.imgSrc
-                        ? <img src={item.imgSrc} alt="" />
-                        : <span className="mi">checkroom</span>
-                      }
-                    </div>
+                {selectedItems.map((item, idx) => {
+                  const lineAmount = (parseFloat(item.price) || 0) * (parseInt(item.qty, 10) || 0)
+                  const showAmount = lineAmount > 0
 
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div className={styles.pricingItemName}>{item.name}</div>
+                  return (
+                    <div
+                      key={item.id}
+                      className={styles.pricingRow}
+                      style={idx === selectedItems.length - 1 ? { borderBottom: 'none', paddingBottom: 0 } : {}}
+                    >
+                      {/* Item name + thumb */}
+                      <div className={styles.pricingItemHeader}>
+                        <div className={styles.clothThumb} style={{ width: 32, height: 32, flexShrink: 0 }}>
+                          {item.imgSrc
+                            ? <img src={item.imgSrc} alt="" />
+                            : <span className="mi" style={{ fontSize: '0.9rem' }}>checkroom</span>
+                          }
+                        </div>
+                        <div className={styles.pricingItemName}>{item.name}</div>
+                      </div>
 
-                      <div className={styles.pricingInputRow}>
-                        <div className={styles.pricingField}>
+                      {/* Price + Qty stacked, each full width */}
+                      <div className={styles.pricingFieldsStack}>
+                        <div className={styles.pricingFieldFull}>
                           <label className={styles.fieldLabel}>
                             Price (₦) <span className={styles.requiredStar}>*</span>
                           </label>
@@ -434,9 +440,9 @@ function OrderModal({ isOpen, onClose, measurements, onSave, taxRate, taxEnabled
                           />
                         </div>
 
-                        <div className={styles.pricingField}>
+                        <div className={styles.pricingFieldFull}>
                           <label className={styles.fieldLabel}>
-                            Qty <span className={styles.requiredStar}>*</span>
+                            Quantity <span className={styles.requiredStar}>*</span>
                           </label>
                           <input
                             type="number"
@@ -449,16 +455,16 @@ function OrderModal({ isOpen, onClose, measurements, onSave, taxRate, taxEnabled
                           />
                         </div>
 
-                        <div className={styles.pricingField} style={{ alignItems: 'flex-end' }}>
-                          <label className={styles.fieldLabel}>Amount</label>
-                          <div className={styles.pricingAmount}>
-                            ₦{((parseFloat(item.price) || 0) * (parseInt(item.qty, 10) || 0)).toLocaleString()}
-                          </div>
-                        </div>
+                        {/* Amount as plain text — only visible when both fields have values */}
+                        {showAmount && (
+                          <p className={styles.pricingItemAmount}>
+                            ₦{lineAmount.toLocaleString()}
+                          </p>
+                        )}
                       </div>
                     </div>
-                  </div>
-                ))}
+                  )
+                })}
 
                 {pricingError && (
                   <div className={styles.pricingError}>
@@ -472,12 +478,100 @@ function OrderModal({ isOpen, onClose, measurements, onSave, taxRate, taxEnabled
                   <span style={{ color: 'var(--text2)' }}>₦{subtotal.toLocaleString()}</span>
                 </div>
               </div>
+
+
+              {/* ── Step 3: Charges & Fees ── */}
+              <p className={styles.stepHeading} style={{ marginTop: 24 }}>
+                3. Charges &amp; Fees
+              </p>
+
+              <div className={styles.chargesCard}>
+
+                {/* Shipping */}
+                <div className={styles.chargeRow}>
+                  <div className={styles.chargeRowLeft}>
+                    <div className={styles.chargeIconBox}>
+                      <span className="mi" style={{ fontSize: '1rem' }}>local_shipping</span>
+                    </div>
+                    <div>
+                      <div className={styles.chargeRowLabel}>Shipping Fee</div>
+                      <div className={styles.chargeRowSub}>Leave blank if pickup</div>
+                    </div>
+                  </div>
+                  <div className={styles.chargeInputWrapper}>
+                    <span className={styles.chargeInputPrefix}>₦</span>
+                    <input
+                      type="number"
+                      inputMode="numeric"
+                      placeholder="0"
+                      className={styles.chargeInput}
+                      value={shippingFee}
+                      onChange={e => setShippingFee(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                {/* Tax — read-only, only if enabled in settings */}
+                {taxEnabled && (
+                  <>
+                    <div className={styles.chargeDivider} />
+                    <div className={styles.chargeRow}>
+                      <div className={styles.chargeRowLeft}>
+                        <div className={styles.chargeIconBox}>
+                          <span className="mi" style={{ fontSize: '1rem' }}>receipt</span>
+                        </div>
+                        <div>
+                          <div className={styles.chargeRowLabel}>
+                            Tax
+                            <span className={styles.taxBadge}>{taxPercentLabel} VAT</span>
+                          </div>
+                          <div className={styles.chargeRowSub}>Set in Settings · Applied to subtotal</div>
+                        </div>
+                      </div>
+                      <div className={styles.chargeReadOnly}>
+                        ₦{taxAmount.toLocaleString()}
+                        <span className={styles.lockIcon}>
+                          <span className="mi" style={{ fontSize: '0.8rem' }}>lock</span>
+                        </span>
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {/* Breakdown */}
+                <div className={styles.chargeTotalBlock}>
+                  <div className={styles.chargeSummaryRow}>
+                    <span className={styles.chargeSummaryLabel}>Subtotal</span>
+                    <span className={styles.chargeSummaryValue}>₦{subtotal.toLocaleString()}</span>
+                  </div>
+                  {shippingAmount > 0 && (
+                    <div className={styles.chargeSummaryRow}>
+                      <span className={styles.chargeSummaryLabel}>Shipping</span>
+                      <span className={styles.chargeSummaryValue}>₦{shippingAmount.toLocaleString()}</span>
+                    </div>
+                  )}
+                  {taxEnabled && taxAmount > 0 && (
+                    <div className={styles.chargeSummaryRow}>
+                      <span className={styles.chargeSummaryLabel}>Tax ({taxPercentLabel})</span>
+                      <span className={styles.chargeSummaryValue}>₦{taxAmount.toLocaleString()}</span>
+                    </div>
+                  )}
+                  <div className={styles.chargeTotalDivider} />
+                  <div className={styles.chargeTotalRow}>
+                    <span>Grand Total</span>
+                    <span>₦{grandTotal.toLocaleString()}</span>
+                  </div>
+                </div>
+
+              </div>
             </>
           )}
 
 
-          {/* ── Step 3: Final Details ── */}
-          <p className={styles.stepHeading} style={{ marginTop: 24 }}>3. Final Details</p>
+          {/* ── Final Details — step number shifts based on whether items selected ── */}
+          <p className={styles.stepHeading} style={{ marginTop: 24 }}>
+            {hasItems ? '4' : '2'}. Final Details
+          </p>
 
           <div className={styles.detailsCard}>
             <label className={styles.fieldLabel}>Order Description</label>
@@ -521,20 +615,6 @@ function OrderModal({ isOpen, onClose, measurements, onSave, taxRate, taxEnabled
               ))}
             </div>
 
-            <label className={styles.fieldLabel} style={{ marginTop: 20 }}>Current Stage</label>
-            <div className={styles.stageChipRow}>
-              {STAGES.map(stageItem => (
-                <button
-                  key={stageItem.value}
-                  className={`${styles.stageChip} ${stage === stageItem.value ? styles.stageChip_active : ''}`}
-                  onClick={() => setStage(prev => prev === stageItem.value ? '' : stageItem.value)}
-                >
-                  <span className="mi" style={{ fontSize: '0.85rem' }}>{stageItem.icon}</span>
-                  {stageItem.label}
-                </button>
-              ))}
-            </div>
-
             <label className={styles.fieldLabel} style={{ marginTop: 20 }}>Notes</label>
             <textarea
               className={styles.notesTextarea}
@@ -542,91 +622,6 @@ function OrderModal({ isOpen, onClose, measurements, onSave, taxRate, taxEnabled
               value={notes}
               onChange={e => setNotes(e.target.value)}
             />
-          </div>
-
-
-          {/* ── Step 4: Charges & Fees ── */}
-          <p className={styles.stepHeading} style={{ marginTop: 24 }}>4. Charges &amp; Fees</p>
-
-          <div className={styles.chargesCard}>
-
-            {/* Shipping fee input */}
-            <div className={styles.chargeRow}>
-              <div className={styles.chargeRowLeft}>
-                <div className={styles.chargeIconBox}>
-                  <span className="mi" style={{ fontSize: '1rem' }}>local_shipping</span>
-                </div>
-                <div>
-                  <div className={styles.chargeRowLabel}>Shipping Fee</div>
-                  <div className={styles.chargeRowSub}>Leave blank if pickup</div>
-                </div>
-              </div>
-              <div className={styles.chargeInputWrapper}>
-                <span className={styles.chargeInputPrefix}>₦</span>
-                <input
-                  type="number"
-                  inputMode="numeric"
-                  placeholder="0"
-                  className={styles.chargeInput}
-                  value={shippingFee}
-                  onChange={e => setShippingFee(e.target.value)}
-                />
-              </div>
-            </div>
-
-            {/* Tax row — read-only, only shown if enabled in settings */}
-            {taxEnabled && (
-              <>
-                <div className={styles.chargeDivider} />
-                <div className={styles.chargeRow}>
-                  <div className={styles.chargeRowLeft}>
-                    <div className={`${styles.chargeIconBox} ${styles.chargeIconBox_tax}`}>
-                      <span className="mi" style={{ fontSize: '1rem' }}>receipt</span>
-                    </div>
-                    <div>
-                      <div className={styles.chargeRowLabel}>
-                        Tax
-                        <span className={styles.taxBadge}>{taxPercent} VAT</span>
-                      </div>
-                      <div className={styles.chargeRowSub}>Set in Settings · Applied to subtotal</div>
-                    </div>
-                  </div>
-                  <div className={styles.chargeReadOnly}>
-                    ₦{taxAmount.toLocaleString()}
-                    <span className={styles.lockIcon} title="Derived from Settings">
-                      <span className="mi" style={{ fontSize: '0.8rem' }}>lock</span>
-                    </span>
-                  </div>
-                </div>
-              </>
-            )}
-
-            {/* Total breakdown */}
-            <div className={styles.chargeTotalBlock}>
-              {/* Subtotal line */}
-              <div className={styles.chargeSummaryRow}>
-                <span className={styles.chargeSummaryLabel}>Subtotal</span>
-                <span className={styles.chargeSummaryValue}>₦{subtotal.toLocaleString()}</span>
-              </div>
-              {shippingAmount > 0 && (
-                <div className={styles.chargeSummaryRow}>
-                  <span className={styles.chargeSummaryLabel}>Shipping</span>
-                  <span className={styles.chargeSummaryValue}>₦{shippingAmount.toLocaleString()}</span>
-                </div>
-              )}
-              {taxEnabled && taxAmount > 0 && (
-                <div className={styles.chargeSummaryRow}>
-                  <span className={styles.chargeSummaryLabel}>Tax ({taxPercent})</span>
-                  <span className={styles.chargeSummaryValue}>₦{taxAmount.toLocaleString()}</span>
-                </div>
-              )}
-              <div className={styles.chargeTotalDivider} />
-              <div className={styles.chargeTotalRow}>
-                <span>Grand Total</span>
-                <span>₦{grandTotal.toLocaleString()}</span>
-              </div>
-            </div>
-
           </div>
 
         </div>
@@ -647,17 +642,15 @@ function OrderDetail({ order, measurements, onClose, onDelete, onStatusChange, o
   const placedOnDate   = order.takenAt || order.date || formatFirestoreDate(order.createdAt)
   const currentStage   = STAGES.find(s => s.value === order.stage)
 
-  // ── Derived charge values (handle legacy orders that lack these fields) ──
-  const subtotal      = Number(order.price       || 0)
-  const shippingFee   = Number(order.shippingFee || 0)
-  const taxAmount     = Number(order.taxAmount   || 0)
-  const taxRate       = Number(order.taxRate     || 0)
-  const totalAmount   = Number(order.totalAmount || subtotal)
+  const subtotal    = Number(order.price       || 0)
+  const shippingFee = Number(order.shippingFee || 0)
+  const taxAmount   = Number(order.taxAmount   || 0)
+  const taxRate     = Number(order.taxRate     || 0)
+  const totalAmount = Number(order.totalAmount || subtotal)
 
-  const hasCharges    = shippingFee > 0 || taxAmount > 0
-  const taxPercent    = taxRate > 0
-    ? `${(taxRate * 100).toFixed(taxRate % 0.01 === 0 ? 0 : 1)}%`
-    : null
+  const hasCharges      = shippingFee > 0 || taxAmount > 0
+  // taxRate stored as plain percent (e.g. 3) — display as "3%"
+  const taxPercentLabel = taxRate > 0 ? `${taxRate}%` : null
 
   return (
     <div className={`${styles.detailPanel} ${styles.detailPanel_open}`}>
@@ -676,7 +669,6 @@ function OrderDetail({ order, measurements, onClose, onDelete, onStatusChange, o
           {priorityBanner.label}
         </span>
 
-        {/* ── Info grid — updated to show grand total ── */}
         <div className={styles.infoGrid}>
           <div className={styles.infoGridCell}>
             <div className={styles.infoGridLabel}>Grand Total</div>
@@ -710,7 +702,7 @@ function OrderDetail({ order, measurements, onClose, onDelete, onStatusChange, o
           </div>
         </div>
 
-        {/* ── Garments ── */}
+        {/* Garments */}
         {order.items && order.items.length > 0 && (
           <div className={styles.sectionCard}>
             <div className={styles.sectionCardLabel}>Selected Garments</div>
@@ -740,7 +732,7 @@ function OrderDetail({ order, measurements, onClose, onDelete, onStatusChange, o
           </div>
         )}
 
-        {/* ── Charges breakdown — only shown if shipping or tax exist ── */}
+        {/* Charges breakdown — only when shipping or tax is non-zero */}
         {hasCharges && (
           <div className={styles.sectionCard}>
             <div className={styles.sectionCardLabel}>Charges &amp; Fees</div>
@@ -764,7 +756,7 @@ function OrderDetail({ order, measurements, onClose, onDelete, onStatusChange, o
               <div className={styles.detailChargeRow}>
                 <span className={styles.detailChargeLabel}>
                   <span className="mi" style={{ fontSize: '0.85rem', verticalAlign: 'middle', marginRight: 4 }}>receipt</span>
-                  Tax {taxPercent && `(${taxPercent} VAT)`}
+                  Tax {taxPercentLabel && `(${taxPercentLabel} VAT)`}
                 </span>
                 <span className={styles.detailChargeValue}>₦{taxAmount.toLocaleString()}</span>
               </div>
@@ -858,8 +850,8 @@ export default function OrdersTab({ customerId, orders, measurements, showToast,
   const { user } = useAuth()
   const { settings } = useSettings()
 
-  const taxEnabled = settings.invoiceShowTax  ?? false
-  const taxRate    = settings.invoiceTaxRate  ?? 0
+  const taxEnabled = settings.invoiceShowTax ?? false
+  const taxRate    = settings.invoiceTaxRate ?? 0
 
   const [isModalOpen,   setIsModalOpen]   = useState(false)
   const [selectedOrder, setSelectedOrder] = useState(null)
@@ -972,7 +964,6 @@ export default function OrdersTab({ customerId, orders, measurements, showToast,
             const stageInfo     = STAGES.find(s => s.value === order.stage)
             const items         = order.items || []
             const itemCount     = items.length
-            // Show grand total if available, fall back to price
             const displayPrice  = order.totalAmount != null ? order.totalAmount : order.price
             const priceText     = displayPrice != null ? `₦${Number(displayPrice).toLocaleString()}` : '—'
             const dueDateRaw    = order.dueRaw || order.dueDate
