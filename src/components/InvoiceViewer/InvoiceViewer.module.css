@@ -48,7 +48,7 @@
   box-shadow: 0 4px 24px rgba(0,0,0,0.12);
   /* removed overflow: hidden — it clips html2canvas capture */
   margin-bottom: 14px;
-  width: 380px;
+  width: fit-content;
   max-width: 96%;
   margin-left: auto;
   margin-right: auto;
@@ -115,7 +115,7 @@
   }
 
   .paperWrap {
-    width: 380px;
+    width: fit-content;
     max-width: 100%;
     margin: 0 auto;
     box-shadow: 0 6px 32px rgba(0,0,0,0.14);
