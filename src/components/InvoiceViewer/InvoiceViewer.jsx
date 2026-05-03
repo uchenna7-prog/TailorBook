@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { useBrand } from '../../contexts/BrandContext'
 import Header from '../Header/Header'
 import styles from './InvoiceViewer.module.css'
@@ -12,6 +12,9 @@ const STATUS_LABELS = {
   overdue:   'Overdue',
 }
 
+// The fixed width the template is designed at
+const TEMPLATE_WIDTH = 380
+
 export default function InvoiceViewer({
   invoice: initialInvoice,
   customer,
@@ -21,9 +24,28 @@ export default function InvoiceViewer({
 }) {
   const { brand }  = useBrand()
   const paperRef   = useRef(null)
-  const [invoice,     setInvoice]     = useState(initialInvoice)
-  const [pdfLoading,  setPdfLoading]  = useState(false)
+  const wrapRef    = useRef(null)
+  const [invoice,      setInvoice]      = useState(initialInvoice)
+  const [pdfLoading,   setPdfLoading]   = useState(false)
   const [shareLoading, setShareLoading] = useState(false)
+  const [scale,        setScale]        = useState(1)
+
+  // Measure the available container width and compute scale so the
+  // 380px-wide template fits perfectly without clipping or overflow
+  useEffect(() => {
+    function computeScale() {
+      if (!wrapRef.current) return
+      const availableWidth = wrapRef.current.clientWidth
+      const next = Math.min(1, availableWidth / TEMPLATE_WIDTH)
+      setScale(next)
+    }
+
+    computeScale()
+
+    const ro = new ResizeObserver(computeScale)
+    if (wrapRef.current) ro.observe(wrapRef.current)
+    return () => ro.disconnect()
+  }, [])
 
   const templateKey    = brand.invoiceTemplate || 'invoiceTemplate1'
   const Template       = TEMPLATE_MAPPINGS[templateKey] || TEMPLATE_MAPPINGS.invoiceTemplate1
@@ -32,39 +54,39 @@ export default function InvoiceViewer({
   const filename       = `Invoice-${invoice.number}-${customer.name.replace(/\s+/g, '_')}.pdf`
 
   const handleDownload = async () => {
-  if (!paperRef.current || pdfLoading) return
-  setPdfLoading(true)
-  showToast?.('Generating PDF…')
-  try {
-    const exactHeight = Math.ceil(paperRef.current.getBoundingClientRect().height)
-    await downloadPDF(paperRef.current, filename, brandCSSVars, exactHeight)
-    showToast?.('PDF downloaded ✓')
-  } catch (err) {
-    console.error(err)
-    showToast?.('PDF failed — please try again.')
-  } finally {
-    setPdfLoading(false)
-  }
-}
-
-const handleShare = async () => {
-  if (!paperRef.current || shareLoading) return
-  setShareLoading(true)
-  showToast?.('Preparing…')
-  try {
-    const exactHeight = Math.ceil(paperRef.current.getBoundingClientRect().height)
-    const message = buildInvoiceWhatsAppMessage(invoice, customer, effectiveBrand)
-    await sharePDF(paperRef.current, filename, message, brandCSSVars, exactHeight)
-    showToast?.('Shared ✓')
-  } catch (err) {
-    if (err?.name !== 'AbortError') {
+    if (!paperRef.current || pdfLoading) return
+    setPdfLoading(true)
+    showToast?.('Generating PDF…')
+    try {
+      const exactHeight = Math.ceil(paperRef.current.getBoundingClientRect().height / scale)
+      await downloadPDF(paperRef.current, filename, brandCSSVars, exactHeight)
+      showToast?.('PDF downloaded ✓')
+    } catch (err) {
       console.error(err)
-      showToast?.('Share failed — please try again.')
+      showToast?.('PDF failed — please try again.')
+    } finally {
+      setPdfLoading(false)
     }
-  } finally {
-    setShareLoading(false)
   }
-}
+
+  const handleShare = async () => {
+    if (!paperRef.current || shareLoading) return
+    setShareLoading(true)
+    showToast?.('Preparing…')
+    try {
+      const exactHeight = Math.ceil(paperRef.current.getBoundingClientRect().height / scale)
+      const message = buildInvoiceWhatsAppMessage(invoice, customer, effectiveBrand)
+      await sharePDF(paperRef.current, filename, message, brandCSSVars, exactHeight)
+      showToast?.('Shared ✓')
+    } catch (err) {
+      if (err?.name !== 'AbortError') {
+        console.error(err)
+        showToast?.('Share failed — please try again.')
+      }
+    } finally {
+      setShareLoading(false)
+    }
+  }
 
   return (
     <div className={styles.overlay}>
@@ -100,13 +122,30 @@ const handleShare = async () => {
           </div>
         </div>
 
-        {/* Paper preview — ref is here, clone is used for PDF so this never moves */}
+        {/* Mobile layout */}
         <div className={styles.mobileLayout}>
-          <div className={styles.paperWrap}>
-            <div className={styles.paperInner} ref={paperRef} style={brandCSSVars}>
-              <Template invoice={invoice} customer={customer} brand={effectiveBrand} />
+          {/* Outer wrapper measures available width */}
+          <div ref={wrapRef} className={styles.paperWrap}>
+            {/*
+              scaleShell: fixed at TEMPLATE_WIDTH, scaled down via transform.
+              transform-origin: top left so it scales from the top-left corner.
+              The shell's height collapses to 0 because transform doesn't affect
+              layout, so we set an explicit height equal to scaled rendered height.
+            */}
+            <div
+              className={styles.scaleShell}
+              style={{
+                width:          TEMPLATE_WIDTH,
+                transform:      `scale(${scale})`,
+                transformOrigin: 'top left',
+              }}
+            >
+              <div ref={paperRef} className={styles.paperInner} style={brandCSSVars}>
+                <Template invoice={invoice} customer={customer} brand={effectiveBrand} />
+              </div>
             </div>
           </div>
+
           {invoice.notes && (
             <div className={styles.notesBox}>
               <div className={styles.notesLabel}>Notes</div>
@@ -115,6 +154,7 @@ const handleShare = async () => {
           )}
         </div>
 
+        {/* Desktop layout — no scaling needed, plenty of room */}
         <div className={styles.desktopLayout}>
           <div className={styles.statusRow}>
             <div className={`${styles.statusBadge} ${styles[`status_${invoice.status}`]}`}>
