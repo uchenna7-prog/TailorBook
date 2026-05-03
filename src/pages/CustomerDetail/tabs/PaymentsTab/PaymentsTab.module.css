@@ -168,9 +168,13 @@
 
 /* ─────────────────────────────────────────────────────────────
    ORDER MOSAIC THUMBNAIL
+   md (68px) — payment list rows
+   sm (38px) — picker card thumbs
+   Matches OrdersTab / InvoiceTab mosaic exactly.
    ───────────────────────────────────────────────────────────── */
 
-.mosaicOuterBox {
+/* ── md ── */
+.mosaicOuter {
   width: 68px;
   height: 68px;
   border-radius: 12px;
@@ -182,7 +186,7 @@
   flex-shrink: 0;
 }
 
-.mosaicInnerBox {
+.mosaicInner {
   width: 50px;
   height: 50px;
   border-radius: 9px;
@@ -193,23 +197,48 @@
   overflow: hidden;
 }
 
-.mosaicTiled {
+/* ── sm ── */
+.mosaicOuter_sm {
+  width: 38px;
+  height: 38px;
+  border-radius: 9px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.mosaicInner_sm {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* Single full-bleed image */
+.mosaicSingleImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Tiled split layout */
+.mosaicSplit {
   padding: 0 !important;
   display: flex !important;
   flex-direction: row !important;
   align-items: stretch !important;
   overflow: hidden;
-  border-radius: 9px;
 }
 
-.mosaicFullImage {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 9px;
-}
-
-.mosaicTileLeft {
+/* Left panel — 60% */
+.mosaicLeft {
   flex: 0 0 60%;
   display: flex;
   align-items: center;
@@ -219,7 +248,8 @@
   height: 100%;
 }
 
-.mosaicTileRight {
+/* Right column — two stacked cells */
+.mosaicRight {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -227,7 +257,7 @@
   background: #fff;
 }
 
-.mosaicTileCell {
+.mosaicCell {
   flex: 1;
   display: flex;
   align-items: center;
@@ -237,32 +267,32 @@
   background: #fff;
 }
 
-.mosaicTileImage {
+.mosaicPanelImg {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
 }
 
-.mosaicDividerVertical {
+.mosaicDividerV {
   width: 1.5px;
   flex-shrink: 0;
   background: var(--border);
   align-self: stretch;
 }
 
-.mosaicDividerHorizontal {
+.mosaicDividerH {
   height: 1.5px;
   flex-shrink: 0;
   background: var(--border);
   width: 100%;
 }
 
-.mosaicTileCellWithOverlay {
+.mosaicCell_overlay {
   position: relative;
 }
 
-.mosaicExtraOverlay {
+.mosaicOverlay {
   position: absolute;
   inset: 0;
   background: rgba(0, 0, 0, 0.52);
@@ -270,7 +300,7 @@
   align-items: center;
   justify-content: center;
   color: #fff;
-  font-size: 0.65rem;
+  font-size: 0.6rem;
   font-weight: 800;
   letter-spacing: 0.3px;
   pointer-events: none;
@@ -279,7 +309,6 @@
 
 /* ─────────────────────────────────────────────────────────────
    ADD PAYMENT MODAL — full-screen overlay (slide-up)
-   Matches OrderModal / InvoiceTab pickerOverlay exactly.
    ───────────────────────────────────────────────────────────── */
 
 .pickerOverlay {
@@ -309,10 +338,7 @@
 }
 
 
-/* ─────────────────────────────────────────────────────────────
-   STEP HEADING — "1. Select Order" / "2. Payment Details"
-   Identical to OrderModal .stepHeading
-   ───────────────────────────────────────────────────────────── */
+/* ── STEP HEADING ── */
 
 .stepHeading {
   font-size: 0.65rem;
@@ -324,9 +350,7 @@
 }
 
 
-/* ─────────────────────────────────────────────────────────────
-   CLOTH SEARCH BAR — reused from OrderModal
-   ───────────────────────────────────────────────────────────── */
+/* ── CLOTH SEARCH BAR ── */
 
 .clothSearchBar {
   display: flex;
@@ -353,7 +377,7 @@
 
 
 /* ─────────────────────────────────────────────────────────────
-   CLOTH PICKER LIST + ITEMS — reused from OrderModal
+   CLOTH PICKER LIST + ITEMS
    ───────────────────────────────────────────────────────────── */
 
 .clothPickerList {
@@ -372,40 +396,25 @@
   border-radius: 14px;
   padding: 12px 14px;
   cursor: pointer;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, background 0.15s;
 }
 
 .clothPickerItem_selected {
   border-color: var(--accent);
   background: var(--surface2);
-  /* Round only the top when accordion is open below */
   border-bottom-left-radius: 0;
   border-bottom-right-radius: 0;
   border-bottom-color: transparent;
 }
 
-.clothThumb {
-  width: 38px;
-  height: 38px;
-  border-radius: 9px;
-  background: var(--surface2);
-  border: 1px solid var(--border2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  overflow: hidden;
-}
-
-.clothThumb img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 8px;
+.clothPickerItem_saving {
+  opacity: 0.6;
+  pointer-events: none;
 }
 
 .clothInfo {
   flex: 1;
+  min-width: 0;
 }
 
 .clothInfo h5 {
@@ -413,6 +422,9 @@
   font-weight: 700;
   color: var(--text);
   margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .clothInfo span {
@@ -441,9 +453,7 @@
 
 
 /* ─────────────────────────────────────────────────────────────
-   ACCORDION BODY
-   Slides open below the selected order card.
-   Connected visually to the card above via shared border.
+   ACCORDION BODY — inline form below selected card
    ───────────────────────────────────────────────────────────── */
 
 .accordionBody {
@@ -453,27 +463,18 @@
   border-bottom-left-radius: 14px;
   border-bottom-right-radius: 14px;
   padding: 16px 14px 14px;
-  /* Animate open */
   animation: accordionOpen 0.22s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
 }
 
 @keyframes accordionOpen {
-  from {
-    opacity: 0;
-    transform: translateY(-8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0);    }
 }
 
 
 /* ─────────────────────────────────────────────────────────────
-   INLINE PAYMENT FORM CARD
-   The form itself inside the accordion.
-   Matches detailsCard / pricingCard from OrderModal.
+   INLINE PAYMENT FORM — content inside accordion
    ───────────────────────────────────────────────────────────── */
 
 .inlineFormCard {
@@ -481,7 +482,7 @@
   flex-direction: column;
 }
 
-/* Order value reference line at the top of the form */
+/* Order value reference pill */
 .inlineOrderTotal {
   display: flex;
   justify-content: space-between;
@@ -507,54 +508,13 @@
   color: var(--accent);
 }
 
-/* Notice shown when a part-payment already exists */
-.inlineFormNotice {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  background: rgba(251, 146, 60, 0.08);
-  border: 1px solid rgba(251, 146, 60, 0.25);
-  border-radius: 10px;
-  padding: 10px 12px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--text2);
-  line-height: 1.5;
-  margin-bottom: 12px;
-}
-
-/* Balance remaining row inside notice */
-.inlineBalanceRow {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 12px;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-}
-
-.inlineBalanceLabel {
-  font-size: 0.62rem;
-  font-weight: 800;
-  color: var(--text3);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.inlineBalanceValue {
-  font-size: 0.9rem;
-  font-weight: 800;
-  color: #ef4444;
-}
-
-/* Dashed divider above the save button — matches orderTotalRow */
+/* Dashed divider above save button */
 .inlineFormDivider {
   border-top: 2px dashed var(--border);
   margin: 4px 0 16px;
 }
 
-/* Primary save / record button */
+/* Primary save button */
 .inlineSaveButton {
   width: 100%;
   display: flex;
@@ -575,16 +535,10 @@
   transition: opacity 0.15s;
 }
 
-.inlineSaveButton:active {
-  opacity: 0.8;
-}
+.inlineSaveButton:active  { opacity: 0.8; }
+.inlineSaveButton:disabled { opacity: 0.4; cursor: not-allowed; }
 
-.inlineSaveButton:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-/* Spinner inside the save button */
+/* Spinner inside save button */
 .inlineSpinner {
   width: 14px;
   height: 14px;
@@ -615,37 +569,6 @@
   font-size: 0.82rem;
   color: var(--text3);
   margin: 0;
-}
-
-
-/* ─────────────────────────────────────────────────────────────
-   FULL-SCREEN MODAL (Payment Detail)
-   ───────────────────────────────────────────────────────────── */
-
-.fullScreenModal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: var(--bg);
-  z-index: 3000;
-  display: flex;
-  flex-direction: column;
-  animation: paymentsSlideUp 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-@keyframes paymentsSlideUp {
-  from { transform: translateY(100%); }
-  to   { transform: translateY(0);    }
-}
-
-.modalBody {
-  flex: 1;
-  overflow-y: auto;
-  padding: 20px;
-  padding-bottom: 100px;
-  -webkit-overflow-scrolling: touch;
 }
 
 
@@ -685,9 +608,7 @@
   font-family: 'DM Sans', sans-serif;
 }
 
-.textInput::placeholder {
-  color: var(--text3);
-}
+.textInput::placeholder { color: var(--text3); }
 
 .textareaInput {
   width: 100%;
@@ -703,9 +624,7 @@
   padding-bottom: 8px;
 }
 
-.textareaInput::placeholder {
-  color: var(--text3);
-}
+.textareaInput::placeholder { color: var(--text3); }
 
 
 /* ── TYPE / STATUS CHIPS ── */
@@ -730,9 +649,7 @@
   font-family: 'DM Sans', sans-serif;
 }
 
-.typeChipActive {
-  font-weight: 800;
-}
+.typeChipActive { font-weight: 800; }
 
 
 /* ── PAYMENT METHOD CHIPS ── */
@@ -760,6 +677,37 @@
   background: var(--surface2);
   border-color: var(--accent);
   color: var(--accent);
+}
+
+
+/* ─────────────────────────────────────────────────────────────
+   FULL-SCREEN MODAL (Payment Detail)
+   ───────────────────────────────────────────────────────────── */
+
+.fullScreenModal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--bg);
+  z-index: 3000;
+  display: flex;
+  flex-direction: column;
+  animation: paymentsSlideUp 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes paymentsSlideUp {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0);    }
+}
+
+.modalBody {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  padding-bottom: 100px;
+  -webkit-overflow-scrolling: touch;
 }
 
 
@@ -821,9 +769,7 @@
   margin-bottom: 10px;
 }
 
-.breakdownRow:last-child {
-  margin-bottom: 0;
-}
+.breakdownRow:last-child { margin-bottom: 0; }
 
 .paymentProgressTrack {
   height: 6px;
@@ -860,9 +806,7 @@
   border-bottom: 1px solid var(--border);
 }
 
-.installmentRow:last-child {
-  border-bottom: none;
-}
+.installmentRow:last-child { border-bottom: none; }
 
 .installmentIconOuter {
   width: 40px;
@@ -886,9 +830,7 @@
   justify-content: center;
 }
 
-.installmentRowInfo {
-  flex: 1;
-}
+.installmentRowInfo { flex: 1; }
 
 .installmentAmount {
   font-size: 0.9rem;
@@ -976,64 +918,8 @@
 }
 
 
-/* ── DUPLICATE / EXISTING PAYMENT NOTICE ── */
-
-.duplicatePaymentNotice {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  padding: 28px 20px 8px;
-  gap: 10px;
-}
-
-.duplicatePaymentIconCircle {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 4px;
-}
-
-.duplicatePaymentTitle {
-  font-size: 1rem;
-  font-weight: 800;
-  color: var(--text);
-  line-height: 1.3;
-}
-
-.duplicatePaymentBody {
-  font-size: 0.85rem;
-  color: var(--text2);
-  line-height: 1.6;
-  max-width: 300px;
-}
-
-.duplicatePaymentDismissBtn {
-  margin-top: 8px;
-  padding: 13px 32px;
-  border-radius: 12px;
-  border: 1px solid var(--border2);
-  background: var(--surface);
-  color: var(--text);
-  font-family: 'DM Sans', sans-serif;
-  font-size: 0.85rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: opacity 0.15s;
-}
-
-.duplicatePaymentDismissBtn:active {
-  opacity: 0.7;
-}
-
-
 /* ─────────────────────────────────────────────────────────────
-   BOTTOM SHEET (Add Installment modal)
+   BOTTOM SHEET (Add Installment)
    ───────────────────────────────────────────────────────────── */
 
 .sheetOverlay {
@@ -1083,9 +969,7 @@
   color: var(--text2);
 }
 
-.bottomSheetBody {
-  padding: 20px;
-}
+.bottomSheetBody { padding: 20px; }
 
 .remainingBalanceBadge {
   background: rgba(239, 68, 68, 0.08);
@@ -1133,10 +1017,7 @@
   flex-shrink: 0;
 }
 
-.orderContextLeft {
-  flex-shrink: 0;
-  padding-top: 2px;
-}
+.orderContextLeft  { flex-shrink: 0; padding-top: 2px; }
 
 .orderContextBody {
   flex: 1;
