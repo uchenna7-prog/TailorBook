@@ -38,8 +38,6 @@ const STAGES = [
   { value: 'ready',             label: 'Ready',             icon: 'check_circle',  color: '#15803d' },
 ]
 
-
-// When a stage is set, auto-update the order status to match
 const STAGE_AUTO_STATUS = {
   measurement_taken: 'pending',
   fabric_ready:      'pending',
@@ -54,8 +52,7 @@ const STAGE_AUTO_STATUS = {
   ready:             'completed',
 }
 
-// How many measurements to show before requiring search
-const VISIBLE_MEASUREMENT_LIMIT = 5
+const VISIBLE_MEASUREMENT_LIMIT = 3
 
 
 // ─────────────────────────────────────────────────────────────
@@ -66,9 +63,7 @@ function formatFirestoreDate(timestamp) {
   if (!timestamp) return 'Unknown Date'
   if (typeof timestamp.toDate === 'function') {
     return timestamp.toDate().toLocaleDateString('en-US', {
-      month: 'short',
-      day:   'numeric',
-      year:  'numeric',
+      month: 'short', day: 'numeric', year: 'numeric',
     })
   }
   if (typeof timestamp === 'string') return timestamp
@@ -78,16 +73,13 @@ function formatFirestoreDate(timestamp) {
 function formatShortDate(dateString) {
   if (!dateString) return ''
   return new Date(dateString + 'T00:00:00').toLocaleDateString('en-US', {
-    month: 'short',
-    day:   'numeric',
+    month: 'short', day: 'numeric',
   })
 }
 
 function getTodayReadable() {
   return new Date().toLocaleDateString('en-US', {
-    month: 'short',
-    day:   'numeric',
-    year:  'numeric',
+    month: 'short', day: 'numeric', year: 'numeric',
   })
 }
 
@@ -211,16 +203,11 @@ function OrderModal({ isOpen, onClose, measurements, onSave }) {
   function toggleItemSelection(measurement) {
     const itemId   = String(measurement.id)
     const coverImg = measurement.imgSrcs?.[0] ?? measurement.imgSrc ?? null
-
     setSelectedItems(prev => {
       const alreadySelected = prev.find(item => item.id === itemId)
-      if (alreadySelected) {
-        return prev.filter(item => item.id !== itemId)
-      } else {
-        return [...prev, { id: itemId, price: '', qty: '', name: measurement.name, imgSrc: coverImg }]
-      }
+      if (alreadySelected) return prev.filter(item => item.id !== itemId)
+      return [...prev, { id: itemId, price: '', qty: '', name: measurement.name, imgSrc: coverImg }]
     })
-
     setPricingError('')
   }
 
@@ -239,9 +226,8 @@ function OrderModal({ isOpen, onClose, measurements, onSave }) {
     return sum + (parseInt(item.qty, 10) || 0)
   }, 0) || 1
 
-  // ── Cloth list display logic ──
-  // No search active → show first 5 (insertion order)
-  // Search active    → show all matches (no cap)
+  // No search → show first 3 (insertion order)
+  // Searching  → show all matches, no cap
   const isSearching = clothSearchText.trim().length > 0
 
   const visibleMeasurements = isSearching
@@ -255,7 +241,6 @@ function OrderModal({ isOpen, onClose, measurements, onSave }) {
   function handleSave() {
     const hasItems = selectedItems.length > 0
     const hasDesc  = orderDesc.trim()
-
     if (!hasItems && !hasDesc) return
 
     if (hasItems) {
@@ -271,9 +256,7 @@ function OrderModal({ isOpen, onClose, measurements, onSave }) {
     let dueDateDisplay = ''
     if (dueDate) {
       dueDateDisplay = new Date(dueDate + 'T00:00:00').toLocaleDateString('en-US', {
-        month: 'short',
-        day:   'numeric',
-        year:  'numeric',
+        month: 'short', day: 'numeric', year: 'numeric',
       })
     }
 
@@ -322,7 +305,7 @@ function OrderModal({ isOpen, onClose, measurements, onSave }) {
           {/* ── Step 1: Select Clothes ── */}
           <p className={styles.stepHeading}>1. Select Clothes</p>
 
-          {/* Search bar — always shown when there are more than 5 measurements */}
+          {/* Search bar — shown whenever total measurements exceed visible limit */}
           {measurements.length > VISIBLE_MEASUREMENT_LIMIT && (
             <div className={styles.clothSearchBar}>
               <span className="mi" style={{ fontSize: '1.1rem', color: 'var(--text3)' }}>search</span>
@@ -376,19 +359,23 @@ function OrderModal({ isOpen, onClose, measurements, onSave }) {
             })}
           </div>
 
-          {/* "Search to see N more" hint — only shown when not searching and there are hidden items */}
+          {/* More-results hint — shown when not searching and there are hidden items */}
           {hiddenCount > 0 && (
             <div className={styles.clothHiddenHint}>
-              <span className="mi" style={{ fontSize: '0.9rem' }}>search</span>
-              Search to see {hiddenCount} more cloth {hiddenCount === 1 ? 'type' : 'types'}
+              <div className={styles.clothHiddenHintDots}>
+                <span /><span /><span />
+              </div>
+              <span className={styles.clothHiddenHintText}>
+                More results available — use the search bar above
+              </span>
             </div>
           )}
 
           {/* No search results */}
           {isSearching && visibleMeasurements.length === 0 && (
             <div className={styles.clothEmptySearch}>
-              <span className="mi" style={{ fontSize: '1.4rem', color: 'var(--text3)' }}>search_off</span>
-              <span>No cloth types match "{clothSearchText}"</span>
+              <span className="mi" style={{ fontSize: '1.6rem' }}>search_off</span>
+              <span>No results for "<strong>{clothSearchText}</strong>"</span>
             </div>
           )}
 
@@ -403,7 +390,6 @@ function OrderModal({ isOpen, onClose, measurements, onSave }) {
               <div className={styles.pricingCard}>
                 {selectedItems.map(item => (
                   <div key={item.id} className={styles.pricingRow}>
-
                     <div className={styles.clothThumb} style={{ width: 40, height: 40, flexShrink: 0 }}>
                       {item.imgSrc
                         ? <img src={item.imgSrc} alt="" />
@@ -475,7 +461,6 @@ function OrderModal({ isOpen, onClose, measurements, onSave }) {
           <p className={styles.stepHeading} style={{ marginTop: 24 }}>3. Final Details</p>
 
           <div className={styles.detailsCard}>
-
             <label className={styles.fieldLabel}>Order Description</label>
             <input
               type="text"
@@ -580,14 +565,12 @@ function OrderDetail({ order, measurements, onClose, onDelete, onStatusChange, o
             <div className={styles.infoGridLabel}>Total Price</div>
             <div className={styles.infoGridValue}>₦{Number(order.price || 0).toLocaleString()}</div>
           </div>
-
           <div className={styles.infoGridCell}>
             <div className={styles.infoGridLabel}>Status</div>
             <div className={styles.infoGridValue} style={{ textTransform: 'capitalize' }}>
               {STATUSES.find(s => s.value === order.status)?.label ?? 'Pending'}
             </div>
           </div>
-
           <div className={styles.infoGridCell}>
             <div className={styles.infoGridLabel}>Current Stage</div>
             <div className={styles.infoGridValue} style={{ fontSize: '0.85rem' }}>
@@ -602,7 +585,6 @@ function OrderDetail({ order, measurements, onClose, onDelete, onStatusChange, o
               }
             </div>
           </div>
-
           <div className={styles.infoGridCell}>
             <div className={styles.infoGridLabel}>Due</div>
             <div className={styles.infoGridValue} style={{ fontSize: '0.85rem', color: order.due ? 'var(--danger)' : 'var(--text3)' }}>
@@ -611,11 +593,9 @@ function OrderDetail({ order, measurements, onClose, onDelete, onStatusChange, o
           </div>
         </div>
 
-
         {order.items && order.items.length > 0 && (
           <div className={styles.sectionCard}>
             <div className={styles.sectionCardLabel}>Selected Garments</div>
-
             {order.items.map((item, index) => (
               <div key={index} className={styles.garmentRow}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -634,7 +614,6 @@ function OrderDetail({ order, measurements, onClose, onDelete, onStatusChange, o
                     )}
                   </div>
                 </div>
-
                 <div style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--accent)' }}>
                   ₦{((item.qty ?? 1) * Number(item.price || 0)).toLocaleString()}
                 </div>
@@ -643,14 +622,12 @@ function OrderDetail({ order, measurements, onClose, onDelete, onStatusChange, o
           </div>
         )}
 
-
         {order.notes && (
           <div className={styles.notesCard}>
             <div className={styles.sectionCardLabel}>Notes</div>
             <p>{order.notes}</p>
           </div>
         )}
-
 
         <div className={styles.sectionCard} style={{ marginTop: 16 }}>
           <div className={styles.sectionCardLabel}>Change Stage</div>
@@ -668,7 +645,6 @@ function OrderDetail({ order, measurements, onClose, onDelete, onStatusChange, o
           </div>
         </div>
 
-
         <div className={styles.sectionCard}>
           <div className={styles.sectionCardLabel}>Change Status</div>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -684,7 +660,6 @@ function OrderDetail({ order, measurements, onClose, onDelete, onStatusChange, o
           </div>
         </div>
 
-
         {(order.status === 'completed' || order.status === 'delivered') && (
           <button
             className={styles.shareReviewButton}
@@ -696,7 +671,6 @@ function OrderDetail({ order, measurements, onClose, onDelete, onStatusChange, o
           </button>
         )}
 
-
         <button
           className={styles.generateInvoiceButton}
           onClick={() => onGenerateInvoice(order.id)}
@@ -705,7 +679,6 @@ function OrderDetail({ order, measurements, onClose, onDelete, onStatusChange, o
           <span className="material-icons" style={{ fontSize: '1.2rem', verticalAlign: 'middle', marginRight: 6 }}>receipt_long</span>
           Generate Invoice
         </button>
-
 
         <div className={styles.detailFooterDates}>
           Order Taken: {placedOnDate}
@@ -762,9 +735,7 @@ export default function OrdersTab({ customerId, orders, measurements, showToast,
     try {
       await updateOrderStatus(customerId, orderId, newStatus)
       setSelectedOrder(prev =>
-        prev && String(prev.id) === String(orderId)
-          ? { ...prev, status: newStatus }
-          : prev
+        prev && String(prev.id) === String(orderId) ? { ...prev, status: newStatus } : prev
       )
     } catch {
       showToast('Failed to update status')
@@ -775,7 +746,6 @@ export default function OrdersTab({ customerId, orders, measurements, showToast,
     try {
       await updateOrderStage(customerId, orderId, newStage)
       const autoStatus = newStage ? STAGE_AUTO_STATUS[newStage] : null
-
       if (autoStatus) {
         await updateOrderStatus(customerId, orderId, autoStatus)
         setSelectedOrder(prev =>
@@ -799,27 +769,19 @@ export default function OrdersTab({ customerId, orders, measurements, showToast,
     const reviewToken  = order.reviewToken || crypto.randomUUID()
     const reviewUrl    = `https://tailorflow-62b0a.web.app/review/${user?.uid}/${reviewToken}`
     const customerName = order.customerName || 'there'
-
     const message = encodeURIComponent(
       `Hi ${customerName}! 🙏 Thank you for your order.\n\n` +
       `We'd love to hear your feedback — it only takes a minute:\n${reviewUrl}\n\n` +
       `Your review means a lot to us! ⭐`
     )
-
     const rawPhone   = order.customerPhone || ''
     const cleanPhone = rawPhone.replace(/[\s\-()]/g, '')
     let waPhone = cleanPhone
-
-    if (cleanPhone.startsWith('+')) {
-      waPhone = cleanPhone.replace('+', '')
-    } else if (cleanPhone.startsWith('0')) {
-      waPhone = `234${cleanPhone.slice(1)}`
-    }
-
+    if (cleanPhone.startsWith('+'))      waPhone = cleanPhone.replace('+', '')
+    else if (cleanPhone.startsWith('0')) waPhone = `234${cleanPhone.slice(1)}`
     const waUrl = waPhone
       ? `https://wa.me/${waPhone}?text=${message}`
       : `https://wa.me/?text=${message}`
-
     window.open(waUrl, '_blank', 'noopener,noreferrer')
   }
 
@@ -829,7 +791,6 @@ export default function OrdersTab({ customerId, orders, measurements, showToast,
     groups[dateKey].push(order)
     return groups
   }, {})
-
 
   return (
     <>
@@ -864,7 +825,6 @@ export default function OrdersTab({ customerId, orders, measurements, showToast,
 
                 <div className={styles.orderRowInfo}>
                   <div className={styles.orderRowDescription}>{order.desc}</div>
-
                   {itemCount > 0 && (
                     <div className={styles.orderRowMeta}>
                       <span className={styles.orderRowMetaText}>
@@ -872,7 +832,6 @@ export default function OrdersTab({ customerId, orders, measurements, showToast,
                       </span>
                     </div>
                   )}
-
                   {stageInfo && (
                     <div className={styles.orderRowStage}>
                       <span style={{ fontSize: '0.78rem', color: stageInfo.color }}>{stageInfo.label}</span>
@@ -896,7 +855,6 @@ export default function OrdersTab({ customerId, orders, measurements, showToast,
           })}
         </div>
       ))}
-
 
       <OrderModal
         isOpen={isModalOpen}
