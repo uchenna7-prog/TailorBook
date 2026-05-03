@@ -366,7 +366,7 @@ function OrderModal({ isOpen, onClose, measurements, onSave }) {
                 <span /><span /><span />
               </div>
               <span className={styles.clothHiddenHintText}>
-                More results available — use the search bar above
+                More results available. Use the search bar above.
               </span>
             </div>
           )}
