@@ -10,23 +10,38 @@ export function ItemsTable({ receipt, brand }) {
 
   useBrandTokens(brand.colourId, tableRef)
 
-  const { currency, showTax, taxRate } = brand
+  const { currency, showTax, taxRate: brandTaxRate } = brand
 
   const subtotal = receipt.items?.length > 0
     ? receipt.items.reduce((sum, item) => sum + ((item.qty ?? 1) * (parseFloat(item.price) || 0)), 0)
     : 0
 
-  const tax   = calcTax(subtotal, taxRate, showTax)
-  const total = subtotal + tax
+  // Prefer frozen values from the receipt object; fall back to brand/calc
+  const shippingFee    = parseFloat(receipt.shippingFee)    || 0
+  const discountAmount = parseFloat(receipt.discountAmount) || 0
+  const discountType   = receipt.discountType   || null   // 'percent' | 'flat' | null
+  const discountValue  = parseFloat(receipt.discountValue)  || 0
+  const useTax         = receipt.taxRate != null ? receipt.taxRate > 0 : (showTax && brandTaxRate > 0)
+  const taxRate        = receipt.taxRate != null ? receipt.taxRate : brandTaxRate
+  const taxAmount      = parseFloat(receipt.taxAmount) || calcTax(subtotal, taxRate, useTax)
+  const grandTotal     = receipt.totalAmount != null
+    ? parseFloat(receipt.totalAmount)
+    : subtotal + shippingFee - discountAmount + taxAmount
+
+  const discountLabel = discountType === 'percent'
+    ? `Discount (${discountValue}%)`
+    : 'Discount'
+
+  const hasExtras = shippingFee > 0 || discountAmount > 0 || (useTax && taxAmount > 0)
 
   return (
     <div className={styles.table} ref={tableRef}>
 
-    <div className={styles.orderDescriptionRow}>
-      <div className={styles.orderText}>ORDER:</div>
-      <div className={styles.orderDescLabel}>{receipt.orderDesc || 'Garment Order'}</div>
-
-    </div>
+      {/* Order descriptor */}
+      <div className={styles.orderDescriptionRow}>
+        <div className={styles.orderText}>ORDER:</div>
+        <div className={styles.orderDescLabel}>{receipt.orderDesc || 'Garment Order'}</div>
+      </div>
 
       <table className={styles.tableEl}>
         <thead>
@@ -56,13 +71,46 @@ export function ItemsTable({ receipt, brand }) {
         )}
       </table>
 
-      {/* Order Total — full width section divider */}
-      <div className={styles.orderTotalWrap}>
-      
-       
-        <div className={styles.orderTotalLabel}>Order Total</div>
-       
-        <div className={styles.orderTotalValue}>{fmt(currency, total)}</div>
+      {/* ── Full-width summary section ── */}
+      <div className={styles.summarySection}>
+
+        {/* Breakdown rows — only shown when there are extras beyond subtotal */}
+        {hasExtras && (
+          <div className={styles.breakdownBlock}>
+            <div className={styles.breakdownRow}>
+              <span className={styles.breakdownKey}>Subtotal</span>
+              <span className={styles.breakdownVal}>{fmt(currency, subtotal)}</span>
+            </div>
+
+            {shippingFee > 0 && (
+              <div className={styles.breakdownRow}>
+                <span className={styles.breakdownKey}>Shipping &amp; Delivery</span>
+                <span className={styles.breakdownVal}>{fmt(currency, shippingFee)}</span>
+              </div>
+            )}
+
+            {discountAmount > 0 && (
+              <div className={styles.breakdownRow}>
+                <span className={`${styles.breakdownKey} ${styles.breakdownKeyDiscount}`}>{discountLabel}</span>
+                <span className={`${styles.breakdownVal} ${styles.breakdownValDiscount}`}>−{fmt(currency, discountAmount)}</span>
+              </div>
+            )}
+
+            {useTax && taxAmount > 0 && (
+              <div className={styles.breakdownRow}>
+                <span className={styles.breakdownKey}>VAT ({taxRate}%)</span>
+                <span className={styles.breakdownVal}>{fmt(currency, taxAmount)}</span>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Grand total bar — always shown, full width */}
+        <div className={styles.orderTotalWrap}>
+          <div className={styles.orderTotalLabel}>Order Total</div>
+          <div className={styles.orderTotalValue}>{fmt(currency, grandTotal)}</div>
+        </div>
+
       </div>
 
     </div>
