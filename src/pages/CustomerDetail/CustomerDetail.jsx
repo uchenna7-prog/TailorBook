@@ -45,8 +45,6 @@ const TABS = [
 // Helper: read a fresh brand snapshot from localStorage.
 // Called at the moment a receipt or invoice is generated so the
 // snapshot is frozen to the brand settings active RIGHT NOW.
-// Never reads from the live React context — that way changing the
-// brand colour later never mutates already-generated documents.
 // ─────────────────────────────────────────────────────────────
 function readBrandSnapshot(settingsSnap, invoiceBrand) {
   return {
@@ -362,7 +360,6 @@ export default function CustomerDetail({ onMenuClick }) {
     const order = orders.find(o => String(o.id) === String(orderId))
     if (!order) return
 
-    // Read settings fresh from localStorage at this exact moment
     let settingsSnap = {}
     try { settingsSnap = JSON.parse(localStorage.getItem('tailorbook_settings') || '{}') } catch {}
 
@@ -372,7 +369,6 @@ export default function CustomerDetail({ onMenuClick }) {
     const linkedNames = ids.map(mid => data.measurements.find(m => String(m.id) === String(mid))?.name).filter(Boolean)
     const items       = Array.isArray(order.items) ? order.items : []
 
-    // Brand snapshot frozen from localStorage at generation time
     const brandSnapshot = readBrandSnapshot(settingsSnap, invoiceBrand)
 
     const newInvoice = {
@@ -380,7 +376,6 @@ export default function CustomerDetail({ onMenuClick }) {
       orderId,
       number:    invNumber,
       orderDesc: order.desc,
-      // price = subtotal (items only) — preserved for backward compat
       price:     order.price,
       qty:       order.qty,
       items,
@@ -391,7 +386,6 @@ export default function CustomerDetail({ onMenuClick }) {
       date:      today,
       template:  settingsSnap.invoiceTemplate || 'invoiceTemplate1',
       brandSnapshot,
-      // ── All charge fields frozen from the order at generation time ──
       shippingFee:    order.shippingFee    ?? 0,
       discountType:   order.discountType   ?? null,
       discountValue:  order.discountValue  ?? 0,
@@ -433,38 +427,42 @@ export default function CustomerDetail({ onMenuClick }) {
     }
   }, [invoicesState, data, showToast])
 
-  const handleGenerateReceipt = useCallback(async (payment) => {
+  // ─────────────────────────────────────────────────────────────
+  // handleGenerateReceipt
+  // Called with (payment, installment) — generates a receipt for
+  // ONLY that single installment. Independent per installment.
+  // ─────────────────────────────────────────────────────────────
+  const handleGenerateReceipt = useCallback(async (payment, installment) => {
     if (!user) return
+
+    // Guard: installment must be provided
+    if (!installment) {
+      showToast('No installment selected.')
+      return
+    }
 
     let settingsSnap = {}
     try { settingsSnap = JSON.parse(localStorage.getItem('tailorbook_settings') || '{}') } catch {}
 
-    const todayStr        = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-    const allInstallments = payment.installments || []
+    const todayStr     = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    const allInstalls  = payment.installments || []
+    const orderTotal   = parseFloat(payment.orderPrice) || 0
 
-    if (allInstallments.length === 0) {
-      showToast('No payments recorded yet — nothing to receipt.')
-      return
-    }
+    // Compute cumulative paid UP TO AND INCLUDING this installment
+    const thisInstallIndex = allInstalls.findIndex(i => String(i.id) === String(installment.id))
+    const installsUpToThis = thisInstallIndex >= 0
+      ? allInstalls.slice(0, thisInstallIndex + 1)
+      : [installment]
 
-    const usedInstallmentIds = new Set(
-      receipts
-        .filter(r => String(r.paymentId) === String(payment.id))
-        .flatMap(r => r.installmentIds || [])
+    const cumulativePaid = installsUpToThis.reduce(
+      (s, i) => s + (parseFloat(i.amount) || 0), 0
     )
+    const balance   = Math.max(0, orderTotal - cumulativePaid)
+    const isFullPay = balance <= 0
 
-    const newInstallments = allInstallments.filter(
-      inst => !usedInstallmentIds.has(String(inst.id))
-    )
-
-    const installmentsForReceipt = newInstallments.length > 0
-      ? newInstallments
-      : allInstallments
-
-    const receiptInstallmentIds = new Set(installmentsForReceipt.map(i => String(i.id)))
-
-    const previousInstallments = allInstallments
-      .filter(inst => !receiptInstallmentIds.has(String(inst.id)))
+    // Previous installments (those before this one)
+    const previousInstallments = allInstalls
+      .slice(0, Math.max(0, thisInstallIndex))
       .map(inst => ({
         id:     inst.id,
         amount: inst.amount,
@@ -472,14 +470,13 @@ export default function CustomerDetail({ onMenuClick }) {
         date:   inst.date,
       }))
 
-    const previousPaid   = previousInstallments.reduce((s, i) => s + (parseFloat(i.amount) || 0), 0)
-    const cumulativePaid = allInstallments.reduce((s, i) => s + (parseFloat(i.amount) || 0), 0)
-    const orderTotal     = parseFloat(payment.orderPrice) || 0
-    const balance        = Math.max(0, orderTotal - cumulativePaid)
-    const isFullPay      = balance <= 0
+    const previousPaid = previousInstallments.reduce(
+      (s, i) => s + (parseFloat(i.amount) || 0), 0
+    )
 
     const order = orders.find(o => String(o.id) === String(payment.orderId))
 
+    // Receipt number: per-payment count + global count
     const perPaymentCount = receipts.filter(r => String(r.paymentId) === String(payment.id)).length + 1
     const globalCount     = receipts.length + 1
     const rcptNumber      = `RCP-${String(perPaymentCount).padStart(2, '0')}-${String(globalCount).padStart(3, '0')}`
@@ -489,6 +486,7 @@ export default function CustomerDetail({ onMenuClick }) {
       footer: settingsSnap.receiptFooter || settingsSnap.invoiceFooter || 'Thank you for your payment 🙏',
     }
 
+    // Receipt covers ONLY this single installment
     const newReceipt = {
       paymentId:  payment.id,
       orderId:    payment.orderId,
@@ -497,19 +495,20 @@ export default function CustomerDetail({ onMenuClick }) {
       items:      order?.items || payment.orderItems || [],
       number:     rcptNumber,
       date:       todayStr,
-      payments: installmentsForReceipt.map(inst => ({
-        id:     inst.id,
-        amount: inst.amount,
-        method: inst.method || 'cash',
-        date:   inst.date,
-      })),
-      installmentIds: installmentsForReceipt.map(inst => String(inst.id)),
+      payments: [{
+        id:     installment.id,
+        amount: installment.amount,
+        method: installment.method || 'cash',
+        date:   installment.date,
+      }],
+      // Tag only this installment as receipted
+      installmentIds: [String(installment.id)],
       previousInstallments,
       previousPaid,
       cumulativePaid,
       isFullPayment: isFullPay,
       balance,
-      notes: payment.notes || '',
+      notes:    payment.notes || '',
       template: settingsSnap.receiptTemplate || 'receiptTemplate1',
       brandSnapshot,
     }
@@ -517,9 +516,11 @@ export default function CustomerDetail({ onMenuClick }) {
     try {
       await addReceipt(user.uid, id, newReceipt)
       showToast(`${rcptNumber} receipt generated ✓`)
-      setActiveTab('receipts')
+      // Don't auto-switch tab — keep picker open so user can generate
+      // more receipts for other installments if needed
     } catch {
       showToast('Failed to generate receipt. Try again.')
+      throw new Error('receipt failed')
     }
   }, [user, id, receipts, orders, showToast, invoiceBrand])
 
