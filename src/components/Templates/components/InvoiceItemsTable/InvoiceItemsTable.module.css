@@ -5,12 +5,13 @@
 
 .orderDescriptionRow {
   display: flex;
-  gap:5px;
+  gap: 5px;
   align-items: baseline;
   padding: 10px 0 12px;
   border-bottom: 1.5px solid var(--brand-primary-dark, #a07d20);
 }
-.orderText{
+
+.orderText {
   font-weight: 900;
 }
 
@@ -27,17 +28,16 @@
   table-layout: fixed;
 }
 
-
-.colDesc  { width: 42%; }
-.colPrice { width: 23%; }
-.colQty   { width: 10%; }
+.colDesc   { width: 42%; }
+.colPrice  { width: 23%; }
+.colQty    { width: 10%; }
 .colAmount { width: 25%; }
 
 .headerRow th {
   padding: 7px 0 6px;
   font-size: 9px;
   font-weight: 800;
-  color: var(--brand-primary-dark) ;
+  color: var(--brand-primary-dark);
   border-bottom: 1px solid #e8e4de;
 }
 
@@ -54,30 +54,24 @@
   border-bottom: 1px dashed #ebebeb;
 }
 
-
-th.colItem,  td.colItem  { 
-   text-align: left; 
-   word-break: break-word; 
+th.colItem,  td.colItem  {
+  text-align: left;
+  word-break: break-word;
 }
 
-th.colQty,   td.colQty  {
+th.colQty,  td.colQty {
   text-align: center;
-  
 }
 
-th.colPrice, td.colPrice  {
-  text-align: center; 
-  word-break: break-word; 
+th.colPrice, td.colPrice {
+  text-align: center;
+  word-break: break-word;
   text-wrap: nowrap;
 }
 
-
-th.colAmount, td.colAmount { 
-   text-align: center; 
+th.colAmount, td.colAmount {
+  text-align: center;
 }
-
-
-
 
 /* Body cell text styles */
 .itemName {
@@ -107,29 +101,33 @@ th.colAmount, td.colAmount {
   white-space: nowrap;
 }
 
-/* bottom border on tbody matches original itemsBody border */
+/* tbody bottom border */
 .tableEl tbody {
   border-bottom: 1.5px solid var(--brand-primary-dark, #a07d20);
 }
 
-/* ── Summary block ── */
+
+/* ── Summary block — right-aligned, half width ── */
 .summaryBlock {
   margin-left: auto;
   width: 55%;
   margin-top: 14px;
   padding-top: 10px;
 }
+
 .summaryRow {
   display: flex;
   justify-content: space-between;
   align-items: center;
   column-gap: 12px;
-  padding: 4px 0;
+  padding: 3px 0;
 }
+
 .summaryKey {
   font-size: 10px;
   color: #6b7280;
 }
+
 .summaryVal {
   font-size: 10px;
   font-weight: 500;
@@ -137,11 +135,24 @@ th.colAmount, td.colAmount {
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum";
 }
+
+/* Discount row — muted green tint */
+.summaryKeyDiscount {
+  color: #15803d;
+}
+
+.summaryValDiscount {
+  color: #15803d;
+  font-weight: 700;
+}
+
+/* Partial divider — matches half-width block, not full bleed */
 .summaryDivider {
   height: 1.5px;
   background: var(--brand-primary-dark, #a07d20);
   margin: 8px 0;
 }
+
 .summaryTotalRow {
   display: flex;
   justify-content: space-between;
@@ -149,12 +160,14 @@ th.colAmount, td.colAmount {
   column-gap: 12px;
   padding: 4px 0;
 }
+
 .summaryTotalKey {
   font-size: 13px;
   font-weight: 900;
   color: var(--brand-primary-dark, #a07d20);
   letter-spacing: 0.03em;
 }
+
 .summaryTotalVal {
   font-size: 13px;
   font-weight: 900;
