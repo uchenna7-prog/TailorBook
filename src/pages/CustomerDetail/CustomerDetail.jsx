@@ -49,12 +49,9 @@ const TABS = [
 // brand colour later never mutates already-generated documents.
 // ─────────────────────────────────────────────────────────────
 function readBrandSnapshot(settingsSnap, invoiceBrand) {
-  // Priority: localStorage brand fields > context (fallback only)
   return {
     name:     settingsSnap.brandName      || invoiceBrand?.name    || '',
     tagline:  settingsSnap.brandTagline   || invoiceBrand?.tagline || '',
-    // Colour MUST come from localStorage first — it is the source of truth
-    // for what the user had set at generation time.
     colour:   settingsSnap.brandColour    || invoiceBrand?.colour  || '#D4AF37',
     colourId: settingsSnap.brandColourId  || invoiceBrand?.colourId || '',
     phone:    settingsSnap.brandPhone     || invoiceBrand?.phone   || '',
@@ -255,7 +252,7 @@ export default function CustomerDetail({ onMenuClick }) {
   const [toastMsg,      setToastMsg]      = useState('')
   const [invoicesState, setInvoicesState] = useState([])
   const [receipts,      setReceipts]      = useState([])
-  const [payments, setPayments] = useState([])
+  const [payments,      setPayments]      = useState([])
   const [isScrolled,    setIsScrolled]    = useState(false)
 
   const [editModalOpen,   setEditModalOpen]   = useState(false)
@@ -375,7 +372,7 @@ export default function CustomerDetail({ onMenuClick }) {
     const linkedNames = ids.map(mid => data.measurements.find(m => String(m.id) === String(mid))?.name).filter(Boolean)
     const items       = Array.isArray(order.items) ? order.items : []
 
-    // FIX: brand snapshot is frozen from localStorage at generation time only
+    // Brand snapshot frozen from localStorage at generation time
     const brandSnapshot = readBrandSnapshot(settingsSnap, invoiceBrand)
 
     const newInvoice = {
@@ -383,6 +380,7 @@ export default function CustomerDetail({ onMenuClick }) {
       orderId,
       number:    invNumber,
       orderDesc: order.desc,
+      // price = subtotal (items only) — preserved for backward compat
       price:     order.price,
       qty:       order.qty,
       items,
@@ -391,8 +389,13 @@ export default function CustomerDetail({ onMenuClick }) {
       notes:     order.notes,
       status:    'unpaid',
       date:      today,
-      template: settingsSnap.invoiceTemplate || 'invoiceTemplate1',
+      template:  settingsSnap.invoiceTemplate || 'invoiceTemplate1',
       brandSnapshot,
+      // ── Charge fields frozen from the order at generation time ──
+      shippingFee:  order.shippingFee  ?? 0,
+      taxRate:      order.taxRate      ?? 0,
+      taxAmount:    order.taxAmount    ?? 0,
+      totalAmount:  order.totalAmount  ?? order.price ?? 0,
     }
 
     try {
@@ -430,9 +433,6 @@ export default function CustomerDetail({ onMenuClick }) {
   const handleGenerateReceipt = useCallback(async (payment) => {
     if (!user) return
 
-    // Read settings fresh from localStorage at this exact moment
-    // This freezes the brand at generation time — changes to the brand
-    // profile AFTER this point will not affect this receipt.
     let settingsSnap = {}
     try { settingsSnap = JSON.parse(localStorage.getItem('tailorbook_settings') || '{}') } catch {}
 
@@ -444,7 +444,6 @@ export default function CustomerDetail({ onMenuClick }) {
       return
     }
 
-    // Work out which installments are genuinely new (not on any prior receipt)
     const usedInstallmentIds = new Set(
       receipts
         .filter(r => String(r.paymentId) === String(payment.id))
@@ -455,15 +454,12 @@ export default function CustomerDetail({ onMenuClick }) {
       inst => !usedInstallmentIds.has(String(inst.id))
     )
 
-    // If there are new installments use them; otherwise fall back to all
-    // (handles edge case where IDs aren't tracked yet)
     const installmentsForReceipt = newInstallments.length > 0
       ? newInstallments
       : allInstallments
 
     const receiptInstallmentIds = new Set(installmentsForReceipt.map(i => String(i.id)))
 
-    // Everything NOT on this receipt = historical previous payments
     const previousInstallments = allInstallments
       .filter(inst => !receiptInstallmentIds.has(String(inst.id)))
       .map(inst => ({
@@ -485,10 +481,8 @@ export default function CustomerDetail({ onMenuClick }) {
     const globalCount     = receipts.length + 1
     const rcptNumber      = `RCP-${String(perPaymentCount).padStart(2, '0')}-${String(globalCount).padStart(3, '0')}`
 
-    // FIX: brand snapshot is frozen from localStorage at generation time only
     const brandSnapshot = {
       ...readBrandSnapshot(settingsSnap, invoiceBrand),
-      // Override footer for receipts specifically
       footer: settingsSnap.receiptFooter || settingsSnap.invoiceFooter || 'Thank you for your payment 🙏',
     }
 
@@ -607,12 +601,10 @@ export default function CustomerDetail({ onMenuClick }) {
       </div>
 
       <div className={styles.profileContainer}>
-        {isPremium? (
+        {isPremium ? (
           <div className={styles.profileSection}>
-
             <>
               <div className={styles.topColumn}>
-
                 <div className={styles.avatar}>
                   {hasPhoto
                     ? <img src={customer.photo} className={styles.avatarImg} alt={customer.name} />
@@ -621,81 +613,63 @@ export default function CustomerDetail({ onMenuClick }) {
                 </div>
 
                 <div className={styles.rightColumn}>
-
                   <div className={styles.name}>{customer.name}</div>
 
                   <div className={styles.primaryDetailsContainer}>
-
                     <span className={styles.meta}><span className="mi">call</span>{customer.phone}</span>
 
-                    {customer.sex &&(
-
+                    {customer.sex && (
                       <div className={`${styles.metaItem} ${styles.sex}`}>
-                        <span className={styles.verticalBar} >|</span>
+                        <span className={styles.verticalBar}>|</span>
                         <span className="mi">person</span>
                         <span>{customer.sex}</span>
                       </div>
-                      
-                      
                     )}
 
                     {birthday && (
-
                       <div className={`${styles.metaItem} ${styles.birthday}`}>
                         <span className="mi">cake</span>
                         <span>{birthday}</span>
                       </div>
                     )}
-
                   </div>
-
-                 
-                
+                </div>
               </div>
-
-        
-              </div>
-              
-                
             </>
-           
+
             {customer.email   && <div className={styles.meta}><span className="mi">mail_outline</span>{customer.email}</div>}
             {customer.address && <div className={styles.metaAddress}><span className="mi">place</span>{customer.address}</div>}
-            
           </div>
         ) : (
           <div className={styles.profileSectionFree}>
             <div className={styles.name}>{customer.name}</div>
             <div className={styles.metaInline}>
-
               <div className={styles.metaItem}>
                 <span className="mi">call</span>
                 <span>{customer.phone}</span>
               </div>
 
-              {customer.sex &&(
-
+              {customer.sex && (
                 <div className={`${styles.metaItem} ${styles.sex}`}>
-        
                   <span className="mi">person</span>
                   <span>{customer.sex}</span>
-
                 </div>
-                
-                
               )}
+
               {birthday && (
                 <div className={`${styles.metaItem} ${styles.birthday}`}>
                   <span className="mi">cake</span>
                   <span>{birthday}</span>
                 </div>
               )}
+
               {customer.email && (
                 <div className={styles.metaItem}>
                   <span className="mi">mail_outline</span>
                   <span>{customer.email}</span>
                 </div>
               )}
+
               {customer.address && (
                 <div className={styles.metaItemAddress}>
                   <span className="mi">place</span>
@@ -770,16 +744,16 @@ export default function CustomerDetail({ onMenuClick }) {
             showToast={showToast}
           />
         )}
-        
+
         {activeTab === 'payments' && (
-        <PaymentsTab
-          customerId={id}
-          orders={orders}
-          showToast={showToast}
-          onGenerateReceipt={handleGenerateReceipt}
-          onInvoicePaid={handleInvoicePaid}
-          onPaymentsChange={setPayments}
-        />
+          <PaymentsTab
+            customerId={id}
+            orders={orders}
+            showToast={showToast}
+            onGenerateReceipt={handleGenerateReceipt}
+            onInvoicePaid={handleInvoicePaid}
+            onPaymentsChange={setPayments}
+          />
         )}
 
         {activeTab === 'receipts' && (
@@ -818,7 +792,6 @@ export default function CustomerDetail({ onMenuClick }) {
           onCancel={() => setDeleteModalOpen(false)}
         />
       )}
-
     </div>
   )
 }
