@@ -34,7 +34,7 @@ function getBirthday(birthday) {
 }
 
 const TABS = [
-  { id: 'dress',    label: 'Measurements' },
+  { id: 'dress',    label: 'Dress\nMeasurements' },
   { id: 'orders',   label: 'Orders'             },
   { id: 'invoice',  label: 'Invoices'           },
   { id: 'payments', label: 'Payments'           },
@@ -43,8 +43,6 @@ const TABS = [
 
 // ─────────────────────────────────────────────────────────────
 // Helper: read a fresh brand snapshot from localStorage.
-// Called at the moment a receipt or invoice is generated so the
-// snapshot is frozen to the brand settings active RIGHT NOW.
 // ─────────────────────────────────────────────────────────────
 function readBrandSnapshot(settingsSnap, invoiceBrand) {
   return {
@@ -63,6 +61,40 @@ function readBrandSnapshot(settingsSnap, invoiceBrand) {
     taxRate:  settingsSnap.invoiceTaxRate  || 0,
     dueDays:  settingsSnap.invoiceDueDays  || 7,
   }
+}
+
+// ─────────────────────────────────────────────────────────────
+// PHOTO OVERLAY — full-screen avatar pop
+// ─────────────────────────────────────────────────────────────
+function PhotoOverlay({ open, onClose, photo, initials, name }) {
+  useEffect(() => {
+    if (open) document.body.style.overflow = 'hidden'
+    else      document.body.style.overflow = ''
+    return () => { document.body.style.overflow = '' }
+  }, [open])
+
+  if (!open) return null
+
+  return (
+    <div className={styles.photoOverlay} onClick={onClose}>
+      <button
+        className={styles.photoCloseBtn}
+        onClick={onClose}
+        aria-label="Close"
+      >
+        <span className="mi">close</span>
+      </button>
+
+      <div className={styles.photoBig} onClick={e => e.stopPropagation()}>
+        {photo
+          ? <img src={photo} alt={name} className={styles.photoBigImg} />
+          : <span className={styles.photoBigInitials}>{initials}</span>
+        }
+      </div>
+
+      <div className={styles.photoNameBig}>{name}</div>
+    </div>
+  )
 }
 
 // ── Edit Customer Modal ───────────────────────────────────────
@@ -116,25 +148,12 @@ function EditCustomerModal({ customer, onSave, onClose }) {
         <div className={styles.modalBody}>
           <div className={styles.modalGroup}>
             <label className={styles.modalLabel}>Full Name *</label>
-            <input
-              className={styles.modalInput}
-              value={form.name}
-              onChange={set('name')}
-              placeholder="Customer name"
-            />
+            <input className={styles.modalInput} value={form.name} onChange={set('name')} placeholder="Customer name" />
           </div>
-
           <div className={styles.modalGroup}>
             <label className={styles.modalLabel}>Phone Number *</label>
-            <input
-              className={styles.modalInput}
-              value={form.phone}
-              onChange={set('phone')}
-              placeholder="Phone number"
-              type="tel"
-            />
+            <input className={styles.modalInput} value={form.phone} onChange={set('phone')} placeholder="Phone number" type="tel" />
           </div>
-
           <div className={styles.modalGroup}>
             <label className={styles.modalLabel}>Gender</label>
             <div className={styles.modalSexRow}>
@@ -150,48 +169,21 @@ function EditCustomerModal({ customer, onSave, onClose }) {
               ))}
             </div>
           </div>
-
           <div className={styles.modalGroup}>
             <label className={styles.modalLabel}>Email Address</label>
-            <input
-              className={styles.modalInput}
-              value={form.email}
-              onChange={set('email')}
-              placeholder="Email (optional)"
-              type="email"
-            />
+            <input className={styles.modalInput} value={form.email} onChange={set('email')} placeholder="Email (optional)" type="email" />
           </div>
-
           <div className={styles.modalGroup}>
             <label className={styles.modalLabel}>Birthday</label>
-            <input
-              className={styles.modalInput}
-              value={form.birthday}
-              onChange={set('birthday')}
-              placeholder="MM-DD"
-              maxLength={5}
-            />
+            <input className={styles.modalInput} value={form.birthday} onChange={set('birthday')} placeholder="MM-DD" maxLength={5} />
           </div>
-
           <div className={styles.modalGroup}>
             <label className={styles.modalLabel}>Address</label>
-            <input
-              className={styles.modalInput}
-              value={form.address}
-              onChange={set('address')}
-              placeholder="Address (optional)"
-            />
+            <input className={styles.modalInput} value={form.address} onChange={set('address')} placeholder="Address (optional)" />
           </div>
-
           <div className={styles.modalGroup}>
             <label className={styles.modalLabel}>Notes</label>
-            <textarea
-              className={`${styles.modalInput} ${styles.modalTextarea}`}
-              value={form.notes}
-              onChange={set('notes')}
-              placeholder="Any additional notes…"
-              rows={3}
-            />
+            <textarea className={`${styles.modalInput} ${styles.modalTextarea}`} value={form.notes} onChange={set('notes')} placeholder="Any additional notes…" rows={3} />
           </div>
         </div>
       </div>
@@ -202,30 +194,20 @@ function EditCustomerModal({ customer, onSave, onClose }) {
 // ── Delete Confirm Modal ──────────────────────────────────────
 function DeleteConfirmModal({ customer, onConfirm, onCancel }) {
   if (!customer) return null
-
   return (
     <div className={styles.modalOverlay} onClick={(e) => e.target === e.currentTarget && onCancel()}>
       <div className={styles.deleteSheet}>
         <div className={styles.deleteIconWrap}>
           <span className="mi" style={{ fontSize: '2rem', color: 'var(--danger)' }}>person_remove</span>
         </div>
-
         <h4 className={styles.deleteTitle}>Remove This Customer?</h4>
-
         <p className={styles.deleteMessage}>
-          You're about to permanently remove{' '}
-          <strong>{customer.name}</strong> from your customer list.
+          You're about to permanently remove <strong>{customer.name}</strong> from your customer list.
           This action cannot be undone — all their details will be lost forever.
         </p>
-
-        <p className={styles.deleteWarning}>
-          ⚠️ Are you absolutely sure you want to continue?
-        </p>
-
+        <p className={styles.deleteWarning}>⚠️ Are you absolutely sure you want to continue?</p>
         <div className={styles.deleteActions}>
-          <button className={styles.deleteCancelBtn} onClick={onCancel}>
-            No, Keep Customer
-          </button>
+          <button className={styles.deleteCancelBtn} onClick={onCancel}>No, Keep Customer</button>
           <button className={styles.deleteConfirmBtn} onClick={onConfirm}>
             <span className="mi" style={{ fontSize: '1rem', verticalAlign: 'middle', marginRight: 6 }}>delete_forever</span>
             Yes, Delete Customer
@@ -255,11 +237,17 @@ export default function CustomerDetail({ onMenuClick }) {
 
   const [editModalOpen,   setEditModalOpen]   = useState(false)
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
+  const [photoOpen,       setPhotoOpen]       = useState(false)
+  const [notesExpanded,   setNotesExpanded]   = useState(false)
 
   const toastTimer     = useRef(null)
   const tabsRef        = useRef(null)
   const topSentinelRef = useRef(null)
   const healedRef      = useRef(false)
+
+  // Swipe state
+  const touchStartX = useRef(null)
+  const touchStartY = useRef(null)
 
   const orders = getOrders(id)
 
@@ -276,7 +264,7 @@ export default function CustomerDetail({ onMenuClick }) {
     if (data.invoices) setInvoicesState(data.invoices)
   }, [data.invoices])
 
-  // ── One-time heal: fix invoices stuck as 'unpaid' that have real payments ──
+  // ── One-time heal ──
   useEffect(() => {
     if (!user || !id || healedRef.current) return
     if (!data.invoices || data.invoices.length === 0) return
@@ -286,25 +274,16 @@ export default function CustomerDetail({ onMenuClick }) {
       async (payments) => {
         if (healedRef.current) return
         healedRef.current = true
-
         for (const p of payments) {
           if (!p.orderId) continue
-          const paidAmount = (p.installments || []).reduce(
-            (s, i) => s + (parseFloat(i.amount) || 0), 0
-          )
+          const paidAmount = (p.installments || []).reduce((s, i) => s + (parseFloat(i.amount) || 0), 0)
           if (paidAmount <= 0) continue
-
-          const inv = data.invoices.find(
-            i => String(i.orderId) === String(p.orderId) && i.status === 'unpaid'
-          )
+          const inv = data.invoices.find(i => String(i.orderId) === String(p.orderId) && i.status === 'unpaid')
           if (!inv) continue
-
           const correctStatus = p.status === 'paid' ? 'paid' : 'part_paid'
           try {
             await data.updateInvoiceStatus(inv.id, correctStatus)
-            setInvoicesState(prev =>
-              prev.map(i => i.id === inv.id ? { ...i, status: correctStatus } : i)
-            )
+            setInvoicesState(prev => prev.map(i => i.id === inv.id ? { ...i, status: correctStatus } : i))
           } catch (e) {
             console.error('[CustomerDetail] heal invoice status:', e)
           }
@@ -312,7 +291,6 @@ export default function CustomerDetail({ onMenuClick }) {
       },
       (err) => console.error('[CustomerDetail] heal payments sub:', err)
     )
-
     return () => unsubPayments()
   }, [user, id, data.invoices])
 
@@ -368,7 +346,6 @@ export default function CustomerDetail({ onMenuClick }) {
     const ids         = order.measurementIds?.length ? order.measurementIds : (order.measurementId ? [order.measurementId] : [])
     const linkedNames = ids.map(mid => data.measurements.find(m => String(m.id) === String(mid))?.name).filter(Boolean)
     const items       = Array.isArray(order.items) ? order.items : []
-
     const brandSnapshot = readBrandSnapshot(settingsSnap, invoiceBrand)
 
     const newInvoice = {
@@ -405,21 +382,13 @@ export default function CustomerDetail({ onMenuClick }) {
   }, [data, orders, showToast, invoiceTemplate, invoiceBrand])
 
   const handleInvoicePaid = useCallback(async (orderId, invoiceStatus) => {
-    const newStatus = invoiceStatus || 'paid'
-    const sourceList = (data.invoices && data.invoices.length > 0)
-      ? data.invoices
-      : invoicesState
-    const matchingInvoice = sourceList.find(
-      inv => String(inv.orderId) === String(orderId) && inv.status !== 'paid'
-    )
+    const newStatus  = invoiceStatus || 'paid'
+    const sourceList = (data.invoices && data.invoices.length > 0) ? data.invoices : invoicesState
+    const matchingInvoice = sourceList.find(inv => String(inv.orderId) === String(orderId) && inv.status !== 'paid')
     if (!matchingInvoice) return
     try {
       await data.updateInvoiceStatus(matchingInvoice.id, newStatus)
-      setInvoicesState(prev =>
-        prev.map(inv =>
-          inv.id === matchingInvoice.id ? { ...inv, status: newStatus } : inv
-        )
-      )
+      setInvoicesState(prev => prev.map(inv => inv.id === matchingInvoice.id ? { ...inv, status: newStatus } : inv))
       const label = newStatus === 'part_paid' ? 'Part Payment' : 'Full Payment'
       showToast(`Invoice marked as ${label} ✓`)
     } catch {
@@ -427,56 +396,30 @@ export default function CustomerDetail({ onMenuClick }) {
     }
   }, [invoicesState, data, showToast])
 
-  // ─────────────────────────────────────────────────────────────
-  // handleGenerateReceipt
-  // Called with (payment, installment) — generates a receipt for
-  // ONLY that single installment. Independent per installment.
-  // ─────────────────────────────────────────────────────────────
   const handleGenerateReceipt = useCallback(async (payment, installment) => {
     if (!user) return
-
-    // Guard: installment must be provided
-    if (!installment) {
-      showToast('No installment selected.')
-      return
-    }
+    if (!installment) { showToast('No installment selected.'); return }
 
     let settingsSnap = {}
     try { settingsSnap = JSON.parse(localStorage.getItem('tailorbook_settings') || '{}') } catch {}
 
-    const todayStr     = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-    const allInstalls  = payment.installments || []
-    const orderTotal   = parseFloat(payment.orderPrice) || 0
+    const todayStr    = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    const allInstalls = payment.installments || []
+    const orderTotal  = parseFloat(payment.orderPrice) || 0
 
-    // Compute cumulative paid UP TO AND INCLUDING this installment
     const thisInstallIndex = allInstalls.findIndex(i => String(i.id) === String(installment.id))
-    const installsUpToThis = thisInstallIndex >= 0
-      ? allInstalls.slice(0, thisInstallIndex + 1)
-      : [installment]
+    const installsUpToThis = thisInstallIndex >= 0 ? allInstalls.slice(0, thisInstallIndex + 1) : [installment]
+    const cumulativePaid   = installsUpToThis.reduce((s, i) => s + (parseFloat(i.amount) || 0), 0)
+    const balance          = Math.max(0, orderTotal - cumulativePaid)
+    const isFullPay        = balance <= 0
 
-    const cumulativePaid = installsUpToThis.reduce(
-      (s, i) => s + (parseFloat(i.amount) || 0), 0
-    )
-    const balance   = Math.max(0, orderTotal - cumulativePaid)
-    const isFullPay = balance <= 0
-
-    // Previous installments (those before this one)
     const previousInstallments = allInstalls
       .slice(0, Math.max(0, thisInstallIndex))
-      .map(inst => ({
-        id:     inst.id,
-        amount: inst.amount,
-        method: inst.method || 'cash',
-        date:   inst.date,
-      }))
-
-    const previousPaid = previousInstallments.reduce(
-      (s, i) => s + (parseFloat(i.amount) || 0), 0
-    )
+      .map(inst => ({ id: inst.id, amount: inst.amount, method: inst.method || 'cash', date: inst.date }))
+    const previousPaid = previousInstallments.reduce((s, i) => s + (parseFloat(i.amount) || 0), 0)
 
     const order = orders.find(o => String(o.id) === String(payment.orderId))
 
-    // Receipt number: per-payment count + global count
     const perPaymentCount = receipts.filter(r => String(r.paymentId) === String(payment.id)).length + 1
     const globalCount     = receipts.length + 1
     const rcptNumber      = `RCP-${String(perPaymentCount).padStart(2, '0')}-${String(globalCount).padStart(3, '0')}`
@@ -486,7 +429,6 @@ export default function CustomerDetail({ onMenuClick }) {
       footer: settingsSnap.receiptFooter || settingsSnap.invoiceFooter || 'Thank you for your payment 🙏',
     }
 
-    // Receipt covers ONLY this single installment
     const newReceipt = {
       paymentId:  payment.id,
       orderId:    payment.orderId,
@@ -495,29 +437,28 @@ export default function CustomerDetail({ onMenuClick }) {
       items:      order?.items || payment.orderItems || [],
       number:     rcptNumber,
       date:       todayStr,
-      payments: [{
-        id:     installment.id,
-        amount: installment.amount,
-        method: installment.method || 'cash',
-        date:   installment.date,
-      }],
-      // Tag only this installment as receipted
-      installmentIds: [String(installment.id)],
+      payments: [{ id: installment.id, amount: installment.amount, method: installment.method || 'cash', date: installment.date }],
+      installmentIds:       [String(installment.id)],
       previousInstallments,
       previousPaid,
       cumulativePaid,
-      isFullPayment: isFullPay,
+      isFullPayment:        isFullPay,
       balance,
       notes:    payment.notes || '',
       template: settingsSnap.receiptTemplate || 'receiptTemplate1',
       brandSnapshot,
+      shippingFee:    order?.shippingFee    ?? 0,
+      discountType:   order?.discountType   ?? null,
+      discountValue:  order?.discountValue  ?? 0,
+      discountAmount: order?.discountAmount ?? 0,
+      taxRate:        order?.taxRate        ?? 0,
+      taxAmount:      order?.taxAmount      ?? 0,
+      totalAmount:    order?.totalAmount    ?? order?.price ?? 0,
     }
 
     try {
       await addReceipt(user.uid, id, newReceipt)
       showToast(`${rcptNumber} receipt generated ✓`)
-      // Don't auto-switch tab — keep picker open so user can generate
-      // more receipts for other installments if needed
     } catch {
       showToast('Failed to generate receipt. Try again.')
       throw new Error('receipt failed')
@@ -537,7 +478,6 @@ export default function CustomerDetail({ onMenuClick }) {
   useEffect(() => {
     const handleSwitch   = () => setActiveTab('invoice')
     const handleGenerate = (e) => handleGenerateInvoice(e.detail.orderId)
-
     document.addEventListener('switchToInvoiceTab', handleSwitch)
     document.addEventListener('generateInvoice',    handleGenerate)
     return () => {
@@ -548,11 +488,33 @@ export default function CustomerDetail({ onMenuClick }) {
 
   const handleTabClick = (e, tabId) => {
     setActiveTab(tabId)
-    if (window.scrollY > 56) {
-      window.scrollTo({ top: 56, behavior: 'auto' })
-    }
+    if (window.scrollY > 56) window.scrollTo({ top: 56, behavior: 'auto' })
     e.currentTarget.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' })
   }
+
+  // ── Swipe handlers (mobile only) ──
+  const handleTouchStart = useCallback((e) => {
+    touchStartX.current = e.touches[0].clientX
+    touchStartY.current = e.touches[0].clientY
+  }, [])
+
+  const handleTouchEnd = useCallback((e) => {
+    if (touchStartX.current === null) return
+    const dx = e.changedTouches[0].clientX - touchStartX.current
+    const dy = e.changedTouches[0].clientY - touchStartY.current
+    // Only swipe if horizontal movement dominates and is large enough
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
+      const tabIds = TABS.map(t => t.id)
+      const currentIdx = tabIds.indexOf(activeTab)
+      if (dx < 0 && currentIdx < tabIds.length - 1) {
+        setActiveTab(tabIds[currentIdx + 1])
+      } else if (dx > 0 && currentIdx > 0) {
+        setActiveTab(tabIds[currentIdx - 1])
+      }
+    }
+    touchStartX.current = null
+    touchStartY.current = null
+  }, [activeTab])
 
   const customer = getCustomer(id)
   if (!customer) return null
@@ -560,6 +522,19 @@ export default function CustomerDetail({ onMenuClick }) {
   const initials = getInitials(customer.name)
   const birthday = getBirthday(customer.birthday)
   const hasPhoto = isPremium && customer.photo
+
+  // ── Financial summary ──
+  const totalSpent = orders.reduce((sum, o) => sum + (parseFloat(o.totalAmount || o.price) || 0), 0)
+  const totalPaidAcrossPayments = payments.reduce((sum, p) => {
+    return sum + (p.installments || []).reduce((s, i) => s + (parseFloat(i.amount) || 0), 0)
+  }, 0)
+  const outstanding = Math.max(0, totalSpent - totalPaidAcrossPayments)
+
+  function fmtK(n) {
+    if (n >= 1000000) return `₦${(n / 1000000).toFixed(1).replace('.0', '')}m`
+    if (n >= 1000)    return `₦${(n / 1000).toFixed(1).replace('.0', '')}k`
+    return `₦${n.toLocaleString()}`
+  }
 
   const handleFabClick = () => {
     if (activeTab === 'dress')     document.dispatchEvent(new CustomEvent('openMeasureModal'))
@@ -575,31 +550,41 @@ export default function CustomerDetail({ onMenuClick }) {
     dress:    data.measurements?.length ?? 0,
     orders:   orders?.length            ?? 0,
     invoice:  invoicesState?.length     ?? 0,
-    payments: orders?.filter(o => o.payments?.length).length ?? 0,
+    payments: payments?.length          ?? 0,
     receipts: receipts?.length          ?? 0,
   }
   const activeTabIsEmpty = tabItemCounts[activeTab] === 0
 
-  // ── Avatar prop for Header ────────────────────────────────────
-  // Passed to <Header> so the profile picture / initials circle
-  // appears in the header bar. No new state or logic — derived
-  // directly from existing customer + isPremium values.
-  const headerAvatar = {
-    initials,
-    src: hasPhoto ? customer.photo : null,
-    onClick: () => {}, // placeholder — photo overlay lives in the profile section
-  }
-
   return (
-    <div className={styles.page}>
+    <div
+      className={styles.page}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+    >
       <div ref={topSentinelRef} className={styles.sentinel} />
 
+      {/* ── Sticky Header ── */}
       <div className={styles.navHeader}>
         <Header
           type="back"
-          title={isScrolled ? customer.name : "Customer Details"}
-          avatar={headerAvatar}
+          title={isScrolled ? customer.name : 'Customer Details'}
           customActions={[
+            {
+              // Avatar button — opens photo overlay
+              customNode: (
+                <button
+                  key="avatar"
+                  className={styles.headerAvatarBtn}
+                  onClick={() => setPhotoOpen(true)}
+                  aria-label="View photo"
+                >
+                  {hasPhoto
+                    ? <img src={customer.photo} alt={customer.name} className={styles.headerAvatarImg} />
+                    : <span className={styles.headerAvatarText}>{initials}</span>
+                  }
+                </button>
+              ),
+            },
             {
               icon: 'edit',
               onClick: () => setEditModalOpen(true),
@@ -618,80 +603,126 @@ export default function CustomerDetail({ onMenuClick }) {
       <div className={styles.profileContainer}>
         {isPremium ? (
           <div className={styles.profileSection}>
-            <>
-              <div className={styles.topColumn}>
-                <div className={styles.avatar}>
-                  {hasPhoto
-                    ? <img src={customer.photo} className={styles.avatarImg} alt={customer.name} />
-                    : initials
-                  }
-                </div>
+            <div className={styles.topColumn}>
+              {/* Clickable avatar */}
+              <div
+                className={styles.avatar}
+                onClick={() => setPhotoOpen(true)}
+                role="button"
+                aria-label="View profile photo"
+              >
+                {hasPhoto
+                  ? <img src={customer.photo} className={styles.avatarImg} alt={customer.name} />
+                  : initials
+                }
+              </div>
 
-                <div className={styles.rightColumn}>
-                  <div className={styles.name}>{customer.name}</div>
-
-                  <div className={styles.primaryDetailsContainer}>
-                    <span className={styles.meta}><span className="mi">call</span>{customer.phone}</span>
-
-                    {customer.sex && (
-                      <div className={`${styles.metaItem} ${styles.sex}`}>
-                        <span className={styles.verticalBar}>|</span>
-                        <span className="mi">person</span>
-                        <span>{customer.sex}</span>
-                      </div>
-                    )}
-
-                    {birthday && (
-                      <div className={`${styles.metaItem} ${styles.birthday}`}>
-                        <span className="mi">cake</span>
-                        <span>{birthday}</span>
-                      </div>
-                    )}
-                  </div>
+              <div className={styles.rightColumn}>
+                <div className={styles.name}>{customer.name}</div>
+                <div className={styles.primaryDetailsContainer}>
+                  <span className={styles.meta}><span className="mi">call</span>{customer.phone}</span>
+                  {customer.sex && (
+                    <div className={`${styles.metaItem} ${styles.sex}`}>
+                      <span className={styles.verticalBar}>|</span>
+                      <span className="mi">person</span>
+                      <span>{customer.sex}</span>
+                    </div>
+                  )}
+                  {birthday && (
+                    <div className={`${styles.metaItem} ${styles.birthday}`}>
+                      <span className="mi">cake</span>
+                      <span>{birthday}</span>
+                    </div>
+                  )}
                 </div>
               </div>
-            </>
+            </div>
 
             {customer.email   && <div className={styles.meta}><span className="mi">mail_outline</span>{customer.email}</div>}
             {customer.address && <div className={styles.metaAddress}><span className="mi">place</span>{customer.address}</div>}
+
+            {/* Notes — collapsible italic preview */}
+            {customer.notes && (
+              <div className={styles.notesLine}>
+                <span className="mi" style={{ fontSize: '0.85rem', color: 'var(--text3)', flexShrink: 0, marginTop: 2 }}>edit_note</span>
+                <p
+                  className={`${styles.notesText} ${notesExpanded ? styles.notesText_expanded : ''}`}
+                  onClick={() => setNotesExpanded(prev => !prev)}
+                >
+                  {customer.notes}
+                </p>
+              </div>
+            )}
+
+            {/* Financial summary */}
+            {totalSpent > 0 && (
+              <div className={styles.financialLine}>
+                <span className={styles.finValue}>{fmtK(totalSpent)} spent</span>
+                {outstanding > 0 && (
+                  <>
+                    <span className={styles.finSep}>·</span>
+                    <span className={`${styles.finValue} ${styles.finValue_owed}`}>{fmtK(outstanding)} outstanding</span>
+                  </>
+                )}
+                {outstanding === 0 && totalSpent > 0 && (
+                  <>
+                    <span className={styles.finSep}>·</span>
+                    <span className={`${styles.finValue} ${styles.finValue_clear}`}>All clear ✓</span>
+                  </>
+                )}
+              </div>
+            )}
           </div>
         ) : (
           <div className={styles.profileSectionFree}>
             <div className={styles.name}>{customer.name}</div>
             <div className={styles.metaInline}>
-              <div className={styles.metaItem}>
-                <span className="mi">call</span>
-                <span>{customer.phone}</span>
-              </div>
-
+              <div className={styles.metaItem}><span className="mi">call</span><span>{customer.phone}</span></div>
               {customer.sex && (
-                <div className={`${styles.metaItem} ${styles.sex}`}>
-                  <span className="mi">person</span>
-                  <span>{customer.sex}</span>
-                </div>
+                <div className={`${styles.metaItem} ${styles.sex}`}><span className="mi">person</span><span>{customer.sex}</span></div>
               )}
-
               {birthday && (
-                <div className={`${styles.metaItem} ${styles.birthday}`}>
-                  <span className="mi">cake</span>
-                  <span>{birthday}</span>
-                </div>
+                <div className={`${styles.metaItem} ${styles.birthday}`}><span className="mi">cake</span><span>{birthday}</span></div>
               )}
-
               {customer.email && (
-                <div className={styles.metaItem}>
-                  <span className="mi">mail_outline</span>
-                  <span>{customer.email}</span>
-                </div>
+                <div className={styles.metaItem}><span className="mi">mail_outline</span><span>{customer.email}</span></div>
               )}
-
               {customer.address && (
-                <div className={styles.metaItemAddress}>
-                  <span className="mi">place</span>
-                  <span>{customer.address}</span>
-                </div>
+                <div className={styles.metaItemAddress}><span className="mi">place</span><span>{customer.address}</span></div>
               )}
             </div>
+
+            {/* Notes for free tier */}
+            {customer.notes && (
+              <div className={styles.notesLine}>
+                <span className="mi" style={{ fontSize: '0.85rem', color: 'var(--text3)', flexShrink: 0, marginTop: 2 }}>edit_note</span>
+                <p
+                  className={`${styles.notesText} ${notesExpanded ? styles.notesText_expanded : ''}`}
+                  onClick={() => setNotesExpanded(prev => !prev)}
+                >
+                  {customer.notes}
+                </p>
+              </div>
+            )}
+
+            {/* Financial summary for free tier */}
+            {totalSpent > 0 && (
+              <div className={styles.financialLine}>
+                <span className={styles.finValue}>{fmtK(totalSpent)} spent</span>
+                {outstanding > 0 && (
+                  <>
+                    <span className={styles.finSep}>·</span>
+                    <span className={`${styles.finValue} ${styles.finValue_owed}`}>{fmtK(outstanding)} outstanding</span>
+                  </>
+                )}
+                {outstanding === 0 && totalSpent > 0 && (
+                  <>
+                    <span className={styles.finSep}>·</span>
+                    <span className={`${styles.finValue} ${styles.finValue_clear}`}>All clear ✓</span>
+                  </>
+                )}
+              </div>
+            )}
           </div>
         )}
 
@@ -706,11 +737,12 @@ export default function CustomerDetail({ onMenuClick }) {
             className={`${styles.btn} ${styles.primary}`}
             onClick={() => navigate(`/customers/${id}/body-measurements`)}
           >
-            <span className="mi">straighten</span>Body Measurements
+            <span className="mi">straighten</span>Full Body Measurements
           </button>
         </div>
       </div>
 
+      {/* ── Tabs with badges ── */}
       <div className={styles.stickyTabsWrapper}>
         <div className={styles.tabs} ref={tabsRef}>
           {TABS.map(tab => (
@@ -719,7 +751,12 @@ export default function CustomerDetail({ onMenuClick }) {
               className={`${styles.tab} ${activeTab === tab.id ? styles.active : ''}`}
               onClick={(e) => handleTabClick(e, tab.id)}
             >
-              {tab.label}
+              <span>{tab.label}</span>
+              {tabItemCounts[tab.id] > 0 && (
+                <span className={`${styles.tabBadge} ${activeTab === tab.id ? styles.tabBadge_active : ''}`}>
+                  {tabItemCounts[tab.id]}
+                </span>
+              )}
             </div>
           ))}
         </div>
@@ -759,7 +796,6 @@ export default function CustomerDetail({ onMenuClick }) {
             showToast={showToast}
           />
         )}
-
         {activeTab === 'payments' && (
           <PaymentsTab
             customerId={id}
@@ -770,7 +806,6 @@ export default function CustomerDetail({ onMenuClick }) {
             onPaymentsChange={setPayments}
           />
         )}
-
         {activeTab === 'receipts' && (
           <ReceiptTab
             receipts={receipts}
@@ -791,6 +826,15 @@ export default function CustomerDetail({ onMenuClick }) {
       )}
 
       <Toast message={toastMsg} />
+
+      {/* Photo overlay */}
+      <PhotoOverlay
+        open={photoOpen}
+        onClose={() => setPhotoOpen(false)}
+        photo={hasPhoto ? customer.photo : null}
+        initials={initials}
+        name={customer.name}
+      />
 
       {editModalOpen && (
         <EditCustomerModal
