@@ -580,6 +580,16 @@ export default function CustomerDetail({ onMenuClick }) {
   }
   const activeTabIsEmpty = tabItemCounts[activeTab] === 0
 
+  // ── Avatar prop for Header ────────────────────────────────────
+  // Passed to <Header> so the profile picture / initials circle
+  // appears in the header bar. No new state or logic — derived
+  // directly from existing customer + isPremium values.
+  const headerAvatar = {
+    initials,
+    src: hasPhoto ? customer.photo : null,
+    onClick: () => {}, // placeholder — photo overlay lives in the profile section
+  }
+
   return (
     <div className={styles.page}>
       <div ref={topSentinelRef} className={styles.sentinel} />
@@ -588,6 +598,7 @@ export default function CustomerDetail({ onMenuClick }) {
         <Header
           type="back"
           title={isScrolled ? customer.name : "Customer Details"}
+          avatar={headerAvatar}
           customActions={[
             {
               icon: 'edit',
