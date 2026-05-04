@@ -4,7 +4,6 @@
   display: flex;
   flex-direction: column;
   position: relative;
-  
 }
 
 .sentinel {
@@ -36,7 +35,7 @@
   border-bottom: 1px solid var(--border);
 }
 
-.topColumn{
+.topColumn {
   display: flex;
   gap: 10px;
 }
@@ -46,8 +45,8 @@
   flex-direction: column;
   padding: 16px 18px;
   border-bottom: 1px solid var(--border);
+  gap: 10px;
 }
-
 
 .avatar {
   width: 70px;
@@ -61,6 +60,13 @@
   border: 2px solid var(--border);
   color: var(--accent);
   overflow: hidden;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: transform 0.15s;
+}
+
+.avatar:active {
+  transform: scale(0.93);
 }
 
 .avatarImg {
@@ -81,13 +87,15 @@
   font-size: 1rem;
   font-weight: 500;
 }
-.primaryDetailsContainer{
+
+.primaryDetailsContainer {
   flex-wrap: wrap;
   display: flex;
-  gap:6px;
+  gap: 6px;
   align-items: center;
 }
-.meta,.metaAddress {
+
+.meta, .metaAddress {
   display: flex;
   gap: 4px;
   color: var(--text2);
@@ -103,7 +111,7 @@
   align-items: center;
 }
 
-.metaItem,.metaItemAddress {
+.metaItem, .metaItemAddress {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -118,8 +126,7 @@
   opacity: 0.9;
 }
 
-.verticalBar{
-
+.verticalBar {
   color: var(--border);
   opacity: 0.9;
 }
@@ -186,6 +193,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 5px;
   text-align: center;
   white-space: pre-line;
   line-height: 1.2;
@@ -193,6 +201,7 @@
 }
 
 .tab.active { color: var(--accent); font-weight: 800; }
+
 .tab.active::after {
   content: '';
   position: absolute;
@@ -202,6 +211,28 @@
   height: 2px;
   border-radius: 1px;
   background: var(--accent);
+}
+
+/* ── Tab badge ── */
+.tabBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.57rem;
+  font-weight: 800;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 20px;
+  background: var(--surface2);
+  color: var(--text2);
+  transition: background 0.18s, color 0.18s;
+  line-height: 1;
+}
+
+.tabBadge_active {
+  background: var(--accent);
+  color: #fff;
 }
 
 .tabContent {
@@ -239,9 +270,208 @@
   font-size: 1.8rem;
 }
 
+
+/* ─────────────────────────────────────────────────────────────
+   NOTES LINE — collapsible italic preview
+   ───────────────────────────────────────────────────────────── */
+
+.notesLine {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding-top: 4px;
+}
+
+.notesText {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-style: italic;
+  font-size: 0.92rem;
+  font-weight: 500;
+  color: var(--text2);
+  line-height: 1.5;
+  cursor: pointer;
+  /* Clamp to 2 lines by default */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  transition: all 0.22s;
+  margin: 0;
+}
+
+.notesText_expanded {
+  -webkit-line-clamp: unset;
+  overflow: visible;
+}
+
+
+/* ─────────────────────────────────────────────────────────────
+   FINANCIAL SUMMARY LINE
+   ───────────────────────────────────────────────────────────── */
+
+.financialLine {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  font-size: 0.7rem;
+  flex-wrap: wrap;
+}
+
+.finValue {
+  font-weight: 700;
+  color: var(--text2);
+}
+
+.finValue_owed {
+  color: var(--danger);
+  font-weight: 800;
+}
+
+.finValue_clear {
+  color: var(--text3);
+  font-weight: 600;
+}
+
+.finSep {
+  color: var(--border2);
+  margin: 0 2px;
+}
+
+
+/* ─────────────────────────────────────────────────────────────
+   HEADER AVATAR BUTTON
+   Sits in the customActions row of the Header component.
+   Even spacing is achieved by the Header's own gap — the button
+   is sized to match the other icon buttons (36×36).
+   ───────────────────────────────────────────────────────────── */
+
+.headerAvatarBtn {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 2px solid var(--border2);
+  background: var(--surface2);
+  padding: 0;
+  overflow: hidden;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: transform 0.15s;
+}
+
+.headerAvatarBtn:active {
+  transform: scale(0.9);
+}
+
+.headerAvatarImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.headerAvatarText {
+  font-size: 0.62rem;
+  font-weight: 800;
+  color: var(--accent);
+  letter-spacing: 0.5px;
+}
+
+
+/* ─────────────────────────────────────────────────────────────
+   PHOTO OVERLAY — full-screen avatar pop
+   ───────────────────────────────────────────────────────────── */
+
+.photoOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.88);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  animation: overlayFadeIn 0.22s ease;
+}
+
+@keyframes overlayFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.photoCloseBtn {
+  position: absolute;
+  top: 52px;
+  right: 18px;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.photoCloseBtn:active {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.photoBig {
+  width: 210px;
+  height: 210px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--surface2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  animation: photoPop 0.38s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes photoPop {
+  from { transform: scale(0.3); opacity: 0; }
+  to   { transform: scale(1);   opacity: 1; }
+}
+
+.photoBigImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.photoBigInitials {
+  font-size: 3.8rem;
+  font-weight: 800;
+  color: var(--accent);
+  letter-spacing: 2px;
+  user-select: none;
+}
+
+.photoNameBig {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+  text-align: center;
+  animation: photoNameSlide 0.3s ease 0.12s both;
+}
+
+@keyframes photoNameSlide {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+
+
 /* ────────────────────────────────────────────────────────────
    SHARED MODAL OVERLAY
-   Both the Edit and Delete modals use this as a backdrop.
    ──────────────────────────────────────────────────────────── */
 .modalOverlay {
   position: fixed;
@@ -251,7 +481,6 @@
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  /* Smooth fade-in */
   animation: overlayIn 0.22s ease;
 }
 
@@ -262,7 +491,6 @@
 
 /* ────────────────────────────────────────────────────────────
    EDIT CUSTOMER MODAL
-   Slides up from the bottom, full-height scrollable sheet.
    ──────────────────────────────────────────────────────────── */
 .modalSheet {
   background: var(--bg);
@@ -280,7 +508,6 @@
   to   { transform: translateY(0);    opacity: 1; }
 }
 
-/* Drag-handle pill */
 .modalSheet::before {
   content: '';
   display: block;
@@ -338,11 +565,7 @@
   transition: opacity 0.2s;
 }
 
-.modalSaveBtn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
+.modalSaveBtn:disabled { opacity: 0.4; cursor: not-allowed; }
 .modalSaveBtn:not(:disabled):active { opacity: 0.75; }
 
 .modalBody {
@@ -352,9 +575,7 @@
   padding: 20px 18px calc(32px + var(--sb, 0px));
 }
 
-.modalGroup {
-  margin-bottom: 16px;
-}
+.modalGroup { margin-bottom: 16px; }
 
 .modalLabel {
   display: block;
@@ -383,17 +604,9 @@
 
 .modalInput:focus { border-color: var(--text2); }
 .modalInput::placeholder { color: var(--text3); }
+.modalTextarea { resize: none; line-height: 1.5; }
 
-.modalTextarea {
-  resize: none;
-  line-height: 1.5;
-}
-
-/* Gender chips inside the modal */
-.modalSexRow {
-  display: flex;
-  gap: 10px;
-}
+.modalSexRow { display: flex; gap: 10px; }
 
 .modalSexChip {
   flex: 1;
@@ -417,7 +630,6 @@
 
 /* ────────────────────────────────────────────────────────────
    DELETE CONFIRM MODAL
-   Compact bottom sheet with strong warning language.
    ──────────────────────────────────────────────────────────── */
 .deleteSheet {
   background: var(--surface);
@@ -428,7 +640,6 @@
   animation: sheetUp 0.28s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Drag handle */
 .deleteSheet::before {
   content: '';
   display: block;
@@ -479,11 +690,7 @@
   border: 1px solid rgba(239, 68, 68, 0.15);
 }
 
-.deleteActions {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
+.deleteActions { display: flex; flex-direction: column; gap: 10px; }
 
 .deleteCancelBtn {
   background: var(--surface2);
@@ -520,27 +727,31 @@
 .deleteConfirmBtn:active { opacity: 0.82; }
 
 
-@media(max-width:600px){
+/* ────────────────────────────────────────────────────────────
+   RESPONSIVE
+   ──────────────────────────────────────────────────────────── */
+@media (max-width: 600px) {
   .fab {
+    bottom: calc(28px + var(--sb));
+  }
 
-  bottom: calc(28px + var(--sb));
+  .metaItemAddress, .metaAddress {
+    align-items: flex-start;
+  }
 
+  .actions {
+    justify-content: space-around;
+    gap: 5px;
+  }
+
+  .profileSection {
+    padding: 15px;
+  }
 }
 
-.metaItemAddress,.metaAddress {
-  align-items: flex-start;
-}
-
-.actions {
-
-  justify-content: space-around;
-  gap: 5px;
-
-}
-
-.profileSection {
-
-  padding: 15px;
-
-}
+/* On larger screens: disable touch swipe (swipe only makes sense on mobile) */
+@media (min-width: 601px) {
+  .page {
+    touch-action: auto;
+  }
 }
