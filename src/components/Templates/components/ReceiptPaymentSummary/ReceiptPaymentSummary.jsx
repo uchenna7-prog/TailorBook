@@ -136,7 +136,7 @@ export function ReceiptPaymentSummary({ receipt, brand, isTemplate5 = false  }) 
         )}
 
         <div className={styles.totalsDivider} 
-        style={{ borderBottom : isTemplate5 ? '1px solid #ebebeb' : '' }}/>
+        style={{ borderBottom : isTemplate5 ? '1.5px solid var(--brand-on-primary)' : '1.5px solid var(--brand-primary-dark)' }}/>
 
         <div className={styles.totalPaidRow}>
           <span className={styles.totalPaidKey}

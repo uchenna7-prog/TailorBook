@@ -117,7 +117,7 @@ th.colAmount, td.colAmount {
 .breakdownBlock {
   width: 100%;
   padding: 8px 0 4px;
-  border-bottom: 1px dashed #d4d4d4;
+  border-bottom: 1px solid var(--brand-primary-dark);
   margin-bottom: 0;
 }
 

@@ -5,12 +5,28 @@ import { getDueDate,calcTax,fmt } from "../utils/invoiceUtils"
 export function InvoiceTemplate5({ invoice, customer, brand }) {
 
   const dueDate = getDueDate(invoice, brand.dueDays)
-  const { currency, showTax, taxRate } = brand
+  const { currency, showTax, taxRate: brandTaxRate } = brand
+
   const subtotal = invoice.items?.length > 0
     ? invoice.items.reduce((sum, item) => sum + ((item.qty ?? 1) * (parseFloat(item.price) || 0)), 0)
-     : 0
-  const tax      = calcTax(subtotal, taxRate, showTax)
-  const total    = subtotal + tax
+    : 0
+
+  const shippingFee    = parseFloat(invoice.shippingFee)    || 0
+  const discountAmount = parseFloat(invoice.discountAmount) || 0
+  const discountType   = invoice.discountType   || null   // 'percent' | 'flat' | null
+  const discountValue  = parseFloat(invoice.discountValue)  || 0
+  const useTax         = invoice.taxRate != null ? invoice.taxRate > 0 : (showTax && brandTaxRate > 0)
+  const taxRate        = invoice.taxRate != null ? invoice.taxRate : brandTaxRate
+  const taxAmount      = parseFloat(invoice.taxAmount) || calcTax(subtotal, taxRate, useTax)
+  const grandTotal     = invoice.totalAmount != null
+    ? parseFloat(invoice.totalAmount)
+    : subtotal + shippingFee - discountAmount + taxAmount
+
+  const discountLabel = discountType === 'percent'
+    ? `Discount (${discountValue}%)`
+    : discountType === 'flat'
+      ? 'Discount'
+      : 'Discount'
 
   return (
 
@@ -77,31 +93,44 @@ export function InvoiceTemplate5({ invoice, customer, brand }) {
       </table>
 
 
-      <div className={styles.totalsSection}>
+       {/* ── Right-aligned summary block ── */}
+      <div className={styles.summaryBlock}>
 
-        <div className={styles.totalRow}>
-
-          <span>Subtotal</span>
-          <span>{fmt(currency, subtotal)}</span>
-
+        <div className={styles.summaryRow}>
+          <span className={styles.summaryKey}>Subtotal</span>
+          <span className={styles.summaryVal}>{fmt(currency, subtotal)}</span>
         </div>
 
-        {showTax && taxRate > 0 && 
-        <div className={styles.totalRow}>
+        {shippingFee > 0 && (
+          <div className={styles.summaryRow}>
+            <span className={styles.summaryKey}>Shipping &amp; Delivery</span>
+            <span className={styles.summaryVal}>{fmt(currency, shippingFee)}</span>
+          </div>
+        )}
 
-          <span>Tax ({taxRate}%)</span>
-          <span>{fmt(currency, tax)}</span>
+        {discountAmount > 0 && (
+          <div className={styles.summaryRow}>
+            <span className={`${styles.summaryKey} ${styles.summaryKeyDiscount}`}>{discountLabel}</span>
+            <span className={`${styles.summaryVal} ${styles.summaryValDiscount}`}>−{fmt(currency, discountAmount)}</span>
+          </div>
+        )}
 
-        </div>}
+        {useTax && taxAmount > 0 && (
+          <div className={styles.summaryRow}>
+            <span className={styles.summaryKey}>VAT ({taxRate}%)</span>
+            <span className={styles.summaryVal}>{fmt(currency, taxAmount)}</span>
+          </div>
+        )}
 
-        <div className={`${styles.totalRow} ${styles.totalBold}`}>
+        <div className={styles.summaryDivider} />
 
-          <span>Total</span>
-          <span>{fmt(currency, total)}</span>
-
+        <div className={styles.summaryTotalRow}>
+          <span className={styles.summaryTotalKey}>Total Due</span>
+          <span className={styles.summaryTotalVal}>{fmt(currency, grandTotal)}</span>
         </div>
 
       </div>
+      
 
 
       <div className={styles.footer}>

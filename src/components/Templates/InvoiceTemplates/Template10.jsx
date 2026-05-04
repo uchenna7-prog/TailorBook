@@ -1,68 +1,72 @@
 import styles from "../styles/Template10.module.css"
 import { getDueDate,calcTax,fmt } from "../utils/invoiceUtils"
 
+
 export function InvoiceTemplate10({ invoice, customer, brand }) {
   const dueDate     = getDueDate(invoice, brand.dueDays)
   const accentColor = brand.colour || '#0057D7'
   const { currency, showTax, taxRate } = brand
   const subtotal = invoice.items?.length > 0
     ? invoice.items.reduce((sum, item) => sum + ((item.qty ?? 1) * (parseFloat(item.price) || 0)), 0)
-    : 0
+     : 0
   const tax      = calcTax(subtotal, taxRate, showTax)
   const total    = subtotal + tax
 
   return (
     <div className={styles.template}>
-      <div className={styles.headerZone}>
-        <svg
-          style={{ position : 'absolute', inset : 0, width : '100%', height : '100%' }}
-          viewBox="0 0 400 72"
-          preserveAspectRatio="none"
-        >
-          <polygon points="0,0 400,0 400,28 0,72" fill={accentColor} />
-        </svg>
-        <div style={{ position : 'absolute', top : 10, left : 18, zIndex : 1 }}>
-          <span className={styles.bannerTitle}>INVOICE</span>
-        </div>
-        <div className={styles.brandInBanner}>
 
-          <div>
-            <div className={styles.brandName} style={{ color : "var(--brand-on-primary)" }} >{brand.name || brand.ownerName}</div>
-            <div className={styles.brandSub}>TAILOR SHOP</div>
-          </div>
-        </div>
-      </div>
-      <div className={styles.metaRow}>
+      <div className={styles.header}>
+
         <div>
-          <div className={styles.metaLabel}>Invoice To</div>
-          <div className={styles.metaName}>{customer.name}</div>
-          {customer.phone   && <div className={styles.metaAddress}>{customer.phone}</div>}
-          {customer.address && <div className={styles.metaAddress}>{customer.address}</div>}
+          <div className={styles.logoRow}>
+            {brand.logo
+              ? <img src={brand.logo} alt="" style={{ width : "45px", height : "45px", objectFit : 'contain' }} />
+               : <span className="mi" style={{ fontSize : 14, color : '#333' }}>checkroom</span>
+            }
+            <span className={styles.companyName}>{(brand.name || brand.ownerName || '').toUpperCase()}</span>
+          </div>
+          {brand.tagline && <div className={styles.companySub}>{brand.tagline}</div>}
+          {brand.address && <div className={styles.companyAddress}>{brand.address}</div>}
         </div>
-        <div style={{ textAlign : 'right' }}>
-          <div><span className={styles.metaKey}>Invoice#</span> <strong>{invoice.number}</strong></div>
-          <div><span className={styles.metaKey}>Date</span> <strong>{invoice.date}</strong></div>
-          <div><span className={styles.metaKey}>Due</span> <strong>{dueDate}</strong></div>
+        <div className={styles.invoiceTitle} style={{ color : accentColor }}>INVOICE</div>
+      </div>
+      <div className={styles.numberBar}>
+        <span>INVOICE # {invoice.number}</span><span>|</span>
+        <span>DATE : {invoice.date}</span><span>|</span>
+        <span>DUE : {dueDate}</span>
+      </div>
+      <div className={styles.billShip}>
+        <div>
+          <span className={styles.billLabel}>Bill To :</span>
+          <div><strong>{customer.name}</strong></div>
+          {customer.phone   && <div>{customer.phone}</div>}
+          {customer.email   && <div>{customer.email}</div>}
+          {customer.address && <div>{customer.address}</div>}
         </div>
-
+        <div>
+          <span className={styles.billLabel}>From :</span>
+          <div><strong>{brand.name || brand.ownerName}</strong></div>
+          {brand.phone && <div>{brand.phone}</div>}
+          {brand.email && <div>{brand.email}</div>}
+          {brand.address  && <div>{brand.address}</div>}
+        </div>
       </div>
 
-     <div className={styles.tableWrapper}>
+      <div className={styles.tableWrapper}>
 
-      <div className={styles.orderDescriptionRow}>
+        <div className={styles.orderDescriptionRow}>
 
-        <div className={styles.orderText}>ORDER:</div>
-        <div className={styles.orderDescLabel}>{invoice.orderDesc || 'Garment Order'}</div>
+          <div className={styles.orderText}>ORDER:</div>
+          <div className={styles.orderDescLabel}>{invoice.orderDesc || 'Garment Order'}</div>
 
-      </div>
-      
+        </div>
+        
       <table className={styles.table}>
         <thead>
           <tr className={styles.tableHeader}>
-            <th className={styles.colSn}>SN</th>
             <th className={styles.colDesc}>Item Description</th>
-            <th className={styles.colPrice}>Unit Price</th>
             <th className={styles.colQty}>Qty</th>
+            <th className={styles.colPrice}>Unit Price</th>
             <th className={styles.colTotal}>Total</th>
           </tr>
         </thead>
@@ -74,65 +78,63 @@ export function InvoiceTemplate10({ invoice, customer, brand }) {
 
             return (
               <tr key={i} className={styles.tableRow}>
-                <td className={styles.colSn}>{i + 1}</td>
                 <td className={styles.colDesc}>{item.name}</td>
-                <td className={styles.colPrice}>{fmt(currency, unitPrice)}</td>
                 <td className={styles.colQty}>{qty}</td>
+                <td className={styles.colPrice}>{fmt(currency, unitPrice)}</td>
                 <td className={styles.colTotal}>{fmt(currency, lineAmount)}</td>
               </tr>
             );
           })}
         </tbody>
       </table>
-    </div>
 
-      <div className={styles.divider} />
-      <div className={styles.bottom}>
-        <div style={{ flex : 1 }}>
-          <div className={styles.thankYou}>{brand.footer || 'Thank you for your business'}</div>
-          {brand.accountBank && (
-            <>
-              <div className={styles.paymentLabel}>Payment Information :</div>
-              <div className={styles.paymentInfo}>
-                {brand.accountNumber && <span>Account Number : {brand.accountNumber}<br /></span>}
-                {brand.accountBank   && <span>Bank : {brand.accountBank}<br/></span>}
-                {brand.accountName   && <span>Account Name : {brand.accountName}<br /></span>}
-              </div>
-            </>
-          )}
-          {(brand.phone || brand.email) && (
-            <>
-              <div className={styles.label}>Contact</div>
-              <div className={styles.text}>
-                {brand.phone && <span>{brand.phone}<br /></span>}
-                {brand.email && <span>{brand.email}</span>}
-              </div>
-            </>
-          )}
+           <div className={styles.subArea}>
+        <div className={styles.subRow}>
+          
+          <span style={{fontWeight :900,color :"var(--brand-primary-dark)"}}>Subtotal:</span>
+          <span>{fmt(currency, subtotal)}</span>
+
         </div>
-        <div className={styles.rightColumn}>
-          <div className={styles.totals}>
-            <div className={styles.totalRow}><span>Sub Total :</span><span>{fmt(currency, subtotal)}</span></div>
-            {showTax && taxRate > 0 && <div className={styles.totalRow}><span>Tax ({taxRate}%) :</span><span>{fmt(currency, tax)}</span></div>}
-            <div className={styles.totalDivider} />
-            <div className={styles.totalTotal}><span>Total :</span><span>{fmt(currency, total)}</span></div>
-          </div>
-          <div className={styles.signBlock}>
-            <div className={styles.signLine} />
-            <div className={styles.SignLabel}>Authorised Sign</div>
-          </div>
-        </div>
+        {showTax && taxRate > 0 && <div className={styles.subRow}><span>Tax ({taxRate}%)</span><span>{fmt(currency, tax)}</span></div>}
       </div>
-                {/* Corner accent — in normal flow so PDF capture always includes it */}
-      <div style={{ display : 'flex', justifyContent : 'flex-end', marginTop : 'auto' }}>
-        <svg
-          style={{ display : 'block', width : 68, height : 58 }}
-          viewBox="0 0 68 58"
-        >
-          <polygon points="68,0 68,58 0,58" fill={accentColor} />
-        </svg>
+      <div className={styles.totalBar}>
+        <span>TOTAL</span><span>{fmt(currency, total)}</span>
       </div>
       
+    </div>
+ 
+      <div style={{ marginTop : 'auto' }}>
+        <div className={styles.footer}>
+          <div>
+            {brand.accountBank && (
+              <>
+                <div className={styles.thankYou}>Payment Information</div>
+                <div>
+                  {brand.accountNumber && <div>Account Number : {brand.accountNumber}</div>}
+                  {brand.accountBank   && <div>Bank : {brand.accountBank}</div>}
+                  {brand.accountName   && <div>Account Name : {brand.accountName}</div>}
+                </div>
+              </>
+            )}
+            <div className={styles.paymentNote} style={{ fontWeight : 900, color : "var(--brand-primary-dark)" }}>
+              {brand.footer}
+            </div>
+          </div>
+          <div className={styles.signArea}>
+            <div className={styles.signLine} />
+            <div className={styles.signLabel}>Signature</div>
+          </div>
+
+        </div>
+        <div style={{ display : 'flex', justifyContent : 'flex-end' }}>
+          <svg
+            style={{ display : 'block', width : 50, height : 50 }}
+            viewBox="0 0 50 50"
+          >
+            <polygon points="50,0 50,50 0,50" fill={accentColor} opacity="0.5" />
+          </svg>
+        </div>
+      </div>
     </div>
   )
 }

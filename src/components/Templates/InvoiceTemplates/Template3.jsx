@@ -1,75 +1,169 @@
 import styles from "../styles/Template3.module.css"
-import { getDueDate } from "../utils/invoiceUtils"
-import { ItemsTable } from "../components/InvoiceItemsTable/InvoiceItemsTable"
-import { LogoOrName } from "../components/LogoOrBrandName/LogoOrBrandName"
+import { getDueDate,calcTax,fmt } from "../utils/invoiceUtils"
+
+
 
 export function InvoiceTemplate3({ invoice, customer, brand }) {
 
-  const bannerBg = brand.colour || '#0057D7'
   const dueDate  = getDueDate(invoice, brand.dueDays)
+  const barColor = brand.colour || '#0057D7'
+
+  const { currency, showTax, taxRate: brandTaxRate } = brand
+
+  const subtotal = invoice.items?.length > 0
+    ? invoice.items.reduce((sum, item) => sum + ((item.qty ?? 1) * (parseFloat(item.price) || 0)), 0)
+    : 0
+
+  const shippingFee    = parseFloat(invoice.shippingFee)    || 0
+  const discountAmount = parseFloat(invoice.discountAmount) || 0
+  const discountType   = invoice.discountType   || null   // 'percent' | 'flat' | null
+  const discountValue  = parseFloat(invoice.discountValue)  || 0
+  const useTax         = invoice.taxRate != null ? invoice.taxRate > 0 : (showTax && brandTaxRate > 0)
+  const taxRate        = invoice.taxRate != null ? invoice.taxRate : brandTaxRate
+  const taxAmount      = parseFloat(invoice.taxAmount) || calcTax(subtotal, taxRate, useTax)
+  const grandTotal     = invoice.totalAmount != null
+    ? parseFloat(invoice.totalAmount)
+    : subtotal + shippingFee - discountAmount + taxAmount
+
+  const discountLabel = discountType === 'percent'
+    ? `Discount (${discountValue}%)`
+    : discountType === 'flat'
+      ? 'Discount'
+      : 'Discount'
 
   return (
 
-    <div className={styles.template} style={{ padding : 0 }}>
+    <div className={styles.template}>
+      
+      <div className={styles.bar}/>
 
-      <div className={styles.customBanner} style={{ background : bannerBg }}>
+        <div className={styles.body}>
 
-        <div className={styles.customBannerLogo}>
-          <LogoOrName brand={brand} darkBg />
+          <div className={styles.headerSplit}>
+              
+            <div className={styles.title}>INVOICE</div>
+
+            <div style={{ textAlign : 'right', fontSize : 9 }}>
+              <div>ISSUE DATE : <strong>{invoice.date}</strong></div>
+              <div>DUE DATE : <strong>{dueDate}</strong></div>
+              <div>INVOICE # : <strong>{invoice.number}</strong></div>
+            </div>
+
+          </div>
+          <div className={styles.metaRow}>
+
+            <div  className={styles.metaItem} >
+
+              <div className={styles.metaLabel}>BILL FROM</div>
+              <div className={styles.metaVal}>{brand.name}</div>
+              {brand.phone   && <div className={styles.metaSub}>{brand.phone}</div>}
+              {brand.address && <div className={styles.metaSub}>{brand.address}</div>}
+             
+
+            </div>
+
+            <div className={styles.metaItem}  style={{ textAlign : 'right' }}>
+
+              <div className={styles.metaLabel}>BILL TO</div>
+              <div className={styles.metaVal}>{customer.name}</div>
+              {customer.phone   && <div className={styles.metaSub}>{customer.phone}</div>}
+              {customer.address && <div className={styles.metaSub}>{customer.address}</div>}
+
+            </div>
+
+          </div>
+
+
+
+        <div>
+
+
+          <div className={styles.table}>
+
+            <div className={styles.orderDescriptionRow}>
+              <div className={styles.orderText}>ORDER:</div>
+              <div className={styles.orderDescLabel}>{invoice.orderDesc || 'Garment Order'}</div>
+      
+            </div>
+            
+            <table
+              className={styles.tableEl}
+              style={{ borderColor : barColor }}
+            >
+              <thead>
+                <tr className={styles.tableHeader} style={{ borderColor : barColor }}>
+                  <th className={styles.colDesc}>Item Description</th>
+                  <th className={styles.colPrice}>Unit Price</th>
+                  <th className={styles.colQty}>Qty</th>
+                  <th className={styles.colTotal}>Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {invoice.items?.map((item, i) => {
+                  const qty = item.qty ?? 1;
+                  const unitPrice = parseFloat(item.price) || 0;
+                  const lineAmount = qty * unitPrice;
+
+                  return (
+                    <tr key={i} className={styles.tableRow}>
+                      <td className={styles.colDesc}>{item.name}</td>
+                      <td className={styles.colPrice}>{fmt(currency, unitPrice)}</td>
+                      <td className={styles.colQty}>{qty}</td>
+                      <td className={styles.colTotal}>{fmt(currency, lineAmount)}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+
+              {/* ── Right-aligned summary block ── */}
+            <div className={styles.summaryBlock}>
+      
+              <div className={styles.summaryRow}>
+                <span className={styles.summaryKey}>Subtotal</span>
+                <span className={styles.summaryVal}>{fmt(currency, subtotal)}</span>
+              </div>
+      
+              {shippingFee > 0 && (
+                <div className={styles.summaryRow}>
+                  <span className={styles.summaryKey}>Shipping &amp; Delivery</span>
+                  <span className={styles.summaryVal}>{fmt(currency, shippingFee)}</span>
+                </div>
+              )}
+      
+              {discountAmount > 0 && (
+                <div className={styles.summaryRow}>
+                  <span className={`${styles.summaryKey} ${styles.summaryKeyDiscount}`}>{discountLabel}</span>
+                  <span className={`${styles.summaryVal} ${styles.summaryValDiscount}`}>−{fmt(currency, discountAmount)}</span>
+                </div>
+              )}
+      
+              {useTax && taxAmount > 0 && (
+                <div className={styles.summaryRow}>
+                  <span className={styles.summaryKey}>VAT ({taxRate}%)</span>
+                  <span className={styles.summaryVal}>{fmt(currency, taxAmount)}</span>
+                </div>
+              )}
+      
+              <div className={styles.summaryDivider} />
+      
+              <div className={styles.summaryTotalRow}>
+                <span className={styles.summaryTotalKey}>Total Due</span>
+                <span className={styles.summaryTotalVal}>{fmt(currency, grandTotal)}</span>
+              </div>
+      
+            </div>
+
+          </div>
+
+         
         </div>
-
-        <div className={styles.customBannerRight}>
-
-          <div className={styles.customBannerTitle}>INVOICE</div>
-          <div className={styles.customBannerInvoiceNumber}>{invoice.number}</div>
-
-        </div>
-
-      </div>
-
-      <div className={styles.body}>
-
-        <div className={styles.metaRow} style={{ marginBottom : 16 }}>
-
-          <div className={styles.metaItem}>
-
-            <div className={styles.metaLabel}>BILL FROM</div>
-            <div className={styles.metaVal}>{brand.name}</div>
-            {brand.phone   && <div className={styles.metaSub}>{brand.phone}</div>}
-            {brand.address && <div className={styles.metaSub}>{brand.address}</div>}
-
-          </div>
-
-          <div className={styles.metaItem}>
-
-            <div className={styles.metaLabel}>BILL TO</div>
-            <div className={styles.metaVal}>{customer.name}</div>
-            {customer.phone && <div className={styles.metaSub}>{customer.phone}</div>}
-            {customer.address && <div className={styles.metaSub}>{customer.address}</div>}
-
-          </div>
-
-          <div className={styles.metaItem}>
-
-            <div className={styles.metaLabel}>ISSUE DATE</div>
-            <div className={styles.metaSub}>{invoice.date}</div>
-
-          </div>
-
-          <div className={styles.metaItem} style={{ textAlign : 'right' }}>
-
-            <div className={styles.metaLabel}>DUE DATE</div>
-            <div className={styles.metaSub}>{dueDate}</div>
-
-          </div>
-
-        </div>
-
-        <ItemsTable invoice={invoice} brand={brand} />
 
         {brand.accountBank && (
-          <div className={styles.paymentRow}>
-            <strong style={{fontWeight :900,color :"var(--brand-primary-dark)"}}>Payment Information :</strong><br/>
+          
+          <div className={styles.footer}>
+            <div className={styles.footerSection}>
+              <strong style={{fontWeight :900,color :"var(--brand-primary-dark)"}}>Payment Information :</strong><br />
 
               <div>
 
@@ -86,12 +180,16 @@ export function InvoiceTemplate3({ invoice, customer, brand }) {
                 )}
                 
               </div>
+              
+            </div>
+            {brand.footer && (
+              <div className={styles.footerSection}>
+                <strong style={{fontWeight :900,color :"var(--brand-primary-dark)"}}>Notes :</strong><br />{brand.footer}
+              </div>
+            )}
           </div>
         )}
-      </div>
 
-      <div className={styles.footer}>
-        <div className={styles.footerText} >{brand.footer || 'Thank you for your patronage'}</div>
       </div>
 
     </div>

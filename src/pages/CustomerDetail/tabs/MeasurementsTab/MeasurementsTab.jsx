@@ -513,7 +513,7 @@ function MeasureDetail({ measurement, onClose, onDelete }) {
           <div className={styles.infoGrid}>
             <div className={styles.infoGridCell}>
               <div className={styles.infoGridLabel}>Unit</div>
-              <div className={styles.infoGridValue}>{UNIT_SHORT[measurement.unit] ?? measurement.unit}</div>
+              <div className={styles.infoGridValue}>{UNIT_FULL[measurement.unit] ?? measurement.unit}</div>
             </div>
             <div className={styles.infoGridCell}>
               <div className={styles.infoGridLabel}>Fields</div>
@@ -534,7 +534,7 @@ function MeasureDetail({ measurement, onClose, onDelete }) {
                   >
                     <span className={styles.measurementFieldName}>{field.name}</span>
                     <span className={styles.measurementFieldValue}>
-                      {field.value || '—'}{field.value ? <span className={styles.measurementFieldUnit}>{UNIT_SHORT[measurement.unit] ?? ''}</span> : ''}
+                      {field.value || '—'}{field.value ? <span className={styles.measurementFieldUnit}>{UNIT_FULL[measurement.unit] ?? ''}</span> : ''}
                     </span>
                   </div>
                 ))

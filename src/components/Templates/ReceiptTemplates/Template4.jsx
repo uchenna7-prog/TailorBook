@@ -1,135 +1,83 @@
 import styles from "../styles/Template4.module.css"
-import { calcTax,fmt } from "../utils/receiptUtils"
 import { ReceiptPaymentSummary } from "../components/ReceiptPaymentSummary/ReceiptPaymentSummary"
+import { ItemsTable } from "../components/ReceiptItemsTable/ReceiptItemsTable"
+import { LogoOrName } from "../components/LogoOrBrandName/LogoOrBrandName"
 
 export function ReceiptTemplate4({ receipt, customer, brand }) {
 
-  const barColor = brand.colour || '#0057D7'
-  const { currency, showTax, taxRate } = brand
-  const subtotal = receipt.items?.length > 0
-    ? receipt.items.reduce((sum, item) => sum + ((item.qty ?? 1) * (parseFloat(item.price) || 0)), 0)
-     : 0
-  const tax = calcTax(subtotal, taxRate, showTax)
-  const total = subtotal + tax
- 
+  const bannerBg = brand.colour || '#0057D7'
 
   return (
 
-    <div className={styles.template}>
-      
-      <div className={styles.bar}/>
+    <div className={styles.template} style={{ padding : 0 }}>
 
-        <div className={styles.body}>
+      <div className={styles.customBanner} style={{ background : bannerBg }}>
 
-          <div className={styles.headerSplit}>
-              
-            <div className={styles.title}>receipt</div>
+        <div className={styles.customBannerLogo}>
+          <LogoOrName brand={brand} darkBg />
+        </div>
 
-            <div style={{ textAlign : 'right', fontSize : 9 }}>
-              <div>ISSUE DATE : <strong>{receipt.date}</strong></div>
-              <div>receipt # : <strong>{receipt.number}</strong></div>
-            </div>
+        <div className={styles.customBannerRight}>
 
-          </div>
-          <div className={styles.metaRow}>
+          <div className={styles.customBannerTitle}>RECEIPT</div>
+          <div className={styles.customBannerReceiptNumber}>{receipt.number}</div>
 
-            <div  className={styles.metaItem} >
+        </div>
 
-              <div className={styles.metaLabel}>RECEIVED BY</div>
-              <div className={styles.metaVal}>{brand.name}</div>
-              {brand.phone   && <div className={styles.metaSub}>{brand.phone}</div>}
-              {brand.address && <div className={styles.metaSub}>{brand.address}</div>}
-             
+      </div>
 
-            </div>
+      <div className={styles.body}>
 
-            <div className={styles.metaItem}  style={{ textAlign : 'right' }}>
+        <div className={styles.metaRow} style={{ marginBottom : 16 }}>
 
-              <div className={styles.metaLabel}>RECEIVED FROM</div>
-              <div className={styles.metaVal}>{customer.name}</div>
-              {customer.phone   && <div className={styles.metaSub}>{customer.phone}</div>}
-              {customer.address && <div className={styles.metaSub}>{customer.address}</div>}
+          <div className={styles.metaItem}>
 
-            </div>
+            <div className={styles.metaLabel}>RECEIVED BY</div>
+            <div className={styles.metaVal}>{brand.name}</div>
+            {brand.phone   && <div className={styles.metaSub}>{brand.phone}</div>}
+            {brand.address && <div className={styles.metaSub}>{brand.address}</div>}
 
           </div>
 
+          <div className={styles.metaItem}>
 
-          <div className={styles.table}>
-
-            
-            <div className={styles.orderDescriptionRow}>
-              <div className={styles.orderText}>ORDER:</div>
-              <div className={styles.orderDescLabel}>{receipt.orderDesc || 'Garment Order'}</div>
-      
-            </div>
-
-            <table
-              className={styles.tableEl}
-              style={{ borderColor : barColor }}
-            >
-              <thead>
-                <tr className={styles.tableHeader} style={{ borderColor : barColor }}>
-                  <th className={styles.colDesc}>Item Description</th>
-                  <th className={styles.colPrice}>Unit Price</th>
-                  <th className={styles.colQty}>Qty</th>
-                  <th className={styles.colTotal}>Total</th>
-                </tr>
-              </thead>
-              <tbody>
-                {receipt.items?.map((item, i) => {
-                  const qty = item.qty ?? 1;
-                  const unitPrice = parseFloat(item.price) || 0;
-                  const lineAmount = qty * unitPrice;
-
-                  return (
-                    <tr key={i} className={styles.tableRow}>
-                      <td className={styles.colDesc}>{item.name}</td>
-                      <td className={styles.colPrice}>{fmt(currency, unitPrice)}</td>
-                      <td className={styles.colQty}>{qty}</td>
-                      <td className={styles.colTotal}>{fmt(currency, lineAmount)}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-
-            <div className={styles.orderTotalWrap}>
-            
-              
-              <div className={styles.orderTotalLabel}>Order Total</div>
-              
-              <div className={styles.orderTotalValue}>{fmt(currency, total)}</div>
-            </div>
-
-            <ReceiptPaymentSummary receipt={receipt} brand={brand} />
+            <div className={styles.metaLabel}>RECEIVED FROM</div>
+            <div className={styles.metaVal}>{customer.name}</div>
+            {customer.phone && <div className={styles.metaSub}>{customer.phone}</div>}
+            {customer.address && <div className={styles.metaSub}>{customer.address}</div>}
 
           </div>
-        
+
+          <div className={styles.metaItem}>
+
+            <div className={styles.metaLabel}>ISSUE DATE</div>
+            <div className={styles.metaSub}>{receipt.date}</div>
+
+          </div>
+
+
+        </div>
+
+        <ItemsTable receipt={receipt} brand={brand} />
+        <ReceiptPaymentSummary receipt={receipt} brand={brand} />
 
         {brand.accountBank && (
-          
-          <div className={styles.footer}>
-            <div className={styles.footerSection}>
-              <strong style={{fontWeight :900,color :"var(--brand-primary-dark)"}}>Payment Details :</strong><br />
+          <div className={styles.paymentRow}>
+            <strong style={{fontWeight :900,color :"var(--brand-primary-dark)"}}>Payment Details :</strong><br/>
 
               <div>
 
                 {brand.name && (
-                    <div>Received By  : {brand.name}</div>
-                  )}
+                  <div>Received By  : {brand.name}</div>
+                )}
                 
               </div>
-              
-            </div>
-            {brand.footer && (
-              <div className={styles.footerSection}>
-                <strong style={{fontWeight :900,color :"var(--brand-primary-dark)"}}>Notes :</strong><br />{brand.footer}
-              </div>
-            )}
           </div>
         )}
+      </div>
 
+      <div className={styles.footer}>
+        <div className={styles.footerText} >{brand.footer || 'Thank you for your patronage'}</div>
       </div>
 
     </div>

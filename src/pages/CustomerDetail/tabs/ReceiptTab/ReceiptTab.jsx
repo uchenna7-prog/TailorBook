@@ -497,6 +497,7 @@ function ReceiptPickerModal({ isOpen, onClose, orders, payments, receipts, onSel
 
 function ReceiptCard({ receipt, currency, onTap, isLast, orderItems }) {
   const { thisPayment, isPaidInFull, label, badgeStyle } = getPaymentStatus(receipt)
+  const itemCount  = receipt.items?.length > 0 ? receipt.items.length : (receipt.qty || null)
 
   return (
     <div
@@ -508,8 +509,11 @@ function ReceiptCard({ receipt, currency, onTap, isLast, orderItems }) {
 
       <div className={styles.receiptRowInfo}>
         <div className={styles.receiptRowTitle}>{receipt.orderDesc || 'Payment'}</div>
-        <div className={styles.receiptRowNumber}>{receipt.number}</div>
-        <div className={styles.receiptRowDate}>Generated {receipt.date}</div>
+        {itemCount && (
+          <div className={styles.receiptRowItemCount}>
+            {itemCount} {itemCount === 1 ? 'item' : 'items'}
+          </div>
+        )}
       </div>
 
       <div className={styles.receiptRowRight}>

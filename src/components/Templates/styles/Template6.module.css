@@ -1,139 +1,101 @@
-.template { 
-   background: #fff; 
-   color: #1a1a1a; 
-   font-family: "Manrope", sans-serif;
-   font-size: 10px; 
-   display: flex; 
-   flex-direction: column; 
-    min-height: 565px;
-}
-.header {
-  background: var(--brand-gradient);
-  color: var(--brand-on-primary);
-  padding: 10px 16px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 8px;
-  opacity: 0.88;
-  font-size: 9px;
-  flex-wrap: wrap;
-}
-.header > div:first-child {
-   display: flex;
-   flex-direction: row;
-   text-align: left;
-   min-width: 0;
-   flex: 1;
-
-}
-.logoArea {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.logoCircle { 
-    width: 45px; 
-   height: 45px; 
-   border-radius: 50%; 
-   display: flex; 
-   align-items: center; 
-   justify-content: center; 
-   flex-shrink: 0; 
-  background: rgba(255,255,255,0.25); 
-  border: 1.5px solid rgba(255,255,255,0.6); 
-
-}
-.companyName {
-  font-size: 10px; 
-   font-weight: 900; 
-   letter-spacing: 0.05em; 
-   color: var(--brand-on-primary); 
-}
-.tagline{
-   font-size: 7.5px;
-}
-
-
-
-.headerRight {
-  font-size: 9px;
-  line-height: 1.6;
-  opacity: 0.88;
-  flex-shrink: 0;
-  text-align: right;
-  max-width: 38%;
-}
-.invoiceRow, .receiptRow { 
-   display: flex; 
-   justify-content: space-between; 
-   align-items: center; 
-   padding: 8px 16px; 
-   border-bottom: 1px solid #eee; 
-}
-.invoiceLeft, .receiptLeft { 
-   display: flex; 
-   align-items: baseline; 
-   gap: 4px; 
-}
-.invoiceWord, .receiptWord { 
-   font-size: 10px; 
-   font-weight: 400; 
-   color: #555; 
-}
-.invoiceNum, .receiptNum { 
-   font-size: 18px; 
-   font-weight: 900; 
-   color: var(--brand-primary); 
-}
-.invoiceRight, .receiptRight { 
-   text-align: right; 
-   font-size: 10px; 
-   line-height: 1.7; 
-}
-.label {
-  font-size: 9px; 
-   font-weight: 700; 
-   color: var(--brand-primary); 
-}
-.infoRow {
-  display: flex;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 7px 16px 9px;
-  border-bottom: 1px solid #eee;
-}
-.infoRow > div {
-  min-width: 0;
-  flex: 1;
+.template {
+  background: #fff;
+  color: #1a1a1a;
+  font-family: "Manrope", sans-serif;
   font-size: 10px;
-  line-height: 1.6;
-  word-break: break-word;
-  overflow-wrap: break-word;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  position: relative;
+   min-height: 565px;
+}
+.headerZone {
+  position: relative;
+  width: 100%;
+  height: 72px;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+.fullBanner {
+  position: absolute;
+  inset: 0;
+  background: var(--brand-gradient);
+  clip-path: polygon(0 0, 100% 0, 100% 28px, 0 100%);
+  display: flex;
+  align-items: flex-start;
+  padding: 10px 18px 0;
+}
+.bannerTitle {
+  color: var(--brand-on-primary);
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  padding-top: 2px;
+}
+.brandInBanner {
+  position: absolute;
+  top: 7px; right: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  z-index: 1;
+}
+.brandName {
+  font-size: 10px;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+.brandSub {
+  color: var(--brand-on-primary);
+  font-size: 8px;
+  letter-spacing: 0.06em;
+}
+.metaRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 16px 5px;
+  font-size: 10px;
+  line-height: 1.5;
 }
 
-.infoLabel { 
-   font-weight: 700; 
-   font-size: 10px; 
-   margin-bottom: 2px; 
-   color: var(--brand-primary); 
+.metaRow > div:first-child {
+  flex: 1;
+  min-width: 0;
+  word-break: break-word;
 }
-.thankYou { 
-   text-transform: uppercase;
-   text-align: right; 
-   font-style: italic; 
-   font-size: 10px; 
-   padding: 8px 16px; 
-   color: var(--brand-primary); 
-   margin-top: auto; 
+
+.metaRow > div:last-child {
+  flex-shrink: 0;
+}
+
+.metaLabel {
+  font-weight: 700;
+  font-size: 10px;
+  margin-bottom: 1px;
+  color: var(--brand-primary);
+}
+.metaName {
+  font-weight: 700;
+  font-size: 10px;
+}
+.metaAddress {
+  color: #555;
+}
+.metaKey {
+  color: var(--brand-primary);
+  font-weight: 600;
 }
 
 /* ── Table ── */
 .tableWrapper {
-  padding: 0 16px;
+  margin: 0 16px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
 }
 
 .orderDescriptionRow {
@@ -151,32 +113,26 @@
   color: #0a0a0a;
 }
 
-
-.table {
-  width: 100%;
-  border-collapse: collapse;
-  table-layout: fixed;
-}
-
-.colDesc  { width: 44%; }
-.colPrice { width: 22%; }
+/* Column widths */
+.colSn    { width: 6%; }
+.colDesc  { width: 40%; }
+.colPrice { width: 20%; }
 .colQty   { width: 10%; }
-.colTotal { width: 24%; }
+.colTotal { width: 22%; }
 
-.tableHead {
-  background: var(--brand-gradient);
-  color: var(--brand-on-primary);
-  opacity: 0.88;
+.tableHeader {
+  border: 1.5px solid var(--brand-primary);
 }
 
-.tableHead th {
-  padding: 5px 4px;
-  font-size: 10px;
+.tableHeader th {
+  padding: 4px 4px;
+  font-size: 9px;
   font-weight: 700;
+  color: var(--brand-primary-dark);
 }
 
 .tableRow {
-  border-bottom: 1px dashed #ebebeb;
+   border-bottom: 1px dashed #ebebeb;
 }
 
 .tableRow td {
@@ -184,7 +140,8 @@
   font-size: 10px;
 }
 
-/* Column alignment */
+/* Column alignment — header and body mirror each other */
+th.colSn,  td.colSn  { text-align: center; }
 th.colDesc,  td.colDesc  { 
    text-align: left; 
    word-break: break-word; 
@@ -203,34 +160,142 @@ th.colPrice, td.colPrice {
 th.colTotal, td.colTotal { 
    text-align: center; 
 }
-
-.tableBody {
+.tableBody { /* kept for any wrapper usage */
   padding: 5px 0;
 }
 
-.totalsArea {
-  margin-left: auto;
-  width: 48%;
-  padding: 5px 16px 0 0;
+/* ── Rest unchanged ── */
+.divider {
+  height: 1px;
+  background: var(--brand-muted);
+  margin: 5px 16px;
+}
+.bottom {
+  display: flex;
+  gap: 10px;
+  padding: 4px 16px 8px;
+  font-size: 10px;
+  line-height: 1.6;
+  flex: 1;
+}
+
+.thankYou {
+  font-weight: 700;
+  font-size: 10px;
+  margin-bottom: 3px;
+  color: var(--brand-primary-dark);
+}
+.paymentLabel {
+  font-weight: 700;
   margin-top: 4px;
-  word-break: break-word;
+  margin-bottom: 1px;
+  color: var(--brand-primary);
 }
-.totalRow { 
-   display: flex; 
-   justify-content: space-between; 
-   padding: 2px 0; 
-   font-size: 10px; 
+.paymentInfo {
+  color: #444;
+  line-height: 1.6;
 }
-.total { 
-   display: flex; 
-   justify-content: space-between; 
-   background: var(--brand-gradient); 
-   color: var(--brand-on-primary); 
-   padding: 5px 8px; 
-   font-weight: 900; 
-   font-size: 10px; 
-   margin-top: 3px; 
-   opacity: 0.88; 
+.label {
+  font-weight: 700;
+  margin-top: 5px;
+  margin-bottom: 1px;
+  color: var(--brand-primary);
+}
+.text {
+  color: #666;
+}
+.rightColumn {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-width: 88px;
+  flex-shrink: 0;
+}
+.summaryBlock {
+  padding-top: 10px;
+}
+
+.summaryRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  column-gap: 12px;
+  padding: 3px 0;
+}
+
+.summaryKey {
+  font-size: 10px;
+  color: #6b7280;
+}
+
+.summaryVal {
+  font-size: 10px;
+  font-weight: 500;
+  color: #1a1a1a;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+/* Discount row — muted green tint */
+.summaryKeyDiscount {
+  color: #15803d;
+}
+
+.summaryValDiscount {
+  color: #15803d;
+  font-weight: 700;
+}
+
+/* Partial divider — matches half-width block, not full bleed */
+.summaryDivider {
+  height: 1.5px;
+  background: var(--brand-primary-dark, #a07d20);
+  margin: 8px 0;
+}
+
+.summaryTotalRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  column-gap: 12px;
+  padding: 4px 0;
+}
+
+.summaryTotalKey {
+  font-size: 13px;
+  font-weight: 900;
+  color: var(--brand-primary-dark, #a07d20);
+  letter-spacing: 0.03em;
+}
+
+.summaryTotalVal {
+  font-size: 13px;
+  font-weight: 900;
+  color: #1a1a1a;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+.signBlock {
+  text-align: center;
+}
+.signLine {
+  height: 1px;
+  background: var(--brand-primary);
+  margin-bottom: 2px;
+}
+.signLabel {
+  font-size: 10px;
+  color: #666;
+}
+.cornerAccent {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 65px;
+  height: 55px;
+  background: var(--brand-gradient);
+  clip-path: polygon(100% 0, 100% 100%, 0 100%);
 }
 
 .orderTotalWrap {

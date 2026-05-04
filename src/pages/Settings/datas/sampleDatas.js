@@ -18,6 +18,9 @@ export const RECEIPT_SAMPLE_DATA = {
     { date: '12 Apr 2025', amount: '30000', method: 'cash' },
   ],
   cumulativePaid: '60000',
+  shippingFee:6000,
+  discountType:"flat",
+  discountAmount:1000
 }
 
 
@@ -62,6 +65,9 @@ export const INVOICE_SAMPLE_DATA = {
     { name: 'Trousers', price: '15000' },
     { name: 'Inner Shirt', price: '8000' },
     { name: 'Waistcoat', price: '12000' },
-  ]
+  ],
+  shippingFee:6000,
+  discountType:"flat",
+  discountAmount:1000
 
 }

@@ -41,7 +41,7 @@ export const INVOICE_TEMPLATE_GROUPS = [
         id: 'invoiceTemplate4',  
         label: '4. Full-Bleed Banner',    
         description: 'Big colour header at the top with a logo space',     
-        Component: InvoiceTemplate4 
+        Component: InvoiceTemplate4
       },
       { 
         id: 'invoiceTemplate5',  
@@ -53,7 +53,7 @@ export const INVOICE_TEMPLATE_GROUPS = [
         id: 'invoiceTemplate6',  
         label: '6. Slanted Header',       
         description: 'Header cuts diagonally with a matching corner fill', 
-        Component: InvoiceTemplate6 
+        Component: InvoiceTemplate6
       },
     ],
   },
@@ -83,13 +83,14 @@ export const INVOICE_TEMPLATE_GROUPS = [
         id: 'invoiceTemplate9',  
         label: '9. Three-Column Details', 
         description: 'Payment, delivery, and billing info in one row',         
-        Component: InvoiceTemplate9  
+        Component: InvoiceTemplate9 
       },
       { 
         id: 'invoiceTemplate10', 
         label: '10. Strip and Signature', 
         description: 'Slim info bar at the top with a sign line at the base',  
-        Component: InvoiceTemplate10 },
+        Component: InvoiceTemplate10
+      },
     ],
   },
   {

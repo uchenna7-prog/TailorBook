@@ -74,10 +74,12 @@
   text-overflow: ellipsis;
 }
 
-.receiptRowNumber {
-  font-size: 0.68rem;
-  font-weight: 700;
+.receiptRowItemCount {
+  font-size: 0.78rem;
+  font-weight: 400;
   color: var(--text2);
+  display: inline-block;
+  align-self: flex-start;
 }
 
 .receiptRowDate {

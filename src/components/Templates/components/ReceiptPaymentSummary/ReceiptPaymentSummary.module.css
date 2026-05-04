@@ -147,18 +147,14 @@
 }
 
 
-/* ── Divider ────────────────────────────────────────────────────────────── */
 
 .totalsDivider {
-  height: 1.5px;
-  background: var(--brand-primary-dark, #a07d20);
   margin: 8px 0;
   margin-left: auto;
   width: 55%;
+  
 }
 
-
-/* ── Total Paid row ─────────────────────────────────────────────────────── */
 
 .totalPaidRow {
   display: flex;

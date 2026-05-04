@@ -1,7 +1,7 @@
-// src/contexts/BrandContext.jsx
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import { useSettings } from './SettingsContext'
 import { DEFAULT_COLOUR_ID } from '../config/brandPalette'
+
 
 // ─────────────────────────────────────────────────────────────
 // Personal info loader (mirrors Profile.jsx)

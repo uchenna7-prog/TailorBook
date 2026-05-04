@@ -41,7 +41,7 @@ export const RECEIPT_TEMPLATE_GROUPS = [
         id: 'receiptTemplate4',  
         label: '4. Full-Bleed Banner',    
         description: 'Big colour header at the top with a logo space',     
-        Component: ReceiptTemplate4 
+        Component: ReceiptTemplate4
       },
       { 
         id: 'receiptTemplate5',  
@@ -53,7 +53,7 @@ export const RECEIPT_TEMPLATE_GROUPS = [
         id: 'receiptTemplate6',  
         label: '6. Slanted Header',       
         description: 'Header cuts diagonally with a matching corner fill', 
-        Component: ReceiptTemplate6 
+        Component: ReceiptTemplate6
       },
     ],
   },
@@ -83,13 +83,14 @@ export const RECEIPT_TEMPLATE_GROUPS = [
         id: 'receiptTemplate9',  
         label: '9. Three-Column Details', 
         description: 'Payment, delivery, and billing info in one row',         
-        Component: ReceiptTemplate9  
+        Component: ReceiptTemplate9 
       },
       { 
         id: 'receiptTemplate10', 
         label: '10. Strip and Signature', 
         description: 'Slim info bar at the top with a sign line at the base',  
-        Component: ReceiptTemplate10 },
+        Component: ReceiptTemplate10
+      },
     ],
   },
   {
