@@ -33,12 +33,13 @@ function getBirthday(birthday) {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
+// ── Tab label changed from 'Dress\nMeasurements' → 'Measurements' ──
 const TABS = [
-  { id: 'dress',    label: 'Dress\nMeasurements' },
-  { id: 'orders',   label: 'Orders'             },
-  { id: 'invoice',  label: 'Invoices'           },
-  { id: 'payments', label: 'Payments'           },
-  { id: 'receipts', label: 'Receipts'           },
+  { id: 'dress',    label: 'Measurements' },
+  { id: 'orders',   label: 'Orders'       },
+  { id: 'invoice',  label: 'Invoices'     },
+  { id: 'payments', label: 'Payments'     },
+  { id: 'receipts', label: 'Receipts'     },
 ]
 
 // ─────────────────────────────────────────────────────────────
@@ -64,7 +65,7 @@ function readBrandSnapshot(settingsSnap, invoiceBrand) {
 }
 
 // ─────────────────────────────────────────────────────────────
-// PHOTO OVERLAY — full-screen avatar pop
+// PHOTO OVERLAY — full-screen avatar pop (same animation as HTML)
 // ─────────────────────────────────────────────────────────────
 function PhotoOverlay({ open, onClose, photo, initials, name }) {
   useEffect(() => {
@@ -216,6 +217,18 @@ function DeleteConfirmModal({ customer, onConfirm, onCancel }) {
       </div>
     </div>
   )
+}
+
+// ── Helper: format last order date ───────────────────────────
+function formatLastOrderDate(dateStr) {
+  if (!dateStr) return null
+  try {
+    const d = new Date(dateStr)
+    if (isNaN(d)) return dateStr
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+  } catch {
+    return dateStr
+  }
 }
 
 export default function CustomerDetail({ onMenuClick }) {
@@ -492,17 +505,18 @@ export default function CustomerDetail({ onMenuClick }) {
     e.currentTarget.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' })
   }
 
-  // ── Swipe handlers (mobile only) ──
+  // ── Swipe handlers (mobile only — guarded by window.innerWidth) ──
   const handleTouchStart = useCallback((e) => {
     touchStartX.current = e.touches[0].clientX
     touchStartY.current = e.touches[0].clientY
   }, [])
 
   const handleTouchEnd = useCallback((e) => {
+    // Only swipe on mobile screens
+    if (window.innerWidth > 600) return
     if (touchStartX.current === null) return
     const dx = e.changedTouches[0].clientX - touchStartX.current
     const dy = e.changedTouches[0].clientY - touchStartY.current
-    // Only swipe if horizontal movement dominates and is large enough
     if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
       const tabIds = TABS.map(t => t.id)
       const currentIdx = tabIds.indexOf(activeTab)
@@ -522,6 +536,18 @@ export default function CustomerDetail({ onMenuClick }) {
   const initials = getInitials(customer.name)
   const birthday = getBirthday(customer.birthday)
   const hasPhoto = isPremium && customer.photo
+
+  // ── Last order ──
+  const lastOrder = orders.length > 0
+    ? orders.reduce((latest, o) => {
+        const oDate = o.createdAt?.toDate?.() || new Date(o.createdAt || 0)
+        const lDate = latest.createdAt?.toDate?.() || new Date(latest.createdAt || 0)
+        return oDate > lDate ? o : latest
+      }, orders[0])
+    : null
+  const lastOrderLabel = lastOrder
+    ? `${lastOrder.desc || 'Order'} · ${formatLastOrderDate(lastOrder.createdAt?.toDate?.()?.toISOString?.() || lastOrder.createdAt || '')}`
+    : null
 
   // ── Financial summary ──
   const totalSpent = orders.reduce((sum, o) => sum + (parseFloat(o.totalAmount || o.price) || 0), 0)
@@ -641,6 +667,14 @@ export default function CustomerDetail({ onMenuClick }) {
             {customer.email   && <div className={styles.meta}><span className="mi">mail_outline</span>{customer.email}</div>}
             {customer.address && <div className={styles.metaAddress}><span className="mi">place</span>{customer.address}</div>}
 
+            {/* Last order line */}
+            {lastOrderLabel && (
+              <div className={styles.lastOrderLine}>
+                <span className="mi" style={{ fontSize: '0.82rem', color: 'var(--text3)', flexShrink: 0 }}>schedule</span>
+                <span className={styles.lastOrderText}>Last order: <strong>{lastOrderLabel}</strong></span>
+              </div>
+            )}
+
             {/* Notes — collapsible italic preview */}
             {customer.notes && (
               <div className={styles.notesLine}>
@@ -692,6 +726,14 @@ export default function CustomerDetail({ onMenuClick }) {
               )}
             </div>
 
+            {/* Last order line — free tier */}
+            {lastOrderLabel && (
+              <div className={styles.lastOrderLine}>
+                <span className="mi" style={{ fontSize: '0.82rem', color: 'var(--text3)', flexShrink: 0 }}>schedule</span>
+                <span className={styles.lastOrderText}>Last order: <strong>{lastOrderLabel}</strong></span>
+              </div>
+            )}
+
             {/* Notes for free tier */}
             {customer.notes && (
               <div className={styles.notesLine}>
@@ -733,11 +775,12 @@ export default function CustomerDetail({ onMenuClick }) {
           <button className={`${styles.btn} ${styles.light}`} onClick={() => window.location = `mailto:${customer.email}`}>
             <span className="mi">mail_outline</span>Email
           </button>
+          {/* Label changed from "Full Body Measurements" → "Body Measurements" */}
           <button
             className={`${styles.btn} ${styles.primary}`}
             onClick={() => navigate(`/customers/${id}/body-measurements`)}
           >
-            <span className="mi">straighten</span>Full Body Measurements
+            <span className="mi">straighten</span>Body Measurements
           </button>
         </div>
       </div>
@@ -827,7 +870,7 @@ export default function CustomerDetail({ onMenuClick }) {
 
       <Toast message={toastMsg} />
 
-      {/* Photo overlay */}
+      {/* Photo overlay — full screen on avatar click */}
       <PhotoOverlay
         open={photoOpen}
         onClose={() => setPhotoOpen(false)}
