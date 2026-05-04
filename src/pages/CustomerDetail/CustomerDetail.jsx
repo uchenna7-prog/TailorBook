@@ -19,6 +19,12 @@ import PaymentsTab     from './tabs/PaymentsTab/PaymentsTab'
 import ReceiptTab      from './tabs/ReceiptTab/ReceiptTab'
 import styles from './CustomerDetail.module.css'
 
+function fmt(currency, amount) {
+  const n = parseFloat(amount) || 0
+  return `${currency}${n.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+}
+
+
 function getInitials(name) {
   if (!name) return ''
   const parts = name.trim().split(/\s+/)
@@ -542,11 +548,6 @@ export default function CustomerDetail({ onMenuClick }) {
   }, 0)
   const outstanding = Math.max(0, totalSpent - totalPaidAcrossPayments)
 
-  function fmtK(n) {
-    if (n >= 1000000) return `₦${(n / 1000000).toFixed(1).replace('.0', '')}m`
-    if (n >= 1000)    return `₦${(n / 1000).toFixed(1).replace('.0', '')}k`
-    return `₦${n.toLocaleString()}`
-  }
 
   const handleFabClick = () => {
     if (activeTab === 'dress')     document.dispatchEvent(new CustomEvent('openMeasureModal'))
@@ -573,13 +574,13 @@ export default function CustomerDetail({ onMenuClick }) {
       {totalSpent > 0 && (
         <div className={styles.statsGrid}>
           <div className={styles.statCell}>
-            <span className={styles.statAmount}>{fmtK(totalSpent)}</span>
-            <span className={styles.statLabel}>Total Spent</span>
+            <span className={styles.statAmount}>{fmt("₦", totalSpent)}</span>
+            <span className={styles.statLabel}>Total Billed</span>
           </div>
           {outstanding > 0 && (
             <div className={`${styles.statCell} ${styles.statCell_owed}`}>
-              <span className={styles.statAmount}>{fmtK(outstanding)}</span>
-              <span className={styles.statLabel}>Outstanding</span>
+              <span className={styles.statAmount}>{fmt("₦", outstanding)}</span>
+              <span className={styles.statLabel}>Balance Due</span>
             </div>
           )}
           {outstanding === 0 && totalSpent > 0 && (
