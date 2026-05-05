@@ -252,75 +252,7 @@ export function ReceiptTemplate8({ receipt, customer, brand }) {
           </div>
         )}
         
-         <div className={styles.totalsSection}>
-                  
-          {showTax && taxRate > 0 && (
-            <div className={styles.totalsRow}>
-              <span className={styles.totalsKey}>Tax ({taxRate}%)</span>
-              <span className={styles.totalsVal}>{ formatCurrency(currency, tax)}</span>
-            </div>
-          )}
-  
-          {paymentRows.length > 0 && previouslyPaid > 0 && (
-            <div className={styles.totalsRow}>
-              <span className={styles.totalsKey}
-              style={{ color :  'var(--brand-primary)' }}>
-                Previously Paid
-              </span>
-              <span className={styles.totalsVal}
-              style={{ color :  'var(--brand-primary)' }}>
-                { formatCurrency(currency, previouslyPaid)}</span>
-            </div>
-          )}
-  
-          {paymentRows.length > 0 && thisPaymentTotal > 0 && (
-            <div className={styles.totalsRow}>
-              <span className={styles.totalsKey}
-              style={{ color :  'var(--brand-primary)' }}>
-                This Payment
-              </span>
-              <span className={`${styles.totalsVal} ${styles.amountPaid}`}>
-                + { formatCurrency(currency, thisPaymentTotal)}
-              </span>
-            </div>
-          )}
-  
-          <div className={styles.totalsDivider} 
-          style={{ borderBottom :  '1.5px solid var(--brand-primary-dark)' }}/>
-  
-          <div className={styles.totalPaidRow}>
-            <span className={styles.totalPaidKey}
-            style={{ color  : 'var(--brand-primary)' }}>
-              Total Paid
-            </span>
-            <span className={styles.totalPaidVal} >
-              { formatCurrency(currency, thisPaymentTotal + previouslyPaid)}
-            </span>
-          </div>
-  
-          {/* Status callout */}
-          {!isFullyPaid ? (
-            <div className={styles.balanceCallout}>
-              <div>
-  
-                <div className={styles.balanceLabel}>Balance</div>
-                
-              </div>
-              <span className={styles.balanceAmount}>{ formatCurrency(currency, balanceRemaining)}</span>
-            </div>
-          ) : (
-            <div className={styles.paidCallout}>
-              <div>
-                <div className={styles.paidLabel}>✓ PAID IN FULL</div>
-              </div>
-              <span className={styles.paidAmount}>{ formatCurrency(currency, grandTotal)}</span>
-            </div>
-          )}
-
-          
-  
-        </div>
-          
+        
 
       </div>
 

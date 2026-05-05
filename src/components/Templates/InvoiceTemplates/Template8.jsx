@@ -124,43 +124,7 @@ export function InvoiceTemplate8({ invoice, customer, brand }) {
           </div>
         )}
         
-        <div className={styles.summaryBlock}>
-  
-          <div className={styles.summaryRow}>
-            <span className={styles.summaryKey}>Subtotal</span>
-            <span className={styles.summaryVal}>{ formatCurrency(currency, subtotal)}</span>
-          </div>
-  
-          {shippingFee > 0 && (
-            <div className={styles.summaryRow}>
-              <span className={styles.summaryKey}>Shipping &amp; Delivery</span>
-              <span className={styles.summaryVal}>{ formatCurrency(currency, shippingFee)}</span>
-            </div>
-          )}
-  
-          {discountAmount > 0 && (
-            <div className={styles.summaryRow}>
-              <span className={`${styles.summaryKey} ${styles.summaryKeyDiscount}`}>{discountLabel}</span>
-              <span className={`${styles.summaryVal} ${styles.summaryValDiscount}`}>−{ formatCurrency(currency, discountAmount)}</span>
-            </div>
-          )}
-  
-          {useTax && taxAmount > 0 && (
-            <div className={styles.summaryRow}>
-              <span className={styles.summaryKey}>VAT ({taxRate}%)</span>
-              <span className={styles.summaryVal}>{ formatCurrency(currency, taxAmount)}</span>
-            </div>
-          )}
-  
-          <div className={styles.summaryDivider} />
-  
-          <div className={styles.summaryTotalRow}>
-            <span className={styles.summaryTotalKey}>Total Due</span>
-            <span className={styles.summaryTotalVal}>{ formatCurrency(currency, grandTotal)}</span>
-          </div>
-  
-        </div>
-
+        
       </div>
 
       {brand.footer && (

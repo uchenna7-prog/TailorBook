@@ -153,9 +153,10 @@ th.colTotal, td.colTotal {
 }
 .bottom { 
    display: flex; 
+   justify-content: space-between;
    gap: 7px; 
    padding: 8px 16px 14px; 
-   margin-top: auto; 
+   margin-top: auto;
 }
 .box { 
    background: var(--brand-gradient); 
@@ -179,7 +180,7 @@ th.colTotal, td.colTotal {
    font-size: 10px; 
 }
 .paymentInfo { 
-   flex: 1; 
+
    font-size: 9px; 
 
 }
